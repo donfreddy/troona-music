@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
 abstract interface class LibraryRepository {

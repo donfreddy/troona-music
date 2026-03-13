@@ -10,8 +10,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetHomeFeedUseCase _getFeed;
 
   HomeBloc({required GetHomeFeedUseCase getFeed}) : _getFeed = getFeed, super(HomeInitial()) {
-    on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
-    on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
+    on<HomeFeedRequested>(_onFeedRequested);
+    on<HomeRefreshRequested>(_onFeedRequested);
   }
 
   Future<void> _onFeedRequested(HomeEvent event, Emitter<HomeState> emit) async {

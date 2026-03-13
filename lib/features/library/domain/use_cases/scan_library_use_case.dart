@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 

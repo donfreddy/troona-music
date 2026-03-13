@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';

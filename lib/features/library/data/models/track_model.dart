@@ -1,5 +1,6 @@
 import 'package:isar_plus/isar_plus.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 
 @collection
 class TrackModel {
@@ -25,8 +26,8 @@ class TrackModel {
     ..artist = s.artist ?? 'Artiste inconnu'
     ..album = s.album ?? 'Album inconnu'
     ..durationMs = s.duration ?? 0
-    ..trackNumber = s.track ?? 0
-    ..year = s.year ?? 0;
+    ..trackNumber = s.track ?? 0;
+  //..year = s.year ?? 0;
 
   // Conversion vers l'entité domaine
   Track toEntity() => Track(

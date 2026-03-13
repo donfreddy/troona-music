@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 
@@ -102,7 +103,7 @@ class MiniPlayer extends StatelessWidget {
     );
   }
 
-  (String, bool) _miniKey(PlayerState s) => switch (s) {
+  (Object, bool) _miniKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
     _ => ('', false),
   };

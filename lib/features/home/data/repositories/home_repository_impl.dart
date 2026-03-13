@@ -1,7 +1,9 @@
 import 'package:dartz/dartz.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 
 final class HomeRepositoryImpl implements HomeRepository {
   final IsarLibraryDataSource _db;
@@ -20,7 +22,7 @@ final class HomeRepositoryImpl implements HomeRepository {
         ),
       );
     } catch (e) {
-      return left(DbFailure(e.toString()));
+      return left(DatabaseFailure(e.toString()));
     }
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
@@ -42,7 +43,7 @@ class AppBottomNavBar extends StatelessWidget {
     );
   }
 
-  (String?, bool) _navKey(PlayerState s) => switch (s) {
+  (int?, bool) _navKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
     _ => (null, false),
   };

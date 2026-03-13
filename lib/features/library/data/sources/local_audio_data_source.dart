@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:on_audio_query_pluse/on_audio_query.dart';
+import 'package:troona/core/error/exceptions.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
 abstract interface class LocalAudioDataSource {
@@ -35,7 +36,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     if (!hasPermission) {
       final granted = await _query.permissionsRequest();
       if (!granted) {
-        throw const PermissionDeniedException('Audio permission refusée');
+        throw const PermissionException('Audio permission refusée');
       }
     }
 
@@ -102,7 +103,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     // Ignore les fichiers sans titre ET sans artiste (probablement corrompus)
     if (song.title.isEmpty) return false;
     // Ignore les chemins nuls
-    if (song.data == null || song.data!.isEmpty) return false;
+    if (song.data.isEmpty) return false;
     return true;
   }
 }
