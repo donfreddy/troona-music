@@ -25,7 +25,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
     if (state is! PlayerActive) return;
     if (index == state.queue.currentIndex) return;
     context.read<PlayerBloc>().add(
-      PlayTrackRequested(state.queue.tracks[index], contextQueue: state.queue.tracks, contextIndex: index),
+      PlayTrackRequested(state.queue.playbackTracks[index], contextQueue: state.queue.playbackTracks, contextIndex: index),
     );
   }
 
@@ -283,7 +283,7 @@ class _BottomActions extends StatelessWidget {
       children: [
         _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
         _ActionButton(icon: CupertinoIcons.list_bullet, label: 'File', onTap: () => _showQueue(context)),
-        _ActionButton(icon: CupertinoIcons.airplayvideo, label: 'AirPlay', onTap: () {}),
+        _ActionButton(icon: CupertinoIcons.play, label: 'AirPlay', onTap: () {}),
       ],
     );
   }

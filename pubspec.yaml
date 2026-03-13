@@ -12,6 +12,8 @@ dependencies:
 
   # --- CORE ARCHITECTURE ---
   get_it: ^9.2.1
+  injectable: ^2.7.1+4
+  rxdart: ^0.28.0
   bloc: ^9.2.0
   flutter_bloc: ^9.1.1
   dartz: ^0.10.1
@@ -25,6 +27,7 @@ dependencies:
   on_audio_query_pluse: ^3.0.6
   device_info_plus: ^12.3.0
   permission_handler: ^11.3.0
+  isar_plus: ^1.2.2
 
   # --- UI & DESIGN ---
   eva_icons_flutter: ^3.1.0
@@ -37,6 +40,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  injectable_generator: ^2.12.1
+  build_runner: ^2.12.2
 
 flutter:
   uses-material-design: true
