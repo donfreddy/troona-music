@@ -60,4 +60,8 @@ class IsarLibraryDataSource {
   /// Placeholder: returns recent tracks (currently insertion order).
   Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
       _tracks.values.take(limit).toList();
+
+  /// Placeholder: returns artwork path for a track by deviceId.
+  Future<String?> getArtworkPathById(String deviceId) async =>
+      _tracks[deviceId]?.artworkPath;
 }
