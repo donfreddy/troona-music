@@ -17,7 +17,8 @@ class ShuffleButton extends StatelessWidget {
         return _ControlButton(
           icon: CupertinoIcons.shuffle,
           active: enabled,
-          onPressed: () => context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
+          onPressed: () =>
+              context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
         );
       },
     );
@@ -37,7 +38,9 @@ class RepeatButton extends StatelessWidget {
         final mode = _repeat(state) ?? RepeatMode.off;
 
         return GestureDetector(
-          onTap: () => context.read<PlayerBloc>().add(RepeatModeChangeRequested(_nextMode(mode))),
+          onTap: () => context.read<PlayerBloc>().add(
+            RepeatModeChangeRequested(_nextMode(mode)),
+          ),
           child: SizedBox(
             width: 44,
             height: 44,
@@ -45,8 +48,12 @@ class RepeatButton extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 Icon(
-                  mode == RepeatMode.one ? CupertinoIcons.repeat_1 : CupertinoIcons.repeat,
-                  color: mode == RepeatMode.off ? Colors.white.withOpacity(0.4) : Colors.white,
+                  mode == RepeatMode.one
+                      ? CupertinoIcons.repeat_1
+                      : CupertinoIcons.repeat,
+                  color: mode == RepeatMode.off
+                      ? Colors.white.withValues(alpha: .4)
+                      : Colors.white,
                   size: 22,
                 ),
                 // Indicateur "1" sous l'icône pour RepeatOne
@@ -57,10 +64,18 @@ class RepeatButton extends StatelessWidget {
                       width: 16,
                       height: 10,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(5)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
                       child: const Text(
                         '1',
-                        style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Colors.black, height: 1),
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                          height: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -88,7 +103,11 @@ class _ControlButton extends StatelessWidget {
   final bool active;
   final VoidCallback onPressed;
 
-  const _ControlButton({required this.icon, required this.active, required this.onPressed});
+  const _ControlButton({
+    required this.icon,
+    required this.active,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +116,11 @@ class _ControlButton extends StatelessWidget {
       child: SizedBox(
         width: 44,
         height: 44,
-        child: Icon(icon, color: active ? Colors.white : Colors.white.withOpacity(0.4), size: 22),
+        child: Icon(
+          icon,
+          color: active ? Colors.white : Colors.white.withValues(alpha: .4),
+          size: 22,
+        ),
       ),
     );
   }

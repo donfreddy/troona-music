@@ -39,7 +39,9 @@ abstract final class AppPermissionHandler {
 
       case PermissionStatus.denied:
       default:
-        throw const PermissionException('Audio permission denied. Please grant access in Settings.');
+        throw const PermissionException(
+          'Audio permission denied. Please grant access in Settings.',
+        );
     }
   }
 
@@ -47,6 +49,7 @@ abstract final class AppPermissionHandler {
   static Future<bool> hasAudioPermission() async {
     final permission = await _resolvePermission();
     final status = await permission.status;
-    return status == PermissionStatus.granted || status == PermissionStatus.limited;
+    return status == PermissionStatus.granted ||
+        status == PermissionStatus.limited;
   }
 }

@@ -37,14 +37,21 @@ abstract final class AppTheme {
       cardColor: colors.bgSecondary,
       dividerColor: colors.separator,
 
-      textTheme: AppTypography.textTheme.apply(bodyColor: colors.labelPrimary, displayColor: colors.labelPrimary),
+      textTheme: AppTypography.textTheme.apply(
+        bodyColor: colors.labelPrimary,
+        displayColor: colors.labelPrimary,
+      ),
 
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-        titleTextStyle: AppTypography.textTheme.headlineSmall?.copyWith(color: colors.labelPrimary),
+        systemOverlayStyle: isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        titleTextStyle: AppTypography.textTheme.headlineSmall?.copyWith(
+          color: colors.labelPrimary,
+        ),
         iconTheme: IconThemeData(color: colors.accent),
       ),
 

@@ -23,7 +23,8 @@ abstract final class AppSpacing {
   // static const double navBarHeight = 44.0;
   static const double miniPlayerHeight = 58;
   static const double navBarHeight = 62;
-  static const double bottomBlockHeight = miniPlayerHeight + 6 + navBarHeight; // 126px + safeArea
+  static const double bottomBlockHeight =
+      miniPlayerHeight + 6 + navBarHeight; // 126px + safeArea
 }
 
 // Dans chaque CustomScrollView

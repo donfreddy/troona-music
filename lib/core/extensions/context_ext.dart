@@ -16,13 +16,20 @@ extension ContextExt on BuildContext {
   EdgeInsets get padding => MediaQuery.paddingOf(this);
   double get bottomPadding => padding.bottom;
 
-  bool get isLandscape => MediaQuery.orientationOf(this) == Orientation.landscape;
+  bool get isLandscape =>
+      MediaQuery.orientationOf(this) == Orientation.landscape;
 
   // ── SnackBar helper ────────────────────────────────────────────────────────
 
-  void showSnackBar(String message, {Duration duration = const Duration(seconds: 3), SnackBarAction? action}) {
+  void showSnackBar(
+    String message, {
+    Duration duration = const Duration(seconds: 3),
+    SnackBarAction? action,
+  }) {
     ScaffoldMessenger.of(this)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message), duration: duration, action: action));
+      ..showSnackBar(
+        SnackBar(content: Text(message), duration: duration, action: action),
+      );
   }
 }

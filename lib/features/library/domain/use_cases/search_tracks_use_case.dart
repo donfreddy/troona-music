@@ -7,5 +7,6 @@ final class SearchTracksUseCase {
   final LibraryRepository _repo;
   const SearchTracksUseCase(this._repo);
 
-  Future<Either<Failure, List<Track>>> call(String query) => _repo.searchTracks(query);
+  Future<Either<Failure, List<Track>>> call(String query) =>
+      _repo.searchTracks(query);
 }

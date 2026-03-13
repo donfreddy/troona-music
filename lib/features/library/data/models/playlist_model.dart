@@ -8,5 +8,6 @@ class PlaylistModel {
   late String name;
   String? artworkPath;
 
-  Playlist toEntity() => Playlist(id: playlistId, name: name, artworkPath: artworkPath);
+  Playlist toEntity() =>
+      Playlist(id: playlistId, name: name, artworkPath: artworkPath);
 }

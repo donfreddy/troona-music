@@ -9,7 +9,9 @@ final class ArtworkExtractor {
   final Directory _cacheDir;
   static const _maxConcurrent = 4; // Semaphore — 4 extractions en parallèle max
 
-  ArtworkExtractor({required OnAudioQuery query, required Directory cacheDir}) : _query = query, _cacheDir = cacheDir;
+  ArtworkExtractor({required OnAudioQuery query, required Directory cacheDir})
+    : _query = query,
+      _cacheDir = cacheDir;
 
   /// Extrait et cache les artworks pour une liste de tracks.
   /// Utilise un semaphore pour ne pas saturer l'I/O.
@@ -56,7 +58,6 @@ final class ArtworkExtractor {
     // Pas d'artwork disponible
     return track;
   }
-
 }
 
 /// Petite implémentation locale d'un sémaphore pour limiter la concurrence.

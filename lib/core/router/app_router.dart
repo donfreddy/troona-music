@@ -20,7 +20,10 @@ final appRouter = GoRouter(
       builder: (context, state, child) => MultiBlocProvider(
         providers: [
           BlocProvider<PlayerBloc>(create: (_) => getIt<PlayerBloc>()),
-          BlocProvider<LibraryBloc>(create: (_) => getIt<LibraryBloc>()..add(const LibraryScanRequested())),
+          BlocProvider<LibraryBloc>(
+            create: (_) =>
+                getIt<LibraryBloc>()..add(const LibraryScanRequested()),
+          ),
         ],
         child: AppShell(child: child),
       ),
@@ -46,7 +49,10 @@ final appRouter = GoRouter(
       path: '/player',
       pageBuilder: (context, state) => CupertinoPage(
         fullscreenDialog: true,
-        child: BlocProvider.value(value: getIt<PlayerBloc>(), child: const FullPlayerPage()),
+        child: BlocProvider.value(
+          value: getIt<PlayerBloc>(),
+          child: const FullPlayerPage(),
+        ),
       ),
     ),
   ],
@@ -60,7 +66,10 @@ class _StubPage extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.black,
     body: Center(
-      child: Text('$title page coming soon', style: const TextStyle(color: Colors.white, fontSize: 18)),
+      child: Text(
+        '$title page coming soon',
+        style: const TextStyle(color: Colors.white, fontSize: 18),
+      ),
     ),
   );
 }

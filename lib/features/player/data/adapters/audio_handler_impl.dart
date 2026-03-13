@@ -4,7 +4,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/player/domain/entities/repeat_mode.dart' show RepeatMode;
+import 'package:troona/features/player/domain/entities/repeat_mode.dart'
+    show RepeatMode;
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
 @lazySingleton
@@ -19,7 +20,11 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
           playing: status.name == 'playing',
           processingState: _mapStatus(status.name),
           controls: _buildControls(),
-          systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+          systemActions: const {
+            MediaAction.seek,
+            MediaAction.seekForward,
+            MediaAction.seekBackward,
+          },
         ),
       );
     });
@@ -71,17 +76,20 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   @override
-  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) => _port.setShuffleEnabled(
-    shuffleMode == AudioServiceShuffleMode.all || shuffleMode == AudioServiceShuffleMode.group,
-  );
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) =>
+      _port.setShuffleEnabled(
+        shuffleMode == AudioServiceShuffleMode.all ||
+            shuffleMode == AudioServiceShuffleMode.group,
+      );
 
   @override
-  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) => _port.setRepeatMode(switch (repeatMode) {
-    AudioServiceRepeatMode.none => RepeatMode.off,
-    AudioServiceRepeatMode.one => RepeatMode.one,
-    AudioServiceRepeatMode.all => RepeatMode.all,
-    AudioServiceRepeatMode.group => RepeatMode.all,
-  });
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) =>
+      _port.setRepeatMode(switch (repeatMode) {
+        AudioServiceRepeatMode.none => RepeatMode.off,
+        AudioServiceRepeatMode.one => RepeatMode.one,
+        AudioServiceRepeatMode.all => RepeatMode.all,
+        AudioServiceRepeatMode.group => RepeatMode.all,
+      });
 
   // ── Helpers privés ─────────────────────────────────────────────────────────
 

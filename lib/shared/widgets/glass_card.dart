@@ -52,8 +52,14 @@ class _GlassDecoration extends StatelessWidget {
           top: BorderSide(color: config.border, width: config.borderWidth),
           left: BorderSide(color: config.highlight, width: config.borderWidth),
           // Bords inférieurs plus sombres / transparents
-          bottom: BorderSide(color: config.highlight.withValues(alpha: .05), width: 0.5),
-          right: BorderSide(color: config.highlight.withValues(alpha: .05), width: 0.5),
+          bottom: BorderSide(
+            color: config.highlight.withValues(alpha: .05),
+            width: 0.5,
+          ),
+          right: BorderSide(
+            color: config.highlight.withValues(alpha: .05),
+            width: 0.5,
+          ),
         ),
       ),
       child: child,

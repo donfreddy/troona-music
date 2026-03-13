@@ -11,7 +11,12 @@ class ArtworkCarousel extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onPageChanged;
 
-  const ArtworkCarousel({super.key, required this.queue, required this.currentIndex, required this.onPageChanged});
+  const ArtworkCarousel({
+    super.key,
+    required this.queue,
+    required this.currentIndex,
+    required this.onPageChanged,
+  });
 
   @override
   State<ArtworkCarousel> createState() => _ArtworkCarouselState();
@@ -74,7 +79,11 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                 }
                 return Transform.scale(scale: scale, child: child);
               },
-              child: _ArtworkItem(track: widget.queue[index], isActive: index == widget.currentIndex, ringSize: screenW * 0.62),
+              child: _ArtworkItem(
+                track: widget.queue[index],
+                isActive: index == widget.currentIndex,
+                ringSize: screenW * 0.62,
+              ),
             );
           },
         ),
@@ -88,7 +97,11 @@ class _ArtworkItem extends StatelessWidget {
   final bool isActive;
   final double ringSize;
 
-  const _ArtworkItem({required this.track, required this.isActive, required this.ringSize});
+  const _ArtworkItem({
+    required this.track,
+    required this.isActive,
+    required this.ringSize,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +123,10 @@ class _ArtworkItem extends StatelessWidget {
                 height: ringSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: .08), width: 22),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .08),
+                    width: 22,
+                  ),
                   color: Colors.black.withValues(alpha: .25),
                 ),
               ),
@@ -122,7 +138,10 @@ class _ArtworkItem extends StatelessWidget {
             height: ringSize * 0.86,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: .05), width: 10),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: .05),
+                width: 10,
+              ),
             ),
           ),
 
@@ -154,7 +173,10 @@ class _ArtworkItem extends StatelessWidget {
             bottom: ringSize * 0.06,
             child: Text(
               Duration(milliseconds: track.durationMs).toMMSS(),
-              style: TextStyle(color: Colors.white.withValues(alpha: .55), fontSize: 12),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: .55),
+                fontSize: 12,
+              ),
             ),
           ),
       ],
@@ -168,8 +190,13 @@ class _ArtworkPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: .08), borderRadius: BorderRadius.circular(16)),
-      child: const Center(child: Icon(CupertinoIcons.music_note, size: 64, color: Colors.white30)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: Icon(CupertinoIcons.music_note, size: 64, color: Colors.white30),
+      ),
     );
   }
 }

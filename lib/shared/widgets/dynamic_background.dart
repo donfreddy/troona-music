@@ -11,13 +11,18 @@ class DynamicBackground extends StatefulWidget {
   final String? artworkPath;
   final Widget child;
 
-  const DynamicBackground({super.key, required this.artworkPath, required this.child});
+  const DynamicBackground({
+    super.key,
+    required this.artworkPath,
+    required this.child,
+  });
 
   @override
   State<DynamicBackground> createState() => _DynamicBackgroundState();
 }
 
-class _DynamicBackgroundState extends State<DynamicBackground> with SingleTickerProviderStateMixin {
+class _DynamicBackgroundState extends State<DynamicBackground>
+    with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
   Color _from = const Color(0xFF1A0533); // violet par défaut
   Color _to = const Color(0xFF1A0533);
@@ -52,7 +57,9 @@ class _DynamicBackgroundState extends State<DynamicBackground> with SingleTicker
 
       // Assombrit la couleur pour qu'elle reste lisible
       final hsl = HSLColor.fromColor(color);
-      final dark = hsl.withLightness((hsl.lightness * 0.45).clamp(0.08, 0.35)).toColor();
+      final dark = hsl
+          .withLightness((hsl.lightness * 0.45).clamp(0.08, 0.35))
+          .toColor();
 
       if (mounted) {
         setState(() {

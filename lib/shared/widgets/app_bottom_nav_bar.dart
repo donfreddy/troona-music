@@ -20,7 +20,11 @@ class AppBottomNavBar extends StatelessWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
 
-  const AppBottomNavBar({super.key, required this.currentTab, required this.onTabChanged});
+  const AppBottomNavBar({
+    super.key,
+    required this.currentTab,
+    required this.onTabChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +32,26 @@ class AppBottomNavBar extends StatelessWidget {
       // Rebuild uniquement si track change ou play/pause change
       buildWhen: (p, c) => _navKey(p) != _navKey(c),
       builder: (context, playerState) {
-        final track = playerState is PlayerActive ? playerState.currentTrack : null;
+        final track = playerState is PlayerActive
+            ? playerState.currentTrack
+            : null;
         final isPlaying = playerState is PlayerActive && playerState.isPlaying;
 
         return SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-            child: _NavBarBody(currentTab: currentTab, onTabChanged: onTabChanged, track: track, isPlaying: isPlaying),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              0,
+              AppSpacing.lg,
+              AppSpacing.sm,
+            ),
+            child: _NavBarBody(
+              currentTab: currentTab,
+              onTabChanged: onTabChanged,
+              track: track,
+              isPlaying: isPlaying,
+            ),
           ),
         );
       },
@@ -43,7 +59,10 @@ class AppBottomNavBar extends StatelessWidget {
   }
 
   (String?, bool) _navKey(PlayerState s) => switch (s) {
-    PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
+    PlayerActive(:final currentTrack, :final isPlaying) => (
+      currentTrack.id,
+      isPlaying,
+    ),
     _ => (null, false),
   };
 }
@@ -82,7 +101,10 @@ class _NavBarBody extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: .55),
             borderRadius: BorderRadius.circular(AppSpacing.radiusXl + 4),
-            border: Border.all(color: Colors.white.withValues(alpha: .10), width: 0.5),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: .10),
+              width: 0.5,
+            ),
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -129,7 +151,11 @@ class _CenterArtworkSlot extends StatelessWidget {
   final bool isPlaying;
   final VoidCallback onTap;
 
-  const _CenterArtworkSlot({required this.track, required this.isPlaying, required this.onTap});
+  const _CenterArtworkSlot({
+    required this.track,
+    required this.isPlaying,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +178,11 @@ class _CenterArtworkSlot extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: Colors.purple.withValues(alpha: .45), blurRadius: 24, spreadRadius: 4),
+                      BoxShadow(
+                        color: Colors.purple.withValues(alpha: .45),
+                        blurRadius: 24,
+                        spreadRadius: 4,
+                      ),
                     ],
                   ),
                 ),
@@ -161,7 +191,11 @@ class _CenterArtworkSlot extends StatelessWidget {
             // Artwork rotatif — surélevé de 12px au-dessus de la bar
             Positioned(
               top: -12,
-              child: RotatingArtwork(track: track, isPlaying: isPlaying, size: 56),
+              child: RotatingArtwork(
+                track: track,
+                isPlaying: isPlaying,
+                size: 56,
+              ),
             ),
           ],
         ),
@@ -178,7 +212,12 @@ class _TabItem extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _TabItem({required this.icon, required this.label, required this.isActive, required this.onTap});
+  const _TabItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +235,11 @@ class _TabItem extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 label,
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

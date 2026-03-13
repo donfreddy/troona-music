@@ -53,18 +53,21 @@ class JustAudioAdapter implements AudioServicePort {
   Stream<Duration> get bufferedPositionStream => _player.bufferedPositionStream;
 
   @override
-  Stream<PlaybackStatus> get statusStream => _player.playerStateStream.map(_mapState);
+  Stream<PlaybackStatus> get statusStream =>
+      _player.playerStateStream.map(_mapState);
 
   @override
-  Stream<Track?> get currentTrackStream => _player.currentIndexStream.map((index) {
-    if (index == null || _currentQueue == null) return null;
-    final tracks = _currentQueue!.playbackTracks;
-    if (index < 0 || index >= tracks.length) return null;
-    return tracks[index];
-  });
+  Stream<Track?> get currentTrackStream =>
+      _player.currentIndexStream.map((index) {
+        if (index == null || _currentQueue == null) return null;
+        final tracks = _currentQueue!.playbackTracks;
+        if (index < 0 || index >= tracks.length) return null;
+        return tracks[index];
+      });
 
   @override
-  Stream<Duration> get durationStream => _player.durationStream.map((d) => d ?? Duration.zero);
+  Stream<Duration> get durationStream =>
+      _player.durationStream.map((d) => d ?? Duration.zero);
 
   @override
   Stream<Queue> get queueStream => _queueSubject.stream;
@@ -180,7 +183,10 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex = 0}) async {
+  Future<Either<Failure, Unit>> setQueue(
+    List<Track> tracks, {
+    int startIndex = 0,
+  }) async {
     try {
       if (tracks.isEmpty) return left(const PlaybackFailure('Queue vide'));
 
@@ -229,7 +235,9 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) async {
     try {
-      if (index < 0 || index >= _sources.length) return left(const PlaybackFailure('Index hors limites'));
+      if (index < 0 || index >= _sources.length) {
+        return left(const PlaybackFailure('Index hors limites'));
+      }
       _sources.removeAt(index);
       await _rebuildSources();
       if (_currentQueue != null) _updateQueue(_currentQueue!.removeAt(index));
@@ -240,15 +248,23 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) async {
+  Future<Either<Failure, Unit>> moveQueueItem(
+    int oldIndex,
+    int newIndex,
+  ) async {
     try {
-      if (oldIndex < 0 || oldIndex >= _sources.length || newIndex < 0 || newIndex >= _sources.length) {
+      if (oldIndex < 0 ||
+          oldIndex >= _sources.length ||
+          newIndex < 0 ||
+          newIndex >= _sources.length) {
         return left(const PlaybackFailure('Index hors limites'));
       }
       final item = _sources.removeAt(oldIndex);
       _sources.insert(newIndex, item);
       await _rebuildSources();
-      if (_currentQueue != null) _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
+      }
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -320,7 +336,8 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   PlaybackStatus _mapState(PlayerState state) {
-    if (state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering) {
+    if (state.processingState == ProcessingState.loading ||
+        state.processingState == ProcessingState.buffering) {
       return PlaybackStatus.buffering;
     }
     if (state.playing) return PlaybackStatus.playing;
@@ -347,7 +364,11 @@ class JustAudioAdapter implements AudioServicePort {
     final clampedIndex = currentIndex.clamp(0, _sources.length - 1);
     final wasPlaying = _player.playing;
 
-    await _player.setAudioSources(_sources, initialIndex: clampedIndex, initialPosition: position);
+    await _player.setAudioSources(
+      _sources,
+      initialIndex: clampedIndex,
+      initialPosition: position,
+    );
 
     if (wasPlaying) await _player.play();
   }

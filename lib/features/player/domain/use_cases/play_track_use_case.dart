@@ -16,5 +16,6 @@ class PlayTrackUseCase {
   final PlayerRepository _repo;
   const PlayTrackUseCase(this._repo);
 
-  Future<Either<Failure, Unit>> call(PlayTrackParams params) => _repo.playTrack(params.track, queue: params.queue);
+  Future<Either<Failure, Unit>> call(PlayTrackParams params) =>
+      _repo.playTrack(params.track, queue: params.queue);
 }

@@ -39,7 +39,8 @@ class PlayerRepositoryImpl implements PlayerRepository {
   // ── Commandes ──────────────────────────────────────────────────────────────
 
   @override
-  Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue}) => _port.playTrack(track, queue: queue);
+  Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue}) =>
+      _port.playTrack(track, queue: queue);
 
   @override
   Future<Either<Failure, Unit>> pause() => _port.pause();
@@ -48,7 +49,8 @@ class PlayerRepositoryImpl implements PlayerRepository {
   Future<Either<Failure, Unit>> resume() => _port.resume();
 
   @override
-  Future<Either<Failure, Unit>> seekTo(Duration position) => _port.seekTo(position);
+  Future<Either<Failure, Unit>> seekTo(Duration position) =>
+      _port.seekTo(position);
 
   @override
   Future<Either<Failure, Unit>> skipToNext() => _port.skipToNext();
@@ -57,26 +59,34 @@ class PlayerRepositoryImpl implements PlayerRepository {
   Future<Either<Failure, Unit>> skipToPrevious() => _port.skipToPrevious();
 
   @override
-  Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex = 0}) =>
-      _port.setQueue(tracks, startIndex: startIndex);
+  Future<Either<Failure, Unit>> setQueue(
+    List<Track> tracks, {
+    int startIndex = 0,
+  }) => _port.setQueue(tracks, startIndex: startIndex);
 
   @override
-  Future<Either<Failure, Unit>> addToQueue(Track track) => _port.addToQueue(track);
+  Future<Either<Failure, Unit>> addToQueue(Track track) =>
+      _port.addToQueue(track);
 
   @override
-  Future<Either<Failure, Unit>> removeFromQueue(int index) => _port.removeFromQueue(index);
+  Future<Either<Failure, Unit>> removeFromQueue(int index) =>
+      _port.removeFromQueue(index);
 
   @override
-  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) => _port.moveQueueItem(oldIndex, newIndex);
+  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) =>
+      _port.moveQueueItem(oldIndex, newIndex);
 
   @override
-  Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled) => _port.setShuffleEnabled(enabled);
+  Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled) =>
+      _port.setShuffleEnabled(enabled);
 
   @override
-  Future<Either<Failure, Unit>> setRepeatMode(RepeatMode mode) => _port.setRepeatMode(mode);
+  Future<Either<Failure, Unit>> setRepeatMode(RepeatMode mode) =>
+      _port.setRepeatMode(mode);
 
   @override
-  Future<Either<Failure, Unit>> setVolume(double volume) => _port.setVolume(volume);
+  Future<Either<Failure, Unit>> setVolume(double volume) =>
+      _port.setVolume(volume);
 
   @override
   Future<Either<Failure, Unit>> setSpeed(double speed) => _port.setSpeed(speed);

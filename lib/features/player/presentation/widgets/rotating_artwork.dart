@@ -9,13 +9,19 @@ class RotatingArtwork extends StatefulWidget {
   final bool isPlaying;
   final double size;
 
-  const RotatingArtwork({super.key, required this.track, required this.isPlaying, this.size = 52});
+  const RotatingArtwork({
+    super.key,
+    required this.track,
+    required this.isPlaying,
+    this.size = 52,
+  });
 
   @override
   State<RotatingArtwork> createState() => _RotatingArtworkState();
 }
 
-class _RotatingArtworkState extends State<RotatingArtwork> with SingleTickerProviderStateMixin {
+class _RotatingArtworkState extends State<RotatingArtwork>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
 
   @override
@@ -65,7 +71,11 @@ class _RotatingArtworkState extends State<RotatingArtwork> with SingleTickerProv
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: .45), blurRadius: 12, offset: const Offset(0, 4)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .45),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: ClipOval(
@@ -84,7 +94,14 @@ class _RotatingArtworkState extends State<RotatingArtwork> with SingleTickerProv
   }
 
   Widget get _placeholder => DecoratedBox(
-    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .12), shape: BoxShape.circle),
-    child: const Icon(CupertinoIcons.music_note, color: Colors.white38, size: 22),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: .12),
+      shape: BoxShape.circle,
+    ),
+    child: const Icon(
+      CupertinoIcons.music_note,
+      color: Colors.white38,
+      size: 22,
+    ),
   );
 }

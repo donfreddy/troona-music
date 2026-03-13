@@ -10,12 +10,17 @@ part 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetHomeFeedUseCase _getFeed;
 
-  HomeBloc({required GetHomeFeedUseCase getFeed}) : _getFeed = getFeed, super(HomeInitial()) {
+  HomeBloc({required GetHomeFeedUseCase getFeed})
+    : _getFeed = getFeed,
+      super(HomeInitial()) {
     on<HomeFeedRequested>(_onFeedRequested);
     on<HomeRefreshRequested>(_onFeedRequested);
   }
 
-  Future<void> _onFeedRequested(HomeEvent event, Emitter<HomeState> emit) async {
+  Future<void> _onFeedRequested(
+    HomeEvent event,
+    Emitter<HomeState> emit,
+  ) async {
     // Garde les données visibles pendant le refresh
     if (state is! HomeLoaded) emit(const HomeLoading());
 

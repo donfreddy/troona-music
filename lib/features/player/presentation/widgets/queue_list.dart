@@ -33,7 +33,9 @@ class QueueList extends StatelessWidget {
           onReorder: (oldIndex, newIndex) {
             // ReorderableListView passe newIndex après suppression de oldIndex
             if (newIndex > oldIndex) newIndex--;
-            context.read<PlayerBloc>().add(QueueItemMoved(oldIndex: oldIndex, newIndex: newIndex));
+            context.read<PlayerBloc>().add(
+              QueueItemMoved(oldIndex: oldIndex, newIndex: newIndex),
+            );
           },
           itemBuilder: (context, index) {
             final track = tracks[index];
@@ -44,8 +46,11 @@ class QueueList extends StatelessWidget {
               track: track,
               index: index,
               isCurrent: isCurrent,
-              onTap: () => context.read<PlayerBloc>().add(PlayTrackRequested(track)),
-              onRemove: () => context.read<PlayerBloc>().add(TrackRemovedFromQueue(index: index)),
+              onTap: () =>
+                  context.read<PlayerBloc>().add(PlayTrackRequested(track)),
+              onRemove: () => context.read<PlayerBloc>().add(
+                TrackRemovedFromQueue(index: index),
+              ),
             );
           },
         );
@@ -57,11 +62,14 @@ class QueueList extends StatelessWidget {
   Widget _proxyDecorator(Widget child, int index, Animation<double> animation) {
     return AnimatedBuilder(
       animation: animation,
-      builder: (_, _) => Material(elevation: 0, color: Colors.transparent, child: child),
+      builder: (_, _) =>
+          Material(elevation: 0, color: Colors.transparent, child: child),
     );
   }
 
-  Object? _queueKey(PlayerState s) => s is PlayerActive ? (s.queue.playbackTracks.length, s.queue.currentIndex) : null;
+  Object? _queueKey(PlayerState s) => s is PlayerActive
+      ? (s.queue.playbackTracks.length, s.queue.currentIndex)
+      : null;
 }
 
 // ── Tile ───────────────────────────────────────────────────────────────────────
@@ -98,13 +106,23 @@ class _QueueTile extends StatelessWidget {
             Container(
               width: 38,
               height: 38,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: colors.bgSecondary),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: colors.bgSecondary,
+              ),
               child: track.artworkPath != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(6),
-                      child: Image.file(Uri.parse(track.artworkPath!).toFilePath() as dynamic, fit: BoxFit.cover),
+                      child: Image.file(
+                        Uri.parse(track.artworkPath!).toFilePath() as dynamic,
+                        fit: BoxFit.cover,
+                      ),
                     )
-                  : Icon(CupertinoIcons.music_note, size: 16, color: colors.labelTertiary),
+                  : Icon(
+                      CupertinoIcons.music_note,
+                      size: 16,
+                      color: colors.labelTertiary,
+                    ),
             ),
             const SizedBox(width: AppSpacing.md),
 
@@ -125,7 +143,9 @@ class _QueueTile extends StatelessWidget {
                   ),
                   Text(
                     track.artist,
-                    style: AppTypography.textTheme.labelMedium?.copyWith(color: colors.labelSecondary),
+                    style: AppTypography.textTheme.labelMedium?.copyWith(
+                      color: colors.labelSecondary,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -134,14 +154,19 @@ class _QueueTile extends StatelessWidget {
             ),
 
             // Indicateur "en cours"
-            if (isCurrent) Icon(CupertinoIcons.volume_up, color: colors.accent, size: 16),
+            if (isCurrent)
+              Icon(CupertinoIcons.volume_up, color: colors.accent, size: 16),
 
             const SizedBox(width: AppSpacing.sm),
 
             // Bouton supprimer (swipe ou bouton)
             GestureDetector(
               onTap: onRemove,
-              child: Icon(CupertinoIcons.minus_circle, color: colors.labelTertiary, size: 20),
+              child: Icon(
+                CupertinoIcons.minus_circle,
+                color: colors.labelTertiary,
+                size: 20,
+              ),
             ),
 
             const SizedBox(width: AppSpacing.sm),
@@ -149,7 +174,11 @@ class _QueueTile extends StatelessWidget {
             // Handle de réordonnancement
             ReorderableDragStartListener(
               index: index,
-              child: Icon(CupertinoIcons.line_horizontal_3, color: colors.labelQuaternary, size: 18),
+              child: Icon(
+                CupertinoIcons.line_horizontal_3,
+                color: colors.labelQuaternary,
+                size: 18,
+              ),
             ),
           ],
         ),

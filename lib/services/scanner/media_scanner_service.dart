@@ -32,12 +32,20 @@ final class MediaScannerService {
       );
     }
 
-    yield ScanProgress(phase: ScanPhase.indexing, progress: 0, total: scanned.length);
+    yield ScanProgress(
+      phase: ScanPhase.indexing,
+      progress: 0,
+      total: scanned.length,
+    );
 
     // 2. Diff avec le cache Isar — insère seulement les nouveaux
     final existingIds = await _cache.getAllDeviceIds();
-    final newTracks = scanned.where((t) => !existingIds.contains(t.deviceId)).toList();
-    final orphanIds = existingIds.difference(scanned.map((t) => t.deviceId).toSet());
+    final newTracks = scanned
+        .where((t) => !existingIds.contains(t.deviceId))
+        .toList();
+    final orphanIds = existingIds.difference(
+      scanned.map((t) => t.deviceId).toSet(),
+    );
 
     // Supprime les fichiers qui n'existent plus sur le device
     if (orphanIds.isNotEmpty) {
@@ -63,7 +71,9 @@ final class MediaScannerService {
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     var done = 0;
 
-    await for (final updated in _artworkExtractor.extractArtworks(tracksWithoutArtwork)) {
+    await for (final updated in _artworkExtractor.extractArtworks(
+      tracksWithoutArtwork,
+    )) {
       if (updated.artworkPath != null) {
         await _cache.updateArtworkPath(updated.deviceId, updated.artworkPath!);
       }
@@ -89,5 +99,10 @@ final class ScanProgress {
   final double progress; // 0.0 → 1.0
   final int count;
   final int total;
-  const ScanProgress({required this.phase, required this.progress, this.count = 0, this.total = 0});
+  const ScanProgress({
+    required this.phase,
+    required this.progress,
+    this.count = 0,
+    this.total = 0,
+  });
 }

@@ -27,7 +27,9 @@ class PlayerControls extends StatelessWidget {
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 3,
-                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 6,
+                      ),
                       overlayShape: SliderComponentShape.noOverlay,
                       activeTrackColor: Colors.white,
                       inactiveTrackColor: Colors.white24,
@@ -36,17 +38,36 @@ class PlayerControls extends StatelessWidget {
                     child: Slider(
                       value: state.progressRatio,
                       onChanged: (v) => context.read<PlayerBloc>().add(
-                        SeekRequested(Duration(milliseconds: (v * state.duration.inMilliseconds).round())),
+                        SeekRequested(
+                          Duration(
+                            milliseconds: (v * state.duration.inMilliseconds)
+                                .round(),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(state.position.toMMSS(), style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                        Text(state.duration.toMMSS(), style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                        Text(
+                          state.position.toMMSS(),
+                          style: const TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          state.duration.toMMSS(),
+                          style: const TextStyle(
+                            color: Colors.white60,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -67,24 +88,33 @@ class PlayerControls extends StatelessWidget {
                     icon: CupertinoIcons.shuffle,
                     size: 22,
                     active: state.shuffleEnabled,
-                    onPressed: () => context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
+                    onPressed: () => context.read<PlayerBloc>().add(
+                      const ShuffleToggleRequested(),
+                    ),
                   ),
 
                   // Précédent
                   _ControlButton(
                     icon: CupertinoIcons.backward_fill,
                     size: 32,
-                    onPressed: () => context.read<PlayerBloc>().add(const SkipPreviousRequested()),
+                    onPressed: () => context.read<PlayerBloc>().add(
+                      const SkipPreviousRequested(),
+                    ),
                   ),
 
                   // Play / Pause — bouton principal
-                  _PlayPauseButton(isPlaying: state.isPlaying, isBuffering: state.isBuffering),
+                  _PlayPauseButton(
+                    isPlaying: state.isPlaying,
+                    isBuffering: state.isBuffering,
+                  ),
 
                   // Suivant
                   _ControlButton(
                     icon: CupertinoIcons.forward_fill,
                     size: 32,
-                    onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
+                    onPressed: () => context.read<PlayerBloc>().add(
+                      const SkipNextRequested(),
+                    ),
                   ),
 
                   // Repeat
@@ -125,18 +155,32 @@ class _PlayPauseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.read<PlayerBloc>().add(isPlaying ? const PauseRequested() : const ResumeRequested()),
+      onTap: () => context.read<PlayerBloc>().add(
+        isPlaying ? const PauseRequested() : const ResumeRequested(),
+      ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: 72,
         height: 72,
-        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
         child: isBuffering
             ? const Padding(
                 padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.black),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.black,
+                ),
               )
-            : Icon(isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill, color: Colors.black, size: 30),
+            : Icon(
+                isPlaying
+                    ? CupertinoIcons.pause_fill
+                    : CupertinoIcons.play_fill,
+                color: Colors.black,
+                size: 30,
+              ),
       ),
     );
   }
@@ -150,14 +194,23 @@ class _ControlButton extends StatelessWidget {
   final bool active;
   final VoidCallback onPressed;
 
-  const _ControlButton({required this.icon, required this.size, required this.onPressed, this.active = false});
+  const _ControlButton({
+    required this.icon,
+    required this.size,
+    required this.onPressed,
+    this.active = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return CupertinoButton(
       padding: EdgeInsets.zero,
       onPressed: onPressed,
-      child: Icon(icon, size: size, color: active ? Colors.white : Colors.white70),
+      child: Icon(
+        icon,
+        size: size,
+        color: active ? Colors.white : Colors.white70,
+      ),
     );
   }
 }
@@ -177,17 +230,26 @@ class _RepeatButton extends StatelessWidget {
     };
     return CupertinoButton(
       padding: EdgeInsets.zero,
-      onPressed: () => context.read<PlayerBloc>().add(RepeatModeChangeRequested(next)),
+      onPressed: () =>
+          context.read<PlayerBloc>().add(RepeatModeChangeRequested(next)),
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Icon(CupertinoIcons.repeat, size: 22, color: mode == RepeatMode.off ? Colors.white38 : Colors.white),
+          Icon(
+            CupertinoIcons.repeat,
+            size: 22,
+            color: mode == RepeatMode.off ? Colors.white38 : Colors.white,
+          ),
           if (mode == RepeatMode.one)
             const Positioned(
               bottom: 0,
               child: Text(
                 '1',
-                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
         ],
@@ -195,7 +257,6 @@ class _RepeatButton extends StatelessWidget {
     );
   }
 }
-
 
 // features/player/presentation/widgets/player_controls.dart
 //

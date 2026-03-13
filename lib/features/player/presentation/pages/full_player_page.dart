@@ -27,7 +27,11 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
     if (state is! PlayerActive) return;
     if (index == state.queue.currentIndex) return;
     context.read<PlayerBloc>().add(
-      PlayTrackRequested(state.queue.playbackTracks[index], contextQueue: state.queue.playbackTracks, contextIndex: index),
+      PlayTrackRequested(
+        state.queue.playbackTracks[index],
+        contextQueue: state.queue.playbackTracks,
+        contextIndex: index,
+      ),
     );
   }
 
@@ -51,7 +55,10 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
           return Stack(
             children: [
               // Fond dynamique
-              DynamicBackground(artworkPath: track?.artworkPath, child: const SizedBox.expand()),
+              DynamicBackground(
+                artworkPath: track?.artworkPath,
+                child: const SizedBox.expand(),
+              ),
 
               // Contenu scrollable
               SafeArea(
@@ -84,7 +91,9 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
 
                     // ── Titre + artiste + like ─────────────────────
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl2,
+                      ),
                       child: _TrackInfo(track: track),
                     ),
 
@@ -140,7 +149,10 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -148,21 +160,32 @@ class _TopBar extends StatelessWidget {
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => Navigator.of(context).pop(),
-            child: const Icon(CupertinoIcons.chevron_down, color: Colors.white, size: 22),
+            child: const Icon(
+              CupertinoIcons.chevron_down,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
 
           // Pill indicateur (identique au design)
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(
+              color: Colors.white30,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
 
           // Menu contextuel
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _showOptionsSheet(context),
-            child: const Icon(CupertinoIcons.ellipsis_vertical, color: Colors.white, size: 22),
+            child: const Icon(
+              CupertinoIcons.ellipsis_vertical,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
         ],
       ),
@@ -192,7 +215,10 @@ class _TopBar extends StatelessWidget {
             child: const Text('Voir l\'album'),
           ),
         ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
       ),
     );
   }
@@ -224,7 +250,10 @@ class _TrackInfo extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              Text(track?.artist ?? '—', style: const TextStyle(color: Colors.white60, fontSize: 16)),
+              Text(
+                track?.artist ?? '—',
+                style: const TextStyle(color: Colors.white60, fontSize: 16),
+              ),
             ],
           ),
         ),
@@ -234,7 +263,11 @@ class _TrackInfo extends StatelessWidget {
           onPressed: () {
             // TODO: FavoriteBloc
           },
-          child: const Icon(CupertinoIcons.heart, color: Colors.white70, size: 26),
+          child: const Icon(
+            CupertinoIcons.heart,
+            color: Colors.white70,
+            size: 26,
+          ),
         ),
       ],
     );
@@ -285,9 +318,17 @@ class _BottomActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-       // _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
-        _ActionButton(icon: CupertinoIcons.list_bullet, label: 'File', onTap: () => _showQueue(context)),
-        _ActionButton(icon: CupertinoIcons.play, label: 'AirPlay', onTap: () {}),
+        // _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
+        _ActionButton(
+          icon: CupertinoIcons.list_bullet,
+          label: 'File',
+          onTap: () => _showQueue(context),
+        ),
+        _ActionButton(
+          icon: CupertinoIcons.play,
+          label: 'AirPlay',
+          onTap: () {},
+        ),
       ],
     );
   }
@@ -306,7 +347,10 @@ class _BottomActions extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const QueueSheet()),
+      builder: (_) => BlocProvider.value(
+        value: context.read<PlayerBloc>(),
+        child: const QueueSheet(),
+      ),
     );
   }
 }
@@ -315,7 +359,11 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _ActionButton({required this.icon, required this.label, required this.onTap});
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -327,7 +375,10 @@ class _ActionButton extends StatelessWidget {
         children: [
           Icon(icon, color: Colors.white60, size: 22),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
+          ),
         ],
       ),
     );

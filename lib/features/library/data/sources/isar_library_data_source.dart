@@ -18,7 +18,11 @@ class IsarLibraryDataSource {
   Future<List<TrackModel>> searchTracks(String query) async {
     final lower = query.toLowerCase();
     return _tracks.values
-        .where((t) => t.title.toLowerCase().contains(lower) || t.artist.toLowerCase().contains(lower))
+        .where(
+          (t) =>
+              t.title.toLowerCase().contains(lower) ||
+              t.artist.toLowerCase().contains(lower),
+        )
         .toList();
   }
 

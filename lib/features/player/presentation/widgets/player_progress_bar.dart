@@ -39,7 +39,12 @@ class PlayerProgressBar extends StatelessWidget {
                 onChanged: (value) {
                   // Mise à jour optimiste — seek réel dans onChangeEnd
                   context.read<PlayerBloc>().add(
-                    SeekRequested(Duration(milliseconds: (value * state.duration.inMilliseconds).round())),
+                    SeekRequested(
+                      Duration(
+                        milliseconds: (value * state.duration.inMilliseconds)
+                            .round(),
+                      ),
+                    ),
                   );
                 },
               ),
@@ -53,18 +58,25 @@ class PlayerProgressBar extends StatelessWidget {
                 children: [
                   Text(
                     state.position.toMMSS(),
-                    style: AppTypography.textTheme.labelMedium?.copyWith(color: Colors.white.withValues(alpha: .7)),
+                    style: AppTypography.textTheme.labelMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: .7),
+                    ),
                   ),
                   // Buffering indicator
                   if (state.isBuffering)
                     SizedBox(
                       width: 12,
                       height: 12,
-                      child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white.withValues(alpha: .7)),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: Colors.white.withValues(alpha: .7),
+                      ),
                     ),
                   Text(
                     state.duration.toMMSS(),
-                    style: AppTypography.textTheme.labelMedium?.copyWith(color: Colors.white.withValues(alpha: .7)),
+                    style: AppTypography.textTheme.labelMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: .7),
+                    ),
                   ),
                 ],
               ),

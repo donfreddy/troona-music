@@ -15,16 +15,16 @@ class ArtistModel {
   });
 
   factory ArtistModel.fromArtistModel(audio.ArtistModel model) => ArtistModel(
-        id: model.id,
-        name: model.artist,
-        albumCount: model.numberOfAlbums ?? 0,
-        trackCount: model.numberOfTracks ?? 0,
-      );
+    id: model.id,
+    name: model.artist,
+    albumCount: model.numberOfAlbums ?? 0,
+    trackCount: model.numberOfTracks ?? 0,
+  );
 
   Artist toEntity() => Artist(
-        id: id.toString(),
-        name: name,
-        albumCount: albumCount,
-        trackCount: trackCount,
-      );
+    id: id.toString(),
+    name: name,
+    albumCount: albumCount,
+    trackCount: trackCount,
+  );
 }

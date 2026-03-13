@@ -10,10 +10,6 @@ class ArtistDetailPage extends StatefulWidget {
 class _ArtistDetailPageState extends State<ArtistDetailPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Artist Detail Page'),
-      ),
-    );
+    return const Scaffold(body: Center(child: Text('Artist Detail Page')));
   }
 }

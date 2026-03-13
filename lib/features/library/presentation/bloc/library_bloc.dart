@@ -50,7 +50,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // SCAN
   // ══════════════════════════════════════════════════════════
 
-  Future<void> _onScanRequested(LibraryScanRequested event, Emitter<LibraryState> emit) async {
+  Future<void> _onScanRequested(
+    LibraryScanRequested event,
+    Emitter<LibraryState> emit,
+  ) async {
     // Annule un scan précédent si toujours en cours
     await _cancelScan();
 
@@ -72,16 +75,25 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
         onError: (e) => add(_ScanFailed(e.toString())),
         onDone: () {
           // Le scan est terminé — charge les données depuis Isar
-          add(const _ScanProgressReceived(ScanProgress(phase: ScanPhase.done, progress: 1)));
+          add(
+            const _ScanProgressReceived(
+              ScanProgress(phase: ScanPhase.done, progress: 1),
+            ),
+          );
         },
       );
     });
   }
 
-  Future<void> _onRefreshRequested(LibraryRefreshRequested event, Emitter<LibraryState> emit) =>
-      _onScanRequested(const LibraryScanRequested(), emit);
+  Future<void> _onRefreshRequested(
+    LibraryRefreshRequested event,
+    Emitter<LibraryState> emit,
+  ) => _onScanRequested(const LibraryScanRequested(), emit);
 
-  Future<void> _onScanProgress(_ScanProgressReceived event, Emitter<LibraryState> emit) async {
+  Future<void> _onScanProgress(
+    _ScanProgressReceived event,
+    Emitter<LibraryState> emit,
+  ) async {
     if (state is! LibraryScanning) return;
     final scanning = state as LibraryScanning;
 
@@ -94,7 +106,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     emit(LibraryScanning(progress: event.progress, cached: scanning.cached));
   }
 
-  Future<void> _onScanFailed(_ScanFailed event, Emitter<LibraryState> emit) async {
+  Future<void> _onScanFailed(
+    _ScanFailed event,
+    Emitter<LibraryState> emit,
+  ) async {
     final lastLoaded = switch (state) {
       LibraryScanning(:final cached) => cached,
       LibraryLoaded() => state as LibraryLoaded,
@@ -109,14 +124,20 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
   Future<void> _loadFromCache(Emitter<LibraryState> emit) async {
     // Charge tracks, albums, artists en parallèle
-    final results = await Future.wait([_getTracks(), _getAlbums(), _getArtists()]);
+    final results = await Future.wait([
+      _getTracks(),
+      _getAlbums(),
+      _getArtists(),
+    ]);
 
     final tracksResult = results[0] as Either<Failure, List<Track>>;
     final albumsResult = results[1] as Either<Failure, List<Album>>;
     final artistsResult = results[2] as Either<Failure, List<Artist>>;
 
     // Si l'un des trois échoue on émet une erreur
-    if (tracksResult.isLeft() || albumsResult.isLeft() || artistsResult.isLeft()) {
+    if (tracksResult.isLeft() ||
+        albumsResult.isLeft() ||
+        artistsResult.isLeft()) {
       final msg =
           tracksResult.fold((f) => f.message, (_) => '') +
           albumsResult.fold((f) => f.message, (_) => '') +
@@ -135,7 +156,11 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   void _onTracksLoaded(_TracksLoaded event, Emitter<LibraryState> emit) {
     // État courant : récupère les préférences filter/sort si déjà Loaded
     final (filter, sort, query) = switch (state) {
-      LibraryLoaded(:final filter, :final sort, :final searchQuery) => (filter, sort, searchQuery),
+      LibraryLoaded(:final filter, :final sort, :final searchQuery) => (
+        filter,
+        sort,
+        searchQuery,
+      ),
       _ => (LibraryFilter.all, LibrarySort.title, ''),
     };
 
@@ -167,7 +192,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // SEARCH / FILTER / SORT — calcul synchrone, pas d'async
   // ══════════════════════════════════════════════════════════
 
-  void _onSearchChanged(LibrarySearchChanged event, Emitter<LibraryState> emit) {
+  void _onSearchChanged(
+    LibrarySearchChanged event,
+    Emitter<LibraryState> emit,
+  ) {
     if (state is! LibraryLoaded) return;
     final current = state as LibraryLoaded;
 
@@ -191,7 +219,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     );
   }
 
-  void _onFilterChanged(LibraryFilterChanged event, Emitter<LibraryState> emit) {
+  void _onFilterChanged(
+    LibraryFilterChanged event,
+    Emitter<LibraryState> emit,
+  ) {
     if (state is! LibraryLoaded) return;
     final current = state as LibraryLoaded;
 
@@ -265,9 +296,17 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
     var filteredAlbums = q.isEmpty
         ? albums
-        : albums.where((a) => a.name.toLowerCase().contains(q) || a.artist.toLowerCase().contains(q)).toList();
+        : albums
+              .where(
+                (a) =>
+                    a.name.toLowerCase().contains(q) ||
+                    a.artist.toLowerCase().contains(q),
+              )
+              .toList();
 
-    var filteredArtists = q.isEmpty ? artists : artists.where((a) => a.name.toLowerCase().contains(q)).toList();
+    var filteredArtists = q.isEmpty
+        ? artists
+        : artists.where((a) => a.name.toLowerCase().contains(q)).toList();
 
     switch (filter) {
       case LibraryFilter.tracks:

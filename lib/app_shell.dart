@@ -55,11 +55,14 @@ class _AppShellState extends State<AppShell> {
                 // MiniPlayer — visible seulement si un track est actif
                 // ET qu'on n'est PAS sur le FullPlayer
                 BlocBuilder<PlayerBloc, PlayerState>(
-                  buildWhen: (p, c) => (p is PlayerActive) != (c is PlayerActive),
+                  buildWhen: (p, c) =>
+                      (p is PlayerActive) != (c is PlayerActive),
                   builder: (_, state) => AnimatedSize(
                     duration: const Duration(milliseconds: 280),
                     curve: Curves.easeOutCubic,
-                    child: _showMiniPlayer ? const MiniPlayer() : const SizedBox.shrink(),
+                    child: _showMiniPlayer
+                        ? const MiniPlayer()
+                        : const SizedBox.shrink(),
                   ),
                 ),
 
@@ -69,7 +72,10 @@ class _AppShellState extends State<AppShell> {
                 // NavBar — toujours présente
                 Padding(
                   padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                  child: AppBottomNavBar(currentTab: _currentTab, onTabChanged: _onTabChanged),
+                  child: AppBottomNavBar(
+                    currentTab: _currentTab,
+                    onTabChanged: _onTabChanged,
+                  ),
                 ),
               ],
             ),

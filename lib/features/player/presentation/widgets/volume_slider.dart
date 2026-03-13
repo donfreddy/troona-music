@@ -17,7 +17,11 @@ class VolumeSlider extends StatelessWidget {
         return Row(
           children: [
             // Icône volume ba
-            Icon(CupertinoIcons.volume_down, color: Colors.white.withValues(alpha: .6), size: 18),
+            Icon(
+              CupertinoIcons.volume_down,
+              color: Colors.white.withValues(alpha: .6),
+              size: 18,
+            ),
             const SizedBox(width: 8),
 
             // Slider
@@ -25,8 +29,12 @@ class VolumeSlider extends StatelessWidget {
               child: SliderTheme(
                 data: SliderThemeData(
                   trackHeight: 2,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 5,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 14,
+                  ),
                   activeTrackColor: Colors.white,
                   inactiveTrackColor: Colors.white.withValues(alpha: .3),
                   thumbColor: Colors.white,
@@ -37,14 +45,19 @@ class VolumeSlider extends StatelessWidget {
                   value: volume,
                   min: 0.0,
                   max: 1.0,
-                  onChanged: (v) => context.read<PlayerBloc>().add(VolumeChangeRequested(v)),
+                  onChanged: (v) =>
+                      context.read<PlayerBloc>().add(VolumeChangeRequested(v)),
                 ),
               ),
             ),
 
             const SizedBox(width: 8),
             // Icône volume haut
-            Icon(CupertinoIcons.volume_up, color: Colors.white.withValues(alpha: .6), size: 18),
+            Icon(
+              CupertinoIcons.volume_up,
+              color: Colors.white.withValues(alpha: .6),
+              size: 18,
+            ),
           ],
         );
       },

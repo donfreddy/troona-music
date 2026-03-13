@@ -65,7 +65,10 @@ abstract interface class AudioServicePort {
   Future<Either<Failure, Unit>> skipToPrevious();
 
   /// Initialise la queue complète et joue depuis [startIndex].
-  Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex = 0});
+  Future<Either<Failure, Unit>> setQueue(
+    List<Track> tracks, {
+    int startIndex = 0,
+  });
 
   /// Ajoute un track à la fin de la queue.
   Future<Either<Failure, Unit>> addToQueue(Track track);

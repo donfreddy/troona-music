@@ -56,5 +56,12 @@ class PlaybackState extends Equatable {
   );
 
   @override
-  List<Object?> get props => [status, position, bufferedPosition, duration, speed, volume];
+  List<Object?> get props => [
+    status,
+    position,
+    bufferedPosition,
+    duration,
+    speed,
+    volume,
+  ];
 }

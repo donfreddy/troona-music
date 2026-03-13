@@ -42,7 +42,9 @@ class Queue {
     bool shuffleEnabled = false,
     RepeatMode repeatMode = RepeatMode.off,
   }) {
-    final playback = shuffleEnabled ? _buildShuffled(tracks, startIndex) : List<Track>.from(tracks);
+    final playback = shuffleEnabled
+        ? _buildShuffled(tracks, startIndex)
+        : List<Track>.from(tracks);
 
     return Queue(
       originalTracks: List.unmodifiable(tracks),
@@ -56,7 +58,9 @@ class Queue {
   // ── Accesseurs dérivés ─────────────────────────────────────────────────────
 
   Track? get currentTrack =>
-      currentIndex >= 0 && currentIndex < playbackTracks.length ? playbackTracks[currentIndex] : null;
+      currentIndex >= 0 && currentIndex < playbackTracks.length
+      ? playbackTracks[currentIndex]
+      : null;
 
   Track? get nextTrack {
     if (playbackTracks.isEmpty) return null;
@@ -137,7 +141,11 @@ class Queue {
         List<Track>.from(originalTracks),
         current != null ? originalTracks.indexOf(current) : 0,
       );
-      return copyWith(playbackTracks: List.unmodifiable(shuffled), currentIndex: 0, shuffleEnabled: true);
+      return copyWith(
+        playbackTracks: List.unmodifiable(shuffled),
+        currentIndex: 0,
+        shuffleEnabled: true,
+      );
     }
   }
 
@@ -153,12 +161,16 @@ class Queue {
   Queue removeAt(int index) {
     if (index < 0 || index >= playbackTracks.length) return this;
     final newPlayback = List<Track>.from(playbackTracks)..removeAt(index);
-    final newOriginal = List<Track>.from(originalTracks)..removeWhere((t) => t.id == playbackTracks[index].id);
+    final newOriginal = List<Track>.from(originalTracks)
+      ..removeWhere((t) => t.id == playbackTracks[index].id);
 
     int newIndex = currentIndex;
     if (index < currentIndex) newIndex--;
     if (newIndex >= newPlayback.length) newIndex = newPlayback.length - 1;
-    newIndex = newIndex.clamp(0, newPlayback.isEmpty ? 0 : newPlayback.length - 1);
+    newIndex = newIndex.clamp(
+      0,
+      newPlayback.isEmpty ? 0 : newPlayback.length - 1,
+    );
 
     return copyWith(
       originalTracks: List.unmodifiable(newOriginal),
@@ -183,7 +195,10 @@ class Queue {
       newCurrent++;
     }
 
-    return copyWith(playbackTracks: List.unmodifiable(newPlayback), currentIndex: newCurrent);
+    return copyWith(
+      playbackTracks: List.unmodifiable(newPlayback),
+      currentIndex: newCurrent,
+    );
   }
 
   // ── Helpers privés ─────────────────────────────────────────────────────────
@@ -229,5 +244,10 @@ class Queue {
           playbackTracks.length == other.playbackTracks.length;
 
   @override
-  int get hashCode => Object.hash(currentIndex, shuffleEnabled, repeatMode, playbackTracks.length);
+  int get hashCode => Object.hash(
+    currentIndex,
+    shuffleEnabled,
+    repeatMode,
+    playbackTracks.length,
+  );
 }

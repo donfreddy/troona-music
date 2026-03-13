@@ -8,5 +8,6 @@ final class GetAlbumsUseCase {
   final LibraryRepository _repo;
   const GetAlbumsUseCase(this._repo);
 
-  Future<Either<Failure, List<Album>>> call([NoParams _ = const NoParams()]) => _repo.getAlbums();
+  Future<Either<Failure, List<Album>>> call([NoParams _ = const NoParams()]) =>
+      _repo.getAlbums();
 }

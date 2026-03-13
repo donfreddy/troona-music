@@ -33,10 +33,14 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<LocalAudioDataSource>(
     () => OnAudioQueryDataSource(query: getIt()),
   );
-  getIt.registerLazySingleton<IsarLibraryDataSource>(() => IsarLibraryDataSource());
+  getIt.registerLazySingleton<IsarLibraryDataSource>(
+    () => IsarLibraryDataSource(),
+  );
 
   // ── Artwork cache directory ─────────────────────────────────────────────
-  final artworkCache = Directory('${Directory.systemTemp.path}/troona_artwork_cache');
+  final artworkCache = Directory(
+    '${Directory.systemTemp.path}/troona_artwork_cache',
+  );
   if (!await artworkCache.exists()) await artworkCache.create(recursive: true);
 
   getIt.registerLazySingleton<ArtworkExtractor>(
@@ -45,7 +49,11 @@ Future<void> configureDependencies() async {
 
   // ── Services ────────────────────────────────────────────────────────────
   getIt.registerLazySingleton<MediaScannerService>(
-    () => MediaScannerService(source: getIt(), cache: getIt(), artworkExtractor: getIt()),
+    () => MediaScannerService(
+      source: getIt(),
+      cache: getIt(),
+      artworkExtractor: getIt(),
+    ),
   );
 
   // Audio service must be initialized before use.
@@ -54,7 +62,11 @@ Future<void> configureDependencies() async {
 
   // ── Repositories ────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
-    () => LibraryRepositoryImpl(source: getIt(), cache: getIt(), scanner: getIt()),
+    () => LibraryRepositoryImpl(
+      source: getIt(),
+      cache: getIt(),
+      scanner: getIt(),
+    ),
   );
   getIt.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(db: getIt()),
@@ -65,7 +77,9 @@ Future<void> configureDependencies() async {
 
   // ── Use cases ───────────────────────────────────────────────────────────
   getIt
-    ..registerLazySingleton<ScanLibraryUseCase>(() => ScanLibraryUseCase(getIt()))
+    ..registerLazySingleton<ScanLibraryUseCase>(
+      () => ScanLibraryUseCase(getIt()),
+    )
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
     ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))
@@ -74,13 +88,23 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<ResumeUseCase>(() => ResumeUseCase(getIt()))
     ..registerLazySingleton<SeekUseCase>(() => SeekUseCase(getIt()))
     ..registerLazySingleton<SkipNextUseCase>(() => SkipNextUseCase(getIt()))
-    ..registerLazySingleton<SkipPreviousUseCase>(() => SkipPreviousUseCase(getIt()))
+    ..registerLazySingleton<SkipPreviousUseCase>(
+      () => SkipPreviousUseCase(getIt()),
+    )
     ..registerLazySingleton<SetQueueUseCase>(() => SetQueueUseCase(getIt()))
     ..registerLazySingleton<AddToQueueUseCase>(() => AddToQueueUseCase(getIt()))
-    ..registerLazySingleton<RemoveFromQueueUseCase>(() => RemoveFromQueueUseCase(getIt()))
-    ..registerLazySingleton<MoveQueueItemUseCase>(() => MoveQueueItemUseCase(getIt()))
-    ..registerLazySingleton<ToggleShuffleUseCase>(() => ToggleShuffleUseCase(getIt()))
-    ..registerLazySingleton<SetRepeatModeUseCase>(() => SetRepeatModeUseCase(getIt()))
+    ..registerLazySingleton<RemoveFromQueueUseCase>(
+      () => RemoveFromQueueUseCase(getIt()),
+    )
+    ..registerLazySingleton<MoveQueueItemUseCase>(
+      () => MoveQueueItemUseCase(getIt()),
+    )
+    ..registerLazySingleton<ToggleShuffleUseCase>(
+      () => ToggleShuffleUseCase(getIt()),
+    )
+    ..registerLazySingleton<SetRepeatModeUseCase>(
+      () => SetRepeatModeUseCase(getIt()),
+    )
     ..registerLazySingleton<SetVolumeUseCase>(() => SetVolumeUseCase(getIt()))
     ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()));
 

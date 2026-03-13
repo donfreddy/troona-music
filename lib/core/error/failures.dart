@@ -22,7 +22,8 @@ class ScanFailure extends Failure {
 
 class TrackNotFoundFailure extends Failure {
   final int trackId;
-  const TrackNotFoundFailure(this.trackId) : super('Track #$trackId not found.');
+  const TrackNotFoundFailure(this.trackId)
+    : super('Track #$trackId not found.');
 
   @override
   List<Object?> get props => [message, trackId];

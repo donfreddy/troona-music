@@ -10,10 +10,6 @@ class AlbumDetailPage extends StatefulWidget {
 class _AlbumDetailPageState extends State<AlbumDetailPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Album Detail Page'),
-      ),
-    );
+    return const Scaffold(body: Center(child: Text('Album Detail Page')));
   }
 }

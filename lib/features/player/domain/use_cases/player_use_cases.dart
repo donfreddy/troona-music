@@ -34,7 +34,8 @@ class SeekParams {
 class SeekUseCase {
   final PlayerRepository _repo;
   const SeekUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(SeekParams params) => _repo.seekTo(params.position);
+  Future<Either<Failure, Unit>> call(SeekParams params) =>
+      _repo.seekTo(params.position);
 }
 
 // ── Skip ─────────────────────────────────────────────────────────────────────
@@ -78,7 +79,8 @@ class AddToQueueParams {
 class AddToQueueUseCase {
   final PlayerRepository _repo;
   const AddToQueueUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(AddToQueueParams params) => _repo.addToQueue(params.track);
+  Future<Either<Failure, Unit>> call(AddToQueueParams params) =>
+      _repo.addToQueue(params.track);
 }
 
 class RemoveFromQueueParams {
@@ -90,7 +92,8 @@ class RemoveFromQueueParams {
 class RemoveFromQueueUseCase {
   final PlayerRepository _repo;
   const RemoveFromQueueUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(RemoveFromQueueParams params) => _repo.removeFromQueue(params.index);
+  Future<Either<Failure, Unit>> call(RemoveFromQueueParams params) =>
+      _repo.removeFromQueue(params.index);
 }
 
 class MoveQueueItemParams {
@@ -118,7 +121,8 @@ class ToggleShuffleParams {
 class ToggleShuffleUseCase {
   final PlayerRepository _repo;
   const ToggleShuffleUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(ToggleShuffleParams params) => _repo.setShuffleEnabled(params.enabled);
+  Future<Either<Failure, Unit>> call(ToggleShuffleParams params) =>
+      _repo.setShuffleEnabled(params.enabled);
 }
 
 // ── Repeat mode ───────────────────────────────────────────────────────────────
@@ -132,21 +136,24 @@ class SetRepeatModeParams {
 class SetRepeatModeUseCase {
   final PlayerRepository _repo;
   const SetRepeatModeUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(SetRepeatModeParams params) => _repo.setRepeatMode(params.mode);
+  Future<Either<Failure, Unit>> call(SetRepeatModeParams params) =>
+      _repo.setRepeatMode(params.mode);
 }
 
 // ── Volume ────────────────────────────────────────────────────────────────────
 
 class SetVolumeParams {
   final double volume; // 0.0 – 1.0
-  const SetVolumeParams({required this.volume}) : assert(volume >= 0.0 && volume <= 1.0);
+  const SetVolumeParams({required this.volume})
+    : assert(volume >= 0.0 && volume <= 1.0);
 }
 
 @lazySingleton
 class SetVolumeUseCase {
   final PlayerRepository _repo;
   const SetVolumeUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(SetVolumeParams params) => _repo.setVolume(params.volume);
+  Future<Either<Failure, Unit>> call(SetVolumeParams params) =>
+      _repo.setVolume(params.volume);
 }
 
 // ── Speed ─────────────────────────────────────────────────────────────────────
@@ -160,5 +167,6 @@ class SetSpeedParams {
 class SetSpeedUseCase {
   final PlayerRepository _repo;
   const SetSpeedUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(SetSpeedParams params) => _repo.setSpeed(params.speed);
+  Future<Either<Failure, Unit>> call(SetSpeedParams params) =>
+      _repo.setSpeed(params.speed);
 }

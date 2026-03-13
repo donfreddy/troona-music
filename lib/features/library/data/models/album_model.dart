@@ -18,17 +18,17 @@ class AlbumModel {
   });
 
   factory AlbumModel.fromAlbumModel(audio.AlbumModel model) => AlbumModel(
-        id: model.id,
-        name: model.album,
-        artist: model.artist ?? 'Artiste inconnu',
-        trackCount: model.numOfSongs,
-      );
+    id: model.id,
+    name: model.album,
+    artist: model.artist ?? 'Artiste inconnu',
+    trackCount: model.numOfSongs,
+  );
 
   Album toEntity() => Album(
-        id: id.toString(),
-        name: name,
-        artist: artist,
-        trackCount: trackCount,
-        artworkPath: artworkPath,
-      );
+    id: id.toString(),
+    name: name,
+    artist: artist,
+    trackCount: trackCount,
+    artworkPath: artworkPath,
+  );
 }

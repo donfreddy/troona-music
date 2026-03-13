@@ -16,7 +16,10 @@ Future<void> showQueueSheet(BuildContext context) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withValues(alpha: .5),
-    builder: (ctx) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const QueueSheet()),
+    builder: (ctx) => BlocProvider.value(
+      value: context.read<PlayerBloc>(),
+      child: const QueueSheet(),
+    ),
   );
 }
 
@@ -44,7 +47,10 @@ class QueueSheet extends StatelessWidget {
                 child: Container(
                   width: 36,
                   height: 4,
-                  decoration: BoxDecoration(color: colors.labelQuaternary, borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(
+                    color: colors.labelQuaternary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -57,15 +63,20 @@ class QueueSheet extends StatelessWidget {
                   children: [
                     Text(
                       'File d\'attente',
-                      style: AppTypography.textTheme.headlineSmall?.copyWith(color: colors.labelPrimary),
+                      style: AppTypography.textTheme.headlineSmall?.copyWith(
+                        color: colors.labelPrimary,
+                      ),
                     ),
                     BlocBuilder<PlayerBloc, PlayerState>(
-                      buildWhen: (prev, curr) => _queueLength(prev) != _queueLength(curr),
+                      buildWhen: (prev, curr) =>
+                          _queueLength(prev) != _queueLength(curr),
                       builder: (_, state) {
                         final count = _queueLength(state);
                         return Text(
                           count != null ? '$count titres' : '',
-                          style: AppTypography.textTheme.labelLarge?.copyWith(color: colors.labelSecondary),
+                          style: AppTypography.textTheme.labelLarge?.copyWith(
+                            color: colors.labelSecondary,
+                          ),
                         );
                       },
                     ),
@@ -83,7 +94,12 @@ class QueueSheet extends StatelessWidget {
               // ── Clear queue button ────────────────────────────────────
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.sm, AppSpacing.lg, AppSpacing.md),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                  ),
                   child: CupertinoButton(
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -91,7 +107,9 @@ class QueueSheet extends StatelessWidget {
                     },
                     child: Text(
                       'Vider la queue',
-                      style: AppTypography.textTheme.bodySmall?.copyWith(color: colors.accent),
+                      style: AppTypography.textTheme.bodySmall?.copyWith(
+                        color: colors.accent,
+                      ),
                     ),
                   ),
                 ),

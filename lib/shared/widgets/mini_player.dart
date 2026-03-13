@@ -30,7 +30,10 @@ class MiniPlayer extends StatelessWidget {
                   // Fond sombre glassmorphism — identique screenshot
                   color: Colors.black.withValues(alpha: .72),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: .10), width: 0.5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .10),
+                    width: 0.5,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -43,10 +46,17 @@ class MiniPlayer extends StatelessWidget {
                         dimension: 38,
                         child: ClipOval(
                           child: state.currentTrack.artworkPath != null
-                              ? Image.file(File(state.currentTrack.artworkPath!), fit: BoxFit.cover)
+                              ? Image.file(
+                                  File(state.currentTrack.artworkPath!),
+                                  fit: BoxFit.cover,
+                                )
                               : Container(
                                   color: Colors.white12,
-                                  child: const Icon(CupertinoIcons.music_note, color: Colors.white38, size: 18),
+                                  child: const Icon(
+                                    CupertinoIcons.music_note,
+                                    color: Colors.white38,
+                                    size: 18,
+                                  ),
                                 ),
                         ),
                       ),
@@ -62,13 +72,20 @@ class MiniPlayer extends StatelessWidget {
                         children: [
                           Text(
                             state.currentTrack.title,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             state.currentTrack.artist,
-                            style: TextStyle(color: Colors.white.withValues(alpha: .5), fontSize: 11),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: .5),
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -78,10 +95,14 @@ class MiniPlayer extends StatelessWidget {
                     CupertinoButton(
                       padding: const EdgeInsets.all(10),
                       onPressed: () => context.read<PlayerBloc>().add(
-                        state.isPlaying ? const PauseRequested() : const ResumeRequested(),
+                        state.isPlaying
+                            ? const PauseRequested()
+                            : const ResumeRequested(),
                       ),
                       child: Icon(
-                        state.isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                        state.isPlaying
+                            ? CupertinoIcons.pause_fill
+                            : CupertinoIcons.play_fill,
                         color: Colors.white,
                         size: 20,
                       ),
@@ -90,8 +111,14 @@ class MiniPlayer extends StatelessWidget {
                     // ── Skip ───────────────────────────────────
                     CupertinoButton(
                       padding: const EdgeInsets.only(right: 12),
-                      onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
-                      child: const Icon(CupertinoIcons.forward_fill, color: Colors.white, size: 20),
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        const SkipNextRequested(),
+                      ),
+                      child: const Icon(
+                        CupertinoIcons.forward_fill,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ],
                 ),
@@ -104,7 +131,10 @@ class MiniPlayer extends StatelessWidget {
   }
 
   (Object, bool) _miniKey(PlayerState s) => switch (s) {
-    PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
+    PlayerActive(:final currentTrack, :final isPlaying) => (
+      currentTrack.id,
+      isPlaying,
+    ),
     _ => ('', false),
   };
 }

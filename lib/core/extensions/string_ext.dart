@@ -1,7 +1,12 @@
 extension StringExt on String {
   /// `hello world` → `Hello World`
-  String toTitleCase() =>
-      split(' ').map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}').join(' ');
+  String toTitleCase() => split(' ')
+      .map(
+        (w) => w.isEmpty
+            ? w
+            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}',
+      )
+      .join(' ');
 
   /// Removes leading `The `, `A `, `An ` for sort keys.
   String get sortKey {
@@ -22,11 +27,14 @@ extension StringExt on String {
   String? get nullIfEmpty => trim().isEmpty ? null : this;
 
   /// Simple check: ends with a common audio extension.
-  bool get isAudioPath =>
-      RegExp(r'\.(mp3|flac|aac|ogg|opus|m4a|wav|aiff|wv|ape)$', caseSensitive: false).hasMatch(this);
+  bool get isAudioPath => RegExp(
+    r'\.(mp3|flac|aac|ogg|opus|m4a|wav|aiff|wv|ape)$',
+    caseSensitive: false,
+  ).hasMatch(this);
 }
 
 extension NullableStringExt on String? {
   /// Falls back to [fallback] when null or empty.
-  String orDefault([String fallback = 'Unknown']) => (this == null || this!.trim().isEmpty) ? fallback : this!;
+  String orDefault([String fallback = 'Unknown']) =>
+      (this == null || this!.trim().isEmpty) ? fallback : this!;
 }

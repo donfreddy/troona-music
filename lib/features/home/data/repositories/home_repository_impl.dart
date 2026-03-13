@@ -15,12 +15,19 @@ final class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<Either<Failure, HomeFeed>> getFeed() async {
     try {
-      final results = await Future.wait([_db.getPlaylists(limit: 6), _db.getRecentTracks(limit: 20)]);
+      final results = await Future.wait([
+        _db.getPlaylists(limit: 6),
+        _db.getRecentTracks(limit: 20),
+      ]);
 
       return right(
         HomeFeed(
-          popularPlaylists: (results[0] as List<PlaylistModel>).map((p) => p.toEntity()).toList(),
-          trendingTracks: (results[1] as List<TrackModel>).map((t) => t.toEntity()).toList(),
+          popularPlaylists: (results[0] as List<PlaylistModel>)
+              .map((p) => p.toEntity())
+              .toList(),
+          trendingTracks: (results[1] as List<TrackModel>)
+              .map((t) => t.toEntity())
+              .toList(),
         ),
       );
     } catch (e, st) {

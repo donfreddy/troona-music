@@ -18,9 +18,9 @@ final class LibraryRepositoryImpl implements LibraryRepository {
     required LocalAudioDataSource source,
     required IsarLibraryDataSource cache,
     required MediaScannerService scanner,
-  })  : _source = source,
-        _cache = cache,
-        _scanner = scanner;
+  }) : _source = source,
+       _cache = cache,
+       _scanner = scanner;
 
   @override
   Future<Either<Failure, Stream<ScanProgress>>> scanLibrary() async {

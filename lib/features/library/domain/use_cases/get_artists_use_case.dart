@@ -8,5 +8,6 @@ final class GetArtistsUseCase {
   final LibraryRepository _repo;
   const GetArtistsUseCase(this._repo);
 
-  Future<Either<Failure, List<Artist>>> call([NoParams _ = const NoParams()]) => _repo.getArtists();
+  Future<Either<Failure, List<Artist>>> call([NoParams _ = const NoParams()]) =>
+      _repo.getArtists();
 }

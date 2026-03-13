@@ -15,7 +15,8 @@ class ScanException implements Exception {
   const ScanException([this.message = 'Scan failed.', this.cause]);
 
   @override
-  String toString() => 'ScanException: $message${cause != null ? ' | cause: $cause' : ''}';
+  String toString() =>
+      'ScanException: $message${cause != null ? ' | cause: $cause' : ''}';
 }
 
 class PlaybackException implements Exception {
