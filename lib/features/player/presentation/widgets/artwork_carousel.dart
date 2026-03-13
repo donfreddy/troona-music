@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/duration_ext.dart';
 
 class ArtworkCarousel extends StatefulWidget {
   final List<Track> queue;
@@ -72,7 +73,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                 }
                 return Transform.scale(scale: scale, child: child);
               },
-              child: _ArtworkItem(track: widget.queue[index], isActive: index == widget.currentIndex),
+              child: _ArtworkItem(track: widget.queue[index], isActive: index == widget.currentIndex, ringSize: screenW * 0.62),
             );
           },
         ),
