@@ -11,6 +11,17 @@ class IsarLibraryDataSource {
   /// Returns the set of all device IDs currently cached.
   Future<Set<String>> getAllDeviceIds() async => _tracks.keys.toSet();
 
+  /// Returns every cached track.
+  Future<List<TrackModel>> getAllTracks() async => _tracks.values.toList();
+
+  /// Case-insensitive search across title and artist.
+  Future<List<TrackModel>> searchTracks(String query) async {
+    final lower = query.toLowerCase();
+    return _tracks.values
+        .where((t) => t.title.toLowerCase().contains(lower) || t.artist.toLowerCase().contains(lower))
+        .toList();
+  }
+
   /// Inserts or replaces tracks by deviceId.
   Future<void> insertTracks(List<TrackModel> tracks) async {
     for (final track in tracks) {
