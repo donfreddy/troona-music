@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:on_audio_query_pluse/on_audio_query.dart';
@@ -13,7 +14,7 @@ final class ArtworkExtractor {
   /// Extrait et cache les artworks pour une liste de tracks.
   /// Utilise un semaphore pour ne pas saturer l'I/O.
   Stream<TrackModel> extractArtworks(List<TrackModel> tracks) async* {
-    final semaphore = Semaphore(_maxConcurrent);
+    final semaphore = _Semaphore(_maxConcurrent);
 
     final futures = tracks.map((track) async {
       await semaphore.acquire();
@@ -23,7 +24,7 @@ final class ArtworkExtractor {
       } finally {
         semaphore.release();
       }
-    });
+    }).toList();
 
     // Émet chaque track au fur et à mesure que son artwork est prêt
     for (final future in futures) {
@@ -52,21 +53,35 @@ final class ArtworkExtractor {
       return track..artworkPath = cacheFile.path;
     }
 
-    // 3. Fallback : lecture ID3 directe avec flutter_media_metadata
-    return _fallbackID3Artwork(track, cacheFile);
+    // Pas d'artwork disponible
+    return track;
   }
 
-  Future<TrackModel> _fallbackID3Artwork(TrackModel track, File cacheFile) async {
-    try {
-      final metadata = await MetadataRetriever.fromFile(File(track.path));
-      final bytes = metadata.albumArt;
-      if (bytes != null && bytes.isNotEmpty) {
-        await cacheFile.writeAsBytes(bytes);
-        return track..artworkPath = cacheFile.path;
-      }
-    } catch (_) {
-      // Silence — certains fichiers n'ont tout simplement pas d'artwork
+}
+
+/// Petite implémentation locale d'un sémaphore pour limiter la concurrence.
+/// Évite d'ajouter une dépendance externe uniquement pour ce besoin.
+class _Semaphore {
+  int _available;
+  final List<Completer<void>> _waiters = [];
+
+  _Semaphore(this._available) : assert(_available > 0);
+
+  Future<void> acquire() {
+    if (_available > 0) {
+      _available--;
+      return Future.value();
     }
-    return track; // artworkPath reste null
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    return completer.future;
+  }
+
+  void release() {
+    _available++;
+    if (_waiters.isNotEmpty && _available > 0) {
+      _available--;
+      _waiters.removeAt(0).complete();
+    }
   }
 }

@@ -46,7 +46,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
             _ => null,
           };
 
-          final artworkPath = track?.artworkPath;
+          //final artworkPath = track?.artworkPath;
 
           return Stack(
             children: [
@@ -243,6 +243,7 @@ class _TrackInfo extends StatelessWidget {
 
 // ── Volume slider ─────────────────────────────────────────
 
+// ignore: unused_element
 class _VolumeSlider extends StatelessWidget {
   const _VolumeSlider();
 
@@ -275,6 +276,7 @@ class _VolumeSlider extends StatelessWidget {
 
 // ── Bottom actions : lyrics · queue · airplay ─────────────
 
+// ignore: unused_element
 class _BottomActions extends StatelessWidget {
   const _BottomActions();
 

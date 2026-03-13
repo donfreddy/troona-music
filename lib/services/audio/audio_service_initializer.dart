@@ -17,7 +17,6 @@ final class AudioServiceInitializer {
       ),
     );
 
-    await adapter.init();
     return adapter;
   }
 }

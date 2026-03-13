@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 
 class RotatingArtwork extends StatefulWidget {
   final Track? track;

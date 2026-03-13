@@ -19,9 +19,9 @@ class AlbumModel {
 
   factory AlbumModel.fromAlbumModel(audio.AlbumModel model) => AlbumModel(
         id: model.id,
-        name: model.album ?? 'Album inconnu',
+        name: model.album,
         artist: model.artist ?? 'Artiste inconnu',
-        trackCount: model.numOfSongs ?? 0,
+        trackCount: model.numOfSongs,
       );
 
   Album toEntity() => Album(

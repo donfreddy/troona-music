@@ -16,7 +16,7 @@ class ArtistModel {
 
   factory ArtistModel.fromArtistModel(audio.ArtistModel model) => ArtistModel(
         id: model.id,
-        name: model.artist ?? 'Artiste inconnu',
+        name: model.artist,
         albumCount: model.numberOfAlbums ?? 0,
         trackCount: model.numberOfTracks ?? 0,
       );

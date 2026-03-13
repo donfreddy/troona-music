@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
 
@@ -99,10 +100,10 @@ class _QueueTile extends StatelessWidget {
               width: 38,
               height: 38,
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(6), color: colors.bgSecondary),
-              child: track.artworkUri != null
+              child: track.artworkPath != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(6),
-                      child: Image.file(Uri.parse(track.artworkUri!).toFilePath() as dynamic, fit: BoxFit.cover),
+                      child: Image.file(Uri.parse(track.artworkPath!).toFilePath() as dynamic, fit: BoxFit.cover),
                     )
                   : Icon(CupertinoIcons.music_note, size: 16, color: colors.labelTertiary),
             ),

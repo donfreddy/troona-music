@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
-import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 
 enum AppTab {
@@ -43,7 +42,7 @@ class AppBottomNavBar extends StatelessWidget {
     );
   }
 
-  (int?, bool) _navKey(PlayerState s) => switch (s) {
+  (String?, bool) _navKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
     _ => (null, false),
   };
@@ -124,6 +123,7 @@ class _NavBarBody extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────
 
+// ignore: unused_element
 class _CenterArtworkSlot extends StatelessWidget {
   final Track? track;
   final bool isPlaying;

@@ -59,12 +59,14 @@ final class MediaScannerService {
     }
 
     // 4. Extraction artworks en arrière-plan (ne bloque pas l'UI)
-    yield const ScanProgress(phase: ScanPhase.artworks, progress: 0);
+    yield ScanProgress(phase: ScanPhase.artworks, progress: 0);
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     var done = 0;
 
     await for (final updated in _artworkExtractor.extractArtworks(tracksWithoutArtwork)) {
-      await _cache.updateArtworkPath(updated.deviceId, updated.artworkPath);
+      if (updated.artworkPath != null) {
+        await _cache.updateArtworkPath(updated.deviceId, updated.artworkPath!);
+      }
       done++;
       yield ScanProgress(
         phase: ScanPhase.artworks,
