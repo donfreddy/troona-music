@@ -4,7 +4,7 @@ abstract final class AppTypography {
   // Flutter n'a pas SF Pro en natif.
   // Sur iOS : le système utilise SF Pro automatiquement si fontFamily est null.
   // Sur Android : on embarque une Google Font proche (Nunito ou DM Sans).
-  static const _fontFamily = null; // null = SF Pro sur iOS
+  //static const _fontFamily = null; // null = SF Pro sur iOS
 
   static TextTheme get textTheme => const TextTheme(
     // Large Title — titre de page (scroll collapse)
