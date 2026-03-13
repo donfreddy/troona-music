@@ -1,192 +1,340 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:troona/features/player/domain/entities/queue_manager.dart';
+import 'package:just_audio/just_audio.dart' as ja;
+import 'package:rxdart/rxdart.dart';
+import 'package:troona/features/player/domain/entities/playback_state.dart';
+import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/domain/entities/repeat_mode.dart';
+import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
-final class JustAudioAdapter implements AudioServicePort {
-  final AudioPlayer _player;
-  final QueueManager _queueManager;
-  final StreamController<Queue> _queueController = StreamController<Queue>.broadcast();
+// Adapter Pattern : traduit les appels du Domain vers just_audio.
+// Le Domain ne sait jamais que just_audio existe.
+@LazySingleton(as: AudioServicePort)
+class JustAudioAdapter implements AudioServicePort {
+  final ja.AudioPlayer _player;
 
-  JustAudioAdapter({AudioPlayer? player, QueueManager? queueManager})
-    : _player = player ?? AudioPlayer(),
-      _queueManager = queueManager ?? QueueManager();
+  // BehaviorSubjects = stream + valeur initiale accessible en sync
+  final _queueSubject = BehaviorSubject<Queue>();
+  final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
-  // ── Streams exposés ──────────────────────────────────────
+  Queue? _currentQueue;
+
+  JustAudioAdapter() : _player = ja.AudioPlayer() {
+    _initStreams();
+  }
+
+  // ── Initialisation des streams ─────────────────────────────────────────────
+
+  void _initStreams() {
+    // Écoute les changements de player pour mettre à jour la queue interne
+    _player.currentIndexStream.listen((index) {
+      if (_currentQueue != null && index != null) {
+        _currentQueue = _currentQueue!.copyWith(currentIndex: index);
+        _queueSubject.add(_currentQueue!);
+      }
+    });
+
+    // Volume initial
+    _volumeSubject.add(_player.volume);
+  }
+
+  // ── AudioServicePort : Streams ─────────────────────────────────────────────
 
   @override
   Stream<Duration> get positionStream => _player.positionStream;
+
   @override
   Stream<Duration> get bufferedPositionStream => _player.bufferedPositionStream;
-  @override
-  Stream<PlaybackStatus> get statusStream => _player.playerStateStream.map(_mapPlayerState);
-  @override
-  Stream<Track?> get currentTrackStream => _queueController.stream.map((q) => q.currentTrack);
-  @override
-  Stream<Queue> get queueStream => _queueController.stream;
-
-  // ── Init & lifecycle ─────────────────────────────────────
 
   @override
-  Future<void> init() async {
-    // Écoute la fin naturelle d'un track pour auto-skip
-    _player.playerStateStream.listen((state) async {
-      if (state.processingState == ProcessingState.completed) {
-        await skipToNext();
+  Stream<PlaybackStatus> get statusStream => _player.playerStateStream.map(_mapState);
+
+  @override
+  Stream<Track?> get currentTrackStream => _player.currentIndexStream.map((index) {
+    if (index == null || _currentQueue == null) return null;
+    final tracks = _currentQueue!.playbackTracks;
+    if (index < 0 || index >= tracks.length) return null;
+    return tracks[index];
+  });
+
+  @override
+  Stream<Duration> get durationStream => _player.durationStream.map((d) => d ?? Duration.zero);
+
+  @override
+  Stream<Queue> get queueStream => _queueSubject.stream;
+
+  @override
+  Stream<double> get volumeStream => _volumeSubject.stream;
+
+  // ── AudioServicePort : Valeurs instantanées ────────────────────────────────
+
+  @override
+  PlaybackStatus get currentStatus => _mapState(_player.playerState);
+
+  @override
+  Track? get currentTrack {
+    final index = _player.currentIndex;
+    if (index == null || _currentQueue == null) return null;
+    final tracks = _currentQueue!.playbackTracks;
+    if (index < 0 || index >= tracks.length) return null;
+    return tracks[index];
+  }
+
+  @override
+  Duration get currentPosition => _player.position;
+
+  @override
+  Duration get currentDuration => _player.duration ?? Duration.zero;
+
+  @override
+  Queue? get currentQueue => _currentQueue;
+
+  // ── AudioServicePort : Commandes ───────────────────────────────────────────
+
+  @override
+  Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue}) async {
+    try {
+      if (queue != null) {
+        return setQueue(queue.originalTracks, startIndex: queue.currentIndex);
       }
-    });
-  }
-
-  // ── Lecture ──────────────────────────────────────────────
-
-  @override
-  Future<void> playTrack(Track track) async {
-    final source = _buildAudioSource(track);
-    await _player.setAudioSource(source);
-    await _player.play();
-    _emitQueue();
-  }
-
-  @override
-  Future<void> playFromQueue(int index) async {
-    final track = _queueManager.jumpTo(index);
-    if (track == null) return;
-    await playTrack(track);
-  }
-
-  @override
-  Future<void> pause() async => _player.pause();
-  @override
-  Future<void> resume() async => _player.play();
-  @override
-  Future<void> seek(Duration pos) async => _player.seek(pos);
-  @override
-  Future<void> stop() async {
-    await _player.stop();
-    _emitQueue();
-  }
-
-  // ── Navigation dans la queue ─────────────────────────────
-
-  @override
-  Future<void> skipToNext() async {
-    if (_queueManager.repeatMode == RepeatMode.one) {
-      await _player.seek(Duration.zero);
+      // Track seul — crée une queue d'un élément
+      final source = ja.AudioSource.uri(Uri.parse(track.uri));
+      await _player.setAudioSource(source);
+      _updateQueue(Queue.single(track));
       await _player.play();
-      return;
+      return right(unit);
+    } on ja.PlayerException catch (e) {
+      return left(AudioFailure(e.message ?? 'Erreur lecture: ${e.code}'));
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
     }
-    final next = _queueManager.moveToNext();
-    if (next != null) {
-      await playTrack(next);
-    } else {
-      // Fin de queue sans repeat → pause + retour au début
+  }
+
+  @override
+  Future<Either<Failure, Unit>> pause() async {
+    try {
       await _player.pause();
-      await _player.seek(Duration.zero);
-      _queueManager.jumpTo(0);
-      _emitQueue();
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
     }
   }
 
   @override
-  Future<void> skipToPrevious() async {
-    // Convention Apple : < 3s → track précédent, sinon → seek(0)
-    final position = _player.position;
-    if (position.inSeconds > 3) {
-      await _player.seek(Duration.zero);
-      return;
+  Future<Either<Failure, Unit>> resume() async {
+    try {
+      await _player.play();
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
     }
-    final prev = _queueManager.moveToPrevious();
-    if (prev != null) await playTrack(prev);
-  }
-
-  // ── Queue management ─────────────────────────────────────
-
-  @override
-  Future<void> setQueue(List<Track> tracks, {int startIndex = 0}) async {
-    _queueManager.setTracks(tracks, startIndex: startIndex);
-    final track = _queueManager.currentTrack;
-    if (track != null) await playTrack(track);
-    _emitQueue();
   }
 
   @override
-  Future<void> addToQueue(Track track) async {
-    _queueManager.addTrack(track);
-    _emitQueue();
+  Future<Either<Failure, Unit>> seekTo(Duration position) async {
+    try {
+      await _player.seek(position);
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
   }
 
   @override
-  Future<void> removeFromQueue(int index) async {
-    final wasCurrentTrack = index == _queueManager.currentIndex;
-    _queueManager.removeAt(index);
-
-    // Si on supprime le track en cours, on joue le suivant
-    if (wasCurrentTrack) {
-      final next = _queueManager.currentTrack;
-      if (next != null) {
-        await playTrack(next);
-      } else {
-        await stop();
+  Future<Either<Failure, Unit>> skipToNext() async {
+    try {
+      if (_player.hasNext) {
+        await _player.seekToNext();
+      } else if (_currentQueue?.repeatMode == RepeatMode.all) {
+        await _player.seek(Duration.zero, index: 0);
+        await _player.play();
       }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
     }
-    _emitQueue();
   }
 
   @override
-  Future<void> moveQueueItem(int oldIndex, int newIndex) async {
-    _queueManager.moveItem(oldIndex, newIndex);
-    _emitQueue();
+  Future<Either<Failure, Unit>> skipToPrevious() async {
+    try {
+      if (_player.hasPrevious) {
+        await _player.seekToPrevious();
+      } else if (_currentQueue?.repeatMode == RepeatMode.all) {
+        final last = (_currentQueue?.length ?? 1) - 1;
+        await _player.seek(Duration.zero, index: last);
+        await _player.play();
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
   }
 
   @override
-  Future<void> clearQueue() async {
-    await stop();
-    _queueManager.setTracks([]);
-    _emitQueue();
-  }
+  Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex = 0}) async {
+    try {
+      if (tracks.isEmpty) return left(const AudioFailure('Queue vide'));
 
-  // ── Modes ────────────────────────────────────────────────
+      final sources = tracks
+          .map(
+            (t) => ja.AudioSource.uri(
+              Uri.parse(t.uri),
+              tag: t, // stocké pour accès dans les notifications
+            ),
+          )
+          .toList();
+
+      final playlist = ja.ConcatenatingAudioSource(children: sources);
+      await _player.setAudioSource(playlist, initialIndex: startIndex);
+
+      final newQueue = Queue.fromTracks(
+        tracks,
+        startIndex: startIndex,
+        shuffleEnabled: _currentQueue?.shuffleEnabled ?? false,
+        repeatMode: _currentQueue?.repeatMode ?? RepeatMode.off,
+      );
+      _updateQueue(newQueue);
+
+      await _player.play();
+      return right(unit);
+    } on ja.PlayerException catch (e) {
+      return left(AudioFailure(e.message ?? 'Erreur source audio'));
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
 
   @override
-  Future<void> setRepeatMode(RepeatMode mode) async {
-    _queueManager._repeatMode = mode;
-    // Sync just_audio pour le loop natif (RepeatOne seulement)
-    await _player.setLoopMode(mode == RepeatMode.one ? LoopMode.one : LoopMode.off);
-    _emitQueue();
+  Future<Either<Failure, Unit>> addToQueue(Track track) async {
+    try {
+      // Ajoute à la ConcatenatingAudioSource si disponible
+      final source = _player.audioSource;
+      if (source is ja.ConcatenatingAudioSource) {
+        await source.add(ja.AudioSource.uri(Uri.parse(track.uri), tag: track));
+      }
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.addTrack(track));
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
   }
 
   @override
-  Future<void> toggleShuffle(bool enabled) async {
-    _queueManager.setShuffle(enabled);
-    _emitQueue();
+  Future<Either<Failure, Unit>> removeFromQueue(int index) async {
+    try {
+      final source = _player.audioSource;
+      if (source is ja.ConcatenatingAudioSource) {
+        await source.removeAt(index);
+      }
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.removeAt(index));
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
   }
 
-  // ── Helpers privés ───────────────────────────────────────
+  @override
+  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) async {
+    try {
+      final source = _player.audioSource;
+      if (source is ja.ConcatenatingAudioSource) {
+        await source.move(oldIndex, newIndex);
+      }
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
 
-  AudioSource _buildAudioSource(Track track) => AudioSource.uri(
-    Uri.file(track.path),
-    tag: MediaItem(
-      id: track.id,
-      title: track.title,
-      artist: track.artist,
-      album: track.album,
-      artUri: track.artworkPath != null ? Uri.file(track.artworkPath!) : null,
-    ),
-  );
+  @override
+  Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled) async {
+    try {
+      await _player.setShuffleModeEnabled(enabled);
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.toggleShuffle());
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
 
-  PlaybackStatus _mapPlayerState(PlayerState state) => switch (state.processingState) {
-    ProcessingState.loading => PlaybackStatus.loading,
-    ProcessingState.buffering => PlaybackStatus.buffering,
-    ProcessingState.ready => state.playing ? PlaybackStatus.playing : PlaybackStatus.paused,
-    ProcessingState.completed => PlaybackStatus.completed,
-    ProcessingState.idle => PlaybackStatus.idle,
-  };
+  @override
+  Future<Either<Failure, Unit>> setRepeatMode(RepeatMode mode) async {
+    try {
+      await _player.setLoopMode(_mapRepeatMode(mode));
+      if (_currentQueue != null) {
+        _updateQueue(_currentQueue!.setRepeatMode(mode));
+      }
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
 
-  void _emitQueue() => _queueController.add(_queueManager.toQueue());
+  @override
+  Future<Either<Failure, Unit>> setVolume(double volume) async {
+    try {
+      await _player.setVolume(volume);
+      _volumeSubject.add(volume);
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> setSpeed(double speed) async {
+    try {
+      await _player.setSpeed(speed);
+      return right(unit);
+    } catch (e) {
+      return left(AudioFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<void> stop() => _player.stop();
 
   @override
   Future<void> dispose() async {
-    await _queueController.close();
+    await _queueSubject.close();
+    await _volumeSubject.close();
     await _player.dispose();
   }
+
+  // ── Helpers privés ─────────────────────────────────────────────────────────
+
+  void _updateQueue(Queue queue) {
+    _currentQueue = queue;
+    _queueSubject.add(queue);
+  }
+
+  PlaybackStatus _mapState(ja.PlayerState state) {
+    if (state.processingState == ja.ProcessingState.loading || state.processingState == ja.ProcessingState.buffering) {
+      return PlaybackStatus.buffering;
+    }
+    if (state.playing) return PlaybackStatus.playing;
+    if (state.processingState == ja.ProcessingState.completed) {
+      return PlaybackStatus.stopped;
+    }
+    return PlaybackStatus.paused;
+  }
+
+  ja.LoopMode _mapRepeatMode(RepeatMode mode) => switch (mode) {
+    RepeatMode.off => ja.LoopMode.off,
+    RepeatMode.all => ja.LoopMode.all,
+    RepeatMode.one => ja.LoopMode.one,
+  };
 }

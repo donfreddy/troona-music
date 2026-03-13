@@ -1,51 +1,111 @@
-final class AudioHandlerImpl extends BaseAudioHandler
-    with QueueHandler, SeekHandler {
+// Pont entre audio_service (lockscreen/notifications) et JustAudioAdapter.
+// Délègue toutes les commandes à l'Adapter — pas de logique ici.
 
-  final AudioServicePort _adapter;
+import 'package:audio_service/audio_service.dart';
+import 'package:injectable/injectable.dart';
+import 'package:troona/features/player/domain/entities/repeat_mode.dart' show RepeatMode;
+import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
-  AudioHandlerImpl(this._adapter) {
-    // Relaie les streams de l'adapter vers audio_service
-    _adapter.currentTrackStream.listen((track) {
-      if (track == null) return;
-      mediaItem.add(MediaItem(
-        id:     track.id,
-        title:  track.title,
-        artist: track.artist,
-        duration: Duration(milliseconds: track.durationMs),
-      ));
+@lazySingleton
+class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
+  final AudioServicePort _port;
+
+  AudioHandlerImpl(this._port) {
+    // Transmet les états de lecture à audio_service
+    _port.statusStream.listen((status) {
+      playbackState.add(
+        playbackState.value.copyWith(
+          playing: status.name == 'playing',
+          processingState: _mapStatus(status.name),
+          controls: _buildControls(),
+          systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+        ),
+      );
     });
 
-    _adapter.statusStream.listen((status) {
-      playbackState.add(playbackState.value.copyWith(
-        playing: status == PlaybackStatus.playing,
-        processingState: _mapStatus(status),
-        controls: [
-          MediaControl.skipToPrevious,
-          status == PlaybackStatus.playing
-              ? MediaControl.pause
-              : MediaControl.play,
-          MediaControl.skipToNext,
-        ],
-        androidCompactActionIndices: const [0, 1, 2],
-      ));
+    // Transmet le track courant aux métadonnées de notification
+    _port.currentTrackStream.listen((track) {
+      if (track != null) {
+        mediaItem.add(_trackToMediaItem(track));
+      }
+    });
+
+    // Transmet la position
+    _port.positionStream.listen((pos) {
+      playbackState.add(playbackState.value.copyWith(updatePosition: pos));
+    });
+
+    // Queue
+    _port.queueStream.listen((q) {
+      queue.add(q.playbackTracks.map(_trackToMediaItem).toList());
     });
   }
 
-  // Contrôles depuis lockscreen / headphones / CarPlay
-  @override Future<void> play()         async => _adapter.resume();
-  @override Future<void> pause()        async => _adapter.pause();
-  @override Future<void> stop()         async => _adapter.stop();
-  @override Future<void> skipToNext()   async => _adapter.skipToNext();
-  @override Future<void> skipToPrevious() async => _adapter.skipToPrevious();
-  @override Future<void> seek(Duration pos) async => _adapter.seek(pos);
+  // ── BaseAudioHandler overrides ─────────────────────────────────────────────
 
-  AudioProcessingState _mapStatus(PlaybackStatus s) =>
-      switch (s) {
-        PlaybackStatus.loading   => AudioProcessingState.loading,
-        PlaybackStatus.buffering => AudioProcessingState.buffering,
-        PlaybackStatus.playing   => AudioProcessingState.ready,
-        PlaybackStatus.paused    => AudioProcessingState.ready,
-        PlaybackStatus.completed => AudioProcessingState.completed,
-        PlaybackStatus.idle      => AudioProcessingState.idle,
-      };
+  @override
+  Future<void> play() => _port.resume();
+
+  @override
+  Future<void> pause() => _port.pause();
+
+  @override
+  Future<void> stop() => _port.stop();
+
+  @override
+  Future<void> seek(Duration position) => _port.seekTo(position);
+
+  @override
+  Future<void> skipToNext() => _port.skipToNext();
+
+  @override
+  Future<void> skipToPrevious() => _port.skipToPrevious();
+
+  @override
+  Future<void> skipToQueueItem(int index) async {
+    final q = _port.currentQueue;
+    if (q == null || index < 0 || index >= q.length) return;
+    final track = q.playbackTracks[index];
+    await _port.playTrack(track);
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) => _port.setShuffleEnabled(
+    shuffleMode == AudioServiceShuffleMode.all || shuffleMode == AudioServiceShuffleMode.group,
+  );
+
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) => _port.setRepeatMode(switch (repeatMode) {
+    AudioServiceRepeatMode.none => RepeatMode.off,
+    AudioServiceRepeatMode.one => RepeatMode.one,
+    AudioServiceRepeatMode.all => RepeatMode.all,
+    AudioServiceRepeatMode.group => RepeatMode.all,
+  });
+
+  // ── Helpers privés ─────────────────────────────────────────────────────────
+
+  MediaItem _trackToMediaItem(Track track) => MediaItem(
+    id: track.id,
+    title: track.title,
+    artist: track.artist,
+    album: track.album,
+    duration: track.duration,
+    artUri: track.artworkUri != null ? Uri.parse(track.artworkUri!) : null,
+    extras: {'uri': track.uri},
+  );
+
+  AudioProcessingState _mapStatus(String statusName) => switch (statusName) {
+    'buffering' => AudioProcessingState.buffering,
+    'playing' => AudioProcessingState.ready,
+    'paused' => AudioProcessingState.ready,
+    'stopped' => AudioProcessingState.idle,
+    _ => AudioProcessingState.idle,
+  };
+
+  List<MediaControl> _buildControls() => [
+    MediaControl.skipToPrevious,
+    MediaControl.pause,
+    MediaControl.play,
+    MediaControl.skipToNext,
+  ];
 }
