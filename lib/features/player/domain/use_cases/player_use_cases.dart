@@ -3,6 +3,7 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 

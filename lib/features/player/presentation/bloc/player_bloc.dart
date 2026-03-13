@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';

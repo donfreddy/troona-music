@@ -1,12 +1,5 @@
 part of 'player_bloc.dart';
 
-// abstract class PlayerEvent extends Equatable {
-//   const PlayerEvent();
-
-//   @override
-//   List<Object> get props => [];
-// }
-
 sealed class PlayerEvent {
   const PlayerEvent();
 }

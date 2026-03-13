@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 
 class ArtworkCarousel extends StatefulWidget {
   final List<Track> queue;

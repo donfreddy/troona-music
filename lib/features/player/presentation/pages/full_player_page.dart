@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
@@ -64,7 +66,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
                     // ── Carousel artwork ───────────────────────────
                     if (state is PlayerActive)
                       ArtworkCarousel(
-                        queue: state.queue.tracks,
+                        queue: state.queue.playbackTracks,
                         currentIndex: state.queue.currentIndex,
                         onPageChanged: _onCarouselPageChanged,
                       )
@@ -281,21 +283,21 @@ class _BottomActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
+       // _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
         _ActionButton(icon: CupertinoIcons.list_bullet, label: 'File', onTap: () => _showQueue(context)),
         _ActionButton(icon: CupertinoIcons.play, label: 'AirPlay', onTap: () {}),
       ],
     );
   }
 
-  void _showLyrics(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const LyricsSheet()),
-    );
-  }
+  // void _showLyrics(BuildContext context) {
+  //   showModalBottomSheet<void>(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const LyricsSheet()),
+  //   );
+  // }
 
   void _showQueue(BuildContext context) {
     showModalBottomSheet<void>(

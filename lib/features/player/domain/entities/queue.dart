@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 /// Représentation immutable de la file de lecture.
