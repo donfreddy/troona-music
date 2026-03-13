@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:on_audio_query_pluse/on_audio_query.dart';
-import 'package:troona/features/library/models/track_model.dart';
+import 'package:troona/features/library/data/models/track_model.dart';
 
 final class ArtworkExtractor {
   final OnAudioQuery _query;

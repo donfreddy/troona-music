@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:on_audio_query_pluse/on_audio_query.dart';
+import 'package:troona/features/library/data/models/track_model.dart';
 
 abstract interface class LocalAudioDataSource {
   /// Scanne TOUS les fichiers audio disponibles sur l'appareil.
