@@ -36,33 +36,47 @@ class _HomePageState extends State<HomePage> {
           // ── Fond gradient violet dynamique ─────────────
           // Reprend la couleur dominante du track en cours
           BlocSelector<PlayerBloc, PlayerState, String?>(
-            selector: (s) => s is PlayerActive ? s.currentTrack.artworkPath : null,
-            builder: (_, artworkPath) => DynamicBackground(artworkPath: artworkPath, child: const SizedBox.expand()),
+            selector: (s) =>
+                s is PlayerActive ? s.currentTrack.artworkPath : null,
+            builder: (_, artworkPath) => DynamicBackground(
+              artworkPath: artworkPath,
+              child: const SizedBox.expand(),
+            ),
           ),
 
           // ── Contenu scrollable ──────────────────────────
           BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) => CustomScrollView(
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               slivers: [
                 // Safe area top + avatar + cloche
                 SliverToBoxAdapter(child: _HomeHeader()),
 
                 // Corps selon état
                 switch (state) {
-                  HomeLoading() ||
-                  HomeInitial() => SliverList.builder(itemCount: 8, itemBuilder: (_, _) => const ShimmerRow()),
+                  HomeLoading() || HomeInitial() => SliverList.builder(
+                    itemCount: 8,
+                    itemBuilder: (_, _) => const ShimmerRow(),
+                  ),
                   HomeLoaded(:final feed) => _HomeFeedBody(feed: feed),
                   HomeError(:final message) => SliverFillRemaining(
                     child: HomeErrorView(
                       message: message,
-                      onRetry: () => context.read<HomeBloc>().add(const HomeRefreshRequested()),
+                      onRetry: () => context.read<HomeBloc>().add(
+                        const HomeRefreshRequested(),
+                      ),
                     ),
                   ),
                 },
 
                 // Padding pour la BottomNavBar
-                const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.miniPlayerHeight + AppSpacing.xl3)),
+                const SliverPadding(
+                  padding: EdgeInsets.only(
+                    bottom: AppSpacing.miniPlayerHeight + AppSpacing.xl3,
+                  ),
+                ),
               ],
             ),
           ),
@@ -78,7 +92,12 @@ class _HomeHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.xl,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -91,9 +110,16 @@ class _HomeHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: .15),
-                  border: Border.all(color: Colors.white.withValues(alpha: .25), width: 1.5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .25),
+                    width: 1.5,
+                  ),
                 ),
-                child: const Icon(CupertinoIcons.person_fill, color: Colors.white70, size: 22),
+                child: const Icon(
+                  CupertinoIcons.person_fill,
+                  color: Colors.white70,
+                  size: 22,
+                ),
               ),
             ),
 
@@ -104,12 +130,19 @@ class _HomeHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withValues(alpha: .10),
-                border: Border.all(color: Colors.white.withValues(alpha: .15), width: 0.5),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: .15),
+                  width: 0.5,
+                ),
               ),
               child: CupertinoButton(
                 padding: EdgeInsets.zero,
                 onPressed: () {},
-                child: const Icon(CupertinoIcons.bell, color: Colors.white70, size: 20),
+                child: const Icon(
+                  CupertinoIcons.bell,
+                  color: Colors.white70,
+                  size: 20,
+                ),
               ),
             ),
           ],
@@ -128,7 +161,10 @@ class _HomeFeedBody extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         // ── Section Popular Playlists ──────────────────────
-        _SectionHeader(title: 'Popular Playlists', onViewAll: () => context.go('/playlists')),
+        _SectionHeader(
+          title: 'Popular Playlists',
+          onViewAll: () => context.go('/playlists'),
+        ),
 
         SliverToBoxAdapter(
           child: SizedBox(
@@ -137,10 +173,14 @@ class _HomeFeedBody extends StatelessWidget {
                 ? const EmptyPlaylists()
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
                     itemCount: feed.popularPlaylists.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-                    itemBuilder: (context, i) => PlaylistCard(playlist: feed.popularPlaylists[i]),
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(width: AppSpacing.md),
+                    itemBuilder: (context, i) =>
+                        PlaylistCard(playlist: feed.popularPlaylists[i]),
                   ),
           ),
         ),
@@ -148,16 +188,27 @@ class _HomeFeedBody extends StatelessWidget {
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
 
         // ── Section Trending Now ──────────────────────────
-        _SectionHeader(title: 'Trending Now', onViewAll: () => context.go('/library')),
+        _SectionHeader(
+          title: 'Trending Now',
+          onViewAll: () => context.go('/library'),
+        ),
 
         SliverList.separated(
           itemCount: feed.trendingTracks.length,
-          separatorBuilder: (_, __) => Divider(height: 0.5, indent: 74, color: Colors.white.withValues(alpha: .08)),
+          separatorBuilder: (_, _) => Divider(
+            height: 0.5,
+            indent: 74,
+            color: Colors.white.withValues(alpha: .08),
+          ),
           itemBuilder: (context, i) => TrendingRow(
             track: feed.trendingTracks[i],
             rank: i + 1,
             onTap: () => context.read<PlayerBloc>().add(
-              PlayTrackRequested(feed.trendingTracks[i], contextQueue: feed.trendingTracks, contextIndex: i),
+              PlayTrackRequested(
+                feed.trendingTracks[i],
+                contextQueue: feed.trendingTracks,
+                contextIndex: i,
+              ),
             ),
           ),
         ),
@@ -177,7 +228,12 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -193,15 +249,25 @@ class _SectionHeader extends StatelessWidget {
             GestureDetector(
               onTap: onViewAll,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: .12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: .15), width: 0.5),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .15),
+                    width: 0.5,
+                  ),
                 ),
                 child: const Text(
                   'View All',
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),

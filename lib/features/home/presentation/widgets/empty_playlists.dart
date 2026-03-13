@@ -13,7 +13,11 @@ class EmptyPlaylists extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Aucune playlist trouvée',
-            style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 16, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: .7),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -24,13 +26,14 @@ class DynamicBackground extends StatefulWidget {
 class _DynamicBackgroundState extends State<DynamicBackground>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  Color _from = const Color(0xFF1A0533); // violet par défaut
-  Color _to = const Color(0xFF1A0533);
+  Color _colorA = const Color(0xFF1A0533); // violet par défaut
+  Color _colorB = const Color(0xFF1A0533);
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 800.ms);
+    _ctrl = AnimationController(vsync: this, duration: 10.seconds)
+      ..repeat(reverse: true);
     _extractColor(widget.artworkPath);
   }
 
@@ -49,24 +52,35 @@ class _DynamicBackgroundState extends State<DynamicBackground>
         FileImage(File(path)),
         size: const Size(100, 100), // thumbnail pour la perf
       );
-      final color =
+      final dominant =
           palette.darkVibrantColor?.color ??
           palette.vibrantColor?.color ??
           palette.dominantColor?.color ??
           const Color(0xFF1A0533);
 
-      // Assombrit la couleur pour qu'elle reste lisible
-      final hsl = HSLColor.fromColor(color);
-      final dark = hsl
-          .withLightness((hsl.lightness * 0.45).clamp(0.08, 0.35))
-          .toColor();
+      // Prend une deuxième teinte (vibrant si dispo) pour l'animation
+      final secondary =
+          palette.vibrantColor?.color ??
+          palette.lightVibrantColor?.color ??
+          palette.mutedColor?.color ??
+          dominant;
+
+      // Assombrit pour garder la lisibilité — la base sombre reste en bas.
+      Color darken(Color c, double factor) {
+        final hsl = HSLColor.fromColor(c);
+        return hsl
+            .withLightness((hsl.lightness * factor).clamp(0.08, 0.4))
+            .toColor();
+      }
+
+      final top1 = darken(dominant, 0.55);
+      final top2 = darken(secondary, 0.65);
 
       if (mounted) {
         setState(() {
-          _from = _to;
-          _to = dark;
+          _colorA = top1;
+          _colorB = top2;
         });
-        _ctrl.forward(from: 0);
       }
     } catch (_) {
       /* fichier inaccessible ou palette vide */
@@ -84,16 +98,25 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, child) {
-        final color = Color.lerp(_from, _to, _ctrl.value)!;
+        final t = _ctrl.value;
+        final wobble = sin(t * pi); // 0→1→0
+        final mixedTop = Color.lerp(_colorA, _colorB, wobble)!;
+        final angle = lerpDouble(-12.0, 12.0, t)! * pi / 180;
+        final begin = _rotateAlignment(Alignment.topCenter, angle);
+        final end = Alignment.bottomCenter;
         return DecoratedBox(
           decoration: BoxDecoration(
-            // Dégradé identique aux screenshots : couleur dominante en haut,
-            // fondu vers noir en bas
+            // Dégradé animé : deux teintes en haut, fond noir fixe en bas
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: const [0.0, 0.45, 1.0],
-              colors: [color, color.withValues(alpha: .6), Colors.black],
+              begin: begin,
+              end: end,
+              stops: const [0.0, 0.25, 0.6, 1.0],
+              colors: [
+                mixedTop,
+                _colorA.withValues(alpha: .6),
+                _colorB.withValues(alpha: .35),
+                Colors.black, // le bas reste sombre
+              ],
             ),
           ),
           child: child,
@@ -101,5 +124,13 @@ class _DynamicBackgroundState extends State<DynamicBackground>
       },
       child: widget.child,
     );
+  }
+
+  Alignment _rotateAlignment(Alignment base, double angleRad) {
+    final cosA = cos(angleRad);
+    final sinA = sin(angleRad);
+    final x = base.x * cosA - base.y * sinA;
+    final y = base.x * sinA + base.y * cosA;
+    return Alignment(x, y);
   }
 }

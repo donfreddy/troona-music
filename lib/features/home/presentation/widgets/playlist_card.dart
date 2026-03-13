@@ -37,7 +37,11 @@ class PlaylistCard extends StatelessWidget {
             // Titre
             Text(
               playlist.name,
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -47,7 +51,10 @@ class PlaylistCard extends StatelessWidget {
             // Sous-titre — nombre de titres
             Text(
               '${playlist.trackIds.length} titres',
-              style: TextStyle(color: Colors.white.withValues(alpha: .5), fontSize: 12),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: .5),
+                fontSize: 12,
+              ),
             ),
           ],
         ),

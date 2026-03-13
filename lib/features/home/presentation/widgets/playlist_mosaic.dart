@@ -8,7 +8,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 
 class PlaylistMosaic extends StatelessWidget {
   final List<String> trackIds;
-  
+
   const PlaylistMosaic({super.key, required this.trackIds});
 
   @override
@@ -16,7 +16,13 @@ class PlaylistMosaic extends StatelessWidget {
     return ColoredBox(
       color: Colors.white.withValues(alpha: .08),
       child: trackIds.isEmpty
-          ? const Center(child: Icon(CupertinoIcons.music_note_list, color: Colors.white30, size: 48))
+          ? const Center(
+              child: Icon(
+                CupertinoIcons.music_note_list,
+                color: Colors.white30,
+                size: 48,
+              ),
+            )
           : GridView.count(
               crossAxisCount: 2,
               physics: const NeverScrollableScrollPhysics(),
@@ -30,7 +36,9 @@ class PlaylistMosaic extends StatelessWidget {
                   future: getIt<IsarLibraryDataSource>().getArtworkPathById(id),
                   builder: (_, snap) {
                     if (snap.data == null) {
-                      return ColoredBox(color: Colors.white.withValues(alpha: .06));
+                      return ColoredBox(
+                        color: Colors.white.withValues(alpha: .06),
+                      );
                     }
                     return Image.file(File(snap.data!), fit: BoxFit.cover);
                   },

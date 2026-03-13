@@ -4,5 +4,10 @@ final class Playlist {
   final List<String> trackIds; // IDs des pistes dans la playlist
   final String? artworkPath;
 
-  const Playlist({required this.id, required this.name, this.trackIds = const [], this.artworkPath});
+  const Playlist({
+    required this.id,
+    required this.name,
+    this.trackIds = const [],
+    this.artworkPath,
+  });
 }
