@@ -6,7 +6,7 @@ import 'package:troona/features/library/data/models/track_model.dart';
 abstract interface class LibraryRepository {
   /// Scanne la librairie locale et retourne un Stream de listes de tracks.
   /// Permet d'afficher les résultats progressivement pendant le scan.
-  Stream<Either<Failure,List<TrackModel>>> scanLocalLibrary();
+  Stream<Either<Failure, List<TrackModel>>> scan();
 
   /// Récupère tous les albums disponibles localement.
   Future<List<AlbumModel>> getLocalAlbums();

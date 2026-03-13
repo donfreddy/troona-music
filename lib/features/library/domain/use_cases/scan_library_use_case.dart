@@ -9,5 +9,5 @@ class ScanLibraryUseCase {
 
   const ScanLibraryUseCase(this._repo);
 
-  Stream<Either<Failure, List<TrackModel>>> call() => _repo.scanLocalLibrary();
+  Stream<Either<Failure, List<TrackModel>>> call() => _repo.scan();
 }
