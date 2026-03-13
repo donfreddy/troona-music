@@ -29,6 +29,8 @@ dependencies:
   # --- UI & DESIGN ---
   eva_icons_flutter: ^3.1.0
   flutter_screenutil: ^5.9.3
+  palette_generator_master: ^1.0.1
+  flutter_animate: ^4.5.2
 
 dev_dependencies:
   flutter_test:
