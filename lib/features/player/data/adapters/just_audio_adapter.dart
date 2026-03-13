@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio/just_audio.dart' as ja;
 import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
@@ -17,7 +16,8 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 // Le Domain ne sait jamais que just_audio existe.
 @LazySingleton(as: AudioServicePort)
 class JustAudioAdapter implements AudioServicePort {
-  final ja.AudioPlayer _player;
+  final AudioPlayer _player;
+  final List<AudioSource> _sources = [];
 
   // BehaviorSubjects = stream + valeur initiale accessible en sync
   final _queueSubject = BehaviorSubject<Queue>();
@@ -25,7 +25,7 @@ class JustAudioAdapter implements AudioServicePort {
 
   Queue? _currentQueue;
 
-  JustAudioAdapter() : _player = ja.AudioPlayer() {
+  JustAudioAdapter() : _player = AudioPlayer() {
     _initStreams();
   }
 
@@ -104,12 +104,14 @@ class JustAudioAdapter implements AudioServicePort {
         return setQueue(queue.originalTracks, startIndex: queue.currentIndex);
       }
       // Track seul — crée une queue d'un élément
-      final source = ja.AudioSource.uri(Uri.parse(track.uri));
-      await _player.setAudioSource(source);
+      _sources
+        ..clear()
+        ..add(AudioSource.uri(Uri.parse(track.uri), tag: track));
+      await _player.setAudioSources(_sources);
       _updateQueue(Queue.single(track));
       await _player.play();
       return right(unit);
-    } on ja.PlayerException catch (e) {
+    } on PlayerException catch (e) {
       return left(PlaybackFailure(e.message ?? 'Erreur lecture: ${e.code}'));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -182,17 +184,18 @@ class JustAudioAdapter implements AudioServicePort {
     try {
       if (tracks.isEmpty) return left(const PlaybackFailure('Queue vide'));
 
-      final sources = tracks
-          .map(
-            (t) => ja.AudioSource.uri(
+      _sources
+        ..clear()
+        ..addAll(
+          tracks.map(
+            (t) => AudioSource.uri(
               Uri.parse(t.uri),
               tag: t, // stocké pour accès dans les notifications
             ),
-          )
-          .toList();
+          ),
+        );
 
-      final playlist = ja.ConcatenatingAudioSource(children: sources);
-      await _player.setAudioSource(playlist, initialIndex: startIndex);
+      await _player.setAudioSources(_sources, initialIndex: startIndex);
 
       final newQueue = Queue.fromTracks(
         tracks,
@@ -204,7 +207,7 @@ class JustAudioAdapter implements AudioServicePort {
 
       await _player.play();
       return right(unit);
-    } on ja.PlayerException catch (e) {
+    } on PlayerException catch (e) {
       return left(PlaybackFailure(e.message ?? 'Erreur source audio'));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -214,14 +217,9 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> addToQueue(Track track) async {
     try {
-      // Ajoute à la ConcatenatingAudioSource si disponible
-      final source = _player.audioSource;
-      if (source is ja.ConcatenatingAudioSource) {
-        await source.add(ja.AudioSource.uri(Uri.parse(track.uri), tag: track));
-      }
-      if (_currentQueue != null) {
-        _updateQueue(_currentQueue!.addTrack(track));
-      }
+      _sources.add(AudioSource.uri(Uri.parse(track.uri), tag: track));
+      await _rebuildSources();
+      if (_currentQueue != null) _updateQueue(_currentQueue!.addTrack(track));
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -231,13 +229,10 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) async {
     try {
-      final source = _player.audioSource;
-      if (source is ja.ConcatenatingAudioSource) {
-        await source.removeAt(index);
-      }
-      if (_currentQueue != null) {
-        _updateQueue(_currentQueue!.removeAt(index));
-      }
+      if (index < 0 || index >= _sources.length) return left(const PlaybackFailure('Index hors limites'));
+      _sources.removeAt(index);
+      await _rebuildSources();
+      if (_currentQueue != null) _updateQueue(_currentQueue!.removeAt(index));
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -247,13 +242,13 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) async {
     try {
-      final source = _player.audioSource;
-      if (source is ja.ConcatenatingAudioSource) {
-        await source.move(oldIndex, newIndex);
+      if (oldIndex < 0 || oldIndex >= _sources.length || newIndex < 0 || newIndex >= _sources.length) {
+        return left(const PlaybackFailure('Index hors limites'));
       }
-      if (_currentQueue != null) {
-        _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
-      }
+      final item = _sources.removeAt(oldIndex);
+      _sources.insert(newIndex, item);
+      await _rebuildSources();
+      if (_currentQueue != null) _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -324,20 +319,36 @@ class JustAudioAdapter implements AudioServicePort {
     _queueSubject.add(queue);
   }
 
-  PlaybackStatus _mapState(ja.PlayerState state) {
-    if (state.processingState == ja.ProcessingState.loading || state.processingState == ja.ProcessingState.buffering) {
+  PlaybackStatus _mapState(PlayerState state) {
+    if (state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering) {
       return PlaybackStatus.buffering;
     }
     if (state.playing) return PlaybackStatus.playing;
-    if (state.processingState == ja.ProcessingState.completed) {
+    if (state.processingState == ProcessingState.completed) {
       return PlaybackStatus.stopped;
     }
     return PlaybackStatus.paused;
   }
 
-  ja.LoopMode _mapRepeatMode(RepeatMode mode) => switch (mode) {
-    RepeatMode.off => ja.LoopMode.off,
-    RepeatMode.all => ja.LoopMode.all,
-    RepeatMode.one => ja.LoopMode.one,
+  LoopMode _mapRepeatMode(RepeatMode mode) => switch (mode) {
+    RepeatMode.off => LoopMode.off,
+    RepeatMode.all => LoopMode.all,
+    RepeatMode.one => LoopMode.one,
   };
+
+  Future<void> _rebuildSources() async {
+    if (_sources.isEmpty) {
+      await _player.stop();
+      return;
+    }
+
+    final currentIndex = _player.currentIndex ?? 0;
+    final position = _player.position;
+    final clampedIndex = currentIndex.clamp(0, _sources.length - 1);
+    final wasPlaying = _player.playing;
+
+    await _player.setAudioSources(_sources, initialIndex: clampedIndex, initialPosition: position);
+
+    if (wasPlaying) await _player.play();
+  }
 }
