@@ -28,10 +28,6 @@ class TrackNotFoundFailure extends Failure {
   List<Object?> get props => [message, trackId];
 }
 
-class AudioFailure extends Failure {
-  const AudioFailure([super.message = 'Audio processing error.']);
-}
-
 // ── Player ────────────────────────────────────────────────────────────────────
 
 class PlaybackFailure extends Failure {

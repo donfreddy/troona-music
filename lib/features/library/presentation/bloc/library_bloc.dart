@@ -1,30 +1,27 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/artist.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 part 'library_event.dart';
 part 'library_state.dart';
 
 final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
-  LibraryBloc() : super(LibraryInitial()) {
-    on<LibraryEvent>((event, emit) {
-      // TODO: implement event handler
-    });
-  }
-}
-
-final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   final ScanLibraryUseCase _scanLibrary;
   final GetTracksUseCase _getTracks;
   final GetAlbumsUseCase _getAlbums;
   final GetArtistsUseCase _getArtists;
-  final SearchTracksUseCase _searchTracks;
-
-  // Debouncer pour la recherche — évite un recalcul à chaque keystroke
-  final _searchDebounce = Debouncer(milliseconds: 300);
 
   StreamSubscription<ScanProgress>? _scanSub;
 
@@ -33,12 +30,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     required GetTracksUseCase getTracks,
     required GetAlbumsUseCase getAlbums,
     required GetArtistsUseCase getArtists,
-    required SearchTracksUseCase searchTracks,
   }) : _scanLibrary = scanLibrary,
        _getTracks = getTracks,
        _getAlbums = getAlbums,
        _getArtists = getArtists,
-       _searchTracks = searchTracks,
        super(const LibraryInitial()) {
     on<LibraryScanRequested>(_onScanRequested, transformer: droppable());
     on<LibraryRefreshRequested>(_onRefreshRequested, transformer: droppable());
@@ -69,7 +64,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       ),
     );
 
-    final result = await _scanLibrary(NoParams());
+    final result = await _scanLibrary();
 
     result.fold((failure) => add(_ScanFailed(failure.message)), (stream) {
       _scanSub = stream.listen(
@@ -114,7 +109,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
   Future<void> _loadFromCache(Emitter<LibraryState> emit) async {
     // Charge tracks, albums, artists en parallèle
-    final results = await Future.wait([_getTracks(NoParams()), _getAlbums(NoParams()), _getArtists(NoParams())]);
+    final results = await Future.wait([_getTracks(), _getAlbums(), _getArtists()]);
 
     final tracksResult = results[0] as Either<Failure, List<Track>>;
     final albumsResult = results[1] as Either<Failure, List<Album>>;
@@ -176,8 +171,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     if (state is! LibraryLoaded) return;
     final current = state as LibraryLoaded;
 
-    // Le debouncer est dans la couche use case, pas ici
-    // On recalcule directement — le transformer sequential() garantit l'ordre
+    // Recalcule en mémoire — le transformer sequential() garantit l'ordre
     final visible = _applyFilterAndSort(
       tracks: current.allTracks,
       albums: current.allAlbums,
@@ -275,19 +269,39 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
     var filteredArtists = q.isEmpty ? artists : artists.where((a) => a.name.toLowerCase().contains(q)).toList();
 
+    switch (filter) {
+      case LibraryFilter.tracks:
+        filteredAlbums = <Album>[];
+        filteredArtists = <Artist>[];
+        break;
+      case LibraryFilter.albums:
+        filteredTracks = <Track>[];
+        filteredArtists = <Artist>[];
+        break;
+      case LibraryFilter.artists:
+        filteredTracks = <Track>[];
+        filteredAlbums = <Album>[];
+        break;
+      case LibraryFilter.all:
+        break;
+    }
+
     // ── Tri ─────────────────────────────────────────────────
     switch (sort) {
       case LibrarySort.title:
         filteredTracks.sort((a, b) => a.title.compareTo(b.title));
         filteredAlbums.sort((a, b) => a.name.compareTo(b.name));
         filteredArtists.sort((a, b) => a.name.compareTo(b.name));
+        break;
       case LibrarySort.artist:
         filteredTracks.sort((a, b) => a.artist.compareTo(b.artist));
         filteredAlbums.sort((a, b) => a.artist.compareTo(b.artist));
         filteredArtists.sort((a, b) => a.name.compareTo(b.name));
+        break;
       case LibrarySort.album:
         filteredTracks.sort((a, b) => a.album.compareTo(b.album));
         filteredAlbums.sort((a, b) => a.name.compareTo(b.name));
+        break;
       case LibrarySort.dateAdded:
         // Isar retourne déjà dans l'ordre d'insertion — pas de tri nécessaire
         break;
@@ -308,7 +322,6 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   @override
   Future<void> close() async {
     await _cancelScan();
-    _searchDebounce.dispose();
     return super.close();
   }
 }

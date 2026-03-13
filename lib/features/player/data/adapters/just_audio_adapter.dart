@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio/just_audio.dart' as ja;
 import 'package:rxdart/rxdart.dart';
+import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
@@ -109,9 +110,9 @@ class JustAudioAdapter implements AudioServicePort {
       await _player.play();
       return right(unit);
     } on ja.PlayerException catch (e) {
-      return left(AudioFailure(e.message ?? 'Erreur lecture: ${e.code}'));
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+      return left(PlaybackFailure(e.message ?? 'Erreur lecture: ${e.code}'));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -120,8 +121,8 @@ class JustAudioAdapter implements AudioServicePort {
     try {
       await _player.pause();
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -130,8 +131,8 @@ class JustAudioAdapter implements AudioServicePort {
     try {
       await _player.play();
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -140,8 +141,8 @@ class JustAudioAdapter implements AudioServicePort {
     try {
       await _player.seek(position);
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -155,8 +156,8 @@ class JustAudioAdapter implements AudioServicePort {
         await _player.play();
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -171,15 +172,15 @@ class JustAudioAdapter implements AudioServicePort {
         await _player.play();
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
   @override
   Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex = 0}) async {
     try {
-      if (tracks.isEmpty) return left(const AudioFailure('Queue vide'));
+      if (tracks.isEmpty) return left(const PlaybackFailure('Queue vide'));
 
       final sources = tracks
           .map(
@@ -204,9 +205,9 @@ class JustAudioAdapter implements AudioServicePort {
       await _player.play();
       return right(unit);
     } on ja.PlayerException catch (e) {
-      return left(AudioFailure(e.message ?? 'Erreur source audio'));
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+      return left(PlaybackFailure(e.message ?? 'Erreur source audio'));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -222,8 +223,8 @@ class JustAudioAdapter implements AudioServicePort {
         _updateQueue(_currentQueue!.addTrack(track));
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -238,8 +239,8 @@ class JustAudioAdapter implements AudioServicePort {
         _updateQueue(_currentQueue!.removeAt(index));
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -254,8 +255,8 @@ class JustAudioAdapter implements AudioServicePort {
         _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -267,8 +268,8 @@ class JustAudioAdapter implements AudioServicePort {
         _updateQueue(_currentQueue!.toggleShuffle());
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -280,8 +281,8 @@ class JustAudioAdapter implements AudioServicePort {
         _updateQueue(_currentQueue!.setRepeatMode(mode));
       }
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -291,8 +292,8 @@ class JustAudioAdapter implements AudioServicePort {
       await _player.setVolume(volume);
       _volumeSubject.add(volume);
       return right(unit);
-    } catch (e) {
-      return left(AudioFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -302,7 +303,7 @@ class JustAudioAdapter implements AudioServicePort {
       await _player.setSpeed(speed);
       return right(unit);
     } catch (e) {
-      return left(AudioFailure(e.toString()));
+      return left(PlaybackFailure(e.toString()));
     }
   }
 

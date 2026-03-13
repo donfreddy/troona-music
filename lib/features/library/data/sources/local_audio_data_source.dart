@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:on_audio_query_pluse/on_audio_query.dart';
+import 'package:on_audio_query_pluse/on_audio_query.dart' hide AlbumModel, ArtistModel;
 import 'package:troona/core/error/exceptions.dart';
+import 'package:troona/features/library/data/models/album_model.dart';
+import 'package:troona/features/library/data/models/artist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
 abstract interface class LocalAudioDataSource {

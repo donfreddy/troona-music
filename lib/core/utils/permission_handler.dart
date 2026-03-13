@@ -2,27 +2,51 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:troona/core/error/exceptions.dart';
 
-class AudioPermissionHandler {
-  static Future<bool> requestAudioPermission() async {
+/// Requests and checks audio-related storage permissions.
+/// Throws [PermissionException] if the user denies or permanently denies.
+abstract final class AppPermissionHandler {
+  AppPermissionHandler._();
+
+  /// Resolves the correct [Permission] for the running platform/SDK.
+  /// Async because Android SDK version requires a device info call.
+  static Future<Permission> _resolvePermission() async {
     if (Platform.isAndroid) {
-      // Android 13+ : READ_MEDIA_AUDIO remplace READ_EXTERNAL_STORAGE
       final androidInfo = await DeviceInfoPlugin().androidInfo;
-      final permission = androidInfo.version.sdkInt >= 33
+      return androidInfo.version.sdkInt >= 33
           ? Permission
-                .audio // READ_MEDIA_AUDIO
-          : Permission.storage; // READ_EXTERNAL_STORAGE (≤ Android 12)
-
-      final status = await permission.request();
-      return status.isGranted;
+                .audio // READ_MEDIA_AUDIO  (API 33+)
+          : Permission.storage; // READ_EXTERNAL_STORAGE (API ≤ 32)
     }
+    return Permission.mediaLibrary; // iOS
+  }
 
-    if (Platform.isIOS) {
-      // iOS : accès à la bibliothèque musicale
-      final status = await Permission.mediaLibrary.request();
-      return status.isGranted;
+  /// Requests audio permission and returns `true` if granted.
+  /// Throws [PermissionException] on denial or permanent denial.
+  static Future<bool> requestAudioPermission() async {
+    final permission = await _resolvePermission();
+    final status = await permission.request();
+
+    switch (status) {
+      case PermissionStatus.granted:
+      case PermissionStatus.limited: // iOS limited library access
+        return true;
+
+      case PermissionStatus.permanentlyDenied:
+        await openAppSettings();
+        throw const PermissionException('Audio permission permanently denied.');
+
+      case PermissionStatus.denied:
+      default:
+        throw const PermissionException('Audio permission denied. Please grant access in Settings.');
     }
+  }
 
-    return false;
+  /// Non-throwing check — `true` if permission is already granted.
+  static Future<bool> hasAudioPermission() async {
+    final permission = await _resolvePermission();
+    final status = await permission.status;
+    return status == PermissionStatus.granted || status == PermissionStatus.limited;
   }
 }

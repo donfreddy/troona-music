@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
@@ -21,8 +22,8 @@ final class HomeRepositoryImpl implements HomeRepository {
           trendingTracks: (results[1] as List<TrackModel>).map((t) => t.toEntity()).toList(),
         ),
       );
-    } catch (e) {
-      return left(DatabaseFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 }

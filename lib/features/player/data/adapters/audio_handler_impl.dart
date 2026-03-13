@@ -3,6 +3,7 @@
 
 import 'package:audio_service/audio_service.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart' show RepeatMode;
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
@@ -89,8 +90,8 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
     title: track.title,
     artist: track.artist,
     album: track.album,
-    duration: track.duration,
-    artUri: track.artworkUri != null ? Uri.parse(track.artworkUri!) : null,
+    duration: Duration(milliseconds: track.durationMs),
+    artUri: track.artworkPath != null ? Uri.parse(track.artworkPath!) : null,
     extras: {'uri': track.uri},
   );
 

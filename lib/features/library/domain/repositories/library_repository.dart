@@ -1,20 +1,23 @@
-import 'dart:typed_data';
-
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
-import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/artist.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
 
 abstract interface class LibraryRepository {
-  /// Scanne la librairie locale et retourne un Stream de listes de tracks.
-  /// Permet d'afficher les résultats progressivement pendant le scan.
-  Stream<Either<Failure, List<TrackModel>>> scan();
+  /// Lance un scan de la librairie locale et renvoie la progression.
+  Future<Either<Failure, Stream<ScanProgress>>> scanLibrary();
 
-  /// Récupère tous les albums disponibles localement.
-  Future<List<AlbumModel>> getLocalAlbums();
+  /// Récupère tous les tracks indexés localement.
+  Future<Either<Failure, List<Track>>> getTracks();
 
-  /// Récupère tous les artistes disponibles localement.
-  Future<List<ArtistModel>> getLocalArtists();
+  /// Récupère les albums agrégés.
+  Future<Either<Failure, List<Album>>> getAlbums();
 
-  /// Récupère l'artwork d'un track local sous forme de bytes.
-  Future<Uint8List?> getLocalTrackArtwork(int trackId);
+  /// Récupère les artistes agrégés.
+  Future<Either<Failure, List<Artist>>> getArtists();
+
+  /// Recherche les tracks correspondant à [query].
+  Future<Either<Failure, List<Track>>> searchTracks(String query);
 }
