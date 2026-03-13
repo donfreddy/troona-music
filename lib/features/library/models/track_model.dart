@@ -1,8 +1,9 @@
+import 'package:isar_plus/isar_plus.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 
 @collection
 class TrackModel {
-  Id id = Isar.autoIncrement;
+  Id? id;
 
   @Index(unique: true)
   late String deviceId; // SongModel.id.toString() — stable entre scans
@@ -19,8 +20,8 @@ class TrackModel {
   // Mapping depuis on_audio_query
   static TrackModel fromSongModel(SongModel s) => TrackModel()
     ..deviceId = s.id.toString()
-    ..path = s.data ?? ''
-    ..title = s.title.isNotEmpty ? s.title : _filenameWithoutExt(s.data ?? '')
+    ..path = s.data
+    ..title = s.title.isNotEmpty ? s.title : _filenameWithoutExt(s.data)
     ..artist = s.artist ?? 'Artiste inconnu'
     ..album = s.album ?? 'Album inconnu'
     ..durationMs = s.duration ?? 0
