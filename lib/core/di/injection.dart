@@ -8,7 +8,11 @@ import 'package:troona/features/library/data/repositories/library_repository_imp
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
+import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
@@ -62,6 +66,9 @@ Future<void> configureDependencies() async {
   // ── Use cases ───────────────────────────────────────────────────────────
   getIt
     ..registerLazySingleton<ScanLibraryUseCase>(() => ScanLibraryUseCase(getIt()))
+    ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
+    ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
+    ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))
     ..registerLazySingleton<PlayTrackUseCase>(() => PlayTrackUseCase(getIt()))
     ..registerLazySingleton<PauseUseCase>(() => PauseUseCase(getIt()))
     ..registerLazySingleton<ResumeUseCase>(() => ResumeUseCase(getIt()))
@@ -95,6 +102,15 @@ Future<void> configureDependencies() async {
       setVolume: getIt(),
       setSpeed: getIt(),
       audioServicePort: getIt(),
+    ),
+  );
+
+  getIt.registerFactory<LibraryBloc>(
+    () => LibraryBloc(
+      scanLibrary: getIt(),
+      getTracks: getIt(),
+      getAlbums: getIt(),
+      getArtists: getIt(),
     ),
   );
 }
