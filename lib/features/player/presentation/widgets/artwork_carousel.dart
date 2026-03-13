@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -45,29 +48,34 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final screenW = MediaQuery.of(context).size.width;
+
     return SizedBox(
-      height: MediaQuery.of(context).size.width * 0.80,
-      child: PageView.builder(
-        controller: _pageCtrl,
-        itemCount: widget.queue.length,
-        onPageChanged: widget.onPageChanged,
-        itemBuilder: (context, index) {
-          return AnimatedBuilder(
-            animation: _pageCtrl,
-            builder: (_, child) {
-              // Scale : page active = 1.0, adjacentes = 0.82
-              double scale = 0.82;
-              if (_pageCtrl.position.haveDimensions) {
-                final delta = (_pageCtrl.page! - index).abs();
-                scale = (1.0 - delta * 0.18).clamp(0.82, 1.0);
-              } else if (index == widget.currentIndex) {
-                scale = 1.0;
-              }
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: _ArtworkItem(track: widget.queue[index], isActive: index == widget.currentIndex),
-          );
-        },
+      height: screenW * 0.85,
+      child: OverflowBox(
+        maxWidth: double.infinity,
+        child: PageView.builder(
+          controller: _pageCtrl,
+          itemCount: widget.queue.length,
+          onPageChanged: widget.onPageChanged,
+          itemBuilder: (context, index) {
+            return AnimatedBuilder(
+              animation: _pageCtrl,
+              builder: (_, child) {
+                // Scale : page active = 1.0, adjacentes = 0.82
+                double scale = 0.82;
+                if (_pageCtrl.position.haveDimensions) {
+                  final delta = (_pageCtrl.page! - index).abs();
+                  scale = (1.0 - delta * 0.18).clamp(0.82, 1.0);
+                } else if (index == widget.currentIndex) {
+                  scale = 1.0;
+                }
+                return Transform.scale(scale: scale, child: child);
+              },
+              child: _ArtworkItem(track: widget.queue[index], isActive: index == widget.currentIndex),
+            );
+          },
+        ),
       ),
     );
   }
@@ -76,37 +84,78 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
 class _ArtworkItem extends StatelessWidget {
   final Track track;
   final bool isActive;
-  const _ArtworkItem({required this.track, required this.isActive});
+  final double ringSize;
+
+  const _ArtworkItem({required this.track, required this.isActive, required this.ringSize});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Hero(
-        // Tag partagé avec MiniPlayer — déclenche la transition
-        tag: 'artwork_${track.id}',
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          clipBehavior: Clip.antiAlias,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: isActive
-                  ? [BoxShadow(color: Colors.black.withValues(alpha: .5), blurRadius: 30, offset: const Offset(0, 12))]
-                  : [],
+    //final size = MediaQuery.of(context).size.width * 0.62;
+    final artSize = ringSize * 0.68;
+
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        // ── Anneaux vinyle — uniquement sur l'artwork actif ──
+        if (isActive) ...[
+          // Anneau extérieur — plus transparent
+          ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: Container(
+                width: ringSize,
+                height: ringSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withValues(alpha: .08), width: 22),
+                  color: Colors.black.withValues(alpha: .25),
+                ),
+              ),
             ),
-            child: track.artworkPath != null
-                ? Image.file(
-                    File(track.artworkPath!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const _ArtworkPlaceholder(),
-                  )
-                : const _ArtworkPlaceholder(),
+          ),
+          // Anneau intermédiaire
+          Container(
+            width: ringSize * 0.86,
+            height: ringSize * 0.86,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: .05), width: 10),
+            ),
+          ),
+
+          // // Cercle glassmorphism derrière l'artwork
+          // ClipOval(
+          //   child: BackdropFilter(
+          //     filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          //     child: Container(width: size * 0.75, height: size * 0.75, color: Colors.white.withValues(alpha: .04)),
+          //   ),
+          // ),
+        ],
+
+        // ── Artwork rond ──────────────────────────────────
+        Hero(
+          tag: 'artwork_${track.id}',
+          child: ClipOval(
+            child: SizedBox.square(
+              dimension: isActive ? artSize : artSize * 0.72,
+              child: track.artworkPath != null
+                  ? Image.file(File(track.artworkPath!), fit: BoxFit.cover)
+                  : const _ArtworkPlaceholder(),
+            ),
           ),
         ),
-      ),
+
+        // ── Durée totale sous l'artwork ───────────────────
+        if (isActive)
+          Positioned(
+            bottom: ringSize * 0.06,
+            child: Text(
+              Duration(milliseconds: track.durationMs).toMMSS(),
+              style: TextStyle(color: Colors.white.withValues(alpha: .55), fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 }
