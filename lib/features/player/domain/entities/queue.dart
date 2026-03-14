@@ -1,17 +1,24 @@
-import 'package:flutter/material.dart';
+import 'dart:math' show Random;
+
+import 'package:flutter/foundation.dart'; // @immutable, listEquals
+
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
-/// Représentation immutable de la file de lecture.
+/// Immutable representation of the playback queue.
 ///
-/// Contient les pistes originales ET les pistes shufflées
-/// pour pouvoir basculer entre les deux sans perte.
+/// Holds both the **original** track order (album / playlist order) and the
+/// **playback** order (shuffle-aware), so toggling shuffle never loses context.
+///
+/// All mutation methods return a new [Queue] instance — the original is never
+/// modified.
 @immutable
 class Queue {
-  /// Liste dans l'ordre original (album, playlist...)
+  /// Tracks in their original insertion order (album, playlist, …).
   final List<Track> originalTracks;
 
-  /// Liste dans l'ordre de lecture (= originalTracks si shuffle désactivé)
+  /// Tracks in playback order: equals [originalTracks] when shuffle is off,
+  /// or a Fisher-Yates-shuffled copy when shuffle is on.
   final List<Track> playbackTracks;
 
   final int currentIndex;
@@ -26,8 +33,11 @@ class Queue {
     required this.repeatMode,
   });
 
-  // ── Constructeurs pratiques ────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Factory constructors
+  // ---------------------------------------------------------------------------
 
+  /// Creates a single-track queue with all defaults.
   factory Queue.single(Track track) => Queue(
     originalTracks: [track],
     playbackTracks: [track],
@@ -36,6 +46,8 @@ class Queue {
     repeatMode: RepeatMode.off,
   );
 
+  /// Creates a queue from [tracks], optionally starting at [startIndex] and
+  /// with shuffle / repeat pre-configured.
   factory Queue.fromTracks(
     List<Track> tracks, {
     int startIndex = 0,
@@ -55,13 +67,17 @@ class Queue {
     );
   }
 
-  // ── Accesseurs dérivés ─────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Derived accessors
+  // ---------------------------------------------------------------------------
 
+  /// The track currently loaded in the player, or null if the queue is empty.
   Track? get currentTrack =>
       currentIndex >= 0 && currentIndex < playbackTracks.length
-      ? playbackTracks[currentIndex]
-      : null;
+          ? playbackTracks[currentIndex]
+          : null;
 
+  /// The next track to play, respecting [repeatMode].
   Track? get nextTrack {
     if (playbackTracks.isEmpty) return null;
     if (repeatMode == RepeatMode.one) return currentTrack;
@@ -72,6 +88,7 @@ class Queue {
     return null;
   }
 
+  /// The previous track, respecting [repeatMode].
   Track? get previousTrack {
     if (playbackTracks.isEmpty) return null;
     if (repeatMode == RepeatMode.one) return currentTrack;
@@ -80,16 +97,22 @@ class Queue {
     return null;
   }
 
+  /// Whether there is a track after the current one.
   bool get hasNext => nextTrack != null;
+
+  /// Whether there is a track before the current one.
   bool get hasPrevious => previousTrack != null;
 
   int get length => playbackTracks.length;
   bool get isEmpty => playbackTracks.isEmpty;
 
-  // ── Opérations ────────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Mutation helpers — all return new Queue instances
+  // ---------------------------------------------------------------------------
 
-  /// Avance au track suivant. Retourne null si la queue est terminée et
-  /// repeatMode == off.
+  /// Advances to the next track.
+  ///
+  /// Returns null when the queue is exhausted and [repeatMode] is [RepeatMode.off].
   Queue? skipToNext() {
     if (playbackTracks.isEmpty) return null;
     if (repeatMode == RepeatMode.one) return this;
@@ -97,36 +120,32 @@ class Queue {
     if (currentIndex < playbackTracks.length - 1) {
       return copyWith(currentIndex: currentIndex + 1);
     }
-    if (repeatMode == RepeatMode.all) {
-      return copyWith(currentIndex: 0);
-    }
-    return null; // fin de queue sans repeat
+    if (repeatMode == RepeatMode.all) return copyWith(currentIndex: 0);
+    return null; // end of queue with no repeat
   }
 
-  /// Recule au track précédent.
+  /// Steps back to the previous track.
   Queue skipToPrevious() {
     if (playbackTracks.isEmpty) return this;
     if (repeatMode == RepeatMode.one) return this;
 
-    if (currentIndex > 0) {
-      return copyWith(currentIndex: currentIndex - 1);
-    }
+    if (currentIndex > 0) return copyWith(currentIndex: currentIndex - 1);
     if (repeatMode == RepeatMode.all) {
       return copyWith(currentIndex: playbackTracks.length - 1);
     }
     return copyWith(currentIndex: 0);
   }
 
-  /// Saute directement à un index.
+  /// Jumps directly to [index] in [playbackTracks].
   Queue jumpTo(int index) {
     assert(index >= 0 && index < playbackTracks.length);
     return copyWith(currentIndex: index);
   }
 
-  /// Active/désactive le shuffle. Reconstruit la liste de lecture.
+  /// Toggles shuffle on/off, preserving the current track position.
   Queue toggleShuffle() {
     if (shuffleEnabled) {
-      // Retour à l'ordre original — retrouve l'index du track courant
+      // Restore original order — find the current track's original index.
       final current = currentTrack;
       final newIndex = current != null ? originalTracks.indexOf(current) : 0;
       return copyWith(
@@ -135,7 +154,7 @@ class Queue {
         shuffleEnabled: false,
       );
     } else {
-      // Shuffle Fisher-Yates — le track courant reste en premier
+      // Shuffle, keeping the current track at position 0.
       final current = currentTrack;
       final shuffled = _buildShuffled(
         List<Track>.from(originalTracks),
@@ -149,28 +168,32 @@ class Queue {
     }
   }
 
+  /// Returns a new queue with [mode] applied.
   Queue setRepeatMode(RepeatMode mode) => copyWith(repeatMode: mode);
 
-  /// Ajoute un track à la fin de la queue.
+  /// Returns a new queue with [track] appended to both lists.
   Queue addTrack(Track track) => copyWith(
     originalTracks: List.unmodifiable([...originalTracks, track]),
     playbackTracks: List.unmodifiable([...playbackTracks, track]),
   );
 
-  /// Supprime un track à l'index donné.
+  /// Returns a new queue with the track at [index] removed.
+  ///
+  /// [currentIndex] is adjusted so it keeps pointing at the same track.
   Queue removeAt(int index) {
     if (index < 0 || index >= playbackTracks.length) return this;
+    final removed = playbackTracks[index];
     final newPlayback = List<Track>.from(playbackTracks)..removeAt(index);
     final newOriginal = List<Track>.from(originalTracks)
-      ..removeWhere((t) => t.id == playbackTracks[index].id);
+      ..removeWhere((t) => t.id == removed.id);
 
-    int newIndex = currentIndex;
+    var newIndex = currentIndex;
     if (index < currentIndex) newIndex--;
-    if (newIndex >= newPlayback.length) newIndex = newPlayback.length - 1;
-    newIndex = newIndex.clamp(
-      0,
-      newPlayback.isEmpty ? 0 : newPlayback.length - 1,
-    );
+    if (newPlayback.isEmpty) {
+      newIndex = 0;
+    } else {
+      newIndex = newIndex.clamp(0, newPlayback.length - 1);
+    }
 
     return copyWith(
       originalTracks: List.unmodifiable(newOriginal),
@@ -179,14 +202,14 @@ class Queue {
     );
   }
 
-  /// Déplace un track (pour le réordonnancement dans la QueueSheet).
+  /// Returns a new queue with the item at [oldIndex] moved to [newIndex].
   Queue moveItem(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return this;
     final newPlayback = List<Track>.from(playbackTracks);
     final item = newPlayback.removeAt(oldIndex);
     newPlayback.insert(newIndex, item);
 
-    int newCurrent = currentIndex;
+    var newCurrent = currentIndex;
     if (oldIndex == currentIndex) {
       newCurrent = newIndex;
     } else if (oldIndex < currentIndex && newIndex >= currentIndex) {
@@ -201,24 +224,30 @@ class Queue {
     );
   }
 
-  // ── Helpers privés ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
-  /// Fisher-Yates shuffle — le track à startIndex est placé en premier.
+  /// Fisher-Yates shuffle that places the track at [startIndex] first.
+  ///
+  /// Uses [Random] from `dart:math` for a proper uniform distribution —
+  /// replaces the previous LCG-based pseudo-shuffle.
   static List<Track> _buildShuffled(List<Track> tracks, int startIndex) {
     final list = List<Track>.from(tracks);
-    // Place le track de départ en premier
     final first = list.removeAt(startIndex);
-    // Shuffle le reste (implémentation simple — remplacé par dart:math Random)
+    final rng = Random();
     for (int i = list.length - 1; i > 0; i--) {
-      final j = (i * 6364136223846793005 + 1442695040888963407) % (i + 1);
+      final j = rng.nextInt(i + 1);
       final tmp = list[i];
-      list[i] = list[j.abs()];
-      list[j.abs()] = tmp;
+      list[i] = list[j];
+      list[j] = tmp;
     }
     return [first, ...list];
   }
 
-  // ── copyWith ───────────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // copyWith
+  // ---------------------------------------------------------------------------
 
   Queue copyWith({
     List<Track>? originalTracks,
@@ -234,6 +263,15 @@ class Queue {
     repeatMode: repeatMode ?? this.repeatMode,
   );
 
+  // ---------------------------------------------------------------------------
+  // Equality — BUG FIX: deep list comparison instead of length-only check
+  // ---------------------------------------------------------------------------
+
+  /// Two queues are equal when they have the same [currentIndex],
+  /// [shuffleEnabled], [repeatMode], and **identical** [playbackTracks] lists.
+  ///
+  /// [listEquals] performs element-wise comparison, ensuring the UI correctly
+  /// detects when different tracks occupy the same position.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -241,13 +279,13 @@ class Queue {
           currentIndex == other.currentIndex &&
           shuffleEnabled == other.shuffleEnabled &&
           repeatMode == other.repeatMode &&
-          playbackTracks.length == other.playbackTracks.length;
+          listEquals(playbackTracks, other.playbackTracks);
 
   @override
   int get hashCode => Object.hash(
     currentIndex,
     shuffleEnabled,
     repeatMode,
-    playbackTracks.length,
+    Object.hashAll(playbackTracks),
   );
 }
