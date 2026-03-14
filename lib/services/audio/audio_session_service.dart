@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:audio_session/audio_session.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// Centralises audio session configuration and interruption handling.
 ///
@@ -10,9 +11,10 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 /// before any track is loaded) so the OS knows Troona is a **music** app and
 /// can deliver focus/noisy callbacks to this service.
 final class AudioSessionService {
-  AudioSessionService(this._audio);
+  AudioSessionService(this._audio, this._settings);
 
   final AudioServicePort _audio;
+  AppSettings _settings;
 
   late final AudioSession _session;
   StreamSubscription<AudioInterruptionEvent>? _interruptionSub;
@@ -51,6 +53,13 @@ final class AudioSessionService {
     if (event.begin) {
       switch (event.type) {
         case AudioInterruptionType.duck:
+          if (!_settings.duckAudioOnNotification) {
+            await _audio.pause();
+            appLogger.i(
+              'AudioSessionService: duck ignored by setting, pausing',
+            );
+            break;
+          }
           if (!_isDucked) {
             _preDuckVolume = _currentVolume;
             _isDucked = true;
@@ -62,8 +71,10 @@ final class AudioSessionService {
           break;
         case AudioInterruptionType.pause:
         case AudioInterruptionType.unknown:
-          await _audio.pause();
-          appLogger.i('AudioSessionService: pause interruption');
+          if (_settings.stopOnCallEnabled) {
+            await _audio.pause();
+            appLogger.i('AudioSessionService: pause interruption');
+          }
           break;
       }
     } else {
@@ -78,7 +89,7 @@ final class AudioSessionService {
           }
           break;
         case AudioInterruptionType.pause:
-          if (_shouldResume(event)) {
+          if (_settings.resumeAfterCallEnabled && _shouldResume(event)) {
             await _audio.resume();
             appLogger.i('AudioSessionService: resume after interruption');
           } else {
@@ -98,6 +109,10 @@ final class AudioSessionService {
     await _interruptionSub?.cancel();
     await _noisySub?.cancel();
     await _volumeSub?.cancel();
+  }
+
+  void updateSettings(AppSettings settings) {
+    _settings = settings;
   }
 
   /// Some platforms expose a `shouldResume` hint on the interruption event.

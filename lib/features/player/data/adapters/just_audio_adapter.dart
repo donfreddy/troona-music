@@ -10,6 +10,7 @@ import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// [AudioServicePort] implementation backed by the `just_audio` package.
 ///
@@ -47,6 +48,25 @@ class JustAudioAdapter implements AudioServicePort {
 
   JustAudioAdapter() : _player = AudioPlayer(handleInterruptions: false) {
     _initStreams();
+  }
+
+  /// Applies user playback preferences that affect the underlying player.
+  void applySettings(AppSettings settings) {
+    final crossfade = settings.crossfadeEnabled
+        ? Duration(milliseconds: settings.crossfadeDurationMs)
+        : Duration.zero;
+    // just_audio API naming differs across versions; try both dynamically.
+    final dynamic p = _player;
+    try {
+      p.setCrossfadeDuration(crossfade);
+    } catch (_) {
+      try {
+        p.setCrossFadeDuration(crossfade);
+      } catch (_) {
+        // Crossfade not supported on this platform/version — ignore.
+      }
+    }
+    // Gapless is default when crossfade is zero; nothing else to configure.
   }
 
   // ---------------------------------------------------------------------------

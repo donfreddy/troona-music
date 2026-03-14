@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// Bootstraps the `audio_service` package and wires the [AudioHandlerImpl]
 /// around the [JustAudioAdapter].
@@ -21,8 +22,8 @@ final class AudioServiceInitializer {
   /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
   /// OS media controls, and returns the underlying [JustAudioAdapter] as the
   /// app's [AudioServicePort].
-  static Future<AudioServicePort> init() async {
-    final adapter = JustAudioAdapter();
+  static Future<AudioServicePort> init(AppSettings settings) async {
+    final adapter = JustAudioAdapter()..applySettings(settings);
 
     await AudioService.init(
       builder: () => AudioHandlerImpl(adapter),

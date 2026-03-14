@@ -14,6 +14,7 @@ import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dar
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/library/domain/use_cases/add_track_to_likes_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/remove_track_from_likes_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/is_track_in_likes_use_case.dart';
@@ -85,12 +86,21 @@ Future<void> configureDependencies() async {
 
   // AudioServicePort must be initialised before any repository or BLoC that
   // depends on it. The initialiser starts the audio_service background task.
-  final audioPort = await AudioServiceInitializer.init();
+  // Settings (load once for boot-time configuration)
+  final settingsRepo = SettingsRepositoryImpl(sharedPrefs);
+  getIt.registerSingleton<SettingsRepository>(settingsRepo);
+  final initialSettings = (await settingsRepo.loadSettings()).fold(
+    (_) => const AppSettings(),
+    (s) => s,
+  );
+  getIt.registerFactory<SettingsCubit>(() => SettingsCubit(getIt()));
+
+  final audioPort = await AudioServiceInitializer.init(initialSettings);
   getIt.registerSingleton<AudioServicePort>(audioPort);
 
   // Configure the OS audio session (focus, becoming noisy) before any track
   // loads to avoid focus races.
-  final audioSessionService = AudioSessionService(audioPort);
+  final audioSessionService = AudioSessionService(audioPort, initialSettings);
   await audioSessionService.init();
   getIt.registerSingleton<AudioSessionService>(audioSessionService);
 

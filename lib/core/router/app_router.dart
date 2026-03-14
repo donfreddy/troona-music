@@ -9,6 +9,8 @@ import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -41,6 +43,13 @@ final appRouter = GoRouter(
       ),
       routes: [
         GoRoute(path: '/home', builder: (_, _) => const HomePage()),
+        GoRoute(
+          path: '/settings',
+          builder: (context, _) => BlocProvider(
+            create: (_) => getIt<SettingsCubit>()..load(),
+            child: const SettingsPage(),
+          ),
+        ),
         GoRoute(
           path: '/queue',
           builder: (_, _) => const _StubPage(title: 'Queue'),
