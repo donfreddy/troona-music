@@ -10,6 +10,7 @@ class TrackModel {
   late String deviceId; // SongModel.id.toString() — stable entre scans
 
   late String path; // chemin absolu vers le fichier
+  late String uri;
   late String title;
   late String artist;
   late String album;
@@ -22,6 +23,7 @@ class TrackModel {
   static TrackModel fromSongModel(SongModel s) => TrackModel()
     ..deviceId = s.id.toString()
     ..path = s.data
+    ..uri = s.uri ?? ''
     ..title = s.title.isNotEmpty ? s.title : _filenameWithoutExt(s.data)
     ..artist = s.artist ?? 'Artiste inconnu'
     ..album = s.album ?? 'Album inconnu'
@@ -33,6 +35,7 @@ class TrackModel {
   Track toEntity() => Track(
     id: deviceId,
     path: path,
+    uri: uri,
     title: title,
     artist: artist,
     album: album,

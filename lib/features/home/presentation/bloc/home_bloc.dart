@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
-import 'package:troona/core/use_cases/no_params.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
 
@@ -13,8 +13,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({required GetHomeFeedUseCase getFeed})
     : _getFeed = getFeed,
       super(HomeInitial()) {
-    on<HomeFeedRequested>(_onFeedRequested);
-    on<HomeRefreshRequested>(_onFeedRequested);
+    on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
+    on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
   }
 
   Future<void> _onFeedRequested(
@@ -24,7 +24,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Garde les données visibles pendant le refresh
     if (state is! HomeLoaded) emit(const HomeLoading());
 
-    final result = await _getFeed(NoParams());
-    result.fold((f) => emit(HomeError('')), (feed) => emit(HomeLoaded(feed)));
+    final result = await _getFeed();
+    result.fold(
+      (f) => emit(HomeError(f.message)),
+      (feed) => emit(HomeLoaded(feed)),
+    );
   }
 }

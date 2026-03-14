@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
-import 'package:troona/features/home/presentation/widgets/empty_playlists.dart';
-import 'package:troona/features/home/presentation/widgets/home_error_view.dart';
+import 'package:troona/shared/widgets/empty_state.dart';
+import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/features/home/presentation/widgets/playlist_card.dart';
 import 'package:troona/features/home/presentation/widgets/shimmer_row.dart';
 import 'package:troona/features/home/presentation/widgets/trending_row.dart';
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   HomeLoaded(:final feed) => _HomeFeedBody(feed: feed),
                   HomeError(:final message) => SliverFillRemaining(
-                    child: HomeErrorView(
+                    child: ErrorView(
                       message: message,
                       onRetry: () => context.read<HomeBloc>().add(
                         const HomeRefreshRequested(),
@@ -170,7 +170,10 @@ class _HomeFeedBody extends StatelessWidget {
           child: SizedBox(
             height: 220,
             child: feed.popularPlaylists.isEmpty
-                ? const EmptyPlaylists()
+                ? const EmptyState(
+                    message: 'Aucune playlist trouvée',
+                    icon: Icons.playlist_play,
+                  )
                 : ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(

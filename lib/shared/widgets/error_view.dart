@@ -1,14 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 
-class HomeErrorView extends StatelessWidget {
+class ErrorView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
 
-  const HomeErrorView({
-    super.key,
-    required this.message,
-    required this.onRetry,
-  });
+  const ErrorView({super.key, required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +15,12 @@ class HomeErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(
+            CupertinoIcons.exclamationmark_circle,
+            size: 48,
+            color: context.colors.labelTertiary,
+          ),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             'Oups, une erreur est survenue :(',
             style: const TextStyle(
@@ -24,7 +29,7 @@ class HomeErrorView extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             message,
             style: TextStyle(
@@ -33,7 +38,7 @@ class HomeErrorView extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.xl2),
           ElevatedButton(
             onPressed: onRetry,
             style: ElevatedButton.styleFrom(
@@ -41,7 +46,7 @@ class HomeErrorView extends StatelessWidget {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               ),
             ),
             child: const Text('Réessayer'),

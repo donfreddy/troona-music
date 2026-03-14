@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:troona/features/library/domain/entities/artist.dart';
 
 class ArtistCard extends StatefulWidget {
-  const ArtistCard({super.key});
+  final Artist artist;
+
+  const ArtistCard({super.key, required this.artist});
 
   @override
   State<ArtistCard> createState() => _ArtistCardState();

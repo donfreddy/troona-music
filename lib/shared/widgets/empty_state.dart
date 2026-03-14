@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 
-class EmptyPlaylists extends StatelessWidget {
-  const EmptyPlaylists({super.key});
+class EmptyState extends StatelessWidget {
+  final String message;
+  final IconData? icon;
+
+  const EmptyState({super.key, required this.message, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -9,10 +13,13 @@ class EmptyPlaylists extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.playlist_play, color: Colors.white30, size: 48),
-          const SizedBox(height: 12),
+          if (icon != null) ...[
+            const Icon(Icons.playlist_play, color: Colors.white30, size: 48),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
           Text(
-            'Aucune playlist trouvée',
+            message,
             style: TextStyle(
               color: Colors.white.withValues(alpha: .7),
               fontSize: 16,

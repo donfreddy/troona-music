@@ -8,5 +8,6 @@ final class GetHomeFeedUseCase {
   final HomeRepository _repo;
   const GetHomeFeedUseCase(this._repo);
 
-  Future<Either<Failure, HomeFeed>> call(NoParams _) => _repo.getFeed();
+  Future<Either<Failure, HomeFeed>> call([NoParams _ = const NoParams()]) =>
+      _repo.getFeed();
 }

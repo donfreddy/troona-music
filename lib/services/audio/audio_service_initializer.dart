@@ -10,10 +10,11 @@ final class AudioServiceInitializer {
     await AudioService.init(
       builder: () => AudioHandlerImpl(adapter),
       config: AudioServiceConfig(
-        androidNotificationChannelId: 'com.troona.music',
-        androidNotificationChannelName: 'Music playback',
+        androidNotificationChannelId: 'com.donfreddy.troona',
+        androidNotificationChannelName: 'Troona Music',
         androidNotificationOngoing: true,
-        androidStopForegroundOnPause: false,
+        androidShowNotificationBadge: true,
+        androidStopForegroundOnPause: true,
       ),
     );
 

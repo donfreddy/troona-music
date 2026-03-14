@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
@@ -55,17 +56,15 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final screenW = MediaQuery.of(context).size.width;
-
     return SizedBox(
-      height: screenW * 0.85,
+      height: context.screenWidth * 0.85,
       child: OverflowBox(
         maxWidth: double.infinity,
         child: PageView.builder(
           controller: _pageCtrl,
           itemCount: widget.queue.length,
           onPageChanged: widget.onPageChanged,
-          itemBuilder: (context, index) {
+          itemBuilder: (_, index) {
             return AnimatedBuilder(
               animation: _pageCtrl,
               builder: (_, child) {
@@ -82,7 +81,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
               child: _ArtworkItem(
                 track: widget.queue[index],
                 isActive: index == widget.currentIndex,
-                ringSize: screenW * 0.62,
+                ringSize: context.screenWidth * 0.62,
               ),
             );
           },

@@ -70,6 +70,16 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
 
                     const SizedBox(height: AppSpacing.lg),
 
+                    // ── Titre + artiste + like ─────────────────────
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl2,
+                      ),
+                      child: _TrackInfo(track: track),
+                    ),
+
+                    const SizedBox(height: AppSpacing.lg),
+
                     // ── Carousel artwork ───────────────────────────
                     if (state is PlayerActive)
                       ArtworkCarousel(
@@ -89,27 +99,17 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
                       // ),
                       const SizedBox(height: AppSpacing.xl2),
 
-                    // ── Titre + artiste + like ─────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl2,
-                      ),
-                      child: _TrackInfo(track: track),
-                    ),
-
-                    const SizedBox(height: AppSpacing.xl),
-
-                    // ── Progress bar + contrôles ───────────────────
+                    // ──  contrôles ───────────────────
                     const PlayerControls(),
 
-                    // const SizedBox(height: AppSpacing.xl2),
+                    const SizedBox(height: AppSpacing.xl2),
 
                     // // ── Volume slider ──────────────────────────────
                     // Padding(
                     //   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
                     //   child: const _VolumeSlider(),
                     // ),
-                    const Spacer(),
+                    // const Spacer(),
 
                     // // ── Actions bas : lyrics · queue · airplay ─────
                     // const _BottomActions(),

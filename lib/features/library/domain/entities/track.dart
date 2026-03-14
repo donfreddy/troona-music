@@ -4,6 +4,7 @@ class Track {
   String artist;
   String album;
   String path;
+  String uri;
   int durationMs;
   String? artworkPath;
 
@@ -13,9 +14,8 @@ class Track {
     required this.artist,
     required this.album,
     required this.path,
+    required this.uri,
     required this.durationMs,
     this.artworkPath,
   });
-
-  String get uri => 'troona://track/$id';
 }
