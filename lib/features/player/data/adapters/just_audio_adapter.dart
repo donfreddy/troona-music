@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
@@ -12,27 +11,51 @@ import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
-// Adapter Pattern : traduit les appels du Domain vers just_audio.
-// Le Domain ne sait jamais que just_audio existe.
-@LazySingleton(as: AudioServicePort)
+/// [AudioServicePort] implementation backed by the `just_audio` package.
+///
+/// Follows the **Adapter** pattern: translates domain-level commands
+/// ([playTrack], [pause], [seekTo], …) into `just_audio` API calls. The rest
+/// of the app never imports `just_audio` directly — only this class does.
+///
+/// **Queue management** uses the just_audio 0.10.x list API
+/// (`setAudioSources`, `addAudioSource`, `removeAudioSourceAt`,
+/// `moveAudioSource`) which mutates the internal playlist without rebuilding
+/// the audio pipeline, avoiding position loss and the latency of a full
+/// `setAudioSources` round-trip on every queue edit.
+///
+/// **Shuffle** is managed entirely in the domain [Queue] entity
+/// (Fisher-Yates via [Queue.toggleShuffle]). When shuffle is toggled,
+/// [setShuffleEnabled] rebuilds the player's source list in the new playback
+/// order rather than delegating to `just_audio`'s internal shuffle, which
+/// would conflict with our domain ordering.
+///
+/// **Streams** backed by [BehaviorSubject] emit an initial value immediately
+/// on subscription — required by [AudioServicePort]'s contract.
 class JustAudioAdapter implements AudioServicePort {
   final AudioPlayer _player;
-  final List<AudioSource> _sources = [];
 
-  // BehaviorSubjects = stream + valeur initiale accessible en sync
-  final _queueSubject = BehaviorSubject<Queue>();
-  final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
-
+  /// Local mirror of the domain queue. Kept in sync with the player's
+  /// `currentIndexStream` and updated on every queue mutation.
   Queue? _currentQueue;
+
+  /// BehaviorSubject for the queue so subscribers receive the latest value
+  /// immediately on listen.
+  final _queueSubject = BehaviorSubject<Queue>();
+
+  /// BehaviorSubject for volume; seeded with the player's initial volume.
+  final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
   JustAudioAdapter() : _player = AudioPlayer() {
     _initStreams();
   }
 
-  // ── Initialisation des streams ─────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Stream initialisation
+  // ---------------------------------------------------------------------------
 
   void _initStreams() {
-    // Écoute les changements de player pour mettre à jour la queue interne
+    // Mirror the player's current index into the domain queue so that
+    // auto-advance (gapless playback) keeps _currentQueue in sync.
     _player.currentIndexStream.listen((index) {
       if (_currentQueue != null && index != null) {
         _currentQueue = _currentQueue!.copyWith(currentIndex: index);
@@ -40,11 +63,12 @@ class JustAudioAdapter implements AudioServicePort {
       }
     });
 
-    // Volume initial
     _volumeSubject.add(_player.volume);
   }
 
-  // ── AudioServicePort : Streams ─────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // AudioServicePort — Streams
+  // ---------------------------------------------------------------------------
 
   @override
   Stream<Duration> get positionStream => _player.positionStream;
@@ -75,7 +99,9 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Stream<double> get volumeStream => _volumeSubject.stream;
 
-  // ── AudioServicePort : Valeurs instantanées ────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // AudioServicePort — Synchronous accessors
+  // ---------------------------------------------------------------------------
 
   @override
   PlaybackStatus get currentStatus => _mapState(_player.playerState);
@@ -98,24 +124,24 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Queue? get currentQueue => _currentQueue;
 
-  // ── AudioServicePort : Commandes ───────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // AudioServicePort — Commands
+  // ---------------------------------------------------------------------------
 
   @override
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue}) async {
     try {
       if (queue != null) {
+        // When a full queue is provided, start playback at the requested index.
         return setQueue(queue.originalTracks, startIndex: queue.currentIndex);
       }
-      // Track seul — crée une queue d'un élément
-      _sources
-        ..clear()
-        ..add(AudioSource.uri(Uri.parse(track.uri), tag: track));
-      await _player.setAudioSources(_sources);
+      // Single-track playback — create a one-item queue.
+      await _player.setAudioSources([_toAudioSource(track)]);
       _updateQueue(Queue.single(track));
       await _player.play();
       return right(unit);
     } on PlayerException catch (e) {
-      return left(PlaybackFailure(e.message ?? 'Erreur lecture: ${e.code}'));
+      return left(PlaybackFailure(e.message ?? 'Playback error (${e.code})'));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -157,6 +183,7 @@ class JustAudioAdapter implements AudioServicePort {
       if (_player.hasNext) {
         await _player.seekToNext();
       } else if (_currentQueue?.repeatMode == RepeatMode.all) {
+        // Manual wrap-around when repeat-all is active.
         await _player.seek(Duration.zero, index: 0);
         await _player.play();
       }
@@ -188,20 +215,7 @@ class JustAudioAdapter implements AudioServicePort {
     int startIndex = 0,
   }) async {
     try {
-      if (tracks.isEmpty) return left(const PlaybackFailure('Queue vide'));
-
-      _sources
-        ..clear()
-        ..addAll(
-          tracks.map(
-            (t) => AudioSource.uri(
-              Uri.parse(t.uri),
-              tag: t, // stocké pour accès dans les notifications
-            ),
-          ),
-        );
-
-      await _player.setAudioSources(_sources, initialIndex: startIndex);
+      if (tracks.isEmpty) return left(const PlaybackFailure('Queue is empty'));
 
       final newQueue = Queue.fromTracks(
         tracks,
@@ -209,12 +223,17 @@ class JustAudioAdapter implements AudioServicePort {
         shuffleEnabled: _currentQueue?.shuffleEnabled ?? false,
         repeatMode: _currentQueue?.repeatMode ?? RepeatMode.off,
       );
-      _updateQueue(newQueue);
 
+      // Load sources in playback order (already shuffled if needed).
+      await _player.setAudioSources(
+        newQueue.playbackTracks.map(_toAudioSource).toList(),
+        initialIndex: newQueue.currentIndex,
+      );
+      _updateQueue(newQueue);
       await _player.play();
       return right(unit);
     } on PlayerException catch (e) {
-      return left(PlaybackFailure(e.message ?? 'Erreur source audio'));
+      return left(PlaybackFailure(e.message ?? 'Audio source error'));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -223,8 +242,8 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> addToQueue(Track track) async {
     try {
-      _sources.add(AudioSource.uri(Uri.parse(track.uri), tag: track));
-      await _rebuildSources();
+      // just_audio 0.10.x: mutate the playlist without a full reload.
+      await _player.addAudioSource(_toAudioSource(track));
       if (_currentQueue != null) _updateQueue(_currentQueue!.addTrack(track));
       return right(unit);
     } catch (e, st) {
@@ -235,11 +254,7 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) async {
     try {
-      if (index < 0 || index >= _sources.length) {
-        return left(const PlaybackFailure('Index hors limites'));
-      }
-      _sources.removeAt(index);
-      await _rebuildSources();
+      await _player.removeAudioSourceAt(index);
       if (_currentQueue != null) _updateQueue(_currentQueue!.removeAt(index));
       return right(unit);
     } catch (e, st) {
@@ -253,15 +268,7 @@ class JustAudioAdapter implements AudioServicePort {
     int newIndex,
   ) async {
     try {
-      if (oldIndex < 0 ||
-          oldIndex >= _sources.length ||
-          newIndex < 0 ||
-          newIndex >= _sources.length) {
-        return left(const PlaybackFailure('Index hors limites'));
-      }
-      final item = _sources.removeAt(oldIndex);
-      _sources.insert(newIndex, item);
-      await _rebuildSources();
+      await _player.moveAudioSource(oldIndex, newIndex);
       if (_currentQueue != null) {
         _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
       }
@@ -271,13 +278,28 @@ class JustAudioAdapter implements AudioServicePort {
     }
   }
 
+  /// Toggles shuffle on or off.
+  ///
+  /// Shuffle is managed entirely by the domain [Queue] entity (Fisher-Yates).
+  /// When the state actually changes, the player's source list is rebuilt in
+  /// the new playback order at the current position so no audio glitch occurs.
   @override
   Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled) async {
     try {
-      await _player.setShuffleModeEnabled(enabled);
-      if (_currentQueue != null) {
-        _updateQueue(_currentQueue!.toggleShuffle());
-      }
+      if (_currentQueue == null) return right(unit);
+      // No-op when the requested state equals the current state.
+      if (enabled == _currentQueue!.shuffleEnabled) return right(unit);
+
+      final position = _player.position;
+      final newQueue = _currentQueue!.toggleShuffle();
+
+      // Rebuild sources in the new playback order, restoring position.
+      await _player.setAudioSources(
+        newQueue.playbackTracks.map(_toAudioSource).toList(),
+        initialIndex: newQueue.currentIndex,
+        initialPosition: position,
+      );
+      _updateQueue(newQueue);
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -313,8 +335,8 @@ class JustAudioAdapter implements AudioServicePort {
     try {
       await _player.setSpeed(speed);
       return right(unit);
-    } catch (e) {
-      return left(PlaybackFailure(e.toString()));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
     }
   }
 
@@ -328,12 +350,23 @@ class JustAudioAdapter implements AudioServicePort {
     await _player.dispose();
   }
 
-  // ── Helpers privés ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
   void _updateQueue(Queue queue) {
     _currentQueue = queue;
     _queueSubject.add(queue);
   }
+
+  /// Builds an [AudioSource] from a [Track].
+  ///
+  /// Prefers the content URI (MediaStore on Android) when available and falls
+  /// back to the absolute file path when the URI is empty.
+  AudioSource _toAudioSource(Track track) => AudioSource.uri(
+    track.uri.isNotEmpty ? Uri.parse(track.uri) : Uri.file(track.path),
+    tag: track,
+  );
 
   PlaybackStatus _mapState(PlayerState state) {
     if (state.processingState == ProcessingState.loading ||
@@ -352,24 +385,4 @@ class JustAudioAdapter implements AudioServicePort {
     RepeatMode.all => LoopMode.all,
     RepeatMode.one => LoopMode.one,
   };
-
-  Future<void> _rebuildSources() async {
-    if (_sources.isEmpty) {
-      await _player.stop();
-      return;
-    }
-
-    final currentIndex = _player.currentIndex ?? 0;
-    final position = _player.position;
-    final clampedIndex = currentIndex.clamp(0, _sources.length - 1);
-    final wasPlaying = _player.playing;
-
-    await _player.setAudioSources(
-      _sources,
-      initialIndex: clampedIndex,
-      initialPosition: position,
-    );
-
-    if (wasPlaying) await _player.play();
-  }
 }

@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:injectable/injectable.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
@@ -8,12 +7,21 @@ import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 
-@LazySingleton(as: PlayerRepository)
+/// [PlayerRepository] implementation that delegates every operation to the
+/// [AudioServicePort] adapter.
+///
+/// Acts as a thin pass-through layer between the domain use-cases and the
+/// platform audio adapter ([JustAudioAdapter]). All business logic lives in the
+/// use-cases; all platform concerns live in the adapter — this class merely
+/// wires them together so the domain layer never depends on a concrete adapter.
 class PlayerRepositoryImpl implements PlayerRepository {
   final AudioServicePort _port;
+
   const PlayerRepositoryImpl(this._port);
 
-  // ── Streams ────────────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // PlayerRepository — Streams
+  // ---------------------------------------------------------------------------
 
   @override
   Stream<Duration> get positionStream => _port.positionStream;
@@ -36,7 +44,9 @@ class PlayerRepositoryImpl implements PlayerRepository {
   @override
   Stream<double> get volumeStream => _port.volumeStream;
 
-  // ── Commandes ──────────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // PlayerRepository — Commands
+  // ---------------------------------------------------------------------------
 
   @override
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue}) =>

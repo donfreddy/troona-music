@@ -7,26 +7,31 @@ import 'package:troona/features/library/data/models/album_model.dart';
 import 'package:troona/features/library/data/models/artist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
+/// Contract for querying audio content from the device's media store.
 abstract interface class LocalAudioDataSource {
-  /// Scanne TOUS les fichiers audio disponibles sur l'appareil.
-  /// Retourne un Stream pour afficher les résultats progressivement.
+  /// Scans all audio files available on the device.
+  ///
+  /// Returns a [Stream] so that results can be displayed progressively as
+  /// chunks arrive, rather than waiting for the full scan to complete.
   Stream<List<TrackModel>> scanTracks();
 
-  /// Récupère les albums agrégés depuis MediaStore.
+  /// Fetches albums aggregated from the MediaStore.
   Future<List<AlbumModel>> getAlbums();
 
-  /// Récupère les artistes.
+  /// Fetches artists from the MediaStore.
   Future<List<ArtistModel>> getArtists();
 
-  /// Retourne l'artwork d'un track sous forme de bytes.
-  /// Null si aucun artwork disponible.
+  /// Returns the artwork for [trackId] as raw JPEG bytes, or `null` when no
+  /// artwork is available.
   Future<Uint8List?> getArtwork(int trackId);
 }
 
-// ─────────────────────────────────────────────────────────
-// Implémentation
-// ─────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Implementation
+// ---------------------------------------------------------------------------
 
+/// [LocalAudioDataSource] backed by the `on_audio_query_pluse` package, which
+/// queries the Android MediaStore (or the iOS media library).
 final class OnAudioQueryDataSource implements LocalAudioDataSource {
   final OnAudioQuery _query;
 
@@ -35,33 +40,34 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
 
   @override
   Stream<List<TrackModel>> scanTracks() async* {
-    // Vérifie la permission avant de scanner
+    // Request the audio permission before scanning.
     final hasPermission = await _query.permissionsStatus();
     if (!hasPermission) {
       final granted = await _query.permissionsRequest();
       if (!granted) {
-        throw const PermissionException('Audio permission refusée');
+        throw const PermissionException('Audio permission denied');
       }
     }
 
-    // Récupère tous les fichiers audio du device
+    // Fetch all audio files from external storage (SD card included).
     final songs = await _query.querySongs(
       sortType: SongSortType.TITLE,
       orderType: OrderType.ASC_OR_SMALLER,
-      uriType: UriType.EXTERNAL, // stockage externe (carte SD incluse)
+      uriType: UriType.EXTERNAL,
       ignoreCase: true,
     );
 
-    // Filtre les fichiers corrompus ou trop courts (< 30s = sonneries etc.)
+    // Drop corrupted files and tracks shorter than 30 s (ringtones, SFX, …).
     final validSongs = songs.where(_isValidTrack).toList();
 
-    // Émet par chunks de 50 pour que l'UI puisse afficher progressivement
+    // Emit in chunks of 50 so the UI can update progressively on large
+    // libraries without blocking the UI thread.
     const chunkSize = 50;
     for (var i = 0; i < validSongs.length; i += chunkSize) {
       final chunk = validSongs.skip(i).take(chunkSize);
       yield chunk.map(TrackModel.fromSongModel).toList();
 
-      // Petit délai pour ne pas bloquer le thread UI sur les grosses librairies
+      // Brief yield point to avoid starving the UI isolate on large libraries.
       if (i + chunkSize < validSongs.length) {
         await Future.delayed(const Duration(milliseconds: 8));
       }
@@ -94,19 +100,24 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
       trackId,
       ArtworkType.AUDIO,
       format: ArtworkFormat.JPEG,
-      size: 500, // 500px suffit pour l'affichage — évite les OOM
+      size: 500, // 500 px is sufficient for display and avoids OOM on low-end devices.
       quality: 85,
     );
   }
 
-  // ── Helpers ──────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
+  /// Returns `true` when [song] is a valid music track.
+  ///
+  /// Filters out:
+  /// - Files shorter than 30 seconds (ringtones, sound effects).
+  /// - Files with an empty title (likely corrupted).
+  /// - Files with an empty path (no accessible storage location).
   bool _isValidTrack(SongModel song) {
-    // Ignore les fichiers < 30 secondes (sonneries, effets sonores)
     if ((song.duration ?? 0) < 30000) return false;
-    // Ignore les fichiers sans titre ET sans artiste (probablement corrompus)
     if (song.title.isEmpty) return false;
-    // Ignore les chemins nuls
     if (song.data.isEmpty) return false;
     return true;
   }

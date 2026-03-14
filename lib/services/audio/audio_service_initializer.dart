@@ -3,7 +3,24 @@ import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
+/// Bootstraps the `audio_service` package and wires the [AudioHandlerImpl]
+/// around the [JustAudioAdapter].
+///
+/// Call [init] once during app start-up (before [runApp]). It returns the
+/// [AudioServicePort] singleton that the rest of the app receives via DI.
+///
+/// **Why a separate initializer?**
+/// `AudioService.init` must be called before the Flutter engine renders its
+/// first frame. Isolating this call here keeps [injection.dart] readable and
+/// makes it easy to swap the audio back-end in tests by providing a different
+/// [AudioServicePort] implementation without touching the DI graph.
 final class AudioServiceInitializer {
+  // Private constructor — static-only class.
+  const AudioServiceInitializer._();
+
+  /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
+  /// OS media controls, and returns the underlying [JustAudioAdapter] as the
+  /// app's [AudioServicePort].
   static Future<AudioServicePort> init() async {
     final adapter = JustAudioAdapter();
 
