@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
-import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
-import 'package:troona/shared/widgets/mini_player.dart';
 
 /// Root scaffold for all shell routes (routes that share the bottom nav bar).
 ///
-/// Stacks the active page, the [MiniPlayer] (when a track is loaded), and the
-/// [AppBottomNavBar] from back to front inside a [Stack]. Both the mini-player
-/// and its 6 px separator are driven by a single [BlocBuilder] so they
-/// appear and disappear atomically.
+/// The [AppBottomNavBar] is positioned at the bottom and internally manages
+/// both the mini player row (when a track is active) and the nav tabs — as a
+/// single unified glass container.
 ///
 /// The initial library scan is dispatched here in [State.initState] via
 /// `addPostFrameCallback`. This keeps `app_router.dart` free of
@@ -52,7 +49,7 @@ class _AppShellState extends State<AppShell> {
       case AppTab.visualizer:
         context.go('/visualizer');
       case AppTab.player:
-        break; // handled by the center artwork slot in AppBottomNavBar
+        break; // handled by the centre artwork slot in AppBottomNavBar
     }
   }
 
@@ -67,46 +64,17 @@ class _AppShellState extends State<AppShell> {
           // ── Active page ───────────────────────────────────────────────────
           Positioned.fill(child: widget.child),
 
-          // ── MiniPlayer + NavBar ───────────────────────────────────────────
+          // ── Unified bottom bar (mini player + nav tabs) ───────────────────
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Both the MiniPlayer and its gap are driven by the same
-                // BlocBuilder to ensure they update atomically.
-                BlocBuilder<PlayerBloc, PlayerState>(
-                  buildWhen: (prev, curr) =>
-                      (prev is PlayerActive) != (curr is PlayerActive),
-                  builder: (_, state) {
-                    final isActive = state is PlayerActive;
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 280),
-                          curve: Curves.easeOutCubic,
-                          child: isActive
-                              ? const MiniPlayer()
-                              : const SizedBox.shrink(),
-                        ),
-                        if (isActive) const SizedBox(height: 6),
-                      ],
-                    );
-                  },
-                ),
-
-                // NavBar is always present.
-                Padding(
-                  padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                  child: AppBottomNavBar(
-                    currentTab: _currentTab,
-                    onTabChanged: _onTabChanged,
-                  ),
-                ),
-              ],
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+              child: AppBottomNavBar(
+                currentTab: _currentTab,
+                onTabChanged: _onTabChanged,
+              ),
             ),
           ),
         ],

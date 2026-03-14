@@ -127,10 +127,10 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
                     child: AppBottomNavBar(
-                      currentTab: AppTab.player, // artwork tab actif
+                      currentTab: AppTab.player,
+                      showMiniPlayer: false,
                       onTabChanged: (tab) {
                         Navigator.of(context).pop();
-                        // puis navigate vers le tab
                       },
                     ),
                   ),

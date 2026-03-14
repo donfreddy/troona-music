@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -11,14 +12,20 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 
-/// The five-tab navigation bar shown at the bottom of the shell.
+/// Unified bottom bar: an optional mini player row stacked above the five nav
+/// tabs inside a single glass container.
 ///
-/// The centre slot is not a real tab — it renders the current track artwork
-/// and opens [FullPlayerPage] on tap.
+/// When a track is active the mini player section slides in via [AnimatedSize].
+/// Both sections share one [BackdropFilter] / [RepaintBoundary], keeping the
+/// screen within the two-filter budget.
 ///
-/// **Rebuild strategy**: [BlocBuilder] is gated by [_navKey] so the bar
-/// only rebuilds when the current track ID or play/pause state changes.
-/// Position/progress events from the audio stream are ignored.
+/// **Hero transition**: the artwork thumbnail carries the tag
+/// `'artwork_<trackId>'` which matches [ArtworkCarousel] in [FullPlayerPage],
+/// producing a smooth expanding-circle animation when the full player opens.
+///
+/// **Rebuild strategy**: [BlocBuilder] is gated by [_navKey] — only the track
+/// ID and play/pause flag trigger a rebuild. Position / progress events from
+/// the audio stream are ignored.
 enum AppTab {
   home,
   queue,
@@ -31,45 +38,34 @@ class AppBottomNavBar extends StatelessWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
 
+  /// Whether to show the embedded mini player row above the nav tabs.
+  /// Set to false in [FullPlayerPage] where the full player UI already
+  /// covers that role.
+  final bool showMiniPlayer;
+
   const AppBottomNavBar({
     super.key,
     required this.currentTab,
     required this.onTabChanged,
+    this.showMiniPlayer = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
-      // Only rebuild when the visible track or play state changes.
       buildWhen: (p, c) => _navKey(p) != _navKey(c),
       builder: (context, playerState) {
-        final track = playerState is PlayerActive
-            ? playerState.currentTrack
-            : null;
-        final isPlaying = playerState is PlayerActive && playerState.isPlaying;
-
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              0,
-              AppSpacing.lg,
-              AppSpacing.sm,
-            ),
-            child: _NavBarBody(
-              currentTab: currentTab,
-              onTabChanged: onTabChanged,
-              track: track,
-              isPlaying: isPlaying,
-            ),
-          ),
+        return _NavBarBody(
+          currentTab: currentTab,
+          onTabChanged: onTabChanged,
+          playerState: (showMiniPlayer && playerState is PlayerActive)
+              ? playerState
+              : null,
         );
       },
     );
   }
 
-  /// Extracts the minimal state that requires a visual rebuild.
   (String?, bool) _navKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying) => (
       currentTrack.id,
@@ -84,14 +80,14 @@ class AppBottomNavBar extends StatelessWidget {
 class _NavBarBody extends StatelessWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
-  final Track? track;
-  final bool isPlaying;
+
+  /// Non-null when a track is active; drives the mini player row visibility.
+  final PlayerActive? playerState;
 
   const _NavBarBody({
     required this.currentTab,
     required this.onTabChanged,
-    required this.track,
-    required this.isPlaying,
+    required this.playerState,
   });
 
   static const _tabs = [
@@ -106,45 +102,77 @@ class _NavBarBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = GlassTheme.card(context);
     final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
+    final isActive = playerState != null;
 
-    final bar = Container(
-      height: 64,
+    final body = Container(
       decoration: BoxDecoration(
         color: glass.fill,
         borderRadius: radius,
         border: Border.all(color: glass.border, width: glass.borderWidth),
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: _tabs.map((tab) {
-              final (appTab, icon, label) = tab;
-              if (appTab == AppTab.player) {
-                return Expanded(
-                  child: _CenterArtworkSlot(
-                    track: track,
-                    isPlaying: isPlaying,
-                    onTap: () => context.go(FullPlayerPage.routeName),
-                  ),
-                );
-              }
-              return Expanded(
-                child: _TabItem(
-                  icon: icon!,
-                  label: label!,
-                  isActive: currentTab == appTab,
-                  onTap: () => onTabChanged(appTab),
+          // ── Mini player section — slides in/out smoothly ─────────────────
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            child: isActive
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MiniPlayerRow(state: playerState!),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg,
+                        ),
+                        child: Container(
+                          height: 0.5,
+                          color: glass.border.withValues(alpha: .6),
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
+
+          // ── Nav tabs row — always present ────────────────────────────────
+          SizedBox(
+            height: 64,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Row(
+                  children: _tabs.map((tab) {
+                    final (appTab, icon, label) = tab;
+                    if (appTab == AppTab.player) {
+                      return Expanded(
+                        child: _CenterArtworkSlot(
+                          track: playerState?.currentTrack,
+                          isPlaying: playerState?.isPlaying ?? false,
+                          onTap: () => context.go(FullPlayerPage.routeName),
+                        ),
+                      );
+                    }
+                    return Expanded(
+                      child: _TabItem(
+                        icon: icon!,
+                        label: label!,
+                        isActive: currentTab == appTab,
+                        onTap: () => onTabChanged(appTab),
+                      ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
+              ],
+            ),
           ),
         ],
       ),
     );
 
     if (glass.blurSigma == 0) {
-      return ClipRRect(borderRadius: radius, child: bar);
+      return ClipRRect(borderRadius: radius, child: body);
     }
 
     // RepaintBoundary isolates the BackdropFilter compositing layer so
@@ -158,7 +186,7 @@ class _NavBarBody extends StatelessWidget {
             sigmaY: glass.blurSigma,
             tileMode: TileMode.clamp,
           ),
-          child: bar,
+          child: body,
         ),
       ),
     );
@@ -167,7 +195,125 @@ class _NavBarBody extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Centre slot that renders the rotating artwork and opens the full player.
+/// Mini player row embedded at the top of the glass container.
+///
+/// Tapping anywhere navigates to [FullPlayerPage]. The [CupertinoButton]
+/// play/pause and skip controls intercept their own taps so they do not
+/// trigger the surrounding [GestureDetector].
+///
+/// The [Hero] tag `'artwork_<trackId>'` matches [ArtworkCarousel] so the
+/// artwork expands from the 38 px thumbnail to the full carousel disc when
+/// the full player opens (and contracts back on dismiss).
+class _MiniPlayerRow extends StatelessWidget {
+  final PlayerActive state;
+
+  const _MiniPlayerRow({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return GestureDetector(
+      onTap: () => context.go(FullPlayerPage.routeName),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: 58,
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
+
+            // ── Artwork thumbnail with Hero ──────────────────────────────────
+            Hero(
+              tag: 'artwork_${state.currentTrack.id}',
+              child: SizedBox.square(
+                dimension: 38,
+                child: ClipOval(
+                  child: state.currentTrack.artworkPath != null
+                      ? Image.file(
+                          File(state.currentTrack.artworkPath!),
+                          fit: BoxFit.cover,
+                        )
+                      : ColoredBox(
+                          color: colors.glassFill,
+                          child: Icon(
+                            CupertinoIcons.music_note,
+                            color: colors.labelTertiary,
+                            size: 18,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // ── Track title and artist ───────────────────────────────────────
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    state.currentTrack.title,
+                    style: TextStyle(
+                      color: colors.labelPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    state.currentTrack.artist,
+                    style: TextStyle(
+                      color: colors.labelSecondary,
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Play / Pause ─────────────────────────────────────────────────
+            CupertinoButton(
+              padding: const EdgeInsets.all(10),
+              onPressed: () => context.read<PlayerBloc>().add(
+                state.isPlaying
+                    ? const PauseRequested()
+                    : const ResumeRequested(),
+              ),
+              child: Icon(
+                state.isPlaying
+                    ? CupertinoIcons.pause_fill
+                    : CupertinoIcons.play_fill,
+                color: colors.labelPrimary,
+                size: 20,
+              ),
+            ),
+
+            // ── Skip next ────────────────────────────────────────────────────
+            CupertinoButton(
+              padding: const EdgeInsets.only(right: 12),
+              onPressed: () =>
+                  context.read<PlayerBloc>().add(const SkipNextRequested()),
+              child: Icon(
+                CupertinoIcons.forward_fill,
+                color: colors.labelPrimary,
+                size: 20,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Centre slot that renders the rotating artwork disc and opens the full player.
 class _CenterArtworkSlot extends StatelessWidget {
   final Track? track;
   final bool isPlaying;
@@ -245,8 +391,6 @@ class _TabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use labelPrimary (white on dark, black on light) instead of a hardcoded
-    // color so the tab bar remains correct if a light theme is ever enabled.
     final labelColor = context.colors.labelPrimary;
 
     return GestureDetector(
