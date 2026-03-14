@@ -10,8 +10,8 @@ part 'playlist_model.g.dart';
 /// [id], allowing playlists to be referenced across migrations.
 @collection
 class PlaylistModel {
-  /// Isar auto-increment primary key. Null until the record is first written.
-  Id? id;
+  /// Isar auto-increment primary key (assigned on first write).
+  late int id;
 
   /// Application-level stable identifier (e.g. UUID).
   @Index(unique: true)

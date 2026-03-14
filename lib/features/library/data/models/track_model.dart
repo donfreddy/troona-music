@@ -13,8 +13,8 @@ part 'track_model.g.dart';
 /// library scans.
 @collection
 class TrackModel {
-  /// Isar auto-increment primary key. Null until the record is first written.
-  Id? id;
+  /// Isar auto-increment primary key (assigned on first write).
+  late int id;
 
   /// Stable device identifier (MediaStore ID on Android, persistent ID on iOS).
   /// Indexed uniquely so scans can diff the cache in O(1) per track.

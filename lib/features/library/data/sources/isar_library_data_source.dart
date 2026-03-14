@@ -76,7 +76,7 @@ class IsarLibraryDataSource {
   /// Case-insensitive search across [TrackModel.title] and [TrackModel.artist].
   Future<List<TrackModel>> searchTracks(String query) async =>
       _isar.trackModels
-          .filter()
+          .where()
           .titleContains(query, caseSensitive: false)
           .or()
           .artistContains(query, caseSensitive: false)
@@ -85,7 +85,7 @@ class IsarLibraryDataSource {
   /// Returns tracks that have no artwork cached yet (null or empty path).
   Future<List<TrackModel>> getTracksWithoutArtwork() async =>
       _isar.trackModels
-          .filter()
+          .where()
           .artworkPathIsNull()
           .or()
           .artworkPathEqualTo('')
@@ -101,7 +101,7 @@ class IsarLibraryDataSource {
 
   /// Returns up to [limit] playlists ordered by Isar insertion ID.
   Future<List<PlaylistModel>> getPlaylists({int limit = 10}) async =>
-      _isar.playlistModels.where().limit(limit).findAll();
+      _isar.playlistModels.where().findAll(limit: limit);
 
   /// Returns up to [limit] most-recently-indexed tracks.
   ///
@@ -110,10 +110,8 @@ class IsarLibraryDataSource {
   ///
   /// TODO(perf): add an `indexedAt` timestamp field and sort by it for an
   /// accurate "recently added" ordering.
-  Future<List<TrackModel>> getRecentTracks({int limit = 20}) async {
-    final all = _isar.trackModels.where().findAll();
-    return all.reversed.take(limit).toList();
-  }
+  Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
+      _isar.trackModels.where().findAll(limit: limit);
 
   // ---------------------------------------------------------------------------
   // Write operations  (wrapped in Isar.write for atomicity)
