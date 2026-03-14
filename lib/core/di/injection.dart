@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/library/data/repositories/library_repository_impl.dart';
@@ -25,6 +26,9 @@ import 'package:troona/features/player/domain/repositories/player_repository.dar
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
@@ -44,6 +48,8 @@ final GetIt getIt = GetIt.instance;
 Future<void> configureDependencies() async {
   // ── Core external clients ─────────────────────────────────────────────────
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
+  final sharedPrefs = await SharedPreferences.getInstance();
+  getIt.registerSingleton<SharedPreferences>(sharedPrefs);
 
   // ── Data sources ──────────────────────────────────────────────────────────
 
@@ -102,6 +108,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(getIt()),
   );
+  getIt.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepositoryImpl(getIt()),
+  );
 
   // ── Use cases ─────────────────────────────────────────────────────────────
   getIt
@@ -152,6 +161,7 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()));
 
   // ── Presentation layer ────────────────────────────────────────────────────
+  getIt.registerFactory<SettingsCubit>(() => SettingsCubit(getIt()));
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
   // subscriptions to AudioServicePort. A factory would re-subscribe on every
