@@ -1,19 +1,27 @@
-// Pont entre audio_service (lockscreen/notifications) et JustAudioAdapter.
-// Délègue toutes les commandes à l'Adapter — pas de logique ici.
+// Bridge between audio_service (lock screen / notification controls) and
+// JustAudioAdapter. Delegates every command to the adapter — no business
+// logic lives here.
 
 import 'package:audio_service/audio_service.dart';
-import 'package:injectable/injectable.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart'
     show RepeatMode;
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 
-@lazySingleton
+/// [BaseAudioHandler] implementation that bridges [AudioServicePort] to the
+/// `audio_service` package for lock-screen controls and OS media notifications.
+///
+/// **Lifecycle**: instantiated once inside [AudioServiceInitializer.init] and
+/// NOT registered in the DI container. The [AudioServicePort] adapter
+/// ([JustAudioAdapter]) is what gets injected elsewhere.
+///
+/// All [BaseAudioHandler] overrides delegate to [_port] — state is owned by
+/// [JustAudioAdapter] and surfaced via streams.
 class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioServicePort _port;
 
   AudioHandlerImpl(this._port) {
-    // Transmet les états de lecture à audio_service
+    // Forward playback status to the audio_service playback state stream.
     _port.statusStream.listen((status) {
       playbackState.add(
         playbackState.value.copyWith(
@@ -29,25 +37,25 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     });
 
-    // Transmet le track courant aux métadonnées de notification
+    // Forward the current track to the OS media-item metadata stream.
     _port.currentTrackStream.listen((track) {
-      if (track != null) {
-        mediaItem.add(_trackToMediaItem(track));
-      }
+      if (track != null) mediaItem.add(_trackToMediaItem(track));
     });
 
-    // Transmet la position
+    // Forward position so the lock-screen scrubber stays in sync.
     _port.positionStream.listen((pos) {
       playbackState.add(playbackState.value.copyWith(updatePosition: pos));
     });
 
-    // Queue
+    // Forward the queue so the OS notification can show track count.
     _port.queueStream.listen((q) {
       queue.add(q.playbackTracks.map(_trackToMediaItem).toList());
     });
   }
 
-  // ── BaseAudioHandler overrides ─────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // BaseAudioHandler overrides — all delegate to _port
+  // ---------------------------------------------------------------------------
 
   @override
   Future<void> play() => _port.resume();
@@ -71,8 +79,7 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> skipToQueueItem(int index) async {
     final q = _port.currentQueue;
     if (q == null || index < 0 || index >= q.length) return;
-    final track = q.playbackTracks[index];
-    await _port.playTrack(track);
+    await _port.playTrack(q.playbackTracks[index]);
   }
 
   @override
@@ -91,7 +98,9 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
         AudioServiceRepeatMode.group => RepeatMode.all,
       });
 
-  // ── Helpers privés ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
 
   MediaItem _trackToMediaItem(Track track) => MediaItem(
     id: track.id,
@@ -99,7 +108,8 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
     artist: track.artist,
     album: track.album,
     duration: Duration(milliseconds: track.durationMs),
-    artUri: track.artworkPath != null ? Uri.parse(track.artworkPath!) : null,
+    // Use Uri.file for local paths instead of Uri.parse to avoid encoding issues.
+    artUri: track.artworkPath != null ? Uri.file(track.artworkPath!) : null,
     extras: {'uri': track.uri},
   );
 
@@ -111,7 +121,8 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
     _ => AudioProcessingState.idle,
   };
 
-  List<MediaControl> _buildControls() => [
+  /// Returns the media controls shown in the OS notification.
+  List<MediaControl> _buildControls() => const [
     MediaControl.skipToPrevious,
     MediaControl.pause,
     MediaControl.play,

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/library/data/repositories/library_repository_impl.dart';
@@ -12,6 +13,7 @@ import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dar
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
@@ -23,31 +25,45 @@ import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
-final getIt = GetIt.instance;
+/// The global service locator.
+///
+/// Call [configureDependencies] once in `main()` before [runApp].
+/// All registrations are intentionally **manual** (no `injectable` code
+/// generation) for maximum transparency in an open-source project.
+final GetIt getIt = GetIt.instance;
 
+/// Registers all dependencies in the correct resolution order.
+///
+/// Dependencies are registered before the objects that consume them so that
+/// `getIt()` calls inside factory/singleton constructors always resolve.
 Future<void> configureDependencies() async {
-  // ── Core external clients ────────────────────────────────────────────────
+  // ── Core external clients ─────────────────────────────────────────────────
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
 
-  // ── Data sources & cache ────────────────────────────────────────────────
+  // ── Data sources ──────────────────────────────────────────────────────────
+
+  // IsarLibraryDataSource opens the database asynchronously; register the
+  // resolved instance as an eager singleton so every consumer shares the
+  // same open handle.
+  final isarDb = await IsarLibraryDataSource.open();
+  getIt.registerSingleton<IsarLibraryDataSource>(isarDb);
+
   getIt.registerLazySingleton<LocalAudioDataSource>(
     () => OnAudioQueryDataSource(query: getIt()),
   );
-  getIt.registerLazySingleton<IsarLibraryDataSource>(
-    () => IsarLibraryDataSource(),
-  );
 
-  // ── Artwork cache directory ─────────────────────────────────────────────
-  final artworkCache = Directory(
-    '${Directory.systemTemp.path}/troona_artwork_cache',
-  );
-  if (!await artworkCache.exists()) await artworkCache.create(recursive: true);
+  // ── Artwork cache directory ───────────────────────────────────────────────
+  // Use the OS-managed cache directory (not system temp) so artwork survives
+  // app restarts and is cleared automatically under storage pressure.
+  final cacheBase = await getApplicationCacheDirectory();
+  final artworkCache = Directory('${cacheBase.path}/troona_artwork_cache');
+  await artworkCache.create(recursive: true); // no-op if already exists
 
   getIt.registerLazySingleton<ArtworkExtractor>(
     () => ArtworkExtractor(query: getIt(), cacheDir: artworkCache),
   );
 
-  // ── Services ────────────────────────────────────────────────────────────
+  // ── Services ──────────────────────────────────────────────────────────────
   getIt.registerLazySingleton<MediaScannerService>(
     () => MediaScannerService(
       source: getIt(),
@@ -56,11 +72,12 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // Audio service must be initialized before use.
+  // AudioServicePort must be initialised before any repository or BLoC that
+  // depends on it. The initialiser starts the audio_service background task.
   final audioPort = await AudioServiceInitializer.init();
   getIt.registerSingleton<AudioServicePort>(audioPort);
 
-  // ── Repositories ────────────────────────────────────────────────────────
+  // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
     () => LibraryRepositoryImpl(
       source: getIt(),
@@ -75,14 +92,19 @@ Future<void> configureDependencies() async {
     () => PlayerRepositoryImpl(getIt()),
   );
 
-  // ── Use cases ───────────────────────────────────────────────────────────
+  // ── Use cases ─────────────────────────────────────────────────────────────
   getIt
     ..registerLazySingleton<ScanLibraryUseCase>(
       () => ScanLibraryUseCase(getIt()),
     )
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
-    ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))
+    ..registerLazySingleton<GetArtistsUseCase>(
+      () => GetArtistsUseCase(getIt()),
+    )
+    ..registerLazySingleton<SearchTracksUseCase>(
+      () => SearchTracksUseCase(getIt()),
+    )
     ..registerLazySingleton<PlayTrackUseCase>(() => PlayTrackUseCase(getIt()))
     ..registerLazySingleton<PauseUseCase>(() => PauseUseCase(getIt()))
     ..registerLazySingleton<ResumeUseCase>(() => ResumeUseCase(getIt()))
@@ -92,7 +114,9 @@ Future<void> configureDependencies() async {
       () => SkipPreviousUseCase(getIt()),
     )
     ..registerLazySingleton<SetQueueUseCase>(() => SetQueueUseCase(getIt()))
-    ..registerLazySingleton<AddToQueueUseCase>(() => AddToQueueUseCase(getIt()))
+    ..registerLazySingleton<AddToQueueUseCase>(
+      () => AddToQueueUseCase(getIt()),
+    )
     ..registerLazySingleton<RemoveFromQueueUseCase>(
       () => RemoveFromQueueUseCase(getIt()),
     )
@@ -108,9 +132,15 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<SetVolumeUseCase>(() => SetVolumeUseCase(getIt()))
     ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()));
 
-  // ── Presentation ────────────────────────────────────────────────────────
-  getIt.registerFactory<PlayerBloc>(
-    () => PlayerBloc(
+  // ── Presentation layer ────────────────────────────────────────────────────
+
+  // PlayerBloc is registered as a singleton because it owns 7 stream
+  // subscriptions to AudioServicePort. A factory would re-subscribe on every
+  // navigation event and leak subscriptions if an old instance is not closed
+  // before a new one is created. Use BlocProvider.value in the widget tree so
+  // the provider never calls close() on this singleton.
+  getIt.registerSingleton<PlayerBloc>(
+    PlayerBloc(
       playTrack: getIt(),
       pause: getIt(),
       resume: getIt(),
@@ -129,6 +159,8 @@ Future<void> configureDependencies() async {
     ),
   );
 
+  // LibraryBloc remains a factory so each ShellRoute mount creates a fresh
+  // instance with a clean state. The initial scan is triggered by AppShell.
   getIt.registerFactory<LibraryBloc>(
     () => LibraryBloc(
       scanLibrary: getIt(),

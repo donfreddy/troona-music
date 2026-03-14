@@ -11,19 +11,30 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Application router.
+///
+/// **BLoC lifecycle notes**:
+/// - [PlayerBloc] is a **singleton** (registered via `get_it`). It must not be
+///   closed by the widget tree, so it is provided with [BlocProvider.value].
+/// - [LibraryBloc] is a **factory** that is owned and closed by the
+///   [ShellRoute]'s [BlocProvider]. The initial scan is triggered in
+///   [AppShell.initState] via `addPostFrameCallback`, not here, to keep
+///   routing and business logic decoupled.
 final appRouter = GoRouter(
   navigatorKey: _shellNavigatorKey,
   initialLocation: '/home',
   routes: [
-    // Shell : toutes les pages avec la bottom bar
+    // ── Shell: all pages that share the bottom navigation bar ───────────────
     ShellRoute(
       builder: (context, state, child) => MultiBlocProvider(
         providers: [
-          BlocProvider<PlayerBloc>(create: (_) => getIt<PlayerBloc>()),
-          BlocProvider<LibraryBloc>(
-            create: (_) =>
-                getIt<LibraryBloc>()..add(const LibraryScanRequested()),
-          ),
+          // PlayerBloc is a singleton — use .value so the provider never
+          // calls close() on it when the shell is torn down.
+          BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
+
+          // LibraryBloc is a factory — the provider owns its lifecycle.
+          // The initial scan is dispatched from AppShell.initState.
+          BlocProvider<LibraryBloc>(create: (_) => getIt<LibraryBloc>()),
         ],
         child: AppShell(child: child),
       ),
@@ -44,12 +55,13 @@ final appRouter = GoRouter(
       ],
     ),
 
-    // FullPlayer : hors du shell (pas de bottom bar)
+    // ── FullPlayer: fullscreen modal outside the shell (no bottom bar) ──────
     GoRoute(
       path: '/player',
       pageBuilder: (context, state) => CupertinoPage(
         fullscreenDialog: true,
-        child: BlocProvider.value(
+        // Reuse the singleton — BlocProvider.value does not close the bloc.
+        child: BlocProvider<PlayerBloc>.value(
           value: getIt<PlayerBloc>(),
           child: const FullPlayerPage(),
         ),
@@ -58,6 +70,7 @@ final appRouter = GoRouter(
   ],
 );
 
+/// Placeholder widget for routes that are not yet implemented.
 class _StubPage extends StatelessWidget {
   final String title;
   const _StubPage({required this.title});
@@ -67,7 +80,7 @@ class _StubPage extends StatelessWidget {
     backgroundColor: Colors.black,
     body: Center(
       child: Text(
-        '$title page coming soon',
+        '$title — coming soon',
         style: const TextStyle(color: Colors.white, fontSize: 18),
       ),
     ),
