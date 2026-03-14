@@ -391,5 +391,4 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     ]);
     return super.close();
   }
-
 }

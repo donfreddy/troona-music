@@ -59,18 +59,21 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     super.initState();
 
     _snapAnim = const AlwaysStoppedAnimation(0);
-    _snapBack = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-    )..addListener(() {
-        if (!mounted) return;
-        setState(() => _dragOffset = _snapAnim.value);
-      });
+    _snapBack =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 280),
+        )..addListener(() {
+          if (!mounted) return;
+          setState(() => _dragOffset = _snapAnim.value);
+        });
 
     final playerState = context.read<PlayerBloc>().state;
     if (playerState is PlayerActive) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.read<LikesCubit>().syncTrack(playerState.currentTrack);
+        if (mounted) {
+          context.read<LikesCubit>().syncTrack(playerState.currentTrack);
+        }
       });
     }
   }
@@ -93,7 +96,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final velocity = d.velocity.pixelsPerSecond.dy;
     final screenH = MediaQuery.of(context).size.height;
 
-    if (velocity > _kDismissVelocity || _dragOffset > screenH * _kDismissThreshold) {
+    if (velocity > _kDismissVelocity ||
+        _dragOffset > screenH * _kDismissThreshold) {
       // Reset the manual translate so the Hero widget is back at its natural
       // screen position before the fade-out route transition starts. Without
       // this reset, the Hero would fly from the dragged (offset) position
@@ -102,9 +106,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
       Navigator.of(context).pop();
     } else {
       // Snap back to fully-open position.
-      _snapAnim = Tween<double>(begin: _dragOffset, end: 0).animate(
-        CurvedAnimation(parent: _snapBack, curve: Curves.easeOutCubic),
-      );
+      _snapAnim = Tween<double>(
+        begin: _dragOffset,
+        end: 0,
+      ).animate(CurvedAnimation(parent: _snapBack, curve: Curves.easeOutCubic));
       _snapBack
         ..reset()
         ..forward();
@@ -117,7 +122,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final screenH = MediaQuery.of(context).size.height;
 
     // Fade the page out slightly as the user drags down.
-    final opacity = 1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
+    final opacity =
+        1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
     return GestureDetector(
       onVerticalDragUpdate: _onDragUpdate,
@@ -129,7 +135,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
           child: BlocListener<PlayerBloc, PlayerState>(
             listenWhen: (prev, curr) =>
                 curr is PlayerActive &&
-                (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
+                (prev is! PlayerActive ||
+                    prev.currentTrack != curr.currentTrack),
             listener: (context, state) {
               if (state is PlayerActive) {
                 context.read<LikesCubit>().syncTrack(state.currentTrack);
@@ -198,7 +205,12 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                         left: 0,
                         right: 0,
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                          padding: EdgeInsets.fromLTRB(
+                            12,
+                            0,
+                            12,
+                            safeBottom + 12,
+                          ),
                           child: AppBottomNavBar(
                             currentTab: AppTab.player,
                             showMiniPlayer: false,
@@ -369,10 +381,7 @@ class _VolumeSlider extends StatelessWidget {
               inactiveTrackColor: Colors.white24,
               thumbColor: Colors.white,
             ),
-            child: Slider(
-              value: 0.7,
-              onChanged: (_) {},
-            ),
+            child: Slider(value: 0.7, onChanged: (_) {}),
           ),
         ),
         const Icon(CupertinoIcons.volume_up, color: Colors.white38, size: 16),

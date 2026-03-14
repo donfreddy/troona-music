@@ -113,7 +113,9 @@ class _PermissionPageState extends State<PermissionPage> {
                   style: FilledButton.styleFrom(
                     backgroundColor: colors.accent,
                     foregroundColor: colors.accentForeground,
-                    disabledBackgroundColor: colors.accent.withValues(alpha: 0.4),
+                    disabledBackgroundColor: colors.accent.withValues(
+                      alpha: 0.4,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -144,10 +146,7 @@ class _PermissionPageState extends State<PermissionPage> {
                   onPressed: _requestPermission,
                   child: Text(
                     'Check again after updating Settings',
-                    style: TextStyle(
-                      color: colors.labelTertiary,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: colors.labelTertiary, fontSize: 13),
                   ),
                 ),
               ],

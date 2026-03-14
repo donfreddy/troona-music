@@ -80,10 +80,7 @@ final appRouter = GoRouter(
 
     // ── Permission gate: shown when audio/storage permission is missing ─────
     // Outside the shell — no bottom nav, no PlayerBloc overhead.
-    GoRoute(
-      path: '/permission',
-      builder: (_, _) => const PermissionPage(),
-    ),
+    GoRoute(path: '/permission', builder: (_, _) => const PermissionPage()),
 
     // ── FullPlayer: fullscreen modal outside the shell (no bottom bar) ──────
     //

@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
-import 'package:troona/core/use_cases/no_params.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 
@@ -8,6 +7,5 @@ final class GetHomeFeedUseCase {
   final HomeRepository _repo;
   const GetHomeFeedUseCase(this._repo);
 
-  Future<Either<Failure, HomeFeed>> call([NoParams _ = const NoParams()]) =>
-      _repo.getFeed();
+  Future<Either<Failure, HomeFeed>> call() => _repo.getFeed();
 }

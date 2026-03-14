@@ -35,12 +35,8 @@ class GlassButton extends StatefulWidget {
   final _GlassButtonVariant _variant;
 
   /// Glass-fill variant — for secondary actions.
-  const GlassButton({
-    super.key,
-    required this.label,
-    this.onTap,
-    this.leading,
-  }) : _variant = _GlassButtonVariant.glass;
+  const GlassButton({super.key, required this.label, this.onTap, this.leading})
+    : _variant = _GlassButtonVariant.glass;
 
   /// Accent-fill variant — for primary actions.
   const GlassButton.filled({

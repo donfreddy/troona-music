@@ -65,7 +65,8 @@ class TrackModel {
     ..album = s.album ?? 'Unknown Album'
     ..durationMs = s.duration ?? 0
     ..trackNumber = s.track ?? 0
-    ..year = 0 // SongModel does not expose year; update when metadata parsing is added
+    ..year =
+        0 // SongModel does not expose year; update when metadata parsing is added
     ..indexedAt = DateTime.now();
 
   /// Converts this model to the immutable domain [Track] entity.

@@ -5,38 +5,38 @@ import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
-/// Interface (Port) entre le Domain et l'implémentation audio concrète.
+/// Port (interface) between the Domain layer and the concrete audio engine.
 ///
-/// Le Domain ne connaît jamais just_audio ni audio_service.
-/// L'Adapter (JustAudioAdapter) implémente ce contrat.
+/// The Domain never imports `just_audio` or `audio_service` directly.
+/// [JustAudioAdapter] implements this contract.
 ///
-/// Tous les streams doivent émettre immédiatement une valeur initiale
-/// (BehaviorSubject ou StreamController avec seedValue).
+/// All streams must emit an initial value immediately
+/// (use a BehaviorSubject or a seeded StreamController).
 abstract interface class AudioServicePort {
-  // ── Streams (lecture en temps réel) ────────────────────────────────────────
+  // ── Streams (real-time observation) ─────────────────────────────────────────
 
-  /// Position courante, émise ~60fps pendant la lecture.
+  /// Current playback position, emitted at ~60 fps during playback.
   Stream<Duration> get positionStream;
 
-  /// Position du buffer réseau/disque.
+  /// Buffered position (network / disk read-ahead).
   Stream<Duration> get bufferedPositionStream;
 
-  /// Statut de lecture (playing, paused, buffering, stopped).
+  /// Playback status (playing, paused, buffering, stopped).
   Stream<PlaybackStatus> get statusStream;
 
-  /// Track actuellement chargée (null si aucune).
+  /// Currently loaded track; null when nothing is loaded.
   Stream<Track?> get currentTrackStream;
 
-  /// Durée du track courant.
+  /// Duration of the current track.
   Stream<Duration> get durationStream;
 
-  /// État complet de la queue.
+  /// Full queue state.
   Stream<Queue> get queueStream;
 
-  /// Volume courant (0.0 à 1.0).
+  /// Current volume (0.0 – 1.0).
   Stream<double> get volumeStream;
 
-  // ── Valeurs instantanées (sync) ────────────────────────────────────────────
+  // ── Synchronous snapshots ────────────────────────────────────────────────────
 
   PlaybackStatus get currentStatus;
   Track? get currentTrack;
@@ -44,56 +44,56 @@ abstract interface class AudioServicePort {
   Duration get currentDuration;
   Queue? get currentQueue;
 
-  // ── Commandes ─────────────────────────────────────────────────────────────
+  // ── Commands ─────────────────────────────────────────────────────────────────
 
-  /// Charge et joue un track. Si [queue] est fourni, initialise la queue.
+  /// Loads and plays [track]. Initialises the queue when [queue] is provided.
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue});
 
-  /// Pause la lecture.
+  /// Pauses playback.
   Future<Either<Failure, Unit>> pause();
 
-  /// Reprend la lecture.
+  /// Resumes playback.
   Future<Either<Failure, Unit>> resume();
 
-  /// Seek à une position précise.
+  /// Seeks to [position].
   Future<Either<Failure, Unit>> seekTo(Duration position);
 
-  /// Passe au track suivant selon la queue.
+  /// Advances to the next track in the queue.
   Future<Either<Failure, Unit>> skipToNext();
 
-  /// Revient au track précédent.
+  /// Returns to the previous track.
   Future<Either<Failure, Unit>> skipToPrevious();
 
-  /// Initialise la queue complète et joue depuis [startIndex].
+  /// Replaces the queue with [tracks] and starts playback from [startIndex].
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
   });
 
-  /// Ajoute un track à la fin de la queue.
+  /// Appends [track] to the end of the queue.
   Future<Either<Failure, Unit>> addToQueue(Track track);
 
-  /// Supprime le track à l'index.
+  /// Removes the track at [index] from the queue.
   Future<Either<Failure, Unit>> removeFromQueue(int index);
 
-  /// Déplace un item dans la queue.
+  /// Moves a queue item from [oldIndex] to [newIndex].
   Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex);
 
-  /// Active/désactive le shuffle.
+  /// Enables or disables shuffle mode.
   Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled);
 
-  /// Change le mode de répétition.
+  /// Sets the repeat mode.
   Future<Either<Failure, Unit>> setRepeatMode(RepeatMode mode);
 
-  /// Change le volume (0.0 – 1.0).
+  /// Sets the volume (0.0 – 1.0).
   Future<Either<Failure, Unit>> setVolume(double volume);
 
-  /// Change la vitesse de lecture (0.5 – 2.0).
+  /// Sets the playback speed (0.5 – 2.0).
   Future<Either<Failure, Unit>> setSpeed(double speed);
 
-  /// Stoppe la lecture et libère les ressources audio (pas le service).
+  /// Stops playback and releases audio resources (does not stop the service).
   Future<void> stop();
 
-  /// Dispose complet — appeler uniquement à la fermeture de l'app.
+  /// Full teardown — call only when the app is closing.
   Future<void> dispose();
 }
