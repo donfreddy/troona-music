@@ -3,9 +3,26 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 
+/// A glass-styled content card that adapts blur, fill, and border to the
+/// current [GlassQuality] preset and device brightness.
+///
+/// Pass a custom [config] to override the default [GlassTheme.card] preset
+/// (e.g. use [GlassTheme.miniPlayer] for the mini-player surface).
+///
+/// **Rendering contract**:
+/// - [BackdropFilter] is only created when [GlassConfig.blurSigma] > 0.
+/// - Always wrapped in [RepaintBoundary] to isolate the compositing layer.
+/// - Never place inside an [AnimatedBuilder] driven by the audio position
+///   stream — that would trigger a full blur redraw at 60 fps.
 class GlassCard extends StatelessWidget {
   final Widget child;
+
+  /// Optional override for the resolved [GlassConfig].
+  /// Defaults to [GlassTheme.card] when null.
   final GlassConfig? config;
+
+  /// Optional tap callback.  When non-null the card wraps itself in a
+  /// [GestureDetector] so the entire surface is tappable.
   final VoidCallback? onTap;
 
   const GlassCard({required this.child, this.config, this.onTap, super.key});
@@ -19,33 +36,41 @@ class GlassCard extends StatelessWidget {
       child: Padding(padding: cfg.padding, child: child),
     );
 
-    // Fast-path: no blur in low-power mode.
+    Widget card;
+
     if (cfg.blurSigma == 0) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: cfg.fill,
+      // Fast path: skip BackdropFilter entirely — no compositing layer cost.
+      // _GlassDecoration already draws the fill and border; just clip.
+      card = ClipRRect(borderRadius: cfg.borderRadius, child: content);
+    } else {
+      card = RepaintBoundary(
+        child: ClipRRect(
           borderRadius: cfg.borderRadius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: cfg.blurSigma,
+              sigmaY: cfg.blurSigma,
+              tileMode: TileMode.clamp,
+            ),
+            child: content,
+          ),
         ),
-        child: ClipRRect(borderRadius: cfg.borderRadius, child: content),
       );
     }
 
-    return RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: cfg.borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: cfg.blurSigma,
-            sigmaY: cfg.blurSigma,
-            tileMode: TileMode.clamp,
-          ),
-          child: content,
-        ),
-      ),
+    if (onTap == null) return card;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: card,
     );
   }
 }
 
+/// Draws the glass fill, three-layer border, and optional highlight sheen.
+///
+/// Kept as a separate widget so it can be composed inside or outside a
+/// [BackdropFilter] without duplicating decoration logic.
 class _GlassDecoration extends StatelessWidget {
   final GlassConfig config;
   final Widget child;
@@ -58,12 +83,13 @@ class _GlassDecoration extends StatelessWidget {
       decoration: BoxDecoration(
         color: config.fill,
         borderRadius: config.borderRadius,
-        // Bordure glassmorphism = 3 couches superposées
+        // Three-layer border simulates the iOS luminosity highlight:
+        //   top   — bright edge (primary light-source reflection)
+        //   left  — subtle diagonal sheen
+        //   bottom/right — near-transparent (shadowed edges)
         border: Border(
-          // Reflet supérieur lumineux (simule la lumière sur le bord)
           top: BorderSide(color: config.border, width: config.borderWidth),
           left: BorderSide(color: config.highlight, width: config.borderWidth),
-          // Bords inférieurs plus sombres / transparents
           bottom: BorderSide(
             color: config.highlight.withValues(alpha: .05),
             width: 0.5,
