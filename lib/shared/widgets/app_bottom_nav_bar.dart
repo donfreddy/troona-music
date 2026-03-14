@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
@@ -94,52 +95,60 @@ class _NavBarBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final glass = GlassTheme.card(context);
+    final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
+    final bar = Container(
+      height: 64,
+      decoration: BoxDecoration(
+        color: glass.fill,
+        borderRadius: radius,
+        border: Border.all(color: glass.border, width: glass.borderWidth),
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Row(
+            children: _tabs.map((tab) {
+              final (appTab, icon, label) = tab;
+              if (appTab == AppTab.player) {
+                return Expanded(
+                  child: _CenterArtworkSlot(
+                    track: track,
+                    isPlaying: isPlaying,
+                    onTap: () => context.go(FullPlayerPage.routeName),
+                  ),
+                );
+              }
+              return Expanded(
+                child: _TabItem(
+                  icon: icon!,
+                  label: label!,
+                  isActive: currentTab == appTab,
+                  onTap: () => onTabChanged(appTab),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+
+    if (glass.blurSigma == 0) {
+      return DecoratedBox(
+        decoration: BoxDecoration(borderRadius: radius),
+        child: ClipRRect(borderRadius: radius, child: bar),
+      );
+    }
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusXl + 4),
+      borderRadius: radius,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-        child: Container(
-          height: 64,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: .55),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl + 4),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: .10),
-              width: 0.5,
-            ),
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // ── 5 slots de navigation ─────────────────────
-              Row(
-                children: _tabs.map((tab) {
-                  final (appTab, icon, label) = tab;
-
-                  // Slot central — artwork
-                  if (appTab == AppTab.player) {
-                    return Expanded(
-                      child: _CenterArtworkSlot(
-                        track: track,
-                        isPlaying: isPlaying,
-                        onTap: () => context.go(FullPlayerPage.routeName),
-                      ),
-                    );
-                  }
-
-                  return Expanded(
-                    child: _TabItem(
-                      icon: icon!,
-                      label: label!,
-                      isActive: currentTab == appTab,
-                      onTap: () => onTabChanged(appTab),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
+        filter: ImageFilter.blur(
+          sigmaX: glass.blurSigma,
+          sigmaY: glass.blurSigma,
+          tileMode: TileMode.clamp,
         ),
+        child: bar,
       ),
     );
   }

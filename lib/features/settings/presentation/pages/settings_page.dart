@@ -124,6 +124,13 @@ class _SettingsView extends StatelessWidget {
                 value: settings.showAlbumArtInNotification,
                 onChanged: cubit.setShowAlbumArtInNotification,
               ),
+              SegmentedRow<GlassQuality>(
+                label: 'Glass quality',
+                values: GlassQuality.values,
+                labels: const ['High', 'Low', 'Off'],
+                selected: settings.glassQuality,
+                onChanged: cubit.setGlassQuality,
+              ),
 
               // Sleep Timer
               SectionHeader('Sleep Timer'),

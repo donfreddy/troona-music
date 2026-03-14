@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/core/theme/components/glass_theme.dart' as glass;
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 
@@ -77,6 +78,11 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<void> setHapticFeedback(bool value) =>
       _update((s) => s.copyWith(hapticFeedbackEnabled: value));
+
+  Future<void> setGlassQuality(GlassQuality quality) {
+    glass.GlassTheme.overrideQuality(glass.GlassQuality.values[quality.index]);
+    return _update((s) => s.copyWith(glassQuality: quality));
+  }
 
   // Sleep timer
   Future<void> setSleepTimer({required bool enabled, int? minutes}) => _update(

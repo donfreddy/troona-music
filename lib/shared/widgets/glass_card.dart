@@ -14,20 +14,32 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cfg = config ?? GlassTheme.card(context);
 
+    final content = _GlassDecoration(
+      config: cfg,
+      child: Padding(padding: cfg.padding, child: child),
+    );
+
+    // Fast-path: no blur in low-power mode.
+    if (cfg.blurSigma == 0) {
+      return DecoratedBox(
+        decoration: BoxDecoration(
+          color: cfg.fill,
+          borderRadius: cfg.borderRadius,
+        ),
+        child: ClipRRect(borderRadius: cfg.borderRadius, child: content),
+      );
+    }
+
     return RepaintBoundary(
-      // ← isole le layer blur
       child: ClipRRect(
         borderRadius: cfg.borderRadius,
         child: BackdropFilter(
           filter: ImageFilter.blur(
             sigmaX: cfg.blurSigma,
             sigmaY: cfg.blurSigma,
-            tileMode: TileMode.clamp, // évite l'artefact de bordure
+            tileMode: TileMode.clamp,
           ),
-          child: _GlassDecoration(
-            config: cfg,
-            child: Padding(padding: cfg.padding, child: child),
-          ),
+          child: content,
         ),
       ),
     );

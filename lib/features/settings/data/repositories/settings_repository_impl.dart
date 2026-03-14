@@ -25,6 +25,7 @@ abstract final class _K {
   // UI
   static const showAlbumArtInNotification = 'show_album_art_in_notification';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
+  static const glassQuality = 'glass_quality';
   // Sleep timer
   static const sleepTimerEnabled = 'sleep_timer_enabled';
   static const sleepTimerMinutes = 'sleep_timer_minutes';
@@ -75,6 +76,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
             d.showAlbumArtInNotification,
         hapticFeedbackEnabled:
             _prefs.getBool(_K.hapticFeedbackEnabled) ?? d.hapticFeedbackEnabled,
+        glassQuality: GlassQuality
+            .values[_prefs.getInt(_K.glassQuality) ?? d.glassQuality.index],
         // Sleep timer
         sleepTimerEnabled:
             _prefs.getBool(_K.sleepTimerEnabled) ?? d.sleepTimerEnabled,
@@ -108,6 +111,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
           s.showAlbumArtInNotification,
         ),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
+        _prefs.setInt(_K.glassQuality, s.glassQuality.index),
         _prefs.setBool(_K.sleepTimerEnabled, s.sleepTimerEnabled),
         _prefs.setInt(_K.sleepTimerMinutes, s.sleepTimerMinutes),
       ]);

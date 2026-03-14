@@ -4,6 +4,9 @@ enum AppThemeMode { system, light, dark, amoled }
 
 enum CrossfadeStyle { linear, equalPower, dip }
 
+/// Global glass quality to balance fidelity vs performance.
+enum GlassQuality { high, low, off }
+
 /// Minimal, user-facing settings for v1.0.
 class AppSettings extends Equatable {
   // Appearance
@@ -26,6 +29,7 @@ class AppSettings extends Equatable {
   // UI
   final bool showAlbumArtInNotification;
   final bool hapticFeedbackEnabled;
+  final GlassQuality glassQuality; // Reduce effects / blur quality
 
   // Sleep timer
   final bool sleepTimerEnabled;
@@ -49,6 +53,7 @@ class AppSettings extends Equatable {
     // UI
     this.showAlbumArtInNotification = true,
     this.hapticFeedbackEnabled = true,
+    this.glassQuality = GlassQuality.high,
     // Sleep timer
     this.sleepTimerEnabled = false,
     this.sleepTimerMinutes = 30,
@@ -68,6 +73,7 @@ class AppSettings extends Equatable {
     bool? watchFolderChanges,
     bool? showAlbumArtInNotification,
     bool? hapticFeedbackEnabled,
+    GlassQuality? glassQuality,
     bool? sleepTimerEnabled,
     int? sleepTimerMinutes,
   }) => AppSettings(
@@ -87,6 +93,7 @@ class AppSettings extends Equatable {
     showAlbumArtInNotification:
         showAlbumArtInNotification ?? this.showAlbumArtInNotification,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
+    glassQuality: glassQuality ?? this.glassQuality,
     sleepTimerEnabled: sleepTimerEnabled ?? this.sleepTimerEnabled,
     sleepTimerMinutes: sleepTimerMinutes ?? this.sleepTimerMinutes,
   );
@@ -106,6 +113,7 @@ class AppSettings extends Equatable {
     watchFolderChanges,
     showAlbumArtInNotification,
     hapticFeedbackEnabled,
+    glassQuality,
     sleepTimerEnabled,
     sleepTimerMinutes,
   ];
