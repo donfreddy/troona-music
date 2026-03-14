@@ -26,7 +26,7 @@ final class PlayerLoading extends PlayerState {
 /// État principal : une piste est chargée, active ou en pause.
 final class PlayerActive extends PlayerState {
   final Track currentTrack;
-  final PlaybackStatusEvent status;
+  final PlaybackStatus status;
   final Duration position;
   final Duration buffered;
   final Duration duration;
@@ -38,7 +38,7 @@ final class PlayerActive extends PlayerState {
 
   const PlayerActive({
     required this.currentTrack,
-    required this.status,
+    required this.status, // PlaybackStatus from domain — single source of truth
     required this.position,
     required this.buffered,
     required this.duration,
@@ -51,9 +51,9 @@ final class PlayerActive extends PlayerState {
 
   // ── Helpers dérivés — jamais calculés dans les widgets ──────────────────
 
-  bool get isPlaying => status == PlaybackStatusEvent.playing;
-  bool get isBuffering => status == PlaybackStatusEvent.buffering;
-  bool get isPaused => status == PlaybackStatusEvent.paused;
+  bool get isPlaying => status == PlaybackStatus.playing;
+  bool get isBuffering => status == PlaybackStatus.buffering;
+  bool get isPaused => status == PlaybackStatus.paused;
 
   double get progressRatio {
     if (duration.inMilliseconds == 0) return 0.0;
@@ -67,7 +67,7 @@ final class PlayerActive extends PlayerState {
 
   PlayerActive copyWith({
     Track? currentTrack,
-    PlaybackStatusEvent? status,
+    PlaybackStatus? status,
     Duration? position,
     Duration? buffered,
     Duration? duration,

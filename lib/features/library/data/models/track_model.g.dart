@@ -29,6 +29,7 @@ final TrackModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'durationMs', type: IsarType.long),
       IsarPropertySchema(name: 'trackNumber', type: IsarType.long),
       IsarPropertySchema(name: 'year', type: IsarType.long),
+      IsarPropertySchema(name: 'indexedAt', type: IsarType.dateTime),
       IsarPropertySchema(name: 'artworkPath', type: IsarType.string),
     ],
     indexes: [
@@ -36,6 +37,12 @@ final TrackModelSchema = IsarGeneratedSchema(
         name: 'deviceId',
         properties: ["deviceId"],
         unique: true,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'indexedAt',
+        properties: ["indexedAt"],
+        unique: false,
         hash: false,
       ),
     ],
@@ -59,12 +66,17 @@ int serializeTrackModel(IsarWriter writer, TrackModel object) {
   IsarCore.writeLong(writer, 7, object.durationMs);
   IsarCore.writeLong(writer, 8, object.trackNumber);
   IsarCore.writeLong(writer, 9, object.year);
+  IsarCore.writeLong(
+    writer,
+    10,
+    object.indexedAt.toUtc().microsecondsSinceEpoch,
+  );
   {
     final value = object.artworkPath;
     if (value == null) {
-      IsarCore.writeNull(writer, 10);
+      IsarCore.writeNull(writer, 11);
     } else {
-      IsarCore.writeString(writer, 10, value);
+      IsarCore.writeString(writer, 11, value);
     }
   }
   return object.id;
@@ -83,7 +95,21 @@ TrackModel deserializeTrackModel(IsarReader reader) {
   object.durationMs = IsarCore.readLong(reader, 7);
   object.trackNumber = IsarCore.readLong(reader, 8);
   object.year = IsarCore.readLong(reader, 9);
-  object.artworkPath = IsarCore.readString(reader, 10);
+  {
+    final value = IsarCore.readLong(reader, 10);
+    if (value == -9223372036854775808) {
+      object.indexedAt = DateTime.fromMillisecondsSinceEpoch(
+        0,
+        isUtc: true,
+      ).toLocal();
+    } else {
+      object.indexedAt = DateTime.fromMicrosecondsSinceEpoch(
+        value,
+        isUtc: true,
+      ).toLocal();
+    }
+  }
+  object.artworkPath = IsarCore.readString(reader, 11);
   return object;
 }
 
@@ -111,7 +137,19 @@ dynamic deserializeTrackModelProp(IsarReader reader, int property) {
     case 9:
       return IsarCore.readLong(reader, 9);
     case 10:
-      return IsarCore.readString(reader, 10);
+      {
+        final value = IsarCore.readLong(reader, 10);
+        if (value == -9223372036854775808) {
+          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(
+            value,
+            isUtc: true,
+          ).toLocal();
+        }
+      }
+    case 11:
+      return IsarCore.readString(reader, 11);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -129,6 +167,7 @@ sealed class _TrackModelUpdate {
     int? durationMs,
     int? trackNumber,
     int? year,
+    DateTime? indexedAt,
     String? artworkPath,
   });
 }
@@ -150,6 +189,7 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
     Object? durationMs = ignore,
     Object? trackNumber = ignore,
     Object? year = ignore,
+    Object? indexedAt = ignore,
     Object? artworkPath = ignore,
   }) {
     return collection.updateProperties(
@@ -164,7 +204,8 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
             if (durationMs != ignore) 7: durationMs as int?,
             if (trackNumber != ignore) 8: trackNumber as int?,
             if (year != ignore) 9: year as int?,
-            if (artworkPath != ignore) 10: artworkPath as String?,
+            if (indexedAt != ignore) 10: indexedAt as DateTime?,
+            if (artworkPath != ignore) 11: artworkPath as String?,
           },
         ) >
         0;
@@ -183,6 +224,7 @@ sealed class _TrackModelUpdateAll {
     int? durationMs,
     int? trackNumber,
     int? year,
+    DateTime? indexedAt,
     String? artworkPath,
   });
 }
@@ -204,6 +246,7 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
     Object? durationMs = ignore,
     Object? trackNumber = ignore,
     Object? year = ignore,
+    Object? indexedAt = ignore,
     Object? artworkPath = ignore,
   }) {
     return collection.updateProperties(id, {
@@ -216,7 +259,8 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
       if (durationMs != ignore) 7: durationMs as int?,
       if (trackNumber != ignore) 8: trackNumber as int?,
       if (year != ignore) 9: year as int?,
-      if (artworkPath != ignore) 10: artworkPath as String?,
+      if (indexedAt != ignore) 10: indexedAt as DateTime?,
+      if (artworkPath != ignore) 11: artworkPath as String?,
     });
   }
 }
@@ -238,6 +282,7 @@ sealed class _TrackModelQueryUpdate {
     int? durationMs,
     int? trackNumber,
     int? year,
+    DateTime? indexedAt,
     String? artworkPath,
   });
 }
@@ -259,6 +304,7 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
     Object? durationMs = ignore,
     Object? trackNumber = ignore,
     Object? year = ignore,
+    Object? indexedAt = ignore,
     Object? artworkPath = ignore,
   }) {
     return query.updateProperties(limit: limit, {
@@ -271,7 +317,8 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
       if (durationMs != ignore) 7: durationMs as int?,
       if (trackNumber != ignore) 8: trackNumber as int?,
       if (year != ignore) 9: year as int?,
-      if (artworkPath != ignore) 10: artworkPath as String?,
+      if (indexedAt != ignore) 10: indexedAt as DateTime?,
+      if (artworkPath != ignore) 11: artworkPath as String?,
     });
   }
 }
@@ -300,6 +347,7 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
     Object? durationMs = ignore,
     Object? trackNumber = ignore,
     Object? year = ignore,
+    Object? indexedAt = ignore,
     Object? artworkPath = ignore,
   }) {
     final q = query.build();
@@ -314,7 +362,8 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
         if (durationMs != ignore) 7: durationMs as int?,
         if (trackNumber != ignore) 8: trackNumber as int?,
         if (year != ignore) 9: year as int?,
-        if (artworkPath != ignore) 10: artworkPath as String?,
+        if (indexedAt != ignore) 10: indexedAt as DateTime?,
+        if (artworkPath != ignore) 11: artworkPath as String?,
       });
     } finally {
       q.close();
@@ -1491,17 +1540,75 @@ extension TrackModelQueryFilter
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> indexedAtEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 10, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  indexedAtGreaterThan(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(property: 10, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  indexedAtGreaterThanOrEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(property: 10, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> indexedAtLessThan(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 10, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  indexedAtLessThanOrEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(property: 10, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> indexedAtBetween(
+    DateTime lower,
+    DateTime upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(property: 10, lower: lower, upper: upper),
+      );
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   artworkPathIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 10));
+      return query.addFilterCondition(const IsNullCondition(property: 11));
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   artworkPathIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 10));
+      return query.addFilterCondition(const IsNullCondition(property: 11));
     });
   }
 
@@ -1510,7 +1617,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1523,7 +1630,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1536,7 +1643,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1548,7 +1655,7 @@ extension TrackModelQueryFilter
   artworkPathLessThan(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        LessCondition(property: 10, value: value, caseSensitive: caseSensitive),
+        LessCondition(property: 11, value: value, caseSensitive: caseSensitive),
       );
     });
   }
@@ -1558,7 +1665,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1575,7 +1682,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 10,
+          property: 11,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -1589,7 +1696,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1602,7 +1709,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1615,7 +1722,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 10,
+          property: 11,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1628,7 +1735,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 10,
+          property: 11,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -1640,7 +1747,7 @@ extension TrackModelQueryFilter
   artworkPathIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const EqualCondition(property: 10, value: ''),
+        const EqualCondition(property: 11, value: ''),
       );
     });
   }
@@ -1649,7 +1756,7 @@ extension TrackModelQueryFilter
   artworkPathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const GreaterCondition(property: 10, value: ''),
+        const GreaterCondition(property: 11, value: ''),
       );
     });
   }
@@ -1804,11 +1911,23 @@ extension TrackModelQuerySortBy
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(10);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(10, sort: Sort.desc);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByArtworkPath({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, caseSensitive: caseSensitive);
+      return query.addSortBy(11, caseSensitive: caseSensitive);
     });
   }
 
@@ -1816,7 +1935,7 @@ extension TrackModelQuerySortBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(11, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 }
@@ -1967,11 +2086,23 @@ extension TrackModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(10);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(10, sort: Sort.desc);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByArtworkPath({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, caseSensitive: caseSensitive);
+      return query.addSortBy(11, caseSensitive: caseSensitive);
     });
   }
 
@@ -1979,7 +2110,7 @@ extension TrackModelQuerySortThenBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(11, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 }
@@ -2052,11 +2183,17 @@ extension TrackModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(10);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByArtworkPath({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(10, caseSensitive: caseSensitive);
+      return query.addDistinctBy(11, caseSensitive: caseSensitive);
     });
   }
 }
@@ -2123,9 +2260,15 @@ extension TrackModelQueryProperty1
     });
   }
 
-  QueryBuilder<TrackModel, String?, QAfterProperty> artworkPathProperty() {
+  QueryBuilder<TrackModel, DateTime, QAfterProperty> indexedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
+    });
+  }
+
+  QueryBuilder<TrackModel, String?, QAfterProperty> artworkPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(11);
     });
   }
 }
@@ -2192,9 +2335,15 @@ extension TrackModelQueryProperty2<R>
     });
   }
 
-  QueryBuilder<TrackModel, (R, String?), QAfterProperty> artworkPathProperty() {
+  QueryBuilder<TrackModel, (R, DateTime), QAfterProperty> indexedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty> artworkPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(11);
     });
   }
 }
@@ -2261,10 +2410,17 @@ extension TrackModelQueryProperty3<R1, R2>
     });
   }
 
+  QueryBuilder<TrackModel, (R1, R2, DateTime), QOperations>
+  indexedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(10);
+    });
+  }
+
   QueryBuilder<TrackModel, (R1, R2, String?), QOperations>
   artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
+      return query.addProperty(11);
     });
   }
 }

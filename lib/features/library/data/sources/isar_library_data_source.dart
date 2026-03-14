@@ -168,15 +168,10 @@ class IsarLibraryDataSource {
     return playlist.trackIds.contains(trackId);
   }
 
-  /// Returns up to [limit] most-recently-indexed tracks.
-  ///
-  /// Isar assigns monotonically increasing IDs on insert, so descending ID
-  /// order approximates "recently added."
-  ///
-  /// TODO(perf): add an `indexedAt` timestamp field and sort by it for an
-  /// accurate "recently added" ordering.
+  /// Returns up to [limit] most-recently-indexed tracks, sorted by
+  /// [TrackModel.indexedAt] descending (newest first).
   Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
-      _isar.trackModels.where().findAll(limit: limit);
+      _isar.trackModels.where().sortByIndexedAtDesc().findAll(limit: limit);
 
   // ---------------------------------------------------------------------------
   // Write operations  (wrapped in Isar.write for atomicity)

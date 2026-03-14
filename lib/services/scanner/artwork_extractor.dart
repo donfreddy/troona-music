@@ -27,6 +27,13 @@ final class ArtworkExtractor {
 
   bool _cancelRequested = false;
 
+  /// Tracks extractions currently in progress, keyed by [TrackModel.deviceId].
+  ///
+  /// Prevents duplicate I/O when the same track appears more than once in the
+  /// input list (e.g. during a partial re-scan). A second caller for the same
+  /// key waits on the existing [Future] instead of racing on the cache file.
+  final Map<String, Future<TrackModel>> _inFlight = {};
+
   ArtworkExtractor({required OnAudioQuery query, required Directory cacheDir})
     : _query = query,
       _cacheDir = cacheDir;
@@ -92,29 +99,41 @@ final class ArtworkExtractor {
   // Private helpers
   // ---------------------------------------------------------------------------
 
-  Future<TrackModel> _extractForTrack(TrackModel track) async {
-    // Return immediately if artwork is already cached on disk.
-    final cacheFile = File('${_cacheDir.path}/${track.deviceId}.jpg');
-    if (await cacheFile.exists()) {
-      return track..artworkPath = cacheFile.path;
+  Future<TrackModel> _extractForTrack(TrackModel track) {
+    // If an extraction is already running for this deviceId, reuse its Future
+    // instead of launching a parallel write to the same cache file.
+    return _inFlight.putIfAbsent(track.deviceId, () => _doExtract(track));
+  }
+
+  Future<TrackModel> _doExtract(TrackModel track) async {
+    try {
+      // Return immediately if artwork is already cached on disk.
+      final cacheFile = File('${_cacheDir.path}/${track.deviceId}.jpg');
+      if (await cacheFile.exists()) {
+        return track..artworkPath = cacheFile.path;
+      }
+
+      // Attempt extraction via the platform media store.
+      final bytes = await _query.queryArtwork(
+        int.parse(track.deviceId),
+        ArtworkType.AUDIO,
+        format: ArtworkFormat.JPEG,
+        size: 500,
+        quality: 85,
+      );
+
+      if (bytes != null && bytes.isNotEmpty) {
+        await cacheFile.writeAsBytes(bytes);
+        return track..artworkPath = cacheFile.path;
+      }
+
+      // No artwork available for this track.
+      return track;
+    } finally {
+      // Always evict from the in-flight map so future calls (e.g. after a
+      // failed extraction) can retry cleanly.
+      _inFlight.remove(track.deviceId);
     }
-
-    // Attempt extraction via the platform media store.
-    final bytes = await _query.queryArtwork(
-      int.parse(track.deviceId),
-      ArtworkType.AUDIO,
-      format: ArtworkFormat.JPEG,
-      size: 500,
-      quality: 85,
-    );
-
-    if (bytes != null && bytes.isNotEmpty) {
-      await cacheFile.writeAsBytes(bytes);
-      return track..artworkPath = cacheFile.path;
-    }
-
-    // No artwork available for this track.
-    return track;
   }
 }
 

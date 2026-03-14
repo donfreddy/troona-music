@@ -63,10 +63,16 @@ final class MediaScannerService {
         progress: 0,
         count: scanned.length,
       );
-      if (_cancelRequested) return;
+      if (_cancelRequested) {
+        yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
+        return;
+      }
     }
 
-    if (_cancelRequested) return;
+    if (_cancelRequested) {
+      yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
+      return;
+    }
 
     // ── Phase 2: diff + index ───────────────────────────────────────────────
     yield ScanProgress(
@@ -90,7 +96,10 @@ final class MediaScannerService {
     const batchSize = 100;
     final newTotal = newTracks.length.clamp(1, newTracks.length);
     for (var i = 0; i < newTracks.length; i += batchSize) {
-      if (_cancelRequested) return;
+      if (_cancelRequested) {
+        yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
+        return;
+      }
       final batch = newTracks.skip(i).take(batchSize).toList();
       await _cache.insertTracks(batch);
 
@@ -102,7 +111,10 @@ final class MediaScannerService {
       );
     }
 
-    if (_cancelRequested) return;
+    if (_cancelRequested) {
+      yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
+      return;
+    }
 
     // ── Phase 3: artwork extraction ─────────────────────────────────────────
     yield const ScanProgress(phase: ScanPhase.artworks, progress: 0);
@@ -114,7 +126,10 @@ final class MediaScannerService {
     await for (final updated in _artworkExtractor.extractArtworks(
       tracksWithoutArtwork,
     )) {
-      if (_cancelRequested) return;
+      if (_cancelRequested) {
+        yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
+        return;
+      }
       if (updated.artworkPath != null) {
         await _cache.updateArtworkPath(updated.deviceId, updated.artworkPath!);
       }

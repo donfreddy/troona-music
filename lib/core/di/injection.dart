@@ -84,16 +84,14 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // AudioServicePort must be initialised before any repository or BLoC that
-  // depends on it. The initialiser starts the audio_service background task.
-  // Settings (load once for boot-time configuration)
+  // Load settings once as a local variable — needed by AudioServiceInitializer
+  // before DI is fully wired. SettingsRepository is registered as a lazy
+  // singleton below (after all its own dependencies are ready).
   final settingsRepo = SettingsRepositoryImpl(sharedPrefs);
-  getIt.registerSingleton<SettingsRepository>(settingsRepo);
   final initialSettings = (await settingsRepo.loadSettings()).fold(
     (_) => const AppSettings(),
     (s) => s,
   );
-  getIt.registerFactory<SettingsCubit>(() => SettingsCubit(getIt()));
 
   final audioPort = await AudioServiceInitializer.init(initialSettings);
   getIt.registerSingleton<AudioServicePort>(audioPort);
@@ -171,7 +169,11 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()));
 
   // ── Presentation layer ────────────────────────────────────────────────────
-  getIt.registerFactory<SettingsCubit>(() => SettingsCubit(getIt()));
+  // AudioSessionService is injected so runtime setting changes (call handling,
+  // ducking) are propagated immediately without an app restart.
+  getIt.registerFactory<SettingsCubit>(
+    () => SettingsCubit(getIt(), getIt<AudioSessionService>()),
+  );
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
   // subscriptions to AudioServicePort. A factory would re-subscribe on every

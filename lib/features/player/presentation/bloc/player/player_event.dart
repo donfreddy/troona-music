@@ -95,12 +95,9 @@ final class _DurationUpdated extends PlayerEvent {
 }
 
 final class _StatusChanged extends PlayerEvent {
-  final PlaybackStatusEvent status;
+  final PlaybackStatus status;
   const _StatusChanged(this.status);
 }
-
-/// Séparé du PlaybackStatus domain pour éviter l'import circulaire dans l'event
-enum PlaybackStatusEvent { playing, paused, buffering, stopped }
 
 final class _TrackChanged extends PlayerEvent {
   final Track? track;

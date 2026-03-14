@@ -84,7 +84,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       (dur) => add(_DurationUpdated(dur)),
     );
     _statusSub = audioServicePort.statusStream.listen(
-      (status) => add(_StatusChanged(_mapStatus(status))),
+      (status) => add(_StatusChanged(status)),
       onError: (e) => add(_AudioErrorOccurred(e.toString())),
     );
     _trackSub = audioServicePort.currentTrackStream.listen(
@@ -307,8 +307,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   void _onStatusChanged(_StatusChanged event, Emitter<PlayerState> emit) {
     switch (state) {
       case PlayerLoading(:final track):
-        if (event.status == PlaybackStatusEvent.playing ||
-            event.status == PlaybackStatusEvent.paused) {
+        if (event.status == PlaybackStatus.playing ||
+            event.status == PlaybackStatus.paused) {
           emit(
             PlayerActive(
               currentTrack: track,
@@ -392,12 +392,4 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     return super.close();
   }
 
-  // ── Helpers privés ─────────────────────────────────────────────────────────
-
-  PlaybackStatusEvent _mapStatus(PlaybackStatus status) => switch (status) {
-    PlaybackStatus.playing => PlaybackStatusEvent.playing,
-    PlaybackStatus.paused => PlaybackStatusEvent.paused,
-    PlaybackStatus.buffering => PlaybackStatusEvent.buffering,
-    PlaybackStatus.stopped => PlaybackStatusEvent.stopped,
-  };
 }
