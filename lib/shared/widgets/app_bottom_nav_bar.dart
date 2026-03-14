@@ -215,6 +215,12 @@ class _MiniPlayerRow extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.go(FullPlayerPage.routeName),
+      onVerticalDragEnd: (d) {
+        // Swipe up with sufficient velocity → open full player.
+        if (d.velocity.pixelsPerSecond.dy < -300) {
+          context.go(FullPlayerPage.routeName);
+        }
+      },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         height: 58,

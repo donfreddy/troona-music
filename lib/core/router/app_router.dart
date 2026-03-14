@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -87,11 +86,27 @@ final appRouter = GoRouter(
     ),
 
     // ── FullPlayer: fullscreen modal outside the shell (no bottom bar) ──────
+    //
+    // Uses CustomTransitionPage with a bare fade instead of CupertinoPage's
+    // built-in slide. The drag-to-dismiss gesture in FullPlayerPage drives the
+    // visual translation manually; using a slide here would conflict and
+    // produce a double-animation glitch. A short fade lets the Hero animation
+    // (artwork expanding/contracting) be the primary visual transition —
+    // matching the Apple Music approach.
     GoRoute(
       path: '/player',
-      pageBuilder: (context, state) => CupertinoPage(
+      pageBuilder: (context, state) => CustomTransitionPage(
         fullscreenDialog: true,
-        // Reuse the singleton — BlocProvider.value does not close the bloc.
+        transitionDuration: const Duration(milliseconds: 320),
+        reverseTransitionDuration: const Duration(milliseconds: 280),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              ),
+              child: child,
+            ),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),

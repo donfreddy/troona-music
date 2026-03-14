@@ -14,15 +14,33 @@ import 'package:troona/shared/widgets/dynamic_background.dart';
 class FullPlayerPage extends StatefulWidget {
   const FullPlayerPage({super.key});
 
-  // Navigation via GoRouter — toujours un push depuis MiniPlayer
   static const routeName = '/player';
 
   @override
   State<FullPlayerPage> createState() => _FullPlayerPageState();
 }
 
-class _FullPlayerPageState extends State<FullPlayerPage> {
-  // Quand l'user swipe le carousel manuellement, on joue le track visé
+// ─────────────────────────────────────────────────────────────────────────────
+// Drag-to-dismiss constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Minimum downward velocity (px/s) that triggers an instant dismiss.
+const double _kDismissVelocity = 400;
+
+/// Minimum drag distance (fraction of screen height) that triggers dismiss.
+const double _kDismissThreshold = 0.25;
+
+/// Maximum opacity reduction at the edge of the dismiss threshold.
+const double _kMaxOpacityReduction = 0.35;
+
+class _FullPlayerPageState extends State<FullPlayerPage>
+    with SingleTickerProviderStateMixin {
+  // ── Drag-to-dismiss state ─────────────────────────────────────────────────
+  late final AnimationController _snapBack;
+  late Animation<double> _snapAnim;
+  double _dragOffset = 0;
+
+  // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
     final state = context.read<PlayerBloc>().state;
     if (state is! PlayerActive) return;
@@ -39,112 +57,168 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
   @override
   void initState() {
     super.initState();
-    // Synchronise l'état "Like" dès l'ouverture du player.
+
+    _snapAnim = const AlwaysStoppedAnimation(0);
+    _snapBack = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    )..addListener(() {
+        if (!mounted) return;
+        setState(() => _dragOffset = _snapAnim.value);
+      });
+
     final playerState = context.read<PlayerBloc>().state;
     if (playerState is PlayerActive) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<LikesCubit>().syncTrack(playerState.currentTrack);
+        if (mounted) context.read<LikesCubit>().syncTrack(playerState.currentTrack);
       });
+    }
+  }
+
+  @override
+  void dispose() {
+    _snapBack.dispose();
+    super.dispose();
+  }
+
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+
+  void _onDragUpdate(DragUpdateDetails d) {
+    // Only track downward movement.
+    final next = _dragOffset + d.delta.dy;
+    if (next >= 0) setState(() => _dragOffset = next);
+  }
+
+  void _onDragEnd(DragEndDetails d) {
+    final velocity = d.velocity.pixelsPerSecond.dy;
+    final screenH = MediaQuery.of(context).size.height;
+
+    if (velocity > _kDismissVelocity || _dragOffset > screenH * _kDismissThreshold) {
+      // Reset the manual translate so the Hero widget is back at its natural
+      // screen position before the fade-out route transition starts. Without
+      // this reset, the Hero would fly from the dragged (offset) position
+      // instead of from the centre of the artwork carousel.
+      setState(() => _dragOffset = 0);
+      Navigator.of(context).pop();
+    } else {
+      // Snap back to fully-open position.
+      _snapAnim = Tween<double>(begin: _dragOffset, end: 0).animate(
+        CurvedAnimation(parent: _snapBack, curve: Curves.easeOutCubic),
+      );
+      _snapBack
+        ..reset()
+        ..forward();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
+    final screenH = MediaQuery.of(context).size.height;
 
-    return BlocListener<PlayerBloc, PlayerState>(
-      listenWhen: (prev, curr) =>
-          curr is PlayerActive &&
-          (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
-      listener: (context, state) {
-        if (state is PlayerActive) {
-          context.read<LikesCubit>().syncTrack(state.currentTrack);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: BlocBuilder<PlayerBloc, PlayerState>(
-          builder: (context, state) {
-            // Récupère les données nécessaires au build
-            final track = switch (state) {
-              PlayerActive(:final currentTrack) => currentTrack,
-              PlayerLoading(:final track) => track,
-              _ => null,
-            };
+    // Fade the page out slightly as the user drags down.
+    final opacity = 1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
-            return Stack(
-              children: [
-                // Fond dynamique
-                DynamicBackground(
-                  artworkPath: track?.artworkPath,
-                  child: const SizedBox.expand(),
-                ),
+    return GestureDetector(
+      onVerticalDragUpdate: _onDragUpdate,
+      onVerticalDragEnd: _onDragEnd,
+      child: Transform.translate(
+        offset: Offset(0, _dragOffset),
+        child: Opacity(
+          opacity: opacity,
+          child: BlocListener<PlayerBloc, PlayerState>(
+            listenWhen: (prev, curr) =>
+                curr is PlayerActive &&
+                (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
+            listener: (context, state) {
+              if (state is PlayerActive) {
+                context.read<LikesCubit>().syncTrack(state.currentTrack);
+              }
+            },
+            child: Scaffold(
+              backgroundColor: Colors.black,
+              body: BlocBuilder<PlayerBloc, PlayerState>(
+                builder: (context, state) {
+                  final track = switch (state) {
+                    PlayerActive(:final currentTrack) => currentTrack,
+                    PlayerLoading(:final track) => track,
+                    _ => null,
+                  };
 
-                // Contenu scrollable
-                SafeArea(
-                  bottom: false,
-                  child: Column(
+                  return Stack(
                     children: [
-                      // ── Top bar : dismiss + options ────────────────
-                      _TopBar(),
-
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // ── Titre + artiste + like ─────────────────────
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl2,
-                        ),
-                        child: _TrackInfo(track: track),
+                      // Dynamic background
+                      DynamicBackground(
+                        artworkPath: track?.artworkPath,
+                        child: const SizedBox.expand(),
                       ),
 
-                      const SizedBox(height: AppSpacing.lg),
+                      // Scrollable content
+                      SafeArea(
+                        bottom: false,
+                        child: Column(
+                          children: [
+                            // Top bar: dismiss + drag indicator + options
+                            _TopBar(),
 
-                      // ── Carousel artwork ───────────────────────────
-                      if (state is PlayerActive)
-                        ArtworkCarousel(
-                          queue: state.queue.playbackTracks,
-                          currentIndex: state.queue.currentIndex,
-                          onPageChanged: _onCarouselPageChanged,
-                        )
-                      // ignore: dead_code
-                      else if (track != null)
-                        const SizedBox(height: AppSpacing.xl2),
+                            const SizedBox(height: AppSpacing.lg),
 
-                      // ──  contrôles ───────────────────
-                      const PlayerControls(),
+                            // Track info + like
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.xl2,
+                              ),
+                              child: _TrackInfo(track: track),
+                            ),
 
-                      const SizedBox(height: AppSpacing.xl2),
+                            const SizedBox(height: AppSpacing.lg),
+
+                            // Artwork carousel
+                            if (state is PlayerActive)
+                              ArtworkCarousel(
+                                queue: state.queue.playbackTracks,
+                                currentIndex: state.queue.currentIndex,
+                                onPageChanged: _onCarouselPageChanged,
+                              )
+                            // ignore: dead_code
+                            else if (track != null)
+                              const SizedBox(height: AppSpacing.xl2),
+
+                            // Playback controls
+                            const PlayerControls(),
+
+                            const SizedBox(height: AppSpacing.xl2),
+                          ],
+                        ),
+                      ),
+
+                      // Nav bar at bottom — mini player hidden
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                          child: AppBottomNavBar(
+                            currentTab: AppTab.player,
+                            showMiniPlayer: false,
+                            onTabChanged: (_) => Navigator.of(context).pop(),
+                          ),
+                        ),
+                      ),
                     ],
-                  ),
-                ),
-
-                // NavBar collée au bas — PAS de MiniPlayer
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                    child: AppBottomNavBar(
-                      currentTab: AppTab.player,
-                      showMiniPlayer: false,
-                      onTabChanged: (tab) {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// ── Top bar ───────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
   @override
@@ -157,7 +231,6 @@ class _TopBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Chevron bas — dismiss la page
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => Navigator.of(context).pop(),
@@ -168,7 +241,7 @@ class _TopBar extends StatelessWidget {
             ),
           ),
 
-          // Pill indicateur (identique au design)
+          // Drag indicator pill
           Container(
             width: 40,
             height: 4,
@@ -178,7 +251,6 @@ class _TopBar extends StatelessWidget {
             ),
           ),
 
-          // Menu contextuel
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _showOptionsSheet(context),
@@ -211,7 +283,6 @@ class _TopBar extends StatelessWidget {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: voir l'album
             },
             child: const Text('Voir l\'album'),
           ),
@@ -225,7 +296,7 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ── Track info ────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _TrackInfo extends StatelessWidget {
   final Track? track;
@@ -258,7 +329,6 @@ class _TrackInfo extends StatelessWidget {
             ],
           ),
         ),
-        // Bouton like
         BlocBuilder<LikesCubit, LikesState>(
           builder: (context, state) {
             final isLiked = state.isLiked && state.id == track?.id;
@@ -278,7 +348,7 @@ class _TrackInfo extends StatelessWidget {
   }
 }
 
-// ── Volume slider ─────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ignore: unused_element
 class _VolumeSlider extends StatelessWidget {
@@ -300,7 +370,7 @@ class _VolumeSlider extends StatelessWidget {
               thumbColor: Colors.white,
             ),
             child: Slider(
-              value: 0.7, // TODO: brancher VolumeService
+              value: 0.7,
               onChanged: (_) {},
             ),
           ),
@@ -311,7 +381,7 @@ class _VolumeSlider extends StatelessWidget {
   }
 }
 
-// ── Bottom actions : lyrics · queue · airplay ─────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ignore: unused_element
 class _BottomActions extends StatelessWidget {
@@ -322,7 +392,6 @@ class _BottomActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        // _ActionButton(icon: CupertinoIcons.text_quote, label: 'Paroles', onTap: () => _showLyrics(context)),
         _ActionButton(
           icon: CupertinoIcons.list_bullet,
           label: 'File',
@@ -336,15 +405,6 @@ class _BottomActions extends StatelessWidget {
       ],
     );
   }
-
-  // void _showLyrics(BuildContext context) {
-  //   showModalBottomSheet<void>(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: Colors.transparent,
-  //     builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const LyricsSheet()),
-  //   );
-  // }
 
   void _showQueue(BuildContext context) {
     showModalBottomSheet<void>(
