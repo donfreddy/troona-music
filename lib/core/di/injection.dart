@@ -22,6 +22,7 @@ import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
 import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
+import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
@@ -76,6 +77,12 @@ Future<void> configureDependencies() async {
   // depends on it. The initialiser starts the audio_service background task.
   final audioPort = await AudioServiceInitializer.init();
   getIt.registerSingleton<AudioServicePort>(audioPort);
+
+  // Configure the OS audio session (focus, becoming noisy) before any track
+  // loads to avoid focus races.
+  final audioSessionService = AudioSessionService(audioPort);
+  await audioSessionService.init();
+  getIt.registerSingleton<AudioSessionService>(audioSessionService);
 
   // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(

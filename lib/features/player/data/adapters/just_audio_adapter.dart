@@ -45,7 +45,7 @@ class JustAudioAdapter implements AudioServicePort {
   /// BehaviorSubject for volume; seeded with the player's initial volume.
   final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
-  JustAudioAdapter() : _player = AudioPlayer() {
+  JustAudioAdapter() : _player = AudioPlayer(handleInterruptions: false) {
     _initStreams();
   }
 

@@ -26,6 +26,7 @@ dependencies:
   # --- AUDIO ENGINE ---
   just_audio: ^0.10.4
   audio_service: ^0.18.18
+  audio_session: ^0.2.2
 
   # --- STORAGE & INDEXING ---
   on_audio_query_pluse: ^3.0.6
