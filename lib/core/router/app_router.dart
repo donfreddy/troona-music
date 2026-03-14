@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/app_shell.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
@@ -26,6 +28,18 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final appRouter = GoRouter(
   navigatorKey: _shellNavigatorKey,
   initialLocation: '/home',
+
+  /// Permission guard — fires before every navigation event.
+  ///
+  /// Skips the check when already on `/permission` to prevent an infinite
+  /// redirect loop. All other routes require audio permission; if absent the
+  /// user is sent to the onboarding gate.
+  redirect: (BuildContext context, GoRouterState state) async {
+    if (state.matchedLocation == '/permission') return null;
+    final hasPermission = await AppPermissionHandler.hasAudioPermission();
+    return hasPermission ? null : '/permission';
+  },
+
   routes: [
     // ── Shell: all pages that share the bottom navigation bar ───────────────
     ShellRoute(
@@ -63,6 +77,13 @@ final appRouter = GoRouter(
           builder: (_, _) => const _StubPage(title: 'Now Playing'),
         ),
       ],
+    ),
+
+    // ── Permission gate: shown when audio/storage permission is missing ─────
+    // Outside the shell — no bottom nav, no PlayerBloc overhead.
+    GoRoute(
+      path: '/permission',
+      builder: (_, _) => const PermissionPage(),
     ),
 
     // ── FullPlayer: fullscreen modal outside the shell (no bottom bar) ──────

@@ -12,48 +12,6 @@ Monitoring — pas de crash reporting (Firebase Crashlytics ou Sentry) pour trac
 
 Tests — ajouter des tests unitaires pour les UseCases et des tests d’intégration pour les routes principales.
 
-## Prompt d'Audit
-
-Sujet : Audit Technique & Revue d'Architecture
-
-Agis comme un Expert Software Architect et Auditeur Senior. Je te confie l'analyse de mon projet "Troona", un lecteur de musique offline en Flutter.
-
-Ton objectif : Identifier les dettes techniques, les goulots d'étranglement potentiels pour le scaling, et valider la robustesse de l'architecture.
-
-Merci de structurer ton analyse selon ces 4 axes :
-
-1. Architecture & Patterns (SOLID/Clean) :
-
-Est-ce que la séparation des couches (Data, Domain, Presentation) est respectée ?
-
-Détectes-tu des violations flagrantes des principes SOLID (ex: classes trop larges, dépendances circulaires) ?
-
-L'utilisation de Flutter bloc est-elle optimisée ou crée-t-elle des couplages inutiles ?
-
-2. Performance & Scaling (Offline Data) :
-
-Analyse la gestion de la base de données Isar et du MediaScanner. Est-ce que l'indexation va tenir avec 10 000+ titres ?
-
-Le thread UI est-il protégé contre les tâches lourdes (Parsing, Image decoding) ?
-
-Comment optimiser le rendu du Glassmorphism pour éviter les chutes de FPS sur des devices d'entrée de gamme ?
-
-3. Gestion du State & Audio :
-
-La synchronisation entre le service audio natif (just_audio) et l'UI est-elle réactive et thread-safe ?
-
-La gestion de la file d'attente (Queue Management) permet-elle des fonctionnalités avancées (Shuffle, Repeat, Dynamic insertion) sans bugs d'index ?
-
-4. Suggestions & Roadmap "Senior" :
-
-Cite 3 points forts de l'implémentation actuelle.
-
-Cite 3 points critiques à corriger immédiatement.
-
-Quelles recommandations ferais-tu pour rendre le projet plus attractif pour des contributeurs Open Source ?
-
-Contrainte : Sois direct, technique et sans complaisance. Utilise des exemples précis tirés de mon code pour illustrer tes critiques.
-
 ## Features "Senior Architect" à considérer pour la roadmap
 
 _1._ Expérience Audio & Moteur (Core)
