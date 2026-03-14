@@ -4,10 +4,6 @@ Pagination — GetTracksUseCase retourne tout en mémoire. Avec 10k+ tracks, ça
 
 Isolate pour le scan — déplacer MediaScannerService dans un Isolate pour ne pas bloquer le UI thread sur les gros catalogues.
 
-Feature flag / navigation guard — ajouter un redirect GoRouter pour vérifier les permissions avant /home. Actuellement PermissionHandler est un utilitaire mais rien ne bloque la navigation si la permission est refusée.
-
-Logs structurés — remplacer dart:developer par le package logger avec niveaux (debug/info/warning/error) et possibilité de désactiver en prod.
-
 Monitoring — pas de crash reporting (Firebase Crashlytics ou Sentry) pour tracker les failures en production.
 
 Tests — ajouter des tests unitaires pour les UseCases et des tests d’intégration pour les routes principales.
