@@ -100,7 +100,8 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
       trackId,
       ArtworkType.AUDIO,
       format: ArtworkFormat.JPEG,
-      size: 500, // 500 px is sufficient for display and avoids OOM on low-end devices.
+      size:
+          500, // 500 px is sufficient for display and avoids OOM on low-end devices.
       quality: 85,
     );
   }

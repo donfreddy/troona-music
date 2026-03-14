@@ -22,7 +22,11 @@ abstract final class ErrorHandler {
   /// Unknown errors are mapped to [CacheFailure] with the raw message so they
   /// surface in the UI rather than being swallowed silently.
   static Failure handle(Object error, StackTrace stackTrace) {
-    appLogger.w('[ErrorHandler] ${error.runtimeType}: $error', error: error, stackTrace: stackTrace);
+    appLogger.w(
+      '[ErrorHandler] ${error.runtimeType}: $error',
+      error: error,
+      stackTrace: stackTrace,
+    );
 
     return switch (error) {
       PermissionException() => const PermissionFailure(),

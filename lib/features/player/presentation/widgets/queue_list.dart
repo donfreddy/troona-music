@@ -5,7 +5,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 
 class QueueList extends StatelessWidget {
   const QueueList({super.key});

@@ -5,6 +5,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
+import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
@@ -66,6 +67,46 @@ final class LibraryRepositoryImpl implements LibraryRepository {
     try {
       final results = await _cache.searchTracks(query);
       return right(results.map((t) => t.toEntity()).toList());
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Playlist>> getLikesPlaylist() async {
+    try {
+      final playlist = await _cache.ensureLikes();
+      return right(playlist.toEntity());
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addTrackToLikes(String trackId) async {
+    try {
+      await _cache.addTrackToLikes(trackId);
+      return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeTrackFromLikes(String trackId) async {
+    try {
+      await _cache.removeTrackFromLikes(trackId);
+      return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isTrackInLikes(String trackId) async {
+    try {
+      final liked = await _cache.isTrackInLikes(trackId);
+      return right(liked);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

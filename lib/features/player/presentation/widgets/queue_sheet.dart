@@ -5,7 +5,7 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/queue_list.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 

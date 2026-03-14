@@ -11,7 +11,11 @@ import 'package:troona/features/library/data/sources/local_audio_data_source.dar
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/add_track_to_likes_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/remove_track_from_likes_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/is_track_in_likes_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
@@ -20,7 +24,7 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
@@ -106,11 +110,21 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
-    ..registerLazySingleton<GetArtistsUseCase>(
-      () => GetArtistsUseCase(getIt()),
-    )
+    ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))
     ..registerLazySingleton<SearchTracksUseCase>(
       () => SearchTracksUseCase(getIt()),
+    )
+    ..registerLazySingleton<GetLikesPlaylistUseCase>(
+      () => GetLikesPlaylistUseCase(getIt()),
+    )
+    ..registerLazySingleton<AddTrackToLikesUseCase>(
+      () => AddTrackToLikesUseCase(getIt()),
+    )
+    ..registerLazySingleton<RemoveTrackFromLikesUseCase>(
+      () => RemoveTrackFromLikesUseCase(getIt()),
+    )
+    ..registerLazySingleton<IsTrackInLikesUseCase>(
+      () => IsTrackInLikesUseCase(getIt()),
     )
     ..registerLazySingleton<PlayTrackUseCase>(() => PlayTrackUseCase(getIt()))
     ..registerLazySingleton<PauseUseCase>(() => PauseUseCase(getIt()))
@@ -121,9 +135,7 @@ Future<void> configureDependencies() async {
       () => SkipPreviousUseCase(getIt()),
     )
     ..registerLazySingleton<SetQueueUseCase>(() => SetQueueUseCase(getIt()))
-    ..registerLazySingleton<AddToQueueUseCase>(
-      () => AddToQueueUseCase(getIt()),
-    )
+    ..registerLazySingleton<AddToQueueUseCase>(() => AddToQueueUseCase(getIt()))
     ..registerLazySingleton<RemoveFromQueueUseCase>(
       () => RemoveFromQueueUseCase(getIt()),
     )

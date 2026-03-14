@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
@@ -36,108 +37,108 @@ class _FullPlayerPageState extends State<FullPlayerPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Synchronise l'état "Like" dès l'ouverture du player.
+    final playerState = context.read<PlayerBloc>().state;
+    if (playerState is PlayerActive) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<LikesCubit>().syncTrack(playerState.currentTrack);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: BlocBuilder<PlayerBloc, PlayerState>(
-        builder: (context, state) {
-          // Récupère les données nécessaires au build
-          final track = switch (state) {
-            PlayerActive(:final currentTrack) => currentTrack,
-            PlayerLoading(:final track) => track,
-            _ => null,
-          };
+    return BlocListener<PlayerBloc, PlayerState>(
+      listenWhen: (prev, curr) =>
+          curr is PlayerActive &&
+          (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
+      listener: (context, state) {
+        if (state is PlayerActive) {
+          context.read<LikesCubit>().syncTrack(state.currentTrack);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: BlocBuilder<PlayerBloc, PlayerState>(
+          builder: (context, state) {
+            // Récupère les données nécessaires au build
+            final track = switch (state) {
+              PlayerActive(:final currentTrack) => currentTrack,
+              PlayerLoading(:final track) => track,
+              _ => null,
+            };
 
-          //final artworkPath = track?.artworkPath;
-
-          return Stack(
-            children: [
-              // Fond dynamique
-              DynamicBackground(
-                artworkPath: track?.artworkPath,
-                child: const SizedBox.expand(),
-              ),
-
-              // Contenu scrollable
-              SafeArea(
-                bottom: false,
-                child: Column(
-                  children: [
-                    // ── Top bar : dismiss + options ────────────────
-                    _TopBar(),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // ── Titre + artiste + like ─────────────────────
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xl2,
-                      ),
-                      child: _TrackInfo(track: track),
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // ── Carousel artwork ───────────────────────────
-                    if (state is PlayerActive)
-                      ArtworkCarousel(
-                        queue: state.queue.playbackTracks,
-                        currentIndex: state.queue.currentIndex,
-                        onPageChanged: _onCarouselPageChanged,
-                      )
-                    // ignore: dead_code
-                    else if (track != null)
-                      // // Loading : artwork seul sans carousel
-                      // Padding(
-                      //   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl3),
-                      //   child: Hero(
-                      //     tag: 'artwork_${track.id}',
-                      //     child: AspectRatio(aspectRatio: 1, child: _ArtworkItem(track: track, isActive: true)),
-                      //   ),
-                      // ),
-                      const SizedBox(height: AppSpacing.xl2),
-
-                    // ──  contrôles ───────────────────
-                    const PlayerControls(),
-
-                    const SizedBox(height: AppSpacing.xl2),
-
-                    // // ── Volume slider ──────────────────────────────
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
-                    //   child: const _VolumeSlider(),
-                    // ),
-                    // const Spacer(),
-
-                    // // ── Actions bas : lyrics · queue · airplay ─────
-                    // const _BottomActions(),
-
-                    // const SizedBox(height: AppSpacing.xl2),
-                  ],
+            return Stack(
+              children: [
+                // Fond dynamique
+                DynamicBackground(
+                  artworkPath: track?.artworkPath,
+                  child: const SizedBox.expand(),
                 ),
-              ),
 
-              // NavBar collée au bas — PAS de MiniPlayer
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                  child: AppBottomNavBar(
-                    currentTab: AppTab.player, // artwork tab actif
-                    onTabChanged: (tab) {
-                      Navigator.of(context).pop();
-                      // puis navigate vers le tab
-                    },
+                // Contenu scrollable
+                SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      // ── Top bar : dismiss + options ────────────────
+                      _TopBar(),
+
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // ── Titre + artiste + like ─────────────────────
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl2,
+                        ),
+                        child: _TrackInfo(track: track),
+                      ),
+
+                      const SizedBox(height: AppSpacing.lg),
+
+                      // ── Carousel artwork ───────────────────────────
+                      if (state is PlayerActive)
+                        ArtworkCarousel(
+                          queue: state.queue.playbackTracks,
+                          currentIndex: state.queue.currentIndex,
+                          onPageChanged: _onCarouselPageChanged,
+                        )
+                      // ignore: dead_code
+                      else if (track != null)
+                        const SizedBox(height: AppSpacing.xl2),
+
+                      // ──  contrôles ───────────────────
+                      const PlayerControls(),
+
+                      const SizedBox(height: AppSpacing.xl2),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+
+                // NavBar collée au bas — PAS de MiniPlayer
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                    child: AppBottomNavBar(
+                      currentTab: AppTab.player, // artwork tab actif
+                      onTabChanged: (tab) {
+                        Navigator.of(context).pop();
+                        // puis navigate vers le tab
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -203,9 +204,9 @@ class _TopBar extends StatelessWidget {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: ajouter à une playlist
+              context.read<LikesCubit>().toggle(state.currentTrack);
             },
-            child: const Text('Ajouter à une playlist'),
+            child: const Text('Ajouter à Likes'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
@@ -258,16 +259,19 @@ class _TrackInfo extends StatelessWidget {
           ),
         ),
         // Bouton like
-        CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () {
-            // TODO: FavoriteBloc
+        BlocBuilder<LikesCubit, LikesState>(
+          builder: (context, state) {
+            final isLiked = state.isLiked && state.id == track?.id;
+            return CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => context.read<LikesCubit>().toggle(track),
+              child: Icon(
+                isLiked ? CupertinoIcons.heart_solid : CupertinoIcons.heart,
+                color: isLiked ? Colors.redAccent : Colors.white70,
+                size: 26,
+              ),
+            );
           },
-          child: const Icon(
-            CupertinoIcons.heart,
-            color: Colors.white70,
-            size: 26,
-          ),
         ),
       ],
     );

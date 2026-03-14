@@ -74,34 +74,99 @@ class IsarLibraryDataSource {
       _isar.trackModels.where().findAll();
 
   /// Case-insensitive search across [TrackModel.title] and [TrackModel.artist].
-  Future<List<TrackModel>> searchTracks(String query) async =>
-      _isar.trackModels
-          .where()
-          .titleContains(query, caseSensitive: false)
-          .or()
-          .artistContains(query, caseSensitive: false)
-          .findAll();
+  Future<List<TrackModel>> searchTracks(String query) async => _isar.trackModels
+      .where()
+      .titleContains(query, caseSensitive: false)
+      .or()
+      .artistContains(query, caseSensitive: false)
+      .findAll();
 
   /// Returns tracks that have no artwork cached yet (null or empty path).
-  Future<List<TrackModel>> getTracksWithoutArtwork() async =>
-      _isar.trackModels
-          .where()
-          .artworkPathIsNull()
-          .or()
-          .artworkPathEqualTo('')
-          .findAll();
+  Future<List<TrackModel>> getTracksWithoutArtwork() async => _isar.trackModels
+      .where()
+      .artworkPathIsNull()
+      .or()
+      .artworkPathEqualTo('')
+      .findAll();
 
   /// Returns the artwork path for a single track by [deviceId], or null.
-  Future<String?> getArtworkPathById(String deviceId) async =>
-      _isar.trackModels
-          .where()
-          .deviceIdEqualTo(deviceId)
-          .findFirst()
-          ?.artworkPath;
+  Future<String?> getArtworkPathById(String deviceId) async => _isar.trackModels
+      .where()
+      .deviceIdEqualTo(deviceId)
+      .findFirst()
+      ?.artworkPath;
 
   /// Returns up to [limit] playlists ordered by Isar insertion ID.
   Future<List<PlaylistModel>> getPlaylists({int limit = 10}) async =>
       _isar.playlistModels.where().findAll(limit: limit);
+
+  /// Returns the playlist with [playlistId], or null if it does not exist.
+  Future<PlaylistModel?> getPlaylistById(String playlistId) async =>
+      _isar.playlistModels.where().playlistIdEqualTo(playlistId).findFirst();
+
+  /// Returns the list of tracks by their stable device IDs.
+  Future<List<TrackModel>> getTracksByIds(List<String> ids) async => _isar
+      .trackModels
+      .where()
+      .anyOf(ids, (q, id) => q.deviceIdEqualTo(id))
+      .findAll();
+
+  // ── Likes playlist (Spotify-style) ─────────────────────────────────────────
+
+  static const likesPlaylistId = 'likes';
+  static const likesPlaylistName = 'Likes';
+
+  /// Ensures the Likes playlist exists and returns it.
+  Future<PlaylistModel> ensureLikes() async {
+    final existing = await getPlaylistById(likesPlaylistId);
+    if (existing != null) return existing;
+
+    final playlist = PlaylistModel()
+      ..playlistId = likesPlaylistId
+      ..name = likesPlaylistName
+      ..artworkPath = null
+      ..trackIds = [];
+
+    _isar.write((isar) => isar.playlistModels.put(playlist));
+    return playlist;
+  }
+
+  /// Adds [trackId] to the Likes playlist (idempotent, prepends newest first).
+  Future<void> addTrackToLikes(String trackId) async => _isar.write((isar) {
+    final playlist =
+        isar.playlistModels
+            .where()
+            .playlistIdEqualTo(likesPlaylistId)
+            .findFirst() ??
+        (PlaylistModel()
+          ..playlistId = likesPlaylistId
+          ..name = likesPlaylistName
+          ..artworkPath = null
+          ..trackIds = []);
+
+    if (!playlist.trackIds.contains(trackId)) {
+      playlist.trackIds.insert(0, trackId);
+      isar.playlistModels.put(playlist);
+    }
+  });
+
+  /// Removes [trackId] from Likes; no-op if absent.
+  Future<void> removeTrackFromLikes(String trackId) async =>
+      _isar.write((isar) {
+        final playlist = isar.playlistModels
+            .where()
+            .playlistIdEqualTo(likesPlaylistId)
+            .findFirst();
+        if (playlist == null) return;
+        playlist.trackIds.removeWhere((id) => id == trackId);
+        isar.playlistModels.put(playlist);
+      });
+
+  Future<bool> isTrackInLikes(String trackId) async {
+    final playlist = await getPlaylistById(likesPlaylistId);
+    if (playlist == null) return false;
+    return playlist.trackIds.contains(trackId);
+  }
 
   /// Returns up to [limit] most-recently-indexed tracks.
   ///
@@ -146,8 +211,10 @@ class IsarLibraryDataSource {
   /// phases).
   Future<void> updateArtworkPath(String deviceId, String artworkPath) async =>
       _isar.write((isar) {
-        final track =
-            isar.trackModels.where().deviceIdEqualTo(deviceId).findFirst();
+        final track = isar.trackModels
+            .where()
+            .deviceIdEqualTo(deviceId)
+            .findFirst();
         if (track == null) return;
         track.artworkPath = artworkPath;
         isar.trackModels.put(track);

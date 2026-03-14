@@ -74,8 +74,8 @@ class Queue {
   /// The track currently loaded in the player, or null if the queue is empty.
   Track? get currentTrack =>
       currentIndex >= 0 && currentIndex < playbackTracks.length
-          ? playbackTracks[currentIndex]
-          : null;
+      ? playbackTracks[currentIndex]
+      : null;
 
   /// The next track to play, respecting [repeatMode].
   Track? get nextTrack {

@@ -69,18 +69,20 @@ final class ArtworkExtractor {
 
       // Schedule the extraction without awaiting — results arrive via the
       // controller as each Future resolves.
-      _extractForTrack(track).then((updated) {
-        semaphore.release();
-        if (!controller.isClosed) controller.add(updated);
-        remaining--;
-        if (remaining == 0) controller.close();
-      }).catchError((Object e) {
-        semaphore.release();
-        // Emit the original track unchanged so callers can count progress.
-        if (!controller.isClosed) controller.add(track);
-        remaining--;
-        if (remaining == 0) controller.close();
-      });
+      _extractForTrack(track)
+          .then((updated) {
+            semaphore.release();
+            if (!controller.isClosed) controller.add(updated);
+            remaining--;
+            if (remaining == 0) controller.close();
+          })
+          .catchError((Object e) {
+            semaphore.release();
+            // Emit the original track unchanged so callers can count progress.
+            if (!controller.isClosed) controller.add(track);
+            remaining--;
+            if (remaining == 0) controller.close();
+          });
     }
 
     yield* controller.stream;

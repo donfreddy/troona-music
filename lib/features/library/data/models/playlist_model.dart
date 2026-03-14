@@ -22,7 +22,17 @@ class PlaylistModel {
   /// Optional path to a cached mosaic/cover artwork JPEG.
   String? artworkPath;
 
+  /// Ordered list of track IDs contained in this playlist.
+  ///
+  /// Stored as device IDs (same as [TrackModel.deviceId]) so it remains stable
+  /// across rescans and file path changes.
+  late List<String> trackIds;
+
   /// Converts this model to the immutable domain [Playlist] entity.
-  Playlist toEntity() =>
-      Playlist(id: playlistId, name: name, artworkPath: artworkPath);
+  Playlist toEntity() => Playlist(
+    id: playlistId,
+    name: name,
+    trackIds: trackIds,
+    artworkPath: artworkPath,
+  );
 }

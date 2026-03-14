@@ -10,7 +10,7 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/features/home/presentation/widgets/playlist_card.dart';
 import 'package:troona/features/home/presentation/widgets/shimmer_row.dart';
 import 'package:troona/features/home/presentation/widgets/trending_row.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
 class HomePage extends StatefulWidget {

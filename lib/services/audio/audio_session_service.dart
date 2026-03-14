@@ -40,7 +40,9 @@ final class AudioSessionService {
     });
 
     // Handle audio focus / interruptions (GPS prompts, phone calls, etc.).
-    _interruptionSub = _session.interruptionEventStream.listen(_handleInterruption);
+    _interruptionSub = _session.interruptionEventStream.listen(
+      _handleInterruption,
+    );
   }
 
   Future<void> _handleInterruption(AudioInterruptionEvent event) async {
@@ -53,7 +55,9 @@ final class AudioSessionService {
             _preDuckVolume = _currentVolume;
             _isDucked = true;
             await _audio.setVolume(0.3);
-            appLogger.i('AudioSessionService: duck start → volume 0.3 (was $_preDuckVolume)');
+            appLogger.i(
+              'AudioSessionService: duck start → volume 0.3 (was $_preDuckVolume)',
+            );
           }
           break;
         case AudioInterruptionType.pause:
@@ -68,7 +72,9 @@ final class AudioSessionService {
           if (_isDucked) {
             await _audio.setVolume(_preDuckVolume);
             _isDucked = false;
-            appLogger.i('AudioSessionService: duck end → volume $_preDuckVolume');
+            appLogger.i(
+              'AudioSessionService: duck end → volume $_preDuckVolume',
+            );
           }
           break;
         case AudioInterruptionType.pause:
@@ -76,7 +82,9 @@ final class AudioSessionService {
             await _audio.resume();
             appLogger.i('AudioSessionService: resume after interruption');
           } else {
-            appLogger.i('AudioSessionService: interruption ended, not resuming (shouldResume==false)');
+            appLogger.i(
+              'AudioSessionService: interruption ended, not resuming (shouldResume==false)',
+            );
           }
           break;
         case AudioInterruptionType.unknown:

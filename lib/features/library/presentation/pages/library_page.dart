@@ -15,7 +15,7 @@ import 'package:troona/features/library/presentation/widgets/library_search_bar.
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
 import 'package:troona/features/library/presentation/widgets/track_context_menu.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
 import 'package:troona/shared/widgets/empty_state.dart';

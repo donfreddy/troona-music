@@ -6,7 +6,8 @@ import 'package:troona/app_shell.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
-import 'package:troona/features/player/presentation/bloc/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -61,8 +62,17 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) => CupertinoPage(
         fullscreenDialog: true,
         // Reuse the singleton — BlocProvider.value does not close the bloc.
-        child: BlocProvider<PlayerBloc>.value(
-          value: getIt<PlayerBloc>(),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
+            BlocProvider(
+              create: (_) => LikesCubit(
+                addTrack: getIt(),
+                removeTrack: getIt(),
+                isTrackLiked: getIt(),
+              ),
+            ),
+          ],
           child: const FullPlayerPage(),
         ),
       ),
