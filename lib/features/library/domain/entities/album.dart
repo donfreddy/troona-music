@@ -2,6 +2,7 @@ class Album {
   final String id;
   final String name;
   final String artist;
+  final int artistId;
   final int trackCount;
   final String? artworkPath;
 
@@ -9,6 +10,7 @@ class Album {
     required this.id,
     required this.name,
     required this.artist,
+    required this.artistId,
     required this.trackCount,
     this.artworkPath,
   });
