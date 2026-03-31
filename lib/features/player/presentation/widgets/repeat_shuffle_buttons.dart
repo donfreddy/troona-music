@@ -1,5 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -15,7 +14,7 @@ class ShuffleButton extends StatelessWidget {
         final enabled = _shuffle(state) ?? false;
 
         return _ControlButton(
-          icon: CupertinoIcons.shuffle,
+          icon: Icons.shuffle,
           active: enabled,
           onPressed: () =>
               context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
@@ -49,8 +48,8 @@ class RepeatButton extends StatelessWidget {
               children: [
                 Icon(
                   mode == RepeatMode.one
-                      ? CupertinoIcons.repeat_1
-                      : CupertinoIcons.repeat,
+                      ? Icons.repeat_on_sharp
+                      : Icons.repeat,
                   color: mode == RepeatMode.off
                       ? Colors.white.withValues(alpha: .4)
                       : Colors.white,
