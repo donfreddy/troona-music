@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/app_shell.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/utils/permission_handler.dart';
+import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
@@ -55,7 +56,13 @@ final appRouter = GoRouter(
         child: AppShell(child: child),
       ),
       routes: [
-        GoRoute(path: '/home', builder: (_, _) => const HomePage()),
+        GoRoute(
+          path: '/home',
+          builder: (context, _) => BlocProvider(
+            create: (_) => getIt<HomeBloc>(),
+            child: const HomePage(),
+          ),
+        ),
         GoRoute(
           path: '/settings',
           builder: (context, _) => BlocProvider(

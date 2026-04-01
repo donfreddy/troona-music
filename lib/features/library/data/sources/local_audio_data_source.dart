@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart'
     hide AlbumModel, ArtistModel;
 import 'package:troona/core/error/exceptions.dart';
@@ -53,7 +52,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     final songs = await _query.querySongs(
       sortType: SongSortType.TITLE,
       orderType: OrderType.ASC_OR_SMALLER,
-      uriType: UriType.EXTERNAL,
+      uriType: UriType.INTERNAL,
       ignoreCase: true,
     );
 
@@ -117,7 +116,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   /// - Files with an empty title (likely corrupted).
   /// - Files with an empty path (no accessible storage location).
   bool _isValidTrack(SongModel song) {
-    if ((song.duration ?? 0) < 30000) return false;
+    // if ((song.duration ?? 0) < 30000) return false;
     if (song.title.isEmpty) return false;
     if (song.data.isEmpty) return false;
     return true;

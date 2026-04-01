@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                     itemCount: 8,
                     itemBuilder: (_, _) => const ShimmerRow(),
                   ),
-                  HomeLoaded(:final feed) => _HomeFeedBody(feed: feed),
+                  HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(feed: feed, totalTracks: totalTracks),
                   HomeError(:final message) => SliverFillRemaining(
                     child: ErrorView(
                       message: message,
@@ -139,7 +140,7 @@ class _HomeHeader extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 onPressed: () {},
                 child: const Icon(
-                  CupertinoIcons.bell,
+                  EvaIcons.bellOutline,
                   color: Colors.white70,
                   size: 20,
                 ),
@@ -154,7 +155,9 @@ class _HomeHeader extends StatelessWidget {
 
 class _HomeFeedBody extends StatelessWidget {
   final HomeFeed feed;
-  const _HomeFeedBody({required this.feed});
+  final int totalTracks;
+
+  const _HomeFeedBody({required this.feed, required this.totalTracks});
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +195,7 @@ class _HomeFeedBody extends StatelessWidget {
 
         // ── Section Trending Now ──────────────────────────
         _SectionHeader(
-          title: 'Trending Now',
+          title: 'Trending Now ${feed.trendingTracks.length}',
           onViewAll: () => context.go('/library'),
         ),
 

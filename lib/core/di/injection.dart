@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
+import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
+import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/library/data/repositories/library_repository_impl.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
@@ -143,6 +145,9 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<IsTrackInLikesUseCase>(
       () => IsTrackInLikesUseCase(getIt()),
     )
+    ..registerLazySingleton<GetHomeFeedUseCase>(
+      () => GetHomeFeedUseCase(getIt()),
+    )
     ..registerLazySingleton<PlayTrackUseCase>(() => PlayTrackUseCase(getIt()))
     ..registerLazySingleton<PauseUseCase>(() => PauseUseCase(getIt()))
     ..registerLazySingleton<ResumeUseCase>(() => ResumeUseCase(getIt()))
@@ -198,6 +203,10 @@ Future<void> configureDependencies() async {
       setSpeed: getIt(),
       audioServicePort: getIt(),
     ),
+  );
+
+  getIt.registerFactory<HomeBloc>(
+    () => HomeBloc(repo: getIt()),
   );
 
   // LibraryBloc remains a factory so each ShellRoute mount creates a fresh

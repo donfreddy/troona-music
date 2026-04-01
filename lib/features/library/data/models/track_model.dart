@@ -77,12 +77,14 @@ class TrackModel {
     ..album = s.album.orDefault('Unknown Album')
     ..albumId = s.albumId.orDefault()
     ..genre = s.genre.orDefault('Unknown Genre')
-    ..genreId = s.genreId.orDefault()
+    // ..genreId = s.genreId.orDefault()
+    ..albumId = 0
     ..durationMs = s.duration.orDefault()
     ..fileName = s.displayName
     ..trackNumber = s.track.orDefault()
     ..size = s.size
-    ..year = (s.getMap['year'] as int?).orDefault()
+    // ..year = (s.getMap['year'] as int?).orDefault()
+    ..year = 0
     ..composer = s.composer
     ..dateAdded = (s.getMap['date_added'] as int?).toDateTime()
     ..dateModified = (s.getMap['date_modified'] as int?).toDateTime()

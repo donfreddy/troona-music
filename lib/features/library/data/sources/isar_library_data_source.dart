@@ -73,6 +73,9 @@ class IsarLibraryDataSource {
   Future<List<TrackModel>> getAllTracks() async =>
       _isar.trackModels.where().findAll();
 
+  /// Returns the total number of tracks in the cache.
+  Future<int> countTracks() async => _isar.trackModels.count();
+
   /// Case-insensitive search across [TrackModel.title] and [TrackModel.artist].
   Future<List<TrackModel>> searchTracks(String query) async => _isar.trackModels
       .where()
@@ -181,8 +184,9 @@ class IsarLibraryDataSource {
   ///
   /// Only pass **new** tracks (those absent from [getAllDeviceIds]). The unique
   /// index on [TrackModel.deviceId] will reject duplicates.
-  Future<void> insertTracks(List<TrackModel> tracks) async =>
-      _isar.write((isar) => isar.trackModels.putAll(tracks));
+  Future<void> insertTracks(List<TrackModel> tracks) async {
+    _isar.write((isar) => isar.trackModels.putAll(tracks));
+  }
 
   /// Removes all tracks whose [TrackModel.deviceId] is in [deviceIds].
   ///

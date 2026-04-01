@@ -54,6 +54,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     LibraryScanRequested event,
     Emitter<LibraryState> emit,
   ) async {
+    print('DEBUG: LibraryBloc received LibraryScanRequested');
     // Annule un scan précédent si toujours en cours
     await _cancelScan();
 

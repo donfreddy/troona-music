@@ -34,4 +34,14 @@ final class HomeRepositoryImpl implements HomeRepository {
       return left(ErrorHandler.handle(e, st));
     }
   }
+
+  @override
+  Future<Either<Failure, int>> getTotalTrackCount() async {
+    try {
+      final count = await _db.countTracks();
+      return right(count);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
 }

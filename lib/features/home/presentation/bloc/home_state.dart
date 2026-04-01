@@ -4,7 +4,7 @@ sealed class HomeState extends Equatable {
   const HomeState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class HomeInitial extends HomeState {}
@@ -15,11 +15,12 @@ final class HomeLoading extends HomeState {
 
 final class HomeLoaded extends HomeState {
   final HomeFeed feed;
+  final int totalTracks;
 
-  const HomeLoaded(this.feed);
+  const HomeLoaded(this.feed, {this.totalTracks = 0});
 
   @override
-  List<Object> get props => [feed];
+  List<Object?> get props => [feed, totalTracks];
 }
 
 final class HomeError extends HomeState {
@@ -28,5 +29,5 @@ final class HomeError extends HomeState {
   const HomeError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

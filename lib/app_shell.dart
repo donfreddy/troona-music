@@ -29,10 +29,12 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
+    print('DEBUG: AppShell initState');
     // Dispatch the scan after the first frame so that BlocProvider ancestors
     // are fully wired before context.read is called.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      print('DEBUG: AppShell sending LibraryScanRequested');
       context.read<LibraryBloc>().add(const LibraryScanRequested());
     });
   }
