@@ -32,6 +32,7 @@ class SettingsPage extends StatelessWidget {
 
 class _SettingsView extends StatelessWidget {
   final AppSettings settings;
+
   const _SettingsView({required this.settings});
 
   @override
@@ -41,7 +42,11 @@ class _SettingsView extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar.large(title: Text('Settings')),
+          const SliverAppBar.large(
+            title: Text('Settings'),
+            floating: true,
+            snap: true,
+          ),
           SliverList(
             delegate: SliverChildListDelegate([
               // Appearance

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -214,7 +215,19 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                           child: AppBottomNavBar(
                             currentTab: AppTab.player,
                             showMiniPlayer: false,
-                            onTabChanged: (_) => Navigator.of(context).pop(),
+                            onTabChanged: (tab) {
+                              // or using switch
+                              if(tab == AppTab.home) {
+                                // navigate to search page
+                                context.goNamed('/home');
+                              }  else if(tab == AppTab.queue) {
+                               // navigate to queue page
+                                context.goNamed('/queue');
+                             } else if(tab == AppTab.search) {
+                               // navigate to search page
+                                context.goNamed('/search');
+                             }
+                            },
                           ),
                         ),
                       ),

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:flutter/cupertino.dart' show CupertinoButton;
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
@@ -91,11 +93,11 @@ class _NavBarBody extends StatelessWidget {
   });
 
   static const _tabs = [
-    (AppTab.home, CupertinoIcons.house_fill, 'Home'),
-    (AppTab.queue, CupertinoIcons.list_bullet, 'Queue'),
+    (AppTab.home, EvaIcons.home, 'Home'),
+    (AppTab.queue, EvaIcons.list, 'Queue'),
     (AppTab.player, null, null), // centre artwork slot
-    (AppTab.search, CupertinoIcons.search, 'Search'),
-    (AppTab.visualizer, CupertinoIcons.waveform, 'Now'),
+    (AppTab.search, EvaIcons.search, 'Search'),
+    (AppTab.visualizer, EvaIcons.activity, 'Now'),
   ];
 
   @override
@@ -242,7 +244,7 @@ class _MiniPlayerRow extends StatelessWidget {
                       : ColoredBox(
                           color: colors.glassFill,
                           child: Icon(
-                            CupertinoIcons.music_note,
+                            EvaIcons.music,
                             color: colors.labelTertiary,
                             size: 18,
                           ),
@@ -292,8 +294,8 @@ class _MiniPlayerRow extends StatelessWidget {
               ),
               child: Icon(
                 state.isPlaying
-                    ? CupertinoIcons.pause_fill
-                    : CupertinoIcons.play_fill,
+                    ? EvaIcons.pauseCircle
+                    : EvaIcons.playCircle,
                 color: colors.labelPrimary,
                 size: 20,
               ),
@@ -305,7 +307,7 @@ class _MiniPlayerRow extends StatelessWidget {
               onPressed: () =>
                   context.read<PlayerBloc>().add(const SkipNextRequested()),
               child: Icon(
-                CupertinoIcons.forward_fill,
+                EvaIcons.arrowForward,
                 color: colors.labelPrimary,
                 size: 20,
               ),
@@ -366,7 +368,6 @@ class _CenterArtworkSlot extends StatelessWidget {
 
             // Rotating artwork disc — elevated 12 px above the bar surface.
             Positioned(
-              top: -12,
               child: RotatingArtwork(
                 track: track,
                 isPlaying: isPlaying,

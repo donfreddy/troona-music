@@ -117,9 +117,9 @@ class _HomeHeader extends StatelessWidget {
                   ),
                 ),
                 child: const Icon(
-                  CupertinoIcons.person_fill,
+                  EvaIcons.settingsOutline,
                   color: Colors.white70,
-                  size: 22,
+                  //size: 22,
                 ),
               ),
             ),
@@ -142,7 +142,7 @@ class _HomeHeader extends StatelessWidget {
                 child: const Icon(
                   EvaIcons.bellOutline,
                   color: Colors.white70,
-                  size: 20,
+                  //size: 20,
                 ),
               ),
             ),
