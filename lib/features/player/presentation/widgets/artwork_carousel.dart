@@ -56,37 +56,44 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: context.screenWidth * 0.85,
-      child: OverflowBox(
-        maxWidth: double.infinity,
-        child: PageView.builder(
-          controller: _pageCtrl,
-          itemCount: widget.queue.length,
-          onPageChanged: widget.onPageChanged,
-          itemBuilder: (_, index) {
-            return AnimatedBuilder(
-              animation: _pageCtrl,
-              builder: (_, child) {
-                // Scale : page active = 1.0, adjacentes = 0.82
-                double scale = 0.82;
-                if (_pageCtrl.position.haveDimensions) {
-                  final delta = (_pageCtrl.page! - index).abs();
-                  scale = (1.0 - delta * 0.18).clamp(0.82, 1.0);
-                } else if (index == widget.currentIndex) {
-                  scale = 1.0;
-                }
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: _ArtworkItem(
-                track: widget.queue[index],
-                isActive: index == widget.currentIndex,
-                ringSize: context.screenWidth * 0.62,
-              ),
-            );
-          },
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : context.screenWidth;
+
+        return SizedBox(
+          width: width,
+          height: width * 0.85,
+          child: PageView.builder(
+            controller: _pageCtrl,
+            itemCount: widget.queue.length,
+            onPageChanged: widget.onPageChanged,
+            itemBuilder: (_, index) {
+              return AnimatedBuilder(
+                animation: _pageCtrl,
+                builder: (_, child) {
+                  // Scale : page active = 1.0, adjacentes = 0.82
+                  double scale = 0.82;
+                  if (_pageCtrl.hasClients &&
+                      _pageCtrl.position.haveDimensions) {
+                    final delta = (_pageCtrl.page! - index).abs();
+                    scale = (1.0 - delta * 0.18).clamp(0.82, 1.0);
+                  } else if (index == widget.currentIndex) {
+                    scale = 1.0;
+                  }
+                  return Transform.scale(scale: scale, child: child);
+                },
+                child: _ArtworkItem(
+                  track: widget.queue[index],
+                  isActive: index == widget.currentIndex,
+                  ringSize: width * 0.62,
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

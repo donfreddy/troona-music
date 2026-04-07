@@ -158,6 +158,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                       // Dynamic background
                       DynamicBackground(
                         artworkPath: track?.artworkPath,
+                        tone: DynamicBackgroundTone.immersive,
                         child: const SizedBox.expand(),
                       ),
 

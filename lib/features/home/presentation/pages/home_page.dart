@@ -41,6 +41,7 @@ class _HomePageState extends State<HomePage> {
                 s is PlayerActive ? s.currentTrack.artworkPath : null,
             builder: (_, artworkPath) => DynamicBackground(
               artworkPath: artworkPath,
+              tone: DynamicBackgroundTone.ambient,
               child: const SizedBox.expand(),
             ),
           ),
@@ -61,7 +62,10 @@ class _HomePageState extends State<HomePage> {
                     itemCount: 8,
                     itemBuilder: (_, _) => const ShimmerRow(),
                   ),
-                  HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(feed: feed, totalTracks: totalTracks),
+                  HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(
+                    feed: feed,
+                    totalTracks: totalTracks,
+                  ),
                   HomeError(:final message) => SliverFillRemaining(
                     child: ErrorView(
                       message: message,

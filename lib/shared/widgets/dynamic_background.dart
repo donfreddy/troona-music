@@ -1,39 +1,39 @@
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:palette_generator_master/palette_generator_master.dart';
 
+enum DynamicBackgroundTone { ambient, immersive }
+
 /// Extrait la couleur dominante de l'artwork en cours
-/// et anime un dégradé violet→couleur dominant→noir
-/// identique au design fourni.
+/// et anime un dégradé plus vivant dérivé de la pochette.
 class DynamicBackground extends StatefulWidget {
   final String? artworkPath;
   final Widget child;
+  final DynamicBackgroundTone tone;
 
   const DynamicBackground({
     super.key,
     required this.artworkPath,
     required this.child,
+    this.tone = DynamicBackgroundTone.ambient,
   });
 
   @override
   State<DynamicBackground> createState() => _DynamicBackgroundState();
 }
 
-class _DynamicBackgroundState extends State<DynamicBackground>
-    with SingleTickerProviderStateMixin {
+class _DynamicBackgroundState extends State<DynamicBackground> with SingleTickerProviderStateMixin {
   late AnimationController _ctrl;
-  Color _colorA = const Color(0xFF1A0533); // violet par défaut
-  Color _colorB = const Color(0xFF1A0533);
+  Color _colorA = const Color(0xFF995b8e);
+  Color _colorB = const Color(0xFF653e78);
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 10.seconds)
-      ..repeat(reverse: true);
+    _ctrl = AnimationController(vsync: this, duration: 10.seconds)..repeat(reverse: true);
     _extractColor(widget.artworkPath);
   }
 
@@ -46,7 +46,14 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   }
 
   Future<void> _extractColor(String? path) async {
-    if (path == null) return;
+    if (path == null) {
+      if (!mounted) return;
+      setState(() {
+        _colorA = const Color(0xFF7B4D91);
+        _colorB = const Color(0xFF4A244F);
+      });
+      return;
+    }
     try {
       final palette = await PaletteGeneratorMaster.fromImageProvider(
         FileImage(File(path)),
@@ -60,21 +67,42 @@ class _DynamicBackgroundState extends State<DynamicBackground>
 
       // Prend une deuxième teinte (vibrant si dispo) pour l'animation
       final secondary =
-          palette.vibrantColor?.color ??
-          palette.lightVibrantColor?.color ??
-          palette.mutedColor?.color ??
-          dominant;
+          palette.vibrantColor?.color ?? palette.lightVibrantColor?.color ?? palette.mutedColor?.color ?? dominant;
 
-      // Assombrit pour garder la lisibilité — la base sombre reste en bas.
-      Color darken(Color c, double factor) {
+      Color tune(
+        Color c, {
+        required double minLightness,
+        required double maxLightness,
+        required double saturationBoost,
+      }) {
         final hsl = HSLColor.fromColor(c);
         return hsl
-            .withLightness((hsl.lightness * factor).clamp(0.08, 0.4))
+            .withSaturation((hsl.saturation * saturationBoost).clamp(0.22, 0.9))
+            .withLightness(hsl.lightness.clamp(minLightness, maxLightness))
             .toColor();
       }
 
-      final top1 = darken(dominant, 0.55);
-      final top2 = darken(secondary, 0.65);
+      final immersive = widget.tone == DynamicBackgroundTone.immersive;
+      final top1 = Color.lerp(
+        const Color(0xFF995b8e),
+        tune(
+          dominant,
+          minLightness: immersive ? 0.28 : 0.34,
+          maxLightness: immersive ? 0.5 : 0.58,
+          saturationBoost: immersive ? 0.95 : 1.05,
+        ),
+        0.55,
+      )!;
+      final top2 = Color.lerp(
+        const Color(0xFF653e78),
+        tune(
+          secondary,
+          minLightness: immersive ? 0.16 : 0.2,
+          maxLightness: immersive ? 0.34 : 0.38,
+          saturationBoost: immersive ? 0.9 : 1.0,
+        ),
+        0.45,
+      )!;
 
       if (mounted) {
         setState(() {
@@ -99,38 +127,84 @@ class _DynamicBackgroundState extends State<DynamicBackground>
       animation: _ctrl,
       builder: (_, child) {
         final t = _ctrl.value;
-        final wobble = sin(t * pi); // 0→1→0
-        final mixedTop = Color.lerp(_colorA, _colorB, wobble)!;
-        final angle = lerpDouble(-12.0, 12.0, t)! * pi / 180;
-        final begin = _rotateAlignment(Alignment.topCenter, angle);
-        final end = Alignment.bottomCenter;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            // Dégradé animé : deux teintes en haut, fond noir fixe en bas
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              stops: const [0.0, 0.25, 0.6, 1.0],
-              colors: [
-                mixedTop,
-                _colorA.withValues(alpha: .6),
-                _colorB.withValues(alpha: .35),
-                Colors.black, // le bas reste sombre
-              ],
+        final drift = sin(t * pi * 2);
+        final immersive = widget.tone == DynamicBackgroundTone.immersive;
+        final leftCenter = Alignment(-1.1 + (drift * 0.05), -1.02);
+        final rightCenter = Alignment(1.08 - (drift * 0.04), -0.98);
+        final bridgeCenter = Alignment(0, -1.14 + (drift * 0.03));
+        final leftGlow = Color.lerp(_colorA, Colors.white, 0.08)!;
+        final rightGlow = Color.lerp(_colorB, Colors.white, 0.12)!;
+        final bridgeGlow = Color.lerp(_colorA, _colorB, 0.5)!;
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            const ColoredBox(color: Colors.black),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: leftCenter,
+                  radius: immersive ? 1.18 : 1.3,
+                  stops: const [0.0, 0.36, 0.74, 1.0],
+                  colors: [
+                    leftGlow.withValues(alpha: immersive ? .92 : .82),
+                    _colorA.withValues(alpha: immersive ? .72 : .62),
+                    _colorA.withValues(alpha: immersive ? .18 : .12),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
             ),
-          ),
-          child: child,
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: rightCenter,
+                  radius: immersive ? 1.1 : 1.22,
+                  stops: const [0.0, 0.34, 0.7, 1.0],
+                  colors: [
+                    rightGlow.withValues(alpha: immersive ? .88 : .78),
+                    _colorB.withValues(alpha: immersive ? .68 : .56),
+                    _colorB.withValues(alpha: immersive ? .16 : .1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: bridgeCenter,
+                  radius: immersive ? 0.95 : 1.0,
+                  stops: const [0.0, 0.42, 1.0],
+                  colors: [
+                    bridgeGlow.withValues(alpha: immersive ? .22 : .16),
+                    bridgeGlow.withValues(alpha: immersive ? .08 : .05),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: immersive ? const [0.0, 0.24, 0.52, 0.76, 1.0] : const [0.0, 0.26, 0.56, 0.8, 1.0],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.0),
+                    Colors.black.withValues(alpha: immersive ? 0.08 : 0.04),
+                    Colors.black.withValues(alpha: immersive ? 0.26 : 0.18),
+                    Colors.black.withValues(alpha: immersive ? 0.72 : 0.64),
+                    Colors.black,
+                  ],
+                ),
+              ),
+            ),
+            child!,
+          ],
         );
       },
       child: widget.child,
     );
-  }
-
-  Alignment _rotateAlignment(Alignment base, double angleRad) {
-    final cosA = cos(angleRad);
-    final sinA = sin(angleRad);
-    final x = base.x * cosA - base.y * sinA;
-    final y = base.x * sinA + base.y * cosA;
-    return Alignment(x, y);
   }
 }
