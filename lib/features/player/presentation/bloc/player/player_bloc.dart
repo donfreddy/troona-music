@@ -196,11 +196,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     SkipNextRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    final current = state;
-    if (current is PlayerActive) {
-      final next = current.queue.nextTrack;
-      if (next != null) emit(PlayerLoading(next));
-    }
     await _skipNext();
   }
 

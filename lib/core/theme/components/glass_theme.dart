@@ -318,7 +318,7 @@ abstract final class GlassTheme {
     blurSigma: 12,
     fill: Color(0x24FFFFFF), // 14 %
     border: Color(0x12FFFFFF), // 7 %
-    highlight: Color(0x08FFFFFF), // 3 %
+    highlight: Color.fromARGB(0, 255, 255, 255), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(16)),
     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   );

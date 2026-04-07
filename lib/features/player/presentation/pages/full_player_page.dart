@@ -40,6 +40,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
   late final AnimationController _snapBack;
   late Animation<double> _snapAnim;
   double _dragOffset = 0;
+  Track? _lastResolvedTrack;
 
   // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
@@ -67,10 +68,11 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
       });
 
     final playerState = context.read<PlayerBloc>().state;
-    if (playerState is PlayerActive) {
+    final initialTrack = _resolveTrack(playerState);
+    if (initialTrack != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<LikesCubit>().syncTrack(playerState.currentTrack);
+          context.read<LikesCubit>().syncTrack(initialTrack);
         }
       });
     }
@@ -113,6 +115,20 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
     }
   }
 
+  Track? _resolveTrack(PlayerState state) {
+    switch (state) {
+      case PlayerActive(:final currentTrack):
+        _lastResolvedTrack = currentTrack;
+        return currentTrack;
+      case PlayerLoading(:final track):
+        _lastResolvedTrack = track;
+        return track;
+      case PlayerIdle():
+      case PlayerError():
+        return _lastResolvedTrack;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
@@ -140,11 +156,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
               backgroundColor: Colors.black,
               body: BlocBuilder<PlayerBloc, PlayerState>(
                 builder: (context, state) {
-                  final track = switch (state) {
-                    PlayerActive(:final currentTrack) => currentTrack,
-                    PlayerLoading(:final track) => track,
-                    _ => null,
-                  };
+                  final track = _resolveTrack(state);
 
                   return Stack(
                     children: [

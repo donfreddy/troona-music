@@ -25,35 +25,47 @@ class DynamicBackground extends StatefulWidget {
   State<DynamicBackground> createState() => _DynamicBackgroundState();
 }
 
-class _DynamicBackgroundState extends State<DynamicBackground> with SingleTickerProviderStateMixin {
+class _DynamicBackgroundState extends State<DynamicBackground> with TickerProviderStateMixin {
+  static const _defaultColorA = Color(0xFF7B4D91);
+  static const _defaultColorB = Color(0xFF4A244F);
+
   late AnimationController _ctrl;
-  Color _colorA = const Color(0xFF995b8e);
-  Color _colorB = const Color(0xFF653e78);
+  late AnimationController _paletteCtrl;
+  Color _fromColorA = const Color(0xFF995b8e);
+  Color _fromColorB = const Color(0xFF653e78);
+  Color _toColorA = const Color(0xFF995b8e);
+  Color _toColorB = const Color(0xFF653e78);
+  int _paletteRequestId = 0;
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: 10.seconds)..repeat(reverse: true);
-    _extractColor(widget.artworkPath);
+    _paletteCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 680),
+    )..value = 1;
+    if (widget.artworkPath == null) {
+      _animatePaletteTo(_defaultColorA, _defaultColorB);
+    } else {
+      _extractColor(widget.artworkPath!);
+    }
   }
 
   @override
   void didUpdateWidget(DynamicBackground old) {
     super.didUpdateWidget(old);
     if (old.artworkPath != widget.artworkPath) {
-      _extractColor(widget.artworkPath);
+      if (widget.artworkPath == null) {
+        _paletteRequestId++;
+        return;
+      }
+      _extractColor(widget.artworkPath!);
     }
   }
 
-  Future<void> _extractColor(String? path) async {
-    if (path == null) {
-      if (!mounted) return;
-      setState(() {
-        _colorA = const Color(0xFF7B4D91);
-        _colorB = const Color(0xFF4A244F);
-      });
-      return;
-    }
+  Future<void> _extractColor(String path) async {
+    final requestId = ++_paletteRequestId;
     try {
       final palette = await PaletteGeneratorMaster.fromImageProvider(
         FileImage(File(path)),
@@ -104,37 +116,51 @@ class _DynamicBackgroundState extends State<DynamicBackground> with SingleTicker
         0.45,
       )!;
 
-      if (mounted) {
-        setState(() {
-          _colorA = top1;
-          _colorB = top2;
-        });
-      }
+      if (!mounted || requestId != _paletteRequestId) return;
+      _animatePaletteTo(top1, top2);
     } catch (_) {
       /* fichier inaccessible ou palette vide */
     }
   }
 
+  void _animatePaletteTo(Color nextA, Color nextB) {
+    final currentA = Color.lerp(_fromColorA, _toColorA, _paletteCtrl.value)!;
+    final currentB = Color.lerp(_fromColorB, _toColorB, _paletteCtrl.value)!;
+    setState(() {
+      _fromColorA = currentA;
+      _fromColorB = currentB;
+      _toColorA = nextA;
+      _toColorB = nextB;
+    });
+    _paletteCtrl
+      ..reset()
+      ..forward();
+  }
+
   @override
   void dispose() {
     _ctrl.dispose();
+    _paletteCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _ctrl,
+      animation: Listenable.merge([_ctrl, _paletteCtrl]),
       builder: (_, child) {
         final t = _ctrl.value;
         final drift = sin(t * pi * 2);
         final immersive = widget.tone == DynamicBackgroundTone.immersive;
+        final paletteT = Curves.easeInOutCubic.transform(_paletteCtrl.value);
+        final colorA = Color.lerp(_fromColorA, _toColorA, paletteT)!;
+        final colorB = Color.lerp(_fromColorB, _toColorB, paletteT)!;
         final leftCenter = Alignment(-1.1 + (drift * 0.05), -1.02);
         final rightCenter = Alignment(1.08 - (drift * 0.04), -0.98);
         final bridgeCenter = Alignment(0, -1.14 + (drift * 0.03));
-        final leftGlow = Color.lerp(_colorA, Colors.white, 0.08)!;
-        final rightGlow = Color.lerp(_colorB, Colors.white, 0.12)!;
-        final bridgeGlow = Color.lerp(_colorA, _colorB, 0.5)!;
+        final leftGlow = Color.lerp(colorA, Colors.white, 0.08)!;
+        final rightGlow = Color.lerp(colorB, Colors.white, 0.12)!;
+        final bridgeGlow = Color.lerp(colorA, colorB, 0.5)!;
 
         return Stack(
           fit: StackFit.expand,
@@ -148,8 +174,8 @@ class _DynamicBackgroundState extends State<DynamicBackground> with SingleTicker
                   stops: const [0.0, 0.36, 0.74, 1.0],
                   colors: [
                     leftGlow.withValues(alpha: immersive ? .92 : .82),
-                    _colorA.withValues(alpha: immersive ? .72 : .62),
-                    _colorA.withValues(alpha: immersive ? .18 : .12),
+                    colorA.withValues(alpha: immersive ? .72 : .62),
+                    colorA.withValues(alpha: immersive ? .18 : .12),
                     Colors.transparent,
                   ],
                 ),
@@ -163,8 +189,8 @@ class _DynamicBackgroundState extends State<DynamicBackground> with SingleTicker
                   stops: const [0.0, 0.34, 0.7, 1.0],
                   colors: [
                     rightGlow.withValues(alpha: immersive ? .88 : .78),
-                    _colorB.withValues(alpha: immersive ? .68 : .56),
-                    _colorB.withValues(alpha: immersive ? .16 : .1),
+                    colorB.withValues(alpha: immersive ? .68 : .56),
+                    colorB.withValues(alpha: immersive ? .16 : .1),
                     Colors.transparent,
                   ],
                 ),

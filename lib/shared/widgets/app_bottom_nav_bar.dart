@@ -36,7 +36,7 @@ enum AppTab {
   visualizer,
 }
 
-class AppBottomNavBar extends StatelessWidget {
+class AppBottomNavBar extends StatefulWidget {
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
 
@@ -48,14 +48,22 @@ class AppBottomNavBar extends StatelessWidget {
   const AppBottomNavBar({super.key, required this.currentTab, required this.onTabChanged, this.showMiniPlayer = true});
 
   @override
+  State<AppBottomNavBar> createState() => _AppBottomNavBarState();
+}
+
+class _AppBottomNavBarState extends State<AppBottomNavBar> {
+  PlayerActive? _lastActiveState;
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
       buildWhen: (p, c) => _navKey(p) != _navKey(c),
       builder: (context, playerState) {
+        final resolvedPlayerState = _resolvePlayerState(playerState);
         return _NavBarBody(
-          currentTab: currentTab,
-          onTabChanged: onTabChanged,
-          playerState: (showMiniPlayer && playerState is PlayerActive) ? playerState : null,
+          currentTab: widget.currentTab,
+          onTabChanged: widget.onTabChanged,
+          playerState: widget.showMiniPlayer ? resolvedPlayerState : null,
         );
       },
     );
@@ -63,8 +71,30 @@ class AppBottomNavBar extends StatelessWidget {
 
   (String?, bool) _navKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
+    PlayerLoading(:final track) => (track.id, true),
     _ => (null, false),
   };
+
+  PlayerActive? _resolvePlayerState(PlayerState state) {
+    switch (state) {
+      case PlayerActive():
+        _lastActiveState = state;
+        return state;
+      case PlayerLoading(:final track):
+        final previous = _lastActiveState;
+        if (previous == null) return null;
+        final next = previous.copyWith(
+          currentTrack: track,
+          position: Duration.zero,
+          duration: Duration(milliseconds: track.durationMs),
+        );
+        _lastActiveState = next;
+        return next;
+      case PlayerIdle():
+      case PlayerError():
+        return _lastActiveState;
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -181,13 +211,6 @@ class _MiniPlayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    // final radius = BorderRadius.circular(28);
-    // final progressTint = Color.lerp(
-    //   colors.accent,
-    //   // const Color(0xFFB784FF),
-    //   Colors.black.withValues(alpha: .38),
-    //   0.55,
-    // )!;
 
     return GestureDetector(
       onTap: () => _openFullPlayer(context),
@@ -225,7 +248,7 @@ class _MiniPlayerRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                _MiniPlayerProgressFill(progressTint: Color(0x8CFFFFFF)),
+                _MiniPlayerProgressFill(progressTint: Colors.white70.withValues(alpha: .0001)),
                 Row(
                   children: [
                     const SizedBox(width: 12),

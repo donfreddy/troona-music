@@ -37,8 +37,11 @@ class _HomePageState extends State<HomePage> {
           // ── Fond gradient violet dynamique ─────────────
           // Reprend la couleur dominante du track en cours
           BlocSelector<PlayerBloc, PlayerState, String?>(
-            selector: (s) =>
-                s is PlayerActive ? s.currentTrack.artworkPath : null,
+            selector: (s) => switch (s) {
+              PlayerActive(:final currentTrack) => currentTrack.artworkPath,
+              PlayerLoading(:final track) => track.artworkPath,
+              _ => null,
+            },
             builder: (_, artworkPath) => DynamicBackground(
               artworkPath: artworkPath,
               tone: DynamicBackgroundTone.ambient,
