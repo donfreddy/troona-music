@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,8 +35,7 @@ const double _kDismissThreshold = 0.25;
 /// Maximum opacity reduction at the edge of the dismiss threshold.
 const double _kMaxOpacityReduction = 0.35;
 
-class _FullPlayerPageState extends State<FullPlayerPage>
-    with SingleTickerProviderStateMixin {
+class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProviderStateMixin {
   // ── Drag-to-dismiss state ─────────────────────────────────────────────────
   late final AnimationController _snapBack;
   late Animation<double> _snapAnim;
@@ -60,14 +60,11 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     super.initState();
 
     _snapAnim = const AlwaysStoppedAnimation(0);
-    _snapBack =
-        AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 280),
-        )..addListener(() {
-          if (!mounted) return;
-          setState(() => _dragOffset = _snapAnim.value);
-        });
+    _snapBack = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))
+      ..addListener(() {
+        if (!mounted) return;
+        setState(() => _dragOffset = _snapAnim.value);
+      });
 
     final playerState = context.read<PlayerBloc>().state;
     if (playerState is PlayerActive) {
@@ -97,8 +94,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final velocity = d.velocity.pixelsPerSecond.dy;
     final screenH = MediaQuery.of(context).size.height;
 
-    if (velocity > _kDismissVelocity ||
-        _dragOffset > screenH * _kDismissThreshold) {
+    if (velocity > _kDismissVelocity || _dragOffset > screenH * _kDismissThreshold) {
       // Reset the manual translate so the Hero widget is back at its natural
       // screen position before the fade-out route transition starts. Without
       // this reset, the Hero would fly from the dragged (offset) position
@@ -123,8 +119,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final screenH = MediaQuery.of(context).size.height;
 
     // Fade the page out slightly as the user drags down.
-    final opacity =
-        1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
+    final opacity = 1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
     return GestureDetector(
       onVerticalDragUpdate: _onDragUpdate,
@@ -135,9 +130,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
           opacity: opacity,
           child: BlocListener<PlayerBloc, PlayerState>(
             listenWhen: (prev, curr) =>
-                curr is PlayerActive &&
-                (prev is! PlayerActive ||
-                    prev.currentTrack != curr.currentTrack),
+                curr is PlayerActive && (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
             listener: (context, state) {
               if (state is PlayerActive) {
                 context.read<LikesCubit>().syncTrack(state.currentTrack);
@@ -174,9 +167,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
                             // Track info + like
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xl2,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
                               child: _TrackInfo(track: track),
                             ),
 
@@ -207,12 +198,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                         left: 0,
                         right: 0,
                         child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            12,
-                            0,
-                            12,
-                            safeBottom + 12,
-                          ),
+                          padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
                           child: AppBottomNavBar(
                             currentTab: AppTab.player,
                             showMiniPlayer: false,
@@ -251,41 +237,27 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _dismissFullPlayer(context),
-            child: const Icon(
-              CupertinoIcons.chevron_down,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: const Icon(EvaIcons.chevronDown, color: Colors.white, size: 22),
           ),
 
           // Drag indicator pill
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white30,
-              borderRadius: BorderRadius.circular(2),
-            ),
+            decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
           ),
 
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _showOptionsSheet(context),
-            child: const Icon(
-              CupertinoIcons.ellipsis_vertical,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: const Icon(EvaIcons.moreVertical, color: Colors.white, size: 22),
           ),
         ],
       ),
@@ -314,10 +286,7 @@ class _TopBar extends StatelessWidget {
             child: const Text('Voir l\'album'),
           ),
         ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
-        ),
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
       ),
     );
   }
@@ -358,21 +327,18 @@ class _TrackInfo extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              Text(
-                track?.artist ?? '—',
-                style: const TextStyle(color: Colors.white60, fontSize: 16),
-              ),
+              Text(track?.artist ?? '—', style: const TextStyle(color: Colors.white60, fontSize: 16)),
             ],
           ),
         ),
         BlocBuilder<LikesCubit, LikesState>(
           builder: (context, state) {
             final isLiked = state.isLiked && state.id == track?.id;
-            return CupertinoButton(
+            return IconButton(
               padding: EdgeInsets.zero,
               onPressed: () => context.read<LikesCubit>().toggle(track),
-              child: Icon(
-                isLiked ? CupertinoIcons.heart_solid : CupertinoIcons.heart,
+              icon: Icon(
+                isLiked ? EvaIcons.heartOutline : EvaIcons.heart,
                 color: isLiked ? Colors.redAccent : Colors.white70,
                 size: 26,
               ),
@@ -425,16 +391,8 @@ class _BottomActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _ActionButton(
-          icon: CupertinoIcons.list_bullet,
-          label: 'File',
-          onTap: () => _showQueue(context),
-        ),
-        _ActionButton(
-          icon: CupertinoIcons.play,
-          label: 'AirPlay',
-          onTap: () {},
-        ),
+        _ActionButton(icon: CupertinoIcons.list_bullet, label: 'File', onTap: () => _showQueue(context)),
+        _ActionButton(icon: CupertinoIcons.play, label: 'AirPlay', onTap: () {}),
       ],
     );
   }
@@ -444,10 +402,7 @@ class _BottomActions extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<PlayerBloc>(),
-        child: const QueueSheet(),
-      ),
+      builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const QueueSheet()),
     );
   }
 }
@@ -456,11 +411,7 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _ActionButton({required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -472,10 +423,7 @@ class _ActionButton extends StatelessWidget {
         children: [
           Icon(icon, color: Colors.white60, size: 22),
           const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white60, fontSize: 11),
-          ),
+          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
         ],
       ),
     );

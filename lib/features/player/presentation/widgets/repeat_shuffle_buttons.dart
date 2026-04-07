@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
@@ -14,7 +15,7 @@ class ShuffleButton extends StatelessWidget {
         final enabled = _shuffle(state) ?? false;
 
         return _ControlButton(
-          icon: Icons.shuffle,
+          icon:  EvaIcons.shuffle2,
           active: enabled,
           onPressed: () =>
               context.read<PlayerBloc>().add(const ShuffleToggleRequested()),

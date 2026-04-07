@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,8 +65,8 @@ class _PlayPauseButton extends StatelessWidget {
                   )
                 : Icon(
                     isPlaying
-                        ? CupertinoIcons.pause_fill
-                        : CupertinoIcons.play_fill,
+                        ? EvaIcons.pauseCircleOutline
+                        : EvaIcons.playCircleOutline,
                     color: Colors.black,
                     size: 30,
                   ),
@@ -100,7 +101,7 @@ class _SkipPreviousButton extends StatelessWidget {
             width: 52,
             height: 52,
             child: Icon(
-              CupertinoIcons.backward_fill,
+              EvaIcons.skipBackOutline,
               color: enabled
                   ? Colors.white
                   : Colors.white.withValues(alpha: .3),
@@ -135,7 +136,7 @@ class _SkipNextButton extends StatelessWidget {
             width: 52,
             height: 52,
             child: Icon(
-              CupertinoIcons.forward_fill,
+               EvaIcons.skipForwardOutline,
               color: enabled
                   ? Colors.white
                   : Colors.white.withValues(alpha: .3),
