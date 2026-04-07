@@ -6,10 +6,12 @@ import 'package:flutter/cupertino.dart' show CupertinoButton;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
@@ -377,6 +379,7 @@ void _openFullPlayer(BuildContext context) {
   if (GoRouterState.of(context).matchedLocation == FullPlayerPage.routeName) {
     return;
   }
+  getIt<PlaybackSessionStore>().setFullPlayerOpen(true);
   context.push(FullPlayerPage.routeName);
 }
 

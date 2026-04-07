@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/theme/components/glass_theme.dart' as glass;
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
@@ -11,12 +12,13 @@ part 'settings_state.dart';
 @injectable
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repo;
+  final PlaybackSessionStore? _playbackSessionStore;
 
   /// Optional — propagates runtime setting changes to the audio session
   /// (call ducking, headphone unplug behaviour, etc.) without an app restart.
   final AudioSessionService? _audioSession;
 
-  SettingsCubit(this._repo, [this._audioSession])
+  SettingsCubit(this._repo, [this._audioSession, this._playbackSessionStore])
     : super(const SettingsState.loading());
 
   // Init
@@ -102,5 +104,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> resetToDefaults() async {
     await _repo.resetSettings();
     await load();
+  }
+
+  Future<void> clearPlaybackSession() async {
+    await _playbackSessionStore?.clear();
   }
 }

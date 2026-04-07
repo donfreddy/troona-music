@@ -20,31 +20,44 @@ final class LikesCubit extends Cubit<LikesState> {
   final AddTrackToLikesUseCase _addTrack;
   final RemoveTrackFromLikesUseCase _removeTrack;
   final IsTrackInLikesUseCase _isTrackLiked;
+  final Map<String, bool> _knownLikes = {};
+  int _syncRequestId = 0;
 
   Future<void> syncTrack(Track? track) async {
     if (track == null) {
       emit(const LikesState(id: null, isLiked: false));
       return;
     }
+    final immediateLiked =
+        _knownLikes[track.id] ?? (state.id == track.id ? state.isLiked : false);
+    emit(LikesState(id: track.id, isLiked: immediateLiked));
+
+    final requestId = ++_syncRequestId;
     final result = await _isTrackLiked(track.id);
-    emit(
-      result.fold(
-        (_) => LikesState(id: track.id, isLiked: false),
-        (liked) => LikesState(id: track.id, isLiked: liked),
-      ),
-    );
+    if (requestId != _syncRequestId) return;
+
+    final nextLiked = result.fold((_) => immediateLiked, (liked) => liked);
+    _knownLikes[track.id] = nextLiked;
+    emit(LikesState(id: track.id, isLiked: nextLiked));
   }
 
   Future<void> toggle(Track? track) async {
     if (track == null) return;
 
-    final isLikedNow = state.isLiked;
-    if (isLikedNow) {
-      await _removeTrack(track.id);
-      emit(LikesState(id: track.id, isLiked: false));
-    } else {
-      await _addTrack(track.id);
-      emit(LikesState(id: track.id, isLiked: true));
+    final previousLiked =
+        _knownLikes[track.id] ?? (state.id == track.id ? state.isLiked : false);
+    final nextLiked = !previousLiked;
+
+    _knownLikes[track.id] = nextLiked;
+    emit(LikesState(id: track.id, isLiked: nextLiked));
+
+    final result = nextLiked
+        ? await _addTrack(track.id)
+        : await _removeTrack(track.id);
+
+    if (result.isLeft()) {
+      _knownLikes[track.id] = previousLiked;
+      emit(LikesState(id: track.id, isLiked: previousLiked));
     }
   }
 }

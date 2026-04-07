@@ -2,11 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
@@ -32,6 +35,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   bool _didRequestPlaybackRestore = false;
+  bool _didRestoreFullPlayerRoute = false;
 
   @override
   void initState() {
@@ -67,60 +71,79 @@ class _AppShellState extends State<AppShell> {
     final safeBottom = mediaQuery.padding.bottom;
     final safeTop = mediaQuery.padding.top;
 
-    return BlocConsumer<LibraryBloc, LibraryState>(
-      listenWhen: (previous, current) =>
-          !_didRequestPlaybackRestore && _canRestorePlayback(current),
-      listener: (context, state) {
-        _didRequestPlaybackRestore = true;
-        context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
-      },
-      builder: (context, libraryState) {
-        if (_shouldShowBootstrap(libraryState)) {
-          return _LibraryBootstrapScreen(
-            state: libraryState,
-            onRetry: () =>
-                context.read<LibraryBloc>().add(const LibraryScanRequested()),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<LibraryBloc, LibraryState>(
+          listenWhen: (previous, current) =>
+              !_didRequestPlaybackRestore && _canRestorePlayback(current),
+          listener: (context, state) {
+            _didRequestPlaybackRestore = true;
+            context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
+          },
+        ),
+        BlocListener<PlayerBloc, PlayerState>(
+          listenWhen: (previous, current) =>
+              !_didRestoreFullPlayerRoute &&
+              getIt<PlaybackSessionStore>().wasFullPlayerOpen &&
+              (current is PlayerLoading || current is PlayerActive),
+          listener: (context, state) {
+            _didRestoreFullPlayerRoute = true;
+            if (GoRouterState.of(context).matchedLocation !=
+                FullPlayerPage.routeName) {
+              context.push(FullPlayerPage.routeName);
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<LibraryBloc, LibraryState>(
+        builder: (context, libraryState) {
+          if (_shouldShowBootstrap(libraryState)) {
+            return _LibraryBootstrapScreen(
+              state: libraryState,
+              onRetry: () =>
+                  context.read<LibraryBloc>().add(const LibraryScanRequested()),
+            );
+          }
+
+          final currentTab = _tabForLocation(
+            GoRouterState.of(context).matchedLocation,
           );
-        }
 
-        final currentTab = _tabForLocation(
-          GoRouterState.of(context).matchedLocation,
-        );
+          return Scaffold(
+            backgroundColor: Colors.black,
+            body: Stack(
+              children: [
+                // ── Active page ───────────────────────────────────────────────
+                Positioned.fill(child: widget.child),
 
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: Stack(
-            children: [
-              // ── Active page ───────────────────────────────────────────────
-              Positioned.fill(child: widget.child),
+                if (libraryState case LibraryScanning(
+                  :final cached,
+                ) when cached != null)
+                  Positioned(
+                    top: safeTop + 12,
+                    left: 12,
+                    right: 12,
+                    child: _LibraryRescanBanner(state: libraryState),
+                  ),
 
-              if (libraryState case LibraryScanning(
-                :final cached,
-              ) when cached != null)
+                // ── Unified bottom bar (mini player + nav tabs) ─────────────
                 Positioned(
-                  top: safeTop + 12,
-                  left: 12,
-                  right: 12,
-                  child: _LibraryRescanBanner(state: libraryState),
-                ),
-
-              // ── Unified bottom bar (mini player + nav tabs) ─────────────
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                  child: AppBottomNavBar(
-                    currentTab: currentTab,
-                    onTabChanged: _onTabChanged,
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                    child: AppBottomNavBar(
+                      currentTab: currentTab,
+                      onTabChanged: _onTabChanged,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 

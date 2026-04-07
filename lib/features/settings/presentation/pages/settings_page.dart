@@ -160,6 +160,42 @@ class _SettingsView extends StatelessWidget {
               // Reset
               SectionHeader('Reset'),
               ListTile(
+                leading: const Icon(Icons.music_off_outlined),
+                title: const Text('Clear playback session'),
+                subtitle: const Text(
+                  'Forget the current track, queue, and saved position.',
+                ),
+                onTap: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Clear playback session?'),
+                      content: const Text(
+                        'The app will forget the last restored track, queue, and playback position.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('Clear'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm != true || !context.mounted) return;
+                  await cubit.clearPlaybackSession();
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Playback session cleared'),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.restore),
                 title: const Text('Reset to defaults'),
                 onTap: () async {

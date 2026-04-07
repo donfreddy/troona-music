@@ -87,6 +87,7 @@ final class PlaybackSessionSnapshot {
 
 final class PlaybackSessionStore {
   static const _sessionKey = 'playback_session_v1';
+  static const _fullPlayerOpenKey = 'playback_full_player_open_v1';
 
   final SharedPreferences _prefs;
 
@@ -109,5 +110,15 @@ final class PlaybackSessionStore {
     }
   }
 
-  Future<void> clear() => _prefs.remove(_sessionKey);
+  bool get wasFullPlayerOpen => _prefs.getBool(_fullPlayerOpenKey) ?? false;
+
+  Future<void> setFullPlayerOpen(bool value) =>
+      _prefs.setBool(_fullPlayerOpenKey, value);
+
+  Future<void> clear() async {
+    await Future.wait([
+      _prefs.remove(_sessionKey),
+      _prefs.remove(_fullPlayerOpenKey),
+    ]);
+  }
 }

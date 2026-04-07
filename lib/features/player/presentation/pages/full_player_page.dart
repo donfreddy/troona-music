@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
@@ -137,103 +139,122 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
     // Fade the page out slightly as the user drags down.
     final opacity = 1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
-    return GestureDetector(
-      onVerticalDragUpdate: _onDragUpdate,
-      onVerticalDragEnd: _onDragEnd,
-      child: Transform.translate(
-        offset: Offset(0, _dragOffset),
-        child: Opacity(
-          opacity: opacity,
-          child: BlocListener<PlayerBloc, PlayerState>(
-            listenWhen: (prev, curr) =>
-                curr is PlayerActive && (prev is! PlayerActive || prev.currentTrack != curr.currentTrack),
-            listener: (context, state) {
-              if (state is PlayerActive) {
-                context.read<LikesCubit>().syncTrack(state.currentTrack);
-              }
-            },
-            child: Scaffold(
-              backgroundColor: Colors.black,
-              body: BlocBuilder<PlayerBloc, PlayerState>(
-                builder: (context, state) {
-                  final track = _resolveTrack(state);
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          getIt<PlaybackSessionStore>().setFullPlayerOpen(false);
+        }
+      },
+      child: GestureDetector(
+        onVerticalDragUpdate: _onDragUpdate,
+        onVerticalDragEnd: _onDragEnd,
+        child: Transform.translate(
+          offset: Offset(0, _dragOffset),
+          child: Opacity(
+            opacity: opacity,
+            child: BlocListener<PlayerBloc, PlayerState>(
+              listenWhen: (prev, curr) =>
+                  curr is PlayerActive &&
+                  (prev is! PlayerActive ||
+                      prev.currentTrack != curr.currentTrack),
+              listener: (context, state) {
+                if (state is PlayerActive) {
+                  context.read<LikesCubit>().syncTrack(state.currentTrack);
+                }
+              },
+              child: Scaffold(
+                backgroundColor: Colors.black,
+                body: BlocBuilder<PlayerBloc, PlayerState>(
+                  builder: (context, state) {
+                    final track = _resolveTrack(state);
 
-                  return Stack(
-                    children: [
-                      // Dynamic background
-                      DynamicBackground(
-                        artworkPath: track?.artworkPath,
-                        tone: DynamicBackgroundTone.immersive,
-                        child: const SizedBox.expand(),
-                      ),
-
-                      // Scrollable content
-                      SafeArea(
-                        bottom: false,
-                        child: Column(
-                          children: [
-                            // Top bar: dismiss + drag indicator + options
-                            _TopBar(),
-
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // Track info + like
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl2),
-                              child: _TrackInfo(track: track),
-                            ),
-
-                            const SizedBox(height: AppSpacing.lg),
-
-                            // Artwork carousel
-                            if (state is PlayerActive)
-                              ArtworkCarousel(
-                                queue: state.queue.playbackTracks,
-                                currentIndex: state.queue.currentIndex,
-                                onPageChanged: _onCarouselPageChanged,
-                              )
-                            // ignore: dead_code
-                            else if (track != null)
-                              const SizedBox(height: AppSpacing.xl2),
-
-                            // Playback controls
-                            const PlayerControls(),
-
-                            const SizedBox(height: AppSpacing.xl2),
-                          ],
+                    return Stack(
+                      children: [
+                        // Dynamic background
+                        DynamicBackground(
+                          artworkPath: track?.artworkPath,
+                          tone: DynamicBackgroundTone.immersive,
+                          child: const SizedBox.expand(),
                         ),
-                      ),
 
-                      // Nav bar at bottom — mini player hidden
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                          child: AppBottomNavBar(
-                            currentTab: AppTab.player,
-                            showMiniPlayer: false,
-                            onTabChanged: (tab) {
-                              switch (tab) {
-                                case AppTab.home:
-                                  context.go('/home');
-                                case AppTab.queue:
-                                  context.go('/queue');
-                                case AppTab.search:
-                                  context.go('/search');
-                                case AppTab.visualizer:
-                                  context.go('/visualizer');
-                                case AppTab.player:
-                                  break;
-                              }
-                            },
+                        // Scrollable content
+                        SafeArea(
+                          bottom: false,
+                          child: Column(
+                            children: [
+                              // Top bar: dismiss + drag indicator + options
+                              _TopBar(),
+
+                              const SizedBox(height: AppSpacing.lg),
+
+                              // Track info + like
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xl2,
+                                ),
+                                child: _TrackInfo(track: track),
+                              ),
+
+                              const SizedBox(height: AppSpacing.lg),
+
+                              // Artwork carousel
+                              if (state is PlayerActive)
+                                ArtworkCarousel(
+                                  queue: state.queue.playbackTracks,
+                                  currentIndex: state.queue.currentIndex,
+                                  onPageChanged: _onCarouselPageChanged,
+                                )
+                              else if (track != null)
+                                const SizedBox(height: AppSpacing.xl2),
+
+                              // Playback controls
+                              const PlayerControls(),
+
+                              const SizedBox(height: AppSpacing.xl2),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                },
+
+                        // Nav bar at bottom — mini player hidden
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              12,
+                              0,
+                              12,
+                              safeBottom + 12,
+                            ),
+                            child: AppBottomNavBar(
+                              currentTab: AppTab.player,
+                              showMiniPlayer: false,
+                              onTabChanged: (tab) {
+                                switch (tab) {
+                                  case AppTab.home:
+                                    _leaveFullPlayerTo(context, '/home');
+                                  case AppTab.queue:
+                                    _leaveFullPlayerTo(context, '/queue');
+                                  case AppTab.search:
+                                    _leaveFullPlayerTo(context, '/search');
+                                  case AppTab.visualizer:
+                                    _leaveFullPlayerTo(
+                                      context,
+                                      '/visualizer',
+                                    );
+                                  case AppTab.player:
+                                    break;
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -306,11 +327,17 @@ class _TopBar extends StatelessWidget {
 
 void _dismissFullPlayer(BuildContext context) {
   final router = GoRouter.of(context);
+  getIt<PlaybackSessionStore>().setFullPlayerOpen(false);
   if (router.canPop()) {
     context.pop();
     return;
   }
   context.go('/home');
+}
+
+void _leaveFullPlayerTo(BuildContext context, String location) {
+  getIt<PlaybackSessionStore>().setFullPlayerOpen(false);
+  context.go(location);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

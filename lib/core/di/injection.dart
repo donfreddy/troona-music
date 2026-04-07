@@ -181,7 +181,7 @@ Future<void> configureDependencies() async {
   // AudioSessionService is injected so runtime setting changes (call handling,
   // ducking) are propagated immediately without an app restart.
   getIt.registerFactory<SettingsCubit>(
-    () => SettingsCubit(getIt(), getIt<AudioSessionService>()),
+    () => SettingsCubit(getIt(), getIt<AudioSessionService>(), getIt()),
   );
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
