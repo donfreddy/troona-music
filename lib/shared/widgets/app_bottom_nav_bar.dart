@@ -152,7 +152,7 @@ class _NavBarBody extends StatelessWidget {
                         child: _CenterArtworkSlot(
                           track: playerState?.currentTrack,
                           isPlaying: playerState?.isPlaying ?? false,
-                          onTap: () => context.go(FullPlayerPage.routeName),
+                          onTap: () => _openFullPlayer(context),
                         ),
                       );
                     }
@@ -216,11 +216,11 @@ class _MiniPlayerRow extends StatelessWidget {
     final colors = context.colors;
 
     return GestureDetector(
-      onTap: () => context.go(FullPlayerPage.routeName),
+      onTap: () => _openFullPlayer(context),
       onVerticalDragEnd: (d) {
         // Swipe up with sufficient velocity → open full player.
         if (d.velocity.pixelsPerSecond.dy < -300) {
-          context.go(FullPlayerPage.routeName);
+          _openFullPlayer(context);
         }
       },
       behavior: HitTestBehavior.opaque,
@@ -293,9 +293,7 @@ class _MiniPlayerRow extends StatelessWidget {
                     : const ResumeRequested(),
               ),
               child: Icon(
-                state.isPlaying
-                    ? EvaIcons.pauseCircle
-                    : EvaIcons.playCircle,
+                state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
                 color: colors.labelPrimary,
                 size: 20,
               ),
@@ -317,6 +315,13 @@ class _MiniPlayerRow extends StatelessWidget {
       ),
     );
   }
+}
+
+void _openFullPlayer(BuildContext context) {
+  if (GoRouterState.of(context).matchedLocation == FullPlayerPage.routeName) {
+    return;
+  }
+  context.push(FullPlayerPage.routeName);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

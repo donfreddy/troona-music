@@ -104,7 +104,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
       // this reset, the Hero would fly from the dragged (offset) position
       // instead of from the centre of the artwork carousel.
       setState(() => _dragOffset = 0);
-      Navigator.of(context).pop();
+      _dismissFullPlayer(context);
     } else {
       // Snap back to fully-open position.
       _snapAnim = Tween<double>(
@@ -216,17 +216,18 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                             currentTab: AppTab.player,
                             showMiniPlayer: false,
                             onTabChanged: (tab) {
-                              // or using switch
-                              if(tab == AppTab.home) {
-                                // navigate to search page
-                                context.goNamed('/home');
-                              }  else if(tab == AppTab.queue) {
-                               // navigate to queue page
-                                context.goNamed('/queue');
-                             } else if(tab == AppTab.search) {
-                               // navigate to search page
-                                context.goNamed('/search');
-                             }
+                              switch (tab) {
+                                case AppTab.home:
+                                  context.go('/home');
+                                case AppTab.queue:
+                                  context.go('/queue');
+                                case AppTab.search:
+                                  context.go('/search');
+                                case AppTab.visualizer:
+                                  context.go('/visualizer');
+                                case AppTab.player:
+                                  break;
+                              }
                             },
                           ),
                         ),
@@ -258,7 +259,7 @@ class _TopBar extends StatelessWidget {
         children: [
           CupertinoButton(
             padding: EdgeInsets.zero,
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => _dismissFullPlayer(context),
             child: const Icon(
               CupertinoIcons.chevron_down,
               color: Colors.white,
@@ -319,6 +320,15 @@ class _TopBar extends StatelessWidget {
       ),
     );
   }
+}
+
+void _dismissFullPlayer(BuildContext context) {
+  final router = GoRouter.of(context);
+  if (router.canPop()) {
+    context.pop();
+    return;
+  }
+  context.go('/home');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

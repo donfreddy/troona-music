@@ -24,23 +24,18 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  AppTab _currentTab = AppTab.home;
-
   @override
   void initState() {
     super.initState();
-    print('DEBUG: AppShell initState');
     // Dispatch the scan after the first frame so that BlocProvider ancestors
     // are fully wired before context.read is called.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      print('DEBUG: AppShell sending LibraryScanRequested');
       context.read<LibraryBloc>().add(const LibraryScanRequested());
     });
   }
 
   void _onTabChanged(AppTab tab) {
-    setState(() => _currentTab = tab);
     switch (tab) {
       case AppTab.home:
         context.go('/home');
@@ -58,6 +53,9 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
+    final currentTab = _tabForLocation(
+      GoRouterState.of(context).matchedLocation,
+    );
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -74,7 +72,7 @@ class _AppShellState extends State<AppShell> {
             child: Padding(
               padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
               child: AppBottomNavBar(
-                currentTab: _currentTab,
+                currentTab: currentTab,
                 onTabChanged: _onTabChanged,
               ),
             ),
@@ -82,5 +80,12 @@ class _AppShellState extends State<AppShell> {
         ],
       ),
     );
+  }
+
+  AppTab _tabForLocation(String location) {
+    if (location == '/queue') return AppTab.queue;
+    if (location == '/search') return AppTab.search;
+    if (location == '/visualizer') return AppTab.visualizer;
+    return AppTab.home;
   }
 }
