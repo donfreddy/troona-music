@@ -70,6 +70,15 @@ abstract interface class AudioServicePort {
     int startIndex = 0,
   });
 
+  /// Restores an exact queue snapshot, including playback order and position.
+  Future<Either<Failure, Unit>> restoreQueue(
+    Queue queue, {
+    required Duration position,
+    required bool play,
+    required double volume,
+    required double speed,
+  });
+
   /// Appends [track] to the end of the queue.
   Future<Either<Failure, Unit>> addToQueue(Track track);
 

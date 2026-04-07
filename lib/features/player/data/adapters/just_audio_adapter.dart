@@ -260,6 +260,45 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
+  Future<Either<Failure, Unit>> restoreQueue(
+    Queue queue, {
+    required Duration position,
+    required bool play,
+    required double volume,
+    required double speed,
+  }) async {
+    try {
+      if (queue.playbackTracks.isEmpty) {
+        return left(const PlaybackFailure('Queue is empty'));
+      }
+
+      final nextVolume = volume.clamp(0.0, 1.0);
+      final nextSpeed = speed.clamp(0.5, 2.0);
+
+      await _player.setAudioSources(
+        queue.playbackTracks.map(_toAudioSource).toList(),
+        initialIndex: queue.currentIndex,
+        initialPosition: position,
+      );
+      await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
+      await _player.setVolume(nextVolume);
+      await _player.setSpeed(nextSpeed);
+      _volumeSubject.add(nextVolume);
+      _updateQueue(queue);
+
+      if (play) {
+        await _player.play();
+      }
+
+      return right(unit);
+    } on PlayerException catch (e) {
+      return left(PlaybackFailure(e.message ?? 'Audio source error'));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> addToQueue(Track track) async {
     try {
       // just_audio 0.10.x: mutate the playlist without a full reload.

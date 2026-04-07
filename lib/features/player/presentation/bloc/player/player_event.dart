@@ -53,6 +53,10 @@ final class SpeedChangeRequested extends PlayerEvent {
   const SpeedChangeRequested(this.speed);
 }
 
+final class RestorePlaybackSessionRequested extends PlayerEvent {
+  const RestorePlaybackSessionRequested();
+}
+
 // ── Queue management ──────────────────────────────────────────────────────────
 
 final class QueueSetRequested extends PlayerEvent {

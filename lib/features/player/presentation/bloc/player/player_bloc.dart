@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
@@ -31,6 +33,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final SetRepeatModeUseCase _setRepeatMode;
   final SetVolumeUseCase _setVolume;
   final SetSpeedUseCase _setSpeed;
+  final AudioServicePort _audioServicePort;
+  final PlaybackSessionStore _sessionStore;
+  final IsarLibraryDataSource _libraryCache;
 
   // ── Stream subscriptions ────────────────────────────────────────────────────
   late final StreamSubscription<Duration> _positionSub;
@@ -40,6 +45,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   late final StreamSubscription<dynamic> _trackSub;
   late final StreamSubscription<Queue> _queueSub;
   late final StreamSubscription<double> _volumeSub;
+  int? _lastPersistedPositionSecond;
+  PlaybackSessionSnapshot? _restoringSnapshot;
 
   PlayerBloc({
     required PlayTrackUseCase playTrack,
@@ -57,6 +64,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required SetVolumeUseCase setVolume,
     required SetSpeedUseCase setSpeed,
     required AudioServicePort audioServicePort,
+    required PlaybackSessionStore sessionStore,
+    required IsarLibraryDataSource libraryCache,
   }) : _playTrack = playTrack,
        _pause = pause,
        _resume = resume,
@@ -71,6 +80,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        _setRepeatMode = setRepeatMode,
        _setVolume = setVolume,
        _setSpeed = setSpeed,
+       _audioServicePort = audioServicePort,
+       _sessionStore = sessionStore,
+       _libraryCache = libraryCache,
        super(const PlayerIdle()) {
     // ── Branchement des streams entrants ──────────────────────────────────
     _positionSub = audioServicePort.positionStream.listen(
@@ -111,6 +123,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<RepeatModeChangeRequested>(_onRepeatModeChangeRequested);
     on<VolumeChangeRequested>(_onVolumeChangeRequested);
     on<SpeedChangeRequested>(_onSpeedChangeRequested);
+    on<RestorePlaybackSessionRequested>(
+      _onRestorePlaybackSessionRequested,
+      transformer: droppable(),
+    );
     on<QueueSetRequested>(_onQueueSetRequested, transformer: droppable());
     on<TrackAddedToQueue>(_onTrackAddedToQueue);
     on<TrackRemovedFromQueue>(_onTrackRemovedFromQueue);
@@ -244,9 +260,95 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is PlayerActive) {
-      emit((state as PlayerActive).copyWith(speed: event.speed));
+      final next = (state as PlayerActive).copyWith(speed: event.speed);
+      emit(next);
+      _persistSession(next);
     }
     await _setSpeed(SetSpeedParams(speed: event.speed));
+  }
+
+  Future<void> _onRestorePlaybackSessionRequested(
+    RestorePlaybackSessionRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
+    if (state is! PlayerIdle) return;
+
+    final snapshot = _sessionStore.load();
+    if (snapshot == null) return;
+
+    final ids = {
+      ...snapshot.originalTrackIds,
+      ...snapshot.playbackTrackIds,
+      snapshot.currentTrackId,
+    }.toList(growable: false);
+    final cachedTracks = await _libraryCache.getTracksByIds(ids);
+    if (cachedTracks.isEmpty) {
+      await _sessionStore.clear();
+      return;
+    }
+
+    final trackById = {
+      for (final model in cachedTracks) model.deviceId: model.toEntity(),
+    };
+    final originalTracks = snapshot.originalTrackIds
+        .map((id) => trackById[id])
+        .whereType<Track>()
+        .toList(growable: false);
+    final playbackTracks = snapshot.playbackTrackIds
+        .map((id) => trackById[id])
+        .whereType<Track>()
+        .toList(growable: false);
+
+    final hasMissingOriginalTracks =
+        originalTracks.isNotEmpty &&
+        originalTracks.length != snapshot.originalTrackIds.length;
+    final hasMissingPlaybackTracks =
+        playbackTracks.length != snapshot.playbackTrackIds.length;
+
+    if (playbackTracks.isEmpty ||
+        hasMissingOriginalTracks ||
+        hasMissingPlaybackTracks) {
+      await _clearPersistedSession();
+      return;
+    }
+
+    final restoredIndex = playbackTracks.indexWhere(
+      (t) => t.id == snapshot.currentTrackId,
+    );
+    if (restoredIndex < 0) {
+      await _clearPersistedSession();
+      return;
+    }
+    final currentIndex =
+        (restoredIndex >= 0 ? restoredIndex : snapshot.currentIndex).clamp(
+          0,
+          playbackTracks.length - 1,
+        );
+    final queue = Queue(
+      originalTracks: List.unmodifiable(
+        originalTracks.isEmpty ? playbackTracks : originalTracks,
+      ),
+      playbackTracks: List.unmodifiable(playbackTracks),
+      currentIndex: currentIndex,
+      shuffleEnabled: snapshot.shuffleEnabled,
+      repeatMode: snapshot.repeatMode,
+    );
+
+    _restoringSnapshot = snapshot;
+    emit(PlayerLoading(queue.currentTrack ?? playbackTracks[currentIndex]));
+
+    final result = await _audioServicePort.restoreQueue(
+      queue,
+      position: Duration(milliseconds: snapshot.positionMs),
+      play: false,
+      volume: snapshot.volume,
+      speed: snapshot.speed,
+    );
+
+    if (result.isLeft()) {
+      _restoringSnapshot = null;
+      await _clearPersistedSession();
+    }
   }
 
   Future<void> _onQueueSetRequested(
@@ -283,7 +385,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   void _onPositionUpdated(_PositionUpdated event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
-      emit((state as PlayerActive).copyWith(position: event.position));
+      final next = (state as PlayerActive).copyWith(position: event.position);
+      emit(next);
+      _persistPositionIfNeeded(next);
     }
   }
 
@@ -299,13 +403,13 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       final fallbackDuration = Duration(
         milliseconds: current.currentTrack.durationMs,
       );
-      emit(
-        current.copyWith(
-          duration: event.duration == Duration.zero
-              ? fallbackDuration
-              : event.duration,
-        ),
+      final next = current.copyWith(
+        duration: event.duration == Duration.zero
+            ? fallbackDuration
+            : event.duration,
       );
+      emit(next);
+      _persistSession(next);
     }
   }
 
@@ -314,21 +418,34 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       case PlayerLoading(:final track):
         if (event.status == PlaybackStatus.playing ||
             event.status == PlaybackStatus.paused) {
-          emit(
-            PlayerActive(
-              currentTrack: track,
-              status: event.status,
-              position: Duration.zero,
-              buffered: Duration.zero,
-              duration: Duration(milliseconds: track.durationMs),
-              queue: Queue.single(track),
-              shuffleEnabled: false,
-              repeatMode: RepeatMode.off,
-            ),
+          final queue = _audioServicePort.currentQueue ?? Queue.single(track);
+          final restored = _restoringSnapshot;
+          final next = PlayerActive(
+            currentTrack: track,
+            status: event.status,
+            position: _audioServicePort.currentPosition,
+            buffered: Duration.zero,
+            duration: _audioServicePort.currentDuration == Duration.zero
+                ? Duration(milliseconds: track.durationMs)
+                : _audioServicePort.currentDuration,
+            queue: queue,
+            shuffleEnabled: queue.shuffleEnabled,
+            repeatMode: queue.repeatMode,
+            volume: restored?.volume ?? 1.0,
+            speed: restored?.speed ?? 1.0,
           );
+          emit(next);
+          _persistSession(next);
+          _restoringSnapshot = null;
         }
       case PlayerActive():
-        emit((state as PlayerActive).copyWith(status: event.status));
+        final next = (state as PlayerActive).copyWith(status: event.status);
+        emit(next);
+        if (_shouldClearSessionAfterStop(next)) {
+          unawaited(_clearPersistedSession());
+        } else {
+          _persistSession(next);
+        }
       case _:
         break;
     }
@@ -341,14 +458,22 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         emit(PlayerLoading(event.track!));
       case PlayerActive():
         final current = state as PlayerActive;
-        emit(
-          current.copyWith(
-            currentTrack: event.track,
-            duration: current.duration == Duration.zero
-                ? Duration(milliseconds: event.track!.durationMs)
-                : current.duration,
-          ),
+        final trackIndex = current.queue.playbackTracks.indexWhere(
+          (t) => t.id == event.track!.id,
         );
+        final next = current.copyWith(
+          currentTrack: event.track,
+          position:
+              trackIndex >= 0 && trackIndex != current.queue.currentIndex
+              ? Duration.zero
+              : current.position,
+          duration: Duration(milliseconds: event.track!.durationMs),
+          queue: trackIndex >= 0
+              ? current.queue.copyWith(currentIndex: trackIndex)
+              : current.queue,
+        );
+        emit(next);
+        _persistSession(next);
       case _:
         break;
     }
@@ -357,19 +482,21 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   void _onQueueChanged(_QueueChanged event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
       final current = state as PlayerActive;
-      emit(
-        current.copyWith(
-          queue: event.queue,
-          shuffleEnabled: event.queue.shuffleEnabled,
-          repeatMode: event.queue.repeatMode,
-        ),
+      final next = current.copyWith(
+        queue: event.queue,
+        shuffleEnabled: event.queue.shuffleEnabled,
+        repeatMode: event.queue.repeatMode,
       );
+      emit(next);
+      _persistSession(next);
     }
   }
 
   void _onVolumeUpdated(_VolumeUpdated event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
-      emit((state as PlayerActive).copyWith(volume: event.volume));
+      final next = (state as PlayerActive).copyWith(volume: event.volume);
+      emit(next);
+      _persistSession(next);
     }
   }
 
@@ -385,6 +512,58 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         lastQueue: state is PlayerActive ? (state as PlayerActive).queue : null,
       ),
     );
+  }
+
+  void _persistPositionIfNeeded(PlayerActive state) {
+    final second = state.position.inSeconds;
+    if (_lastPersistedPositionSecond == second) return;
+    _lastPersistedPositionSecond = second;
+    _persistSession(state);
+  }
+
+  bool _shouldClearSessionAfterStop(PlayerActive state) {
+    if (state.status != PlaybackStatus.stopped) return false;
+    if (state.queue.repeatMode != RepeatMode.off) return false;
+    if (state.queue.currentIndex != state.queue.playbackTracks.length - 1) {
+      return false;
+    }
+    final durationMs = state.duration.inMilliseconds == 0
+        ? state.currentTrack.durationMs
+        : state.duration.inMilliseconds;
+    return durationMs > 0 && state.position.inMilliseconds >= durationMs - 1500;
+  }
+
+  void _persistSession(PlayerActive state) {
+    final maxDuration = state.duration.inMilliseconds == 0
+        ? state.currentTrack.durationMs
+        : state.duration.inMilliseconds;
+    final positionMs = state.position.inMilliseconds.clamp(0, maxDuration);
+    unawaited(
+      _sessionStore.save(
+        PlaybackSessionSnapshot(
+          currentTrackId: state.currentTrack.id,
+          originalTrackIds: state.queue.originalTracks
+              .map((t) => t.id)
+              .toList(growable: false),
+          playbackTrackIds: state.queue.playbackTracks
+              .map((t) => t.id)
+              .toList(growable: false),
+          currentIndex: state.queue.currentIndex,
+          positionMs: positionMs,
+          wasPlaying: state.isPlaying,
+          shuffleEnabled: state.queue.shuffleEnabled,
+          repeatMode: state.queue.repeatMode,
+          volume: state.volume,
+          speed: state.speed,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _clearPersistedSession() async {
+    _lastPersistedPositionSecond = null;
+    _restoringSnapshot = null;
+    await _sessionStore.clear();
   }
 
   // ════════════════════════════════════════════════════════════════════════════

@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
@@ -30,6 +31,8 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
+  bool _didRequestPlaybackRestore = false;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +67,13 @@ class _AppShellState extends State<AppShell> {
     final safeBottom = mediaQuery.padding.bottom;
     final safeTop = mediaQuery.padding.top;
 
-    return BlocBuilder<LibraryBloc, LibraryState>(
+    return BlocConsumer<LibraryBloc, LibraryState>(
+      listenWhen: (previous, current) =>
+          !_didRequestPlaybackRestore && _canRestorePlayback(current),
+      listener: (context, state) {
+        _didRequestPlaybackRestore = true;
+        context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
+      },
       builder: (context, libraryState) {
         if (_shouldShowBootstrap(libraryState)) {
           return _LibraryBootstrapScreen(
@@ -119,6 +128,13 @@ class _AppShellState extends State<AppShell> {
     LibraryInitial() => true,
     LibraryScanning(:final cached) => cached == null,
     LibraryError(:final lastLoaded) => lastLoaded == null,
+    _ => false,
+  };
+
+  bool _canRestorePlayback(LibraryState state) => switch (state) {
+    LibraryLoaded() => true,
+    LibraryScanning(:final cached) => cached != null,
+    LibraryError(:final lastLoaded) => lastLoaded != null,
     _ => false,
   };
 

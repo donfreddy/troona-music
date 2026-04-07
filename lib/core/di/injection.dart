@@ -24,6 +24,7 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
@@ -53,6 +54,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
   final sharedPrefs = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(sharedPrefs);
+  getIt.registerSingleton<PlaybackSessionStore>(
+    PlaybackSessionStore(sharedPrefs),
+  );
 
   // ── Data sources ──────────────────────────────────────────────────────────
 
@@ -202,6 +206,8 @@ Future<void> configureDependencies() async {
       setVolume: getIt(),
       setSpeed: getIt(),
       audioServicePort: getIt(),
+      sessionStore: getIt(),
+      libraryCache: getIt(),
     ),
   );
 
