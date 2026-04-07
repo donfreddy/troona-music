@@ -130,7 +130,12 @@ class IsarLibraryDataSource {
       ..artworkPath = null
       ..trackIds = [];
 
-    _isar.write((isar) => isar.playlistModels.put(playlist));
+    _isar.write((isar) {
+      if (playlist.id == 0) {
+        playlist.id = isar.playlistModels.autoIncrement();
+      }
+      isar.playlistModels.put(playlist);
+    });
     return playlist;
   }
 
@@ -149,6 +154,9 @@ class IsarLibraryDataSource {
 
     if (!playlist.trackIds.contains(trackId)) {
       playlist.trackIds.insert(0, trackId);
+      if (playlist.id == 0) {
+        playlist.id = isar.playlistModels.autoIncrement();
+      }
       isar.playlistModels.put(playlist);
     }
   });

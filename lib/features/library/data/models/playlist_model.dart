@@ -11,7 +11,7 @@ part 'playlist_model.g.dart';
 @collection
 class PlaylistModel {
   /// Isar auto-increment primary key (assigned on first write).
-  late int id;
+  int id = 0;
 
   /// Application-level stable identifier (e.g. UUID).
   @Index(unique: true)
