@@ -300,7 +300,17 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   void _onDurationUpdated(_DurationUpdated event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
-      emit((state as PlayerActive).copyWith(duration: event.duration));
+      final current = state as PlayerActive;
+      final fallbackDuration = Duration(
+        milliseconds: current.currentTrack.durationMs,
+      );
+      emit(
+        current.copyWith(
+          duration: event.duration == Duration.zero
+              ? fallbackDuration
+              : event.duration,
+        ),
+      );
     }
   }
 
@@ -315,7 +325,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               status: event.status,
               position: Duration.zero,
               buffered: Duration.zero,
-              duration: Duration.zero,
+              duration: Duration(milliseconds: track.durationMs),
               queue: Queue.single(track),
               shuffleEnabled: false,
               repeatMode: RepeatMode.off,
@@ -335,7 +345,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       case PlayerLoading():
         emit(PlayerLoading(event.track!));
       case PlayerActive():
-        emit((state as PlayerActive).copyWith(currentTrack: event.track));
+        final current = state as PlayerActive;
+        emit(
+          current.copyWith(
+            currentTrack: event.track,
+            duration: current.duration == Duration.zero
+                ? Duration(milliseconds: event.track!.durationMs)
+                : current.duration,
+          ),
+        );
       case _:
         break;
     }

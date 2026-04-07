@@ -45,12 +45,7 @@ class AppBottomNavBar extends StatelessWidget {
   /// covers that role.
   final bool showMiniPlayer;
 
-  const AppBottomNavBar({
-    super.key,
-    required this.currentTab,
-    required this.onTabChanged,
-    this.showMiniPlayer = true,
-  });
+  const AppBottomNavBar({super.key, required this.currentTab, required this.onTabChanged, this.showMiniPlayer = true});
 
   @override
   Widget build(BuildContext context) {
@@ -60,19 +55,14 @@ class AppBottomNavBar extends StatelessWidget {
         return _NavBarBody(
           currentTab: currentTab,
           onTabChanged: onTabChanged,
-          playerState: (showMiniPlayer && playerState is PlayerActive)
-              ? playerState
-              : null,
+          playerState: (showMiniPlayer && playerState is PlayerActive) ? playerState : null,
         );
       },
     );
   }
 
   (String?, bool) _navKey(PlayerState s) => switch (s) {
-    PlayerActive(:final currentTrack, :final isPlaying) => (
-      currentTrack.id,
-      isPlaying,
-    ),
+    PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
     _ => (null, false),
   };
 }
@@ -86,11 +76,7 @@ class _NavBarBody extends StatelessWidget {
   /// Non-null when a track is active; drives the mini player row visibility.
   final PlayerActive? playerState;
 
-  const _NavBarBody({
-    required this.currentTab,
-    required this.onTabChanged,
-    required this.playerState,
-  });
+  const _NavBarBody({required this.currentTab, required this.onTabChanged, required this.playerState});
 
   static const _tabs = [
     (AppTab.home, EvaIcons.home, 'Home'),
@@ -119,23 +105,7 @@ class _NavBarBody extends StatelessWidget {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            child: isActive
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _MiniPlayerRow(state: playerState!),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                        ),
-                        child: Container(
-                          height: 0.5,
-                          color: glass.border.withValues(alpha: .6),
-                        ),
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
+            child: isActive ? _MiniPlayerRow(state: playerState!, radius: radius) : const SizedBox.shrink(),
           ),
 
           // ── Nav tabs row — always present ────────────────────────────────
@@ -183,11 +153,7 @@ class _NavBarBody extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: glass.blurSigma,
-            sigmaY: glass.blurSigma,
-            tileMode: TileMode.clamp,
-          ),
+          filter: ImageFilter.blur(sigmaX: glass.blurSigma, sigmaY: glass.blurSigma, tileMode: TileMode.clamp),
           child: body,
         ),
       ),
@@ -208,12 +174,20 @@ class _NavBarBody extends StatelessWidget {
 /// the full player opens (and contracts back on dismiss).
 class _MiniPlayerRow extends StatelessWidget {
   final PlayerActive state;
+  final BorderRadius radius;
 
-  const _MiniPlayerRow({required this.state});
+  const _MiniPlayerRow({required this.state, required this.radius});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // final radius = BorderRadius.circular(28);
+    // final progressTint = Color.lerp(
+    //   colors.accent,
+    //   // const Color(0xFFB784FF),
+    //   Colors.black.withValues(alpha: .38),
+    //   0.55,
+    // )!;
 
     return GestureDetector(
       onTap: () => _openFullPlayer(context),
@@ -224,95 +198,154 @@ class _MiniPlayerRow extends StatelessWidget {
         }
       },
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        height: 58,
-        child: Row(
-          children: [
-            const SizedBox(width: 12),
-
-            // ── Artwork thumbnail with Hero ──────────────────────────────────
-            Hero(
-              tag: 'artwork_${state.currentTrack.id}',
-              child: SizedBox.square(
-                dimension: 38,
-                child: ClipOval(
-                  child: state.currentTrack.artworkPath != null
-                      ? Image.file(
-                          File(state.currentTrack.artworkPath!),
-                          fit: BoxFit.cover,
-                        )
-                      : ColoredBox(
-                          color: colors.glassFill,
-                          child: Icon(
-                            EvaIcons.music,
-                            color: colors.labelTertiary,
-                            size: 18,
-                          ),
-                        ),
+      child: Transform.translate(
+        offset: const Offset(0, -1),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            //color: Colors.black.withValues(alpha: .38),
+            border: Border.all(color: Colors.white.withValues(alpha: .11)),
+            // boxShadow: [
+            //   BoxShadow(color: Colors.black.withValues(alpha: .30), blurRadius: 18, offset: const Offset(0, 8)),
+            //   BoxShadow(color: colors.accent.withValues(alpha: .10), blurRadius: 22, spreadRadius: -8),
+            // ],
+          ),
+          child: ClipRRect(
+            borderRadius: radius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+                _MiniPlayerProgressFill(progressTint: Color(0x8CFFFFFF)),
+                Row(
+                  children: [
+                    const SizedBox(width: 12),
 
-            const SizedBox(width: 12),
-
-            // ── Track title and artist ───────────────────────────────────────
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    state.currentTrack.title,
-                    style: TextStyle(
-                      color: colors.labelPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    // ── Artwork thumbnail with Hero ────────────────────────
+                    Hero(
+                      tag: 'artwork_${state.currentTrack.id}',
+                      child: SizedBox.square(
+                        dimension: 42,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: state.currentTrack.artworkPath != null
+                              ? Image.file(File(state.currentTrack.artworkPath!), fit: BoxFit.cover)
+                              : ColoredBox(
+                                  color: colors.glassFill,
+                                  child: Icon(EvaIcons.music, color: colors.labelTertiary, size: 18),
+                                ),
+                        ),
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    state.currentTrack.artist,
-                    style: TextStyle(
-                      color: colors.labelSecondary,
-                      fontSize: 11,
+
+                    const SizedBox(width: 12),
+
+                    // ── Track title and artist ─────────────────────────────
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.currentTrack.title,
+                            style: TextStyle(color: colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            state.currentTrack.artist,
+                            style: TextStyle(color: colors.labelSecondary, fontSize: 11),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
 
-            // ── Play / Pause ─────────────────────────────────────────────────
-            CupertinoButton(
-              padding: const EdgeInsets.all(10),
-              onPressed: () => context.read<PlayerBloc>().add(
-                state.isPlaying
-                    ? const PauseRequested()
-                    : const ResumeRequested(),
-              ),
-              child: Icon(
-                state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
-                color: colors.labelPrimary,
-                size: 20,
-              ),
-            ),
+                    // ── Play / Pause ───────────────────────────────────────
+                    CupertinoButton(
+                      padding: const EdgeInsets.all(10),
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        state.isPlaying ? const PauseRequested() : const ResumeRequested(),
+                      ),
+                      child: Icon(
+                        state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
+                        color: colors.labelPrimary,
+                        size: 22,
+                      ),
+                    ),
 
-            // ── Skip next ────────────────────────────────────────────────────
-            CupertinoButton(
-              padding: const EdgeInsets.only(right: 12),
-              onPressed: () =>
-                  context.read<PlayerBloc>().add(const SkipNextRequested()),
-              child: Icon(
-                EvaIcons.arrowForward,
-                color: colors.labelPrimary,
-                size: 20,
-              ),
+                    // ── Skip next ──────────────────────────────────────────
+                    CupertinoButton(
+                      padding: const EdgeInsets.only(right: 12),
+                      onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
+                      child: Icon(EvaIcons.skipForward, color: colors.labelPrimary, size: 22),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _MiniPlayerProgressFill extends StatelessWidget {
+  final Color progressTint;
+
+  const _MiniPlayerProgressFill({required this.progressTint});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<PlayerBloc, PlayerState, double>(
+      selector: (state) => switch (state) {
+        PlayerActive(:final progressRatio) => progressRatio.clamp(0.0, 1.0),
+        _ => 0.0,
+      },
+      builder: (context, progress) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: progress),
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.linear,
+          builder: (context, animatedProgress, _) {
+            if (animatedProgress <= 0) return const SizedBox.shrink();
+
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: FractionallySizedBox(
+                widthFactor: animatedProgress <= 0 ? 0.02 : animatedProgress,
+                heightFactor: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        progressTint.withValues(alpha: .42),
+                        progressTint.withValues(alpha: .28),
+                        progressTint.withValues(alpha: .14),
+                      ],
+                    ),
+                    boxShadow: [BoxShadow(color: progressTint.withValues(alpha: .18), blurRadius: 18, spreadRadius: 2)],
+                  ),
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -332,11 +365,7 @@ class _CenterArtworkSlot extends StatelessWidget {
   final bool isPlaying;
   final VoidCallback onTap;
 
-  const _CenterArtworkSlot({
-    required this.track,
-    required this.isPlaying,
-    required this.onTap,
-  });
+  const _CenterArtworkSlot({required this.track, required this.isPlaying, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -360,24 +389,14 @@ class _CenterArtworkSlot extends StatelessWidget {
                   height: 66,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withValues(alpha: .40),
-                        blurRadius: 24,
-                        spreadRadius: 4,
-                      ),
-                    ],
+                    boxShadow: [BoxShadow(color: accentColor.withValues(alpha: .40), blurRadius: 24, spreadRadius: 4)],
                   ),
                 ),
               ),
 
             // Rotating artwork disc — elevated 12 px above the bar surface.
             Positioned(
-              child: RotatingArtwork(
-                track: track,
-                isPlaying: isPlaying,
-                size: 56,
-              ),
+              child: RotatingArtwork(track: track, isPlaying: isPlaying, size: 56),
             ),
           ],
         ),
@@ -394,12 +413,7 @@ class _TabItem extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _TabItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _TabItem({required this.icon, required this.label, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -419,11 +433,7 @@ class _TabItem extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 label,
-                style: TextStyle(
-                  color: labelColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: labelColor, fontSize: 10, fontWeight: FontWeight.w500),
               ),
             ],
           ),

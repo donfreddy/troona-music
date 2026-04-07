@@ -59,7 +59,7 @@ final class PlayerActive extends PlayerState {
     if (duration.inMilliseconds == 0) return 0.0;
     // Arrondi à 0.5% pour limiter les rebuilds du Slider
     final raw = position.inMilliseconds / duration.inMilliseconds;
-    return (raw * 200).round() / 200.0.clamp(0.0, 1.0);
+    return ((raw * 200).round() / 200.0).clamp(0.0, 1.0);
   }
 
   bool get hasNext => queue.hasNext;
