@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:on_audio_query_pluse/on_audio_query.dart'
+    hide AlbumModel, ArtistModel;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:troona/core/error/exceptions.dart';
 
@@ -8,6 +10,8 @@ import 'package:troona/core/error/exceptions.dart';
 /// Throws [PermissionException] if the user denies or permanently denies.
 abstract final class AppPermissionHandler {
   AppPermissionHandler._();
+
+  static final OnAudioQuery _audioQuery = OnAudioQuery();
 
   /// Resolves the correct [Permission] for the running platform/SDK.
   /// Async because Android SDK version requires a device info call.
@@ -31,6 +35,16 @@ abstract final class AppPermissionHandler {
     switch (status) {
       case PermissionStatus.granted:
       case PermissionStatus.limited: // iOS limited library access
+        if (Platform.isAndroid) {
+          final pluginGranted =
+              await _audioQuery.permissionsStatus() ||
+              await _audioQuery.permissionsRequest();
+          if (!pluginGranted) {
+            throw const PermissionException(
+              'Audio permission denied. Please grant access in Settings.',
+            );
+          }
+        }
         return true;
 
       case PermissionStatus.permanentlyDenied:
@@ -49,7 +63,15 @@ abstract final class AppPermissionHandler {
   static Future<bool> hasAudioPermission() async {
     final permission = await _resolvePermission();
     final status = await permission.status;
-    return status == PermissionStatus.granted ||
+    final granted =
+        status == PermissionStatus.granted ||
         status == PermissionStatus.limited;
+    if (!granted) return false;
+
+    if (Platform.isAndroid) {
+      return _audioQuery.permissionsStatus();
+    }
+
+    return true;
   }
 }

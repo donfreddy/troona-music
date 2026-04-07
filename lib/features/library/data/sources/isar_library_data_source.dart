@@ -185,7 +185,14 @@ class IsarLibraryDataSource {
   /// Only pass **new** tracks (those absent from [getAllDeviceIds]). The unique
   /// index on [TrackModel.deviceId] will reject duplicates.
   Future<void> insertTracks(List<TrackModel> tracks) async {
-    _isar.write((isar) => isar.trackModels.putAll(tracks));
+    _isar.write((isar) {
+      for (final track in tracks) {
+        if (track.id == 0) {
+          track.id = isar.trackModels.autoIncrement();
+        }
+      }
+      isar.trackModels.putAll(tracks);
+    });
   }
 
   /// Removes all tracks whose [TrackModel.deviceId] is in [deviceIds].

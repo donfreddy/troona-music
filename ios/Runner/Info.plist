@@ -46,12 +46,10 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
-    <array>
-        <string>audio</string>
-    </array>
-    <dict>
-    	<key>NSAppleMusicUsageDescription</key>
-    	<string>$(PROJECT_NAME) requires access to media library</string>
-    </dict>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Troona needs access to your media library to discover and play local music.</string>
 </dict>
 </plist>

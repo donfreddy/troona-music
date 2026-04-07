@@ -8,6 +8,10 @@ sealed class LibraryEvent extends Equatable {
 }
 
 // ── Commandes utilisateur ────────────────────────────────
+final class LibraryBootstrapRequested extends LibraryEvent {
+  const LibraryBootstrapRequested();
+}
+
 final class LibraryScanRequested extends LibraryEvent {
   const LibraryScanRequested();
 }

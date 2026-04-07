@@ -94,7 +94,7 @@ final class MediaScannerService {
     }
 
     const batchSize = 100;
-    final newTotal = newTracks.length.clamp(1, newTracks.length);
+    final newTotal = newTracks.isEmpty ? 1 : newTracks.length;
     for (var i = 0; i < newTracks.length; i += batchSize) {
       if (_cancelRequested) {
         yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);

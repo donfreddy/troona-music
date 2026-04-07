@@ -16,7 +16,7 @@ part 'track_model.g.dart';
 @collection
 class TrackModel {
   /// Isar auto-increment primary key (assigned on first write).
-  late int id;
+  int id = 0;
 
   /// Stable device identifier (MediaStore ID on Android, persistent ID on iOS).
   /// Indexed uniquely so scans can diff the cache in O(1) per track.
@@ -77,8 +77,7 @@ class TrackModel {
     ..album = s.album.orDefault('Unknown Album')
     ..albumId = s.albumId.orDefault()
     ..genre = s.genre.orDefault('Unknown Genre')
-    // ..genreId = s.genreId.orDefault()
-    ..albumId = 0
+    ..genreId = 0
     ..durationMs = s.duration.orDefault()
     ..fileName = s.displayName
     ..trackNumber = s.track.orDefault()

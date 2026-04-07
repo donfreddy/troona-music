@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart'
     hide AlbumModel, ArtistModel;
 import 'package:troona/core/error/exceptions.dart';
+import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/library/data/models/album_model.dart';
 import 'package:troona/features/library/data/models/artist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
@@ -34,25 +35,50 @@ abstract interface class LocalAudioDataSource {
 final class OnAudioQueryDataSource implements LocalAudioDataSource {
   final OnAudioQuery _query;
 
+  static const _minTrackDurationMs = 45 * 1000;
+  static const _minTrackSizeBytes = 512 * 1024;
+  static const _allowedExtensions = {
+    'mp3',
+    'm4a',
+    'aac',
+    'flac',
+    'wav',
+    'ogg',
+    'opus',
+    'wma',
+  };
+  static const _blockedPathFragments = {
+    '/alarms/',
+    '/notifications/',
+    '/ringtones/',
+    '/ui/',
+    '/system/',
+    '/media/audio/',
+    '/recordings/call/',
+    '/whatsapp voice notes/',
+    '/telegram/audio/',
+    '/telegram voice/',
+  };
+
   OnAudioQueryDataSource({OnAudioQuery? query})
     : _query = query ?? OnAudioQuery();
 
   @override
   Stream<List<TrackModel>> scanTracks() async* {
-    // Request the audio permission before scanning.
-    final hasPermission = await _query.permissionsStatus();
-    if (!hasPermission) {
-      final granted = await _query.permissionsRequest();
-      if (!granted) {
-        throw const PermissionException('Audio permission denied');
-      }
+    // Permission flow is centralized in AppPermissionHandler / router guard.
+    // Keep a defensive check here, but do not trigger a second permission flow
+    // through a different plugin.
+    final hasPermission = await AppPermissionHandler.hasAudioPermission();
+    final pluginHasPermission = await _query.permissionsStatus();
+    if (!hasPermission || !pluginHasPermission) {
+      throw const PermissionException('Audio permission denied');
     }
 
     // Fetch all audio files from external storage (SD card included).
     final songs = await _query.querySongs(
       sortType: SongSortType.TITLE,
       orderType: OrderType.ASC_OR_SMALLER,
-      uriType: UriType.INTERNAL,
+      uriType: UriType.EXTERNAL,
       ignoreCase: true,
     );
 
@@ -112,13 +138,43 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   /// Returns `true` when [song] is a valid music track.
   ///
   /// Filters out:
-  /// - Files shorter than 30 seconds (ringtones, sound effects).
+  /// - Non-music items reported by MediaStore.
+  /// - Files shorter than 45 seconds (ringtones, sound effects, jingles).
+  /// - Very small files that are unlikely to be full songs.
+  /// - System / messaging app audio directories.
   /// - Files with an empty title (likely corrupted).
   /// - Files with an empty path (no accessible storage location).
   bool _isValidTrack(SongModel song) {
-    // if ((song.duration ?? 0) < 30000) return false;
-    if (song.title.isEmpty) return false;
-    if (song.data.isEmpty) return false;
+    final path = song.data.trim();
+    final title = song.title.trim();
+    final lowerPath = path.toLowerCase();
+    final extension = song.fileExtension.toLowerCase();
+
+    if (title.isEmpty) return false;
+    if (path.isEmpty) return false;
+    if (song.isMusic == false) return false;
+    if (song.isAlarm == true ||
+        song.isNotification == true ||
+        song.isRingtone == true ||
+        song.isPodcast == true ||
+        song.isAudioBook == true) {
+      return false;
+    }
+    if ((song.duration ?? 0) < _minTrackDurationMs) return false;
+    if (song.size < _minTrackSizeBytes) return false;
+    if (!_allowedExtensions.contains(extension)) return false;
+    if (lowerPath.contains(
+      '/android/media/com.whatsapp/business/voice notes/',
+    )) {
+      return false;
+    }
+    if (_blockedPathFragments.any(lowerPath.contains)) return false;
+    if (lowerPath.contains('/record') &&
+        (song.duration ?? 0) < 10 * 60 * 1000) {
+      return false;
+    }
+    if (title.toLowerCase() == 'audio') return false;
+
     return true;
   }
 }

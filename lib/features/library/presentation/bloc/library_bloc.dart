@@ -35,6 +35,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
        _getAlbums = getAlbums,
        _getArtists = getArtists,
        super(const LibraryInitial()) {
+    on<LibraryBootstrapRequested>(
+      _onBootstrapRequested,
+      transformer: droppable(),
+    );
     on<LibraryScanRequested>(_onScanRequested, transformer: droppable());
     on<LibraryRefreshRequested>(_onRefreshRequested, transformer: droppable());
     on<LibrarySearchChanged>(_onSearchChanged, transformer: sequential());
@@ -50,11 +54,24 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // SCAN
   // ══════════════════════════════════════════════════════════
 
+  Future<void> _onBootstrapRequested(
+    LibraryBootstrapRequested event,
+    Emitter<LibraryState> emit,
+  ) async {
+    if (state is! LibraryInitial) return;
+
+    final cached = await _readLoadedState();
+    if (cached != null) {
+      emit(cached);
+    }
+
+    add(const LibraryScanRequested());
+  }
+
   Future<void> _onScanRequested(
     LibraryScanRequested event,
     Emitter<LibraryState> emit,
   ) async {
-    print('DEBUG: LibraryBloc received LibraryScanRequested');
     // Annule un scan précédent si toujours en cours
     await _cancelScan();
 
@@ -124,7 +141,16 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // ══════════════════════════════════════════════════════════
 
   Future<void> _loadFromCache(Emitter<LibraryState> emit) async {
-    // Charge tracks, albums, artists en parallèle
+    final loaded = await _readLoadedState();
+    if (loaded == null) {
+      emit(const LibraryError(message: 'Unable to load cached library.'));
+      return;
+    }
+
+    emit(loaded);
+  }
+
+  Future<LibraryLoaded?> _readLoadedState() async {
     final results = await Future.wait([
       _getTracks(),
       _getAlbums(),
@@ -135,23 +161,33 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final albumsResult = results[1] as Either<Failure, List<Album>>;
     final artistsResult = results[2] as Either<Failure, List<Artist>>;
 
-    // Si l'un des trois échoue on émet une erreur
     if (tracksResult.isLeft() ||
         albumsResult.isLeft() ||
         artistsResult.isLeft()) {
-      final msg =
-          tracksResult.fold((f) => f.message, (_) => '') +
-          albumsResult.fold((f) => f.message, (_) => '') +
-          artistsResult.fold((f) => f.message, (_) => '');
-      emit(LibraryError(message: msg));
-      return;
+      return null;
     }
 
     final tracks = tracksResult.getOrElse(() => []);
     final albums = albumsResult.getOrElse(() => []);
     final artists = artistsResult.getOrElse(() => []);
 
-    add(_TracksLoaded(tracks, albums, artists));
+    final visible = _applyFilterAndSort(
+      tracks: tracks,
+      albums: albums,
+      artists: artists,
+      query: '',
+      filter: LibraryFilter.all,
+      sort: LibrarySort.title,
+    );
+
+    return LibraryLoaded(
+      allTracks: tracks,
+      allAlbums: albums,
+      allArtists: artists,
+      visibleTracks: visible.$1,
+      visibleAlbums: visible.$2,
+      visibleArtists: visible.$3,
+    );
   }
 
   void _onTracksLoaded(_TracksLoaded event, Emitter<LibraryState> emit) {
