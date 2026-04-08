@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,30 +14,20 @@ class TrendingRow extends StatelessWidget {
   final int rank;
   final VoidCallback onTap;
 
-  const TrendingRow({
-    super.key,
-    required this.track,
-    required this.rank,
-    required this.onTap,
-  });
+  const TrendingRow({super.key, required this.track, required this.rank, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     // Vérifie si ce track est en cours de lecture
     final isActive = context.select<PlayerBloc, bool>(
-      (b) =>
-          b.state is PlayerActive &&
-          (b.state as PlayerActive).currentTrack.id == track.id,
+      (b) => b.state is PlayerActive && (b.state as PlayerActive).currentTrack.id == track.id,
     );
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         child: Row(
           children: [
             // Artwork ou visualiseur si actif
@@ -47,18 +38,10 @@ class TrendingRow extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: track.artworkPath != null
-                        ? Image.file(
-                            File(track.artworkPath!),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          )
+                        ? Image.file(File(track.artworkPath!), width: 50, height: 50, fit: BoxFit.cover)
                         : Container(
                             color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(
-                              CupertinoIcons.music_note,
-                              color: Colors.white30,
-                            ),
+                            child: const Icon(EvaIcons.musicOutline, color: Colors.white30),
                           ),
                   ),
                   // Overlay lecture en cours
@@ -69,11 +52,7 @@ class TrendingRow extends StatelessWidget {
                           color: Colors.black.withValues(alpha: .4),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(
-                          CupertinoIcons.waveform,
-                          color: Colors.white,
-                          size: 20,
-                        ),
+                        child: const Icon(EvaIcons.music, color: Colors.white, size: 20),
                       ),
                     ),
                 ],
@@ -98,41 +77,14 @@ class TrendingRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    track.artist,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: .5),
-                      fontSize: 12,
-                    ),
-                  ),
+                  Text(track.artist, style: TextStyle(color: Colors.white.withValues(alpha: .5), fontSize: 12)),
                 ],
               ),
             ),
 
-            // Artwork côté droit (second artwork du design)
-            // + durée sur la même ligne
-            Row(
-              children: [
-                Text(
-                  Duration(milliseconds: track.durationMs).toMMSS(),
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .4),
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                // Thumbnail droit — identique au design
-                if (track.artworkPath != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: Image.file(
-                      File(track.artworkPath!),
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-              ],
+            Text(
+              Duration(milliseconds: track.durationMs).toMMSS(),
+              style: TextStyle(color: Colors.white.withValues(alpha: .4), fontSize: 14),
             ),
           ],
         ),
