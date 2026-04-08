@@ -13,6 +13,7 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
 
 /// Root scaffold for all shell routes (routes that share the bottom nav bar).
 ///
@@ -74,10 +75,13 @@ class _AppShellState extends State<AppShell> {
     return MultiBlocListener(
       listeners: [
         BlocListener<LibraryBloc, LibraryState>(
-          listenWhen: (previous, current) => !_didRequestPlaybackRestore && _canRestorePlayback(current),
+          listenWhen: (previous, current) =>
+              !_didRequestPlaybackRestore && _canRestorePlayback(current),
           listener: (context, state) {
             _didRequestPlaybackRestore = true;
-            context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
+            context.read<PlayerBloc>().add(
+              const RestorePlaybackSessionRequested(),
+            );
           },
         ),
         BlocListener<PlayerBloc, PlayerState>(
@@ -87,7 +91,8 @@ class _AppShellState extends State<AppShell> {
               (current is PlayerLoading || current is PlayerActive),
           listener: (context, state) {
             _didRestoreFullPlayerRoute = true;
-            if (GoRouterState.of(context).matchedLocation != FullPlayerPage.routeName) {
+            if (GoRouterState.of(context).matchedLocation !=
+                FullPlayerPage.routeName) {
               context.push(FullPlayerPage.routeName);
             }
           },
@@ -98,20 +103,41 @@ class _AppShellState extends State<AppShell> {
           if (_shouldShowBootstrap(libraryState)) {
             return _LibraryBootstrapScreen(
               state: libraryState,
-              onRetry: () => context.read<LibraryBloc>().add(const LibraryScanRequested()),
+              onRetry: () =>
+                  context.read<LibraryBloc>().add(const LibraryScanRequested()),
             );
           }
 
-          final currentTab = _tabForLocation(GoRouterState.of(context).matchedLocation);
+          final currentTab = _tabForLocation(
+            GoRouterState.of(context).matchedLocation,
+          );
 
           return Scaffold(
             backgroundColor: Colors.black,
             body: Stack(
               children: [
+                Positioned.fill(
+                  child: BlocSelector<PlayerBloc, PlayerState, String?>(
+                    selector: (s) => switch (s) {
+                      PlayerActive(:final currentTrack) =>
+                        currentTrack.artworkPath,
+                      PlayerLoading(:final track) => track.artworkPath,
+                      _ => null,
+                    },
+                    builder: (_, artworkPath) => DynamicBackground(
+                      artworkPath: artworkPath,
+                      tone: DynamicBackgroundTone.ambient,
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+
                 // ── Active page ───────────────────────────────────────────────
                 Positioned.fill(child: widget.child),
 
-                if (libraryState case LibraryScanning(:final cached) when cached != null)
+                if (libraryState case LibraryScanning(
+                  :final cached,
+                ) when cached != null)
                   Positioned(
                     top: safeTop + 12,
                     left: 12,
@@ -126,7 +152,10 @@ class _AppShellState extends State<AppShell> {
                   right: 0,
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                    child: AppBottomNavBar(currentTab: currentTab, onTabChanged: _onTabChanged),
+                    child: AppBottomNavBar(
+                      currentTab: currentTab,
+                      onTabChanged: _onTabChanged,
+                    ),
                   ),
                 ),
               ],
@@ -176,7 +205,11 @@ class _LibraryBootstrapScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [colors.accent.withValues(alpha: .22), const Color(0xFF121212), Colors.black],
+            colors: [
+              colors.accent.withValues(alpha: .22),
+              const Color(0xFF121212),
+              Colors.black,
+            ],
           ),
         ),
         child: SafeArea(
@@ -190,10 +223,15 @@ class _LibraryBootstrapScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: .08),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                    border: Border.all(color: Colors.white.withValues(alpha: .10)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: .10),
+                    ),
                   ),
                   child: switch (state) {
-                    LibraryError(:final message) => ErrorView(message: message, onRetry: onRetry),
+                    LibraryError(:final message) => ErrorView(
+                      message: message,
+                      onRetry: onRetry,
+                    ),
                     _ => _LibraryBootstrapContent(state: state),
                   },
                 ),
@@ -217,12 +255,16 @@ class _LibraryBootstrapContent extends StatelessWidget {
     final scanning = state is LibraryScanning ? state as LibraryScanning : null;
     final progress = scanning?.progress.progress.clamp(0.0, 1.0);
     final showDeterminate =
-        scanning != null && scanning.progress.total > 0 && scanning.progress.phase != ScanPhase.scanning;
+        scanning != null &&
+        scanning.progress.total > 0 &&
+        scanning.progress.phase != ScanPhase.scanning;
     final counterLabel = scanning == null
         ? null
         : switch (scanning.progress.phase) {
-            ScanPhase.scanning when scanning.progress.count > 0 => '${scanning.progress.count} songs found',
-            ScanPhase.indexing || ScanPhase.artworks when scanning.progress.total > 0 =>
+            ScanPhase.scanning when scanning.progress.count > 0 =>
+              '${scanning.progress.count} songs found',
+            ScanPhase.indexing || ScanPhase.artworks
+                when scanning.progress.total > 0 =>
               '${scanning.progress.count}/${scanning.progress.total}',
             _ => null,
           };
@@ -245,25 +287,42 @@ class _LibraryBootstrapContent extends StatelessWidget {
             color: colors.accent.withValues(alpha: .14),
             border: Border.all(color: colors.accent.withValues(alpha: .22)),
           ),
-          child: const Icon(CupertinoIcons.music_note_list, color: Colors.white, size: 32),
+          child: const Icon(
+            CupertinoIcons.music_note_list,
+            color: Colors.white,
+            size: 32,
+          ),
         ),
         const SizedBox(height: AppSpacing.xl),
         const Text(
           'Loading your music',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.6),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.6,
+          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           phaseLabel,
           textAlign: TextAlign.center,
-          style: TextStyle(color: colors.labelSecondary, fontSize: 15, height: 1.4),
+          style: TextStyle(
+            color: colors.labelSecondary,
+            fontSize: 15,
+            height: 1.4,
+          ),
         ),
         if (counterLabel != null) ...[
           const SizedBox(height: AppSpacing.lg),
           Text(
             counterLabel,
-            style: TextStyle(color: colors.labelTertiary, fontSize: 13, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: colors.labelTertiary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
         const SizedBox(height: AppSpacing.xl2),
@@ -293,7 +352,8 @@ class _LibraryRescanBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final progress = state.progress.progress.clamp(0.0, 1.0);
-    final showDeterminate = state.progress.total > 0 && state.progress.phase != ScanPhase.scanning;
+    final showDeterminate =
+        state.progress.total > 0 && state.progress.phase != ScanPhase.scanning;
     final phaseLabel = switch (state.progress.phase) {
       ScanPhase.scanning => 'Scanning for new songs...',
       ScanPhase.indexing => 'Updating your library...',
@@ -308,17 +368,27 @@ class _LibraryRescanBanner extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: .08)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Updating your library',
-              style: TextStyle(color: colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: colors.labelPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: AppSpacing.xs),
-            Text(phaseLabel, style: TextStyle(color: colors.labelSecondary, fontSize: 12)),
+            Text(
+              phaseLabel,
+              style: TextStyle(color: colors.labelSecondary, fontSize: 12),
+            ),
             const SizedBox(height: AppSpacing.sm),
             if (showDeterminate)
               ClipRRect(

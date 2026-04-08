@@ -12,7 +12,6 @@ import 'package:troona/features/home/presentation/widgets/playlist_card.dart';
 import 'package:troona/features/home/presentation/widgets/shimmer_row.dart';
 import 'package:troona/features/home/presentation/widgets/trending_row.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/shared/widgets/dynamic_background.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,63 +31,43 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // ── Fond gradient violet dynamique ─────────────
-          // Reprend la couleur dominante du track en cours
-          BlocSelector<PlayerBloc, PlayerState, String?>(
-            selector: (s) => switch (s) {
-              PlayerActive(:final currentTrack) => currentTrack.artworkPath,
-              PlayerLoading(:final track) => track.artworkPath,
-              _ => null,
-            },
-            builder: (_, artworkPath) => DynamicBackground(
-              artworkPath: artworkPath,
-              tone: DynamicBackgroundTone.ambient,
-              child: const SizedBox.expand(),
-            ),
+      body: BlocBuilder<HomeBloc, HomeState>(
+        builder: (context, state) => CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
+          slivers: [
+            // Safe area top + avatar + cloche
+            SliverToBoxAdapter(child: _HomeHeader()),
 
-          // ── Contenu scrollable ──────────────────────────
-          BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) => CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+            // Corps selon état
+            switch (state) {
+              HomeLoading() || HomeInitial() => SliverList.builder(
+                itemCount: 8,
+                itemBuilder: (_, _) => const ShimmerRow(),
               ),
-              slivers: [
-                // Safe area top + avatar + cloche
-                SliverToBoxAdapter(child: _HomeHeader()),
-
-                // Corps selon état
-                switch (state) {
-                  HomeLoading() || HomeInitial() => SliverList.builder(
-                    itemCount: 8,
-                    itemBuilder: (_, _) => const ShimmerRow(),
-                  ),
-                  HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(
-                    feed: feed,
-                    totalTracks: totalTracks,
-                  ),
-                  HomeError(:final message) => SliverFillRemaining(
-                    child: ErrorView(
-                      message: message,
-                      onRetry: () => context.read<HomeBloc>().add(
-                        const HomeRefreshRequested(),
-                      ),
-                    ),
-                  ),
-                },
-
-                // Padding pour la BottomNavBar
-                const SliverPadding(
-                  padding: EdgeInsets.only(
-                    bottom: AppSpacing.miniPlayerHeight + AppSpacing.xl3,
+              HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(
+                feed: feed,
+                totalTracks: totalTracks,
+              ),
+              HomeError(:final message) => SliverFillRemaining(
+                child: ErrorView(
+                  message: message,
+                  onRetry: () => context.read<HomeBloc>().add(
+                    const HomeRefreshRequested(),
                   ),
                 ),
-              ],
+              ),
+            },
+
+            // Padding pour la BottomNavBar
+            const SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: AppSpacing.miniPlayerHeight + AppSpacing.xl3,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -25,9 +25,12 @@ class DynamicBackground extends StatefulWidget {
   State<DynamicBackground> createState() => _DynamicBackgroundState();
 }
 
-class _DynamicBackgroundState extends State<DynamicBackground> with TickerProviderStateMixin {
+class _DynamicBackgroundState extends State<DynamicBackground>
+    with TickerProviderStateMixin {
   static const _defaultColorA = Color(0xFF7B4D91);
   static const _defaultColorB = Color(0xFF4A244F);
+  static const _maxPaletteCacheEntries = 48;
+  static final Map<String, _CachedPalette> _paletteCache = {};
 
   late AnimationController _ctrl;
   late AnimationController _paletteCtrl;
@@ -40,15 +43,16 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 10.seconds)..repeat(reverse: true);
+    _ctrl = AnimationController(vsync: this, duration: 10.seconds)
+      ..repeat(reverse: true);
     _paletteCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 680),
     )..value = 1;
     if (widget.artworkPath == null) {
-      _animatePaletteTo(_defaultColorA, _defaultColorB);
+      _setPaletteImmediately(_defaultColorA, _defaultColorB);
     } else {
-      _extractColor(widget.artworkPath!);
+      _hydrateOrExtract(widget.artworkPath!);
     }
   }
 
@@ -58,10 +62,20 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
     if (old.artworkPath != widget.artworkPath) {
       if (widget.artworkPath == null) {
         _paletteRequestId++;
+        _animatePaletteTo(_defaultColorA, _defaultColorB);
         return;
       }
-      _extractColor(widget.artworkPath!);
+      _hydrateOrExtract(widget.artworkPath!);
     }
+  }
+
+  void _hydrateOrExtract(String path) {
+    final cached = _paletteCache[_cacheKey(path)];
+    if (cached != null) {
+      _setPaletteImmediately(cached.colorA, cached.colorB);
+      return;
+    }
+    _extractColor(path);
   }
 
   Future<void> _extractColor(String path) async {
@@ -79,7 +93,10 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
 
       // Prend une deuxième teinte (vibrant si dispo) pour l'animation
       final secondary =
-          palette.vibrantColor?.color ?? palette.lightVibrantColor?.color ?? palette.mutedColor?.color ?? dominant;
+          palette.vibrantColor?.color ??
+          palette.lightVibrantColor?.color ??
+          palette.mutedColor?.color ??
+          dominant;
 
       Color tune(
         Color c, {
@@ -117,11 +134,30 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
       )!;
 
       if (!mounted || requestId != _paletteRequestId) return;
+      _rememberPalette(path, top1, top2);
       _animatePaletteTo(top1, top2);
     } catch (_) {
       /* fichier inaccessible ou palette vide */
     }
   }
+
+  void _setPaletteImmediately(Color colorA, Color colorB) {
+    _fromColorA = colorA;
+    _fromColorB = colorB;
+    _toColorA = colorA;
+    _toColorB = colorB;
+    _paletteCtrl.value = 1;
+  }
+
+  void _rememberPalette(String path, Color colorA, Color colorB) {
+    final key = _cacheKey(path);
+    _paletteCache[key] = _CachedPalette(colorA: colorA, colorB: colorB);
+    if (_paletteCache.length > _maxPaletteCacheEntries) {
+      _paletteCache.remove(_paletteCache.keys.first);
+    }
+  }
+
+  String _cacheKey(String path) => '${widget.tone.name}|$path';
 
   void _animatePaletteTo(Color nextA, Color nextB) {
     final currentA = Color.lerp(_fromColorA, _toColorA, _paletteCtrl.value)!;
@@ -215,7 +251,9 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  stops: immersive ? const [0.0, 0.24, 0.52, 0.76, 1.0] : const [0.0, 0.26, 0.56, 0.8, 1.0],
+                  stops: immersive
+                      ? const [0.0, 0.24, 0.52, 0.76, 1.0]
+                      : const [0.0, 0.26, 0.56, 0.8, 1.0],
                   colors: [
                     Colors.black.withValues(alpha: 0.0),
                     Colors.black.withValues(alpha: immersive ? 0.08 : 0.04),
@@ -233,4 +271,11 @@ class _DynamicBackgroundState extends State<DynamicBackground> with TickerProvid
       child: widget.child,
     );
   }
+}
+
+final class _CachedPalette {
+  final Color colorA;
+  final Color colorB;
+
+  const _CachedPalette({required this.colorA, required this.colorB});
 }

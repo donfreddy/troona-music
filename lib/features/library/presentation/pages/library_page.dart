@@ -18,7 +18,6 @@ import 'package:troona/features/library/presentation/widgets/track_list_tile.dar
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
-import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
@@ -45,126 +44,95 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fond : artwork flouté de la piste en cours (si player actif)
-      // Sinon fond système. Géré par BlurredArtworkBackground.
       backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // ── Fond dynamique artwork ──────────────────────
-          BlocSelector<PlayerBloc, PlayerState, String?>(
-            selector: (s) => switch (s) {
-              PlayerActive(:final currentTrack) => currentTrack.artworkPath,
-              PlayerLoading(:final track) => track.artworkPath,
-              _ => null,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          // Header large title iOS
+          BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
+            selector: _selectedFilterFromState,
+            builder: (context, filter) => CustomSliverHeader(
+              title: 'Bibliothèque',
+              actions: [
+                _SortButton(),
+                IconButton(
+                  icon: const Icon(CupertinoIcons.arrow_clockwise),
+                  onPressed: () => context.read<LibraryBloc>().add(
+                    const LibraryRefreshRequested(),
+                  ),
+                ),
+              ],
+              bottom: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LibrarySegmentControl(
+                    selected: filter,
+                    onChanged: (f) => context.read<LibraryBloc>().add(
+                      LibraryFilterChanged(f),
+                    ),
+                  ),
+                ],
+              ),
+              bottomHeight: AppSpacing.tabBarHeight + AppSpacing.sm,
+              expandedHeight: 136,
+            ),
+          ),
+
+          // Barre de progression scan (hauteur 0 si pas de scan)
+          SliverToBoxAdapter(
+            child: BlocBuilder<LibraryBloc, LibraryState>(
+              buildWhen: (prev, curr) =>
+                  (prev is LibraryScanning) != (curr is LibraryScanning) ||
+                  (prev is LibraryScanning &&
+                      curr is LibraryScanning &&
+                      prev.progress != curr.progress),
+              builder: (_, state) {
+                if (state is! LibraryScanning) {
+                  return const SizedBox.shrink();
+                }
+                return _ScanBanner(progress: state.progress);
+              },
+            ),
+          ),
+
+          // Corps principal switché sur le state
+          BlocBuilder<LibraryBloc, LibraryState>(
+            buildWhen: (prev, curr) => _bodyKey(prev) != _bodyKey(curr),
+            builder: (context, state) => switch (state) {
+              LibraryInitial() => const SliverFillRemaining(
+                child: _FirstLaunchEmpty(),
+              ),
+
+              LibraryScanning(:final cached) when cached == null =>
+                SliverList.builder(
+                  itemCount: 20,
+                  itemBuilder: (_, _) => const TrackShimmer(),
+                ),
+
+              LibraryScanning(:final cached) => _LibraryBody(loaded: cached!),
+
+              LibraryLoaded() => _LibraryBody(loaded: state),
+
+              LibraryError(:final lastLoaded) when lastLoaded != null =>
+                _LibraryBody(loaded: lastLoaded),
+
+              LibraryError() => SliverFillRemaining(
+                child: ErrorView(
+                  message: state.message,
+                  onRetry: () => context.read<LibraryBloc>().add(
+                    const LibraryScanRequested(),
+                  ),
+                ),
+              ),
             },
-            builder: (_, artworkPath) => DynamicBackground(
-              artworkPath: artworkPath,
-              tone: DynamicBackgroundTone.ambient,
-              child: const SizedBox.expand(),
-            ),
           ),
 
-          // ── Contenu principal ───────────────────────────
-          CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              // Header large title iOS
-              BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
-                selector: _selectedFilterFromState,
-                builder: (context, filter) => CustomSliverHeader(
-                  title: 'Bibliothèque',
-                  actions: [
-                    _SortButton(),
-                    IconButton(
-                      icon: const Icon(CupertinoIcons.arrow_clockwise),
-                      onPressed: () => context.read<LibraryBloc>().add(
-                        const LibraryRefreshRequested(),
-                      ),
-                    ),
-                  ],
-                  bottom: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      LibrarySegmentControl(
-                        selected: filter,
-                        onChanged: (f) => context.read<LibraryBloc>().add(
-                          LibraryFilterChanged(f),
-                        ),
-                      ),
-                    ],
-                  ),
-                  bottomHeight: AppSpacing.tabBarHeight + AppSpacing.sm,
-                  expandedHeight: 136,
-                ),
-              ),
-
-              // Barre de progression scan (hauteur 0 si pas de scan)
-              SliverToBoxAdapter(
-                child: BlocBuilder<LibraryBloc, LibraryState>(
-                  buildWhen: (prev, curr) =>
-                      (prev is LibraryScanning) != (curr is LibraryScanning) ||
-                      (prev is LibraryScanning &&
-                          curr is LibraryScanning &&
-                          prev.progress != curr.progress),
-                  builder: (_, state) {
-                    if (state is! LibraryScanning) {
-                      return const SizedBox.shrink();
-                    }
-                    return _ScanBanner(progress: state.progress);
-                  },
-                ),
-              ),
-
-              // Corps principal switché sur le state
-              BlocBuilder<LibraryBloc, LibraryState>(
-                buildWhen: (prev, curr) => _bodyKey(prev) != _bodyKey(curr),
-                builder: (context, state) => switch (state) {
-                  LibraryInitial() => const SliverFillRemaining(
-                    child: _FirstLaunchEmpty(),
-                  ),
-
-                  LibraryScanning(:final cached) when cached == null =>
-                    SliverList.builder(
-                      itemCount: 20,
-                      itemBuilder: (_, _) => const TrackShimmer(),
-                    ),
-
-                  LibraryScanning(:final cached) => _LibraryBody(
-                    loaded: cached!,
-                  ),
-
-                  LibraryLoaded() => _LibraryBody(loaded: state),
-
-                  LibraryError(:final lastLoaded) when lastLoaded != null =>
-                    _LibraryBody(loaded: lastLoaded),
-
-                  LibraryError() => SliverFillRemaining(
-                    child: ErrorView(
-                      message: state.message,
-                      onRetry: () => context.read<LibraryBloc>().add(
-                        const LibraryScanRequested(),
-                      ),
-                    ),
-                  ),
-                },
-              ),
-
-              // Padding bas pour le mini player
-              const SliverPadding(
-                padding: EdgeInsets.only(
-                  bottom: AppSpacing.miniPlayerHeight + 16,
-                ),
-              ),
-            ],
+          // Padding bas pour le mini player
+          const SliverPadding(
+            padding: EdgeInsets.only(bottom: AppSpacing.miniPlayerHeight + 16),
           ),
-
-          // ── Mini player persistant ──────────────────────
-          // const Positioned(
-          //   bottom: 0, left: 0, right: 0,
-          //   child: MiniPlayer(),
-          // ),
         ],
       ),
     );
