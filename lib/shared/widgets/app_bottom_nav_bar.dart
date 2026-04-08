@@ -154,7 +154,6 @@ class _NavBarBody extends StatelessWidget {
                         child: _CenterArtworkSlot(
                           track: playerState?.currentTrack,
                           isPlaying: playerState?.isPlaying ?? false,
-                          onTap: () => _openFullPlayer(context),
                         ),
                       );
                     }
@@ -213,6 +212,7 @@ class _MiniPlayerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final glass = GlassTheme.miniPlayer(context);
 
     return GestureDetector(
       onTap: () => _openFullPlayer(context),
@@ -225,40 +225,40 @@ class _MiniPlayerRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Transform.translate(
         offset: const Offset(0, -1),
-        child: Container(
-          height: 64,
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            //color: Colors.black.withValues(alpha: .38),
-            border: Border.all(color: Colors.white.withValues(alpha: .11)),
-            // boxShadow: [
-            //   BoxShadow(color: Colors.black.withValues(alpha: .30), blurRadius: 18, offset: const Offset(0, 8)),
-            //   BoxShadow(color: colors.accent.withValues(alpha: .10), blurRadius: 22, spreadRadius: -8),
-            // ],
-          ),
-          child: ClipRRect(
-            borderRadius: radius,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+        child: Hero(
+          tag: 'track_${state.currentTrack.id}',
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              //color: Colors.black.withValues(alpha: .38),
+              border: Border.all(color: Colors.white.withValues(alpha: .11)),
+              // boxShadow: [
+              //   BoxShadow(color: Colors.black.withValues(alpha: .30), blurRadius: 18, offset: const Offset(0, 8)),
+              //   BoxShadow(color: colors.accent.withValues(alpha: .10), blurRadius: 22, spreadRadius: -8),
+              // ],
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                      ),
                     ),
                   ),
-                ),
-                _MiniPlayerProgressFill(progressTint: Colors.white70.withValues(alpha: .0001)),
-                Row(
-                  children: [
-                    const SizedBox(width: 12),
-
-                    // ── Artwork thumbnail with Hero ────────────────────────
-                    Hero(
-                      tag: 'artwork_${state.currentTrack.id}',
-                      child: SizedBox.square(
+                  _MiniPlayerProgressFill(progressTint: glass.highlight.withValues(alpha: .02)),
+                  Row(
+                    children: [
+                      const SizedBox(width: 12),
+          
+                      // ── Artwork thumbnail ────────────────────────
+                      SizedBox.square(
                         dimension: 42,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
@@ -270,54 +270,54 @@ class _MiniPlayerRow extends StatelessWidget {
                                 ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // ── Track title and artist ─────────────────────────────
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            state.currentTrack.title,
-                            style: TextStyle(color: colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w600),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            state.currentTrack.artist,
-                            style: TextStyle(color: colors.labelSecondary, fontSize: 11),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+          
+                      const SizedBox(width: 12),
+          
+                      // ── Track title and artist ─────────────────────────────
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              state.currentTrack.title,
+                              style: TextStyle(color: colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              state.currentTrack.artist,
+                              style: TextStyle(color: colors.labelSecondary, fontSize: 11),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-
-                    // ── Play / Pause ───────────────────────────────────────
-                    CupertinoButton(
-                      padding: const EdgeInsets.all(10),
-                      onPressed: () => context.read<PlayerBloc>().add(
-                        state.isPlaying ? const PauseRequested() : const ResumeRequested(),
+          
+                      // ── Play / Pause ───────────────────────────────────────
+                      CupertinoButton(
+                        padding: const EdgeInsets.all(10),
+                        onPressed: () => context.read<PlayerBloc>().add(
+                          state.isPlaying ? const PauseRequested() : const ResumeRequested(),
+                        ),
+                        child: Icon(
+                          state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
+                          color: colors.labelPrimary,
+                          size: 22,
+                        ),
                       ),
-                      child: Icon(
-                        state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
-                        color: colors.labelPrimary,
-                        size: 22,
+          
+                      // ── Skip next ──────────────────────────────────────────
+                      CupertinoButton(
+                        padding: const EdgeInsets.only(right: 12),
+                        onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
+                        child: Icon(EvaIcons.skipForward, color: colors.labelPrimary, size: 22),
                       ),
-                    ),
-
-                    // ── Skip next ──────────────────────────────────────────
-                    CupertinoButton(
-                      padding: const EdgeInsets.only(right: 12),
-                      onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
-                      child: Icon(EvaIcons.skipForward, color: colors.labelPrimary, size: 22),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -389,43 +389,38 @@ void _openFullPlayer(BuildContext context) {
 class _CenterArtworkSlot extends StatelessWidget {
   final Track? track;
   final bool isPlaying;
-  final VoidCallback onTap;
 
-  const _CenterArtworkSlot({required this.track, required this.isPlaying, required this.onTap});
+  const _CenterArtworkSlot({required this.track, required this.isPlaying});
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = context.colors.accent;
+    // final accentColor = context.colors.accent;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox.expand(
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            // Accent glow ring behind the artwork when playing.
-            if (isPlaying)
-              Positioned(
-                top: -8,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 400),
-                  width: 66,
-                  height: 66,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: accentColor.withValues(alpha: .40), blurRadius: 24, spreadRadius: 4)],
-                  ),
-                ),
-              ),
-
-            // Rotating artwork disc — elevated 12 px above the bar surface.
-            Positioned(
-              child: RotatingArtwork(track: track, isPlaying: isPlaying, size: 56),
-            ),
-          ],
-        ),
+    return SizedBox.expand(
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          // Accent glow ring behind the artwork when playing.
+          // if (isPlaying)
+          //   Positioned(
+          //     top: -8,
+          //     child: AnimatedContainer(
+          //       duration: const Duration(milliseconds: 400),
+          //       width: 66,
+          //       height: 66,
+          //       decoration: BoxDecoration(
+          //         shape: BoxShape.circle,
+          //         boxShadow: [BoxShadow(color: accentColor.withValues(alpha: .40), blurRadius: 24, spreadRadius: 4)],
+          //       ),
+          //     ),
+          //   ),
+    
+          // Rotating artwork disc — elevated 12 px above the bar surface.
+          Positioned(
+            child: RotatingArtwork(track: track, isPlaying: isPlaying, size: 56),
+          ),
+        ],
       ),
     );
   }

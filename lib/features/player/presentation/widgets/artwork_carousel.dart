@@ -161,15 +161,12 @@ class _ArtworkItem extends StatelessWidget {
         ],
 
         // ── Artwork rond ──────────────────────────────────
-        Hero(
-          tag: 'artwork_${track.id}',
-          child: ClipOval(
-            child: SizedBox.square(
-              dimension: isActive ? artSize : artSize * 0.72,
-              child: track.artworkPath != null
-                  ? Image.file(File(track.artworkPath!), fit: BoxFit.cover)
-                  : const _ArtworkPlaceholder(),
-            ),
+        ClipOval(
+          child: SizedBox.square(
+            dimension: isActive ? artSize : artSize * 0.72,
+            child: track.artworkPath != null
+                ? Image.file(File(track.artworkPath!), fit: BoxFit.cover)
+                : const _ArtworkPlaceholder(),
           ),
         ),
 

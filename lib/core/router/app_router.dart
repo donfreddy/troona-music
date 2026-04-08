@@ -7,6 +7,7 @@ import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/pages/library_page.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -64,23 +65,19 @@ final appRouter = GoRouter(
           ),
         ),
         GoRoute(
-          path: '/settings',
-          builder: (context, _) => BlocProvider(
-            create: (_) => getIt<SettingsCubit>()..load(),
-            child: const SettingsPage(),
-          ),
-        ),
-        GoRoute(
-          path: '/queue',
-          builder: (_, _) => const _StubPage(title: 'Queue'),
+          path: '/library',
+          builder: (_, _) => LibraryPage(),
         ),
         GoRoute(
           path: '/search',
           builder: (_, _) => const _StubPage(title: 'Search'),
         ),
         GoRoute(
-          path: '/visualizer',
-          builder: (_, _) => const _StubPage(title: 'Now Playing'),
+          path: '/settings',
+          builder: (context, _) => BlocProvider(
+            create: (_) => getIt<SettingsCubit>()..load(),
+            child: const SettingsPage(),
+          ),
         ),
       ],
     ),

@@ -164,94 +164,97 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                 }
               },
               child: Scaffold(
-                backgroundColor: Colors.black,
+                //backgroundColor: Colors.black,
                 body: BlocBuilder<PlayerBloc, PlayerState>(
                   builder: (context, state) {
                     final track = _resolveTrack(state);
 
-                    return Stack(
-                      children: [
-                        // Dynamic background
-                        DynamicBackground(
-                          artworkPath: track?.artworkPath,
-                          tone: DynamicBackgroundTone.immersive,
-                          child: const SizedBox.expand(),
-                        ),
-
-                        // Scrollable content
-                        SafeArea(
-                          bottom: false,
-                          child: Column(
-                            children: [
-                              // Top bar: dismiss + drag indicator + options
-                              _TopBar(),
-
-                              const SizedBox(height: AppSpacing.lg),
-
-                              // Track info + like
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.xl2,
+                    return Hero(
+                      tag: 'track_${track?.id}',
+                      child: Stack(
+                        children: [
+                          // Dynamic background
+                          DynamicBackground(
+                            artworkPath: track?.artworkPath,
+                            tone: DynamicBackgroundTone.immersive,
+                            child: const SizedBox.expand(),
+                          ),
+                      
+                          // Scrollable content
+                          SafeArea(
+                            bottom: false,
+                            child: Column(
+                              children: [
+                                // Top bar: dismiss + drag indicator + options
+                                _TopBar(),
+                      
+                                const SizedBox(height: AppSpacing.lg),
+                      
+                                // Track info + like
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.xl2,
+                                  ),
+                                  child: _TrackInfo(track: track),
                                 ),
-                                child: _TrackInfo(track: track),
-                              ),
-
-                              const SizedBox(height: AppSpacing.lg),
-
-                              // Artwork carousel
-                              if (state is PlayerActive)
-                                ArtworkCarousel(
-                                  queue: state.queue.playbackTracks,
-                                  currentIndex: state.queue.currentIndex,
-                                  onPageChanged: _onCarouselPageChanged,
-                                )
-                              else if (track != null)
+                      
+                                const SizedBox(height: AppSpacing.lg),
+                      
+                                // Artwork carousel
+                                if (state is PlayerActive)
+                                  ArtworkCarousel(
+                                    queue: state.queue.playbackTracks,
+                                    currentIndex: state.queue.currentIndex,
+                                    onPageChanged: _onCarouselPageChanged,
+                                  )
+                                else if (track != null)
+                                  const SizedBox(height: AppSpacing.xl2),
+                      
+                                // Playback controls
+                                const PlayerControls(),
+                      
                                 const SizedBox(height: AppSpacing.xl2),
-
-                              // Playback controls
-                              const PlayerControls(),
-
-                              const SizedBox(height: AppSpacing.xl2),
-                            ],
-                          ),
-                        ),
-
-                        // Nav bar at bottom — mini player hidden
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(
-                              12,
-                              0,
-                              12,
-                              safeBottom + 12,
-                            ),
-                            child: AppBottomNavBar(
-                              currentTab: AppTab.player,
-                              showMiniPlayer: false,
-                              onTabChanged: (tab) {
-                                switch (tab) {
-                                  case AppTab.home:
-                                    _leaveFullPlayerTo(context, '/home');
-                                  case AppTab.queue:
-                                    _leaveFullPlayerTo(context, '/queue');
-                                  case AppTab.search:
-                                    _leaveFullPlayerTo(context, '/search');
-                                  case AppTab.visualizer:
-                                    _leaveFullPlayerTo(
-                                      context,
-                                      '/visualizer',
-                                    );
-                                  case AppTab.player:
-                                    break;
-                                }
-                              },
+                              ],
                             ),
                           ),
-                        ),
-                      ],
+                      
+                          // Nav bar at bottom — mini player hidden
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                12,
+                                0,
+                                12,
+                                safeBottom + 12,
+                              ),
+                              child: AppBottomNavBar(
+                                currentTab: AppTab.player,
+                                showMiniPlayer: false,
+                                onTabChanged: (tab) {
+                                  switch (tab) {
+                                    case AppTab.home:
+                                      _leaveFullPlayerTo(context, '/home');
+                                    case AppTab.queue:
+                                      _leaveFullPlayerTo(context, '/queue');
+                                    case AppTab.search:
+                                      _leaveFullPlayerTo(context, '/search');
+                                    case AppTab.visualizer:
+                                      _leaveFullPlayerTo(
+                                        context,
+                                        '/visualizer',
+                                      );
+                                    case AppTab.player:
+                                      break;
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),

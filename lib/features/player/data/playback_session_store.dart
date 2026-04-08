@@ -29,27 +29,27 @@ final class PlaybackSessionSnapshot {
   });
 
   Map<String, Object?> toJson() => {
-    'currentTrackId': currentTrackId,
-    'originalTrackIds': originalTrackIds,
-    'playbackTrackIds': playbackTrackIds,
-    'currentIndex': currentIndex,
-    'positionMs': positionMs,
-    'wasPlaying': wasPlaying,
-    'shuffleEnabled': shuffleEnabled,
-    'repeatMode': repeatMode.index,
+    'current_track_id': currentTrackId,
+    'original_track_ids': originalTrackIds,
+    'playback_track_ids': playbackTrackIds,
+    'current_index': currentIndex,
+    'position_ms': positionMs,
+    'was_playing': wasPlaying,
+    'shuffle_enabled': shuffleEnabled,
+    'repeat_mode': repeatMode.index,
     'volume': volume,
     'speed': speed,
   };
 
   static PlaybackSessionSnapshot? fromJson(Map<String, dynamic> json) {
-    final currentTrackId = json['currentTrackId'];
-    final originalTrackIds = json['originalTrackIds'];
-    final playbackTrackIds = json['playbackTrackIds'];
-    final currentIndex = json['currentIndex'];
-    final positionMs = json['positionMs'];
-    final wasPlaying = json['wasPlaying'];
-    final shuffleEnabled = json['shuffleEnabled'];
-    final repeatModeIndex = json['repeatMode'];
+    final currentTrackId = json['current_track_id'];
+    final originalTrackIds = json['original_track_ids'];
+    final playbackTrackIds = json['playback_track_ids'];
+    final currentIndex = json['current_index'];
+    final positionMs = json['position_ms'];
+    final wasPlaying = json['was_playing'];
+    final shuffleEnabled = json['shuffle_enabled'];
+    final repeatModeIndex = json['repeat_mode'];
     final volume = json['volume'];
     final speed = json['speed'];
 
@@ -112,13 +112,9 @@ final class PlaybackSessionStore {
 
   bool get wasFullPlayerOpen => _prefs.getBool(_fullPlayerOpenKey) ?? false;
 
-  Future<void> setFullPlayerOpen(bool value) =>
-      _prefs.setBool(_fullPlayerOpenKey, value);
+  Future<void> setFullPlayerOpen(bool value) => _prefs.setBool(_fullPlayerOpenKey, value);
 
   Future<void> clear() async {
-    await Future.wait([
-      _prefs.remove(_sessionKey),
-      _prefs.remove(_fullPlayerOpenKey),
-    ]);
+    await Future.wait([_prefs.remove(_sessionKey), _prefs.remove(_fullPlayerOpenKey)]);
   }
 }
