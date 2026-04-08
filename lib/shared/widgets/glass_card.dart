@@ -79,28 +79,119 @@ class _GlassDecoration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: config.fill,
+    return CustomPaint(
+      foregroundPainter: _GlassBorderPainter(
         borderRadius: config.borderRadius,
-        // Three-layer border simulates the iOS luminosity highlight:
-        //   top   — bright edge (primary light-source reflection)
-        //   left  — subtle diagonal sheen
-        //   bottom/right — near-transparent (shadowed edges)
-        border: Border(
-          top: BorderSide(color: config.border, width: config.borderWidth),
-          left: BorderSide(color: config.highlight, width: config.borderWidth),
-          bottom: BorderSide(
-            color: config.highlight.withValues(alpha: .05),
-            width: 0.5,
-          ),
-          right: BorderSide(
-            color: config.highlight.withValues(alpha: .05),
-            width: 0.5,
-          ),
-        ),
+        topColor: config.border,
+        leftColor: config.highlight,
+        bottomColor: config.highlight.withValues(alpha: .05),
+        rightColor: config.highlight.withValues(alpha: .05),
+        topWidth: config.borderWidth,
+        leftWidth: config.borderWidth,
+        bottomWidth: 0.5,
+        rightWidth: 0.5,
       ),
-      child: child,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: config.fill,
+          borderRadius: config.borderRadius,
+        ),
+        child: child,
+      ),
     );
   }
+}
+
+class _GlassBorderPainter extends CustomPainter {
+  final BorderRadius borderRadius;
+  final Color topColor;
+  final Color leftColor;
+  final Color bottomColor;
+  final Color rightColor;
+  final double topWidth;
+  final double leftWidth;
+  final double bottomWidth;
+  final double rightWidth;
+
+  const _GlassBorderPainter({
+    required this.borderRadius,
+    required this.topColor,
+    required this.leftColor,
+    required this.bottomColor,
+    required this.rightColor,
+    required this.topWidth,
+    required this.leftWidth,
+    required this.bottomWidth,
+    required this.rightWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+
+    _paintEdge(
+      canvas,
+      rect,
+      Rect.fromLTWH(0, 0, size.width, size.height / 2),
+      topColor,
+      topWidth,
+    );
+    _paintEdge(
+      canvas,
+      rect,
+      Rect.fromLTWH(0, 0, size.width / 2, size.height),
+      leftColor,
+      leftWidth,
+    );
+    _paintEdge(
+      canvas,
+      rect,
+      Rect.fromLTWH(0, size.height / 2, size.width, size.height / 2),
+      bottomColor,
+      bottomWidth,
+    );
+    _paintEdge(
+      canvas,
+      rect,
+      Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height),
+      rightColor,
+      rightWidth,
+    );
+  }
+
+  void _paintEdge(
+    Canvas canvas,
+    Rect rect,
+    Rect clipRect,
+    Color color,
+    double width,
+  ) {
+    if (width <= 0 || color.a == 0) return;
+
+    final strokeRect = rect.deflate(width / 2);
+    if (strokeRect.width <= 0 || strokeRect.height <= 0) return;
+
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = width
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = true;
+
+    canvas.save();
+    canvas.clipRect(clipRect);
+    canvas.drawRRect(borderRadius.toRRect(strokeRect), paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _GlassBorderPainter oldDelegate) =>
+      oldDelegate.borderRadius != borderRadius ||
+      oldDelegate.topColor != topColor ||
+      oldDelegate.leftColor != leftColor ||
+      oldDelegate.bottomColor != bottomColor ||
+      oldDelegate.rightColor != rightColor ||
+      oldDelegate.topWidth != topWidth ||
+      oldDelegate.leftWidth != leftWidth ||
+      oldDelegate.bottomWidth != bottomWidth ||
+      oldDelegate.rightWidth != rightWidth;
 }

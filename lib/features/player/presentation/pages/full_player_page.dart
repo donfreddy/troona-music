@@ -237,14 +237,14 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                                   switch (tab) {
                                     case AppTab.home:
                                       _leaveFullPlayerTo(context, '/home');
-                                    case AppTab.queue:
-                                      _leaveFullPlayerTo(context, '/queue');
+                                    case AppTab.library:
+                                      _leaveFullPlayerTo(context, '/library');
                                     case AppTab.search:
                                       _leaveFullPlayerTo(context, '/search');
-                                    case AppTab.visualizer:
+                                    case AppTab.settings:
                                       _leaveFullPlayerTo(
                                         context,
-                                        '/visualizer',
+                                        '/settings',
                                       );
                                     case AppTab.player:
                                       break;

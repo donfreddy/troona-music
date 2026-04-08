@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
@@ -16,57 +18,171 @@ class LibrarySegmentControl extends StatelessWidget {
   });
 
   static const _tabs = [
-    (LibraryFilter.all, 'Tout'),
-    (LibraryFilter.tracks, 'Titres'),
-    (LibraryFilter.albums, 'Albums'),
-    (LibraryFilter.artists, 'Artistes'),
+    (LibraryFilter.all, 'Tout', CupertinoIcons.square_grid_2x2_fill),
+    (LibraryFilter.tracks, 'Titres', CupertinoIcons.music_note_list),
+    (LibraryFilter.albums, 'Albums', CupertinoIcons.square_stack_fill),
+    (LibraryFilter.artists, 'Artistes', CupertinoIcons.person_2_fill),
   ];
+
+  static const _animationDuration = Duration(milliseconds: 320);
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final baseConfig = GlassTheme.card(context);
+
+    return GlassCard(
+      config: GlassConfig(
+        blurSigma: baseConfig.blurSigma,
+        fill: baseConfig.fill,
+        border: baseConfig.border,
+        highlight: baseConfig.highlight,
+        borderWidth: baseConfig.borderWidth,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        padding: const EdgeInsets.all(4),
+      ),
+      child: SizedBox(
+        height: AppSpacing.tabBarHeight - 8,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final selectedIndex = _tabs.indexWhere((tab) => tab.$1 == selected);
+            final tabWidth = constraints.maxWidth / _tabs.length;
+
+            return Stack(
+              children: [
+                AnimatedPositioned(
+                  duration: _animationDuration,
+                  curve: Curves.easeOutCubic,
+                  left: selectedIndex * tabWidth,
+                  top: 0,
+                  bottom: 0,
+                  width: tabWidth,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colors.accent.withValues(alpha: .26),
+                            colors.accent.withValues(alpha: .16),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
+                        border: Border.all(
+                          color: colors.accent.withValues(alpha: .24),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.accent.withValues(alpha: .10),
+                            blurRadius: 16,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                Row(
+                  children: _tabs.map((tab) {
+                    final (filter, label, icon) = tab;
+                    final isSelected = selected == filter;
+
+                    return Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: isSelected,
+                        label: label,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            if (isSelected) return;
+                            HapticFeedback.selectionClick();
+                            onChanged(filter);
+                          },
+                          child: _SegmentTabItem(
+                            label: label,
+                            icon: icon,
+                            isSelected: isSelected,
+                            duration: _animationDuration,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _SegmentTabItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final Duration duration;
+
+  const _SegmentTabItem({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.duration,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return GlassCard(
-      // config: GlassTheme.card(
-      //   context,
-      // ).copyWith(padding: EdgeInsets.zero, borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-      child: Row(
-        children: _tabs.map((tab) {
-          final (filter, label) = tab;
-          final isSelected = selected == filter;
-
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(filter),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                height: 36,
-                decoration: BoxDecoration(
+    return Center(
+      child: AnimatedScale(
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        scale: isSelected ? 1 : .96,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: 5,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedSlide(
+                duration: duration,
+                curve: Curves.easeOutCubic,
+                offset: Offset(0, isSelected ? -.04 : 0),
+                child: Icon(
+                  icon,
+                  size: 17,
                   color: isSelected
-                      ? colors.accent.withValues(alpha: .15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child: Center(
-                  child: AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 200),
-                    style: (isSelected
-                        ? context.textTheme.labelLarge!.copyWith(
-                            color: colors.accent,
-                            fontWeight: FontWeight.w600,
-                          )
-                        : context.textTheme.labelLarge!.copyWith(
-                            color: colors.labelSecondary,
-                          )),
-                    child: Text(label),
-                  ),
+                      ? colors.labelPrimary
+                      : colors.labelTertiary,
                 ),
               ),
-            ),
-          );
-        }).toList(),
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: duration,
+                curve: Curves.easeOutCubic,
+                style: context.textTheme.labelMedium!.copyWith(
+                  color: isSelected
+                      ? colors.labelPrimary
+                      : colors.labelSecondary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  letterSpacing: isSelected ? -.1 : 0,
+                  height: 1.15,
+                ),
+                child: Text(label, maxLines: 1, overflow: TextOverflow.fade),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

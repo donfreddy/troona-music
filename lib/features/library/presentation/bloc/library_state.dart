@@ -4,7 +4,7 @@ sealed class LibraryState extends Equatable {
   const LibraryState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 /// Premier lancement — aucun scan jamais effectué
@@ -18,6 +18,15 @@ final class LibraryScanning extends LibraryState {
   final LibraryLoaded? cached; // données précédentes visibles pendant le scan
 
   const LibraryScanning({required this.progress, this.cached});
+
+  @override
+  List<Object?> get props => [
+    progress.phase,
+    progress.progress,
+    progress.count,
+    progress.total,
+    cached,
+  ];
 
   // Helpers exposés directement aux widgets
   String get phaseLabel => switch (progress.phase) {
@@ -80,6 +89,19 @@ final class LibraryLoaded extends LibraryState {
     filter: filter ?? this.filter,
     sort: sort ?? this.sort,
   );
+
+  @override
+  List<Object?> get props => [
+    allTracks,
+    allAlbums,
+    allArtists,
+    visibleTracks,
+    visibleAlbums,
+    visibleArtists,
+    searchQuery,
+    filter,
+    sort,
+  ];
 }
 
 /// Erreur récupérable
@@ -87,6 +109,9 @@ final class LibraryError extends LibraryState {
   final String message;
   final LibraryLoaded? lastLoaded; // affiche les données en cache si dispo
   const LibraryError({required this.message, this.lastLoaded});
+
+  @override
+  List<Object?> get props => [message, lastLoaded];
 }
 
 // ── Enums ─────────────────────────────────────────────────

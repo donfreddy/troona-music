@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
@@ -11,13 +12,13 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
-import 'package:troona/features/library/presentation/widgets/library_search_bar.dart';
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
 import 'package:troona/features/library/presentation/widgets/track_context_menu.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
@@ -50,7 +51,18 @@ class _LibraryPageState extends State<LibraryPage> {
       body: Stack(
         children: [
           // ── Fond dynamique artwork ──────────────────────
-          //const BlurredArtworkBackground(),
+          BlocSelector<PlayerBloc, PlayerState, String?>(
+            selector: (s) => switch (s) {
+              PlayerActive(:final currentTrack) => currentTrack.artworkPath,
+              PlayerLoading(:final track) => track.artworkPath,
+              _ => null,
+            },
+            builder: (_, artworkPath) => DynamicBackground(
+              artworkPath: artworkPath,
+              tone: DynamicBackgroundTone.ambient,
+              child: const SizedBox.expand(),
+            ),
+          ),
 
           // ── Contenu principal ───────────────────────────
           CustomScrollView(
@@ -60,8 +72,7 @@ class _LibraryPageState extends State<LibraryPage> {
             slivers: [
               // Header large title iOS
               BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
-                selector: (s) =>
-                    s is LibraryLoaded ? s.filter : LibraryFilter.all,
+                selector: _selectedFilterFromState,
                 builder: (context, filter) => CustomSliverHeader(
                   title: 'Bibliothèque',
                   actions: [
@@ -76,8 +87,6 @@ class _LibraryPageState extends State<LibraryPage> {
                   bottom: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const LibrarySearchBar(),
-                      const SizedBox(height: AppSpacing.sm),
                       LibrarySegmentControl(
                         selected: filter,
                         onChanged: (f) => context.read<LibraryBloc>().add(
@@ -86,7 +95,8 @@ class _LibraryPageState extends State<LibraryPage> {
                       ),
                     ],
                   ),
-                  expandedHeight: 180,
+                  bottomHeight: AppSpacing.tabBarHeight + AppSpacing.sm,
+                  expandedHeight: 136,
                 ),
               ),
 
@@ -165,17 +175,35 @@ class _LibraryPageState extends State<LibraryPage> {
     LibraryLoaded(
       :final visibleTracks,
       :final visibleAlbums,
+      :final visibleArtists,
       :final filter,
       :final sort,
       :final searchQuery,
     ) =>
-      (visibleTracks.length, visibleAlbums.length, filter, sort, searchQuery),
+      (
+        visibleTracks.length,
+        visibleAlbums.length,
+        visibleArtists.length,
+        filter,
+        sort,
+        searchQuery,
+      ),
     LibraryScanning(:final cached) => (
       'scanning',
       cached?.visibleTracks.length,
+      cached?.visibleAlbums.length,
+      cached?.visibleArtists.length,
+      cached?.filter,
     ),
     LibraryError() => 'error',
     LibraryInitial() => 'initial',
+  };
+
+  LibraryFilter _selectedFilterFromState(LibraryState state) => switch (state) {
+    LibraryLoaded(:final filter) => filter,
+    LibraryScanning(:final cached?) => cached.filter,
+    LibraryError(:final lastLoaded?) => lastLoaded.filter,
+    _ => LibraryFilter.all,
   };
 }
 
@@ -193,6 +221,25 @@ class _LibraryBody extends StatelessWidget {
       LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
     };
   }
+}
+
+Widget _animatedLibraryItem(
+  Widget child,
+  int index, {
+  double slideY = .08,
+  int stepMs = 40,
+}) {
+  final delay = Duration(milliseconds: (index * stepMs).clamp(0, 240));
+
+  return child
+      .animate(delay: delay)
+      .fadeIn(duration: 280.ms, curve: Curves.easeOutCubic)
+      .slideY(
+        begin: slideY,
+        end: 0,
+        duration: 360.ms,
+        curve: Curves.easeOutCubic,
+      );
 }
 
 // ── Vue "Tout" ────────────────────────────────────────────
@@ -222,8 +269,11 @@ class _AllView extends StatelessWidget {
                 itemCount: loaded.visibleAlbums.take(10).length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.md),
-                itemBuilder: (context, i) =>
-                    AlbumCard(album: loaded.visibleAlbums[i]),
+                itemBuilder: (context, i) => _animatedLibraryItem(
+                  AlbumCard(album: loaded.visibleAlbums[i]),
+                  i,
+                  slideY: .04,
+                ),
               ),
             ),
           ),
@@ -269,12 +319,22 @@ class _TracksView extends StatelessWidget {
       itemCount: tracks.length,
       separatorBuilder: (_, _) =>
           Divider(height: 0.5, indent: 72, color: context.colors.separator),
-      itemBuilder: (context, i) => TrackListTile(
-        track: tracks[i],
-        onTap: () => context.read<PlayerBloc>().add(
-          PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i),
+      itemBuilder: (context, i) => _animatedLibraryItem(
+        TrackListTile(
+          key: ValueKey(
+            'track-${tracks[i].id}-${compact ? 'compact' : 'full'}-$i',
+          ),
+          track: tracks[i],
+          onTap: () => context.read<PlayerBloc>().add(
+            PlayTrackRequested(
+              tracks[i],
+              contextQueue: tracks,
+              contextIndex: i,
+            ),
+          ),
+          onLongPress: () => _showContextMenu(context, tracks[i]),
         ),
-        onLongPress: () => _showContextMenu(context, tracks[i]),
+        i,
       ),
     );
   }
@@ -314,7 +374,14 @@ class _AlbumsView extends StatelessWidget {
           childAspectRatio: 0.82, // artwork carré + titre en dessous
         ),
         itemCount: albums.length,
-        itemBuilder: (context, i) => AlbumCard(album: albums[i]),
+        itemBuilder: (context, i) => _animatedLibraryItem(
+          AlbumCard(
+            key: ValueKey('album-${albums[i].id}-$i'),
+            album: albums[i],
+          ),
+          i,
+          slideY: .06,
+        ),
       ),
     );
   }
@@ -340,7 +407,13 @@ class _ArtistsView extends StatelessWidget {
       itemCount: artists.length,
       separatorBuilder: (_, _) =>
           Divider(height: 0.5, indent: 60, color: context.colors.separator),
-      itemBuilder: (context, i) => ArtistCard(artist: artists[i]),
+      itemBuilder: (context, i) => _animatedLibraryItem(
+        ArtistCard(
+          key: ValueKey('artist-${artists[i].id}-$i'),
+          artist: artists[i],
+        ),
+        i,
+      ),
     );
   }
 }
@@ -355,35 +428,39 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xl,
-          AppSpacing.lg,
-          AppSpacing.sm,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: context.textTheme.headlineSmall?.copyWith(
-                color: context.colors.labelPrimary,
-              ),
-            ),
-            if (onSeeAll != null)
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: onSeeAll,
-                child: Text(
-                  'Voir tout',
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: context.colors.accent,
-                  ),
+      child: _animatedLibraryItem(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.xl,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: context.textTheme.headlineSmall?.copyWith(
+                  color: context.colors.labelPrimary,
                 ),
               ),
-          ],
+              if (onSeeAll != null)
+                CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: onSeeAll,
+                  child: Text(
+                    'Voir tout',
+                    style: context.textTheme.labelLarge?.copyWith(
+                      color: context.colors.accent,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
+        0,
+        slideY: .05,
       ),
     );
   }

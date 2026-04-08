@@ -233,8 +233,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     LibrarySearchChanged event,
     Emitter<LibraryState> emit,
   ) {
-    if (state is! LibraryLoaded) return;
-    final current = state as LibraryLoaded;
+    final current = _loadedSnapshotOf(state);
+    if (current == null) return;
 
     // Recalcule en mémoire — le transformer sequential() garantit l'ordre
     final visible = _applyFilterAndSort(
@@ -246,7 +246,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       sort: current.sort,
     );
 
-    emit(
+    _emitUpdatedLoadedSnapshot(
+      emit,
       current.copyWith(
         searchQuery: event.query,
         visibleTracks: visible.$1,
@@ -260,8 +261,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     LibraryFilterChanged event,
     Emitter<LibraryState> emit,
   ) {
-    if (state is! LibraryLoaded) return;
-    final current = state as LibraryLoaded;
+    final current = _loadedSnapshotOf(state);
+    if (current == null) return;
 
     final visible = _applyFilterAndSort(
       tracks: current.allTracks,
@@ -272,7 +273,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       sort: current.sort,
     );
 
-    emit(
+    _emitUpdatedLoadedSnapshot(
+      emit,
       current.copyWith(
         filter: event.filter,
         visibleTracks: visible.$1,
@@ -283,8 +285,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   }
 
   void _onSortChanged(LibrarySortChanged event, Emitter<LibraryState> emit) {
-    if (state is! LibraryLoaded) return;
-    final current = state as LibraryLoaded;
+    final current = _loadedSnapshotOf(state);
+    if (current == null) return;
 
     final visible = _applyFilterAndSort(
       tracks: current.allTracks,
@@ -295,7 +297,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       sort: event.sort,
     );
 
-    emit(
+    _emitUpdatedLoadedSnapshot(
+      emit,
       current.copyWith(
         sort: event.sort,
         visibleTracks: visible.$1,
@@ -303,6 +306,29 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
         visibleArtists: visible.$3,
       ),
     );
+  }
+
+  LibraryLoaded? _loadedSnapshotOf(LibraryState state) => switch (state) {
+    LibraryLoaded() => state,
+    LibraryScanning(:final cached?) => cached,
+    LibraryError(:final lastLoaded?) => lastLoaded,
+    _ => null,
+  };
+
+  void _emitUpdatedLoadedSnapshot(
+    Emitter<LibraryState> emit,
+    LibraryLoaded updated,
+  ) {
+    switch (state) {
+      case LibraryLoaded():
+        emit(updated);
+      case LibraryScanning(:final progress):
+        emit(LibraryScanning(progress: progress, cached: updated));
+      case LibraryError(:final message):
+        emit(LibraryError(message: message, lastLoaded: updated));
+      default:
+        emit(updated);
+    }
   }
 
   // ══════════════════════════════════════════════════════════

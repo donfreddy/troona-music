@@ -32,10 +32,10 @@ import 'package:troona/features/player/presentation/widgets/rotating_artwork.dar
 /// the audio stream are ignored.
 enum AppTab {
   home,
-  queue,
+  library,
   player, // centre artwork slot — opens FullPlayer, not a real tab
   search,
-  visualizer,
+  settings,
 }
 
 class AppBottomNavBar extends StatefulWidget {
@@ -112,10 +112,10 @@ class _NavBarBody extends StatelessWidget {
 
   static const _tabs = [
     (AppTab.home, EvaIcons.home, 'Home'),
-    (AppTab.queue, EvaIcons.list, 'Queue'),
+    (AppTab.library, EvaIcons.list, 'Library'),
     (AppTab.player, null, null), // centre artwork slot
     (AppTab.search, EvaIcons.search, 'Search'),
-    (AppTab.visualizer, EvaIcons.activity, 'Now'),
+    (AppTab.settings, EvaIcons.activity, 'Settings'),
   ];
 
   @override

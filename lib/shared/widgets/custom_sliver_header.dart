@@ -11,6 +11,7 @@ class CustomSliverHeader extends StatelessWidget {
   final List<Widget> actions;
   final Widget? bottom; // search bar, segment control...
   final double expandedHeight;
+  final double bottomHeight;
 
   const CustomSliverHeader({
     super.key,
@@ -18,6 +19,7 @@ class CustomSliverHeader extends StatelessWidget {
     this.actions = const [],
     this.bottom,
     this.expandedHeight = 140,
+    this.bottomHeight = 0,
   });
 
   @override
@@ -29,6 +31,7 @@ class CustomSliverHeader extends StatelessWidget {
         actions: actions,
         bottom: bottom,
         expandedHeight: expandedHeight,
+        bottomHeight: bottom != null ? bottomHeight : 0,
         topPadding: MediaQuery.of(context).padding.top,
       ),
     );
@@ -42,29 +45,33 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
   final List<Widget> actions;
   final Widget? bottom;
   final double expandedHeight;
+  final double bottomHeight;
   final double topPadding;
 
   const _LargeTitleDelegate({
     required this.title,
     required this.actions,
     required this.expandedHeight,
+    required this.bottomHeight,
     required this.topPadding,
     this.bottom,
   });
 
+  static const _navBarHeight = 44.0;
+
   // Hauteur minimale = compact nav bar + safe area
   @override
-  double get minExtent => topPadding + 44 + (bottom != null ? 52 : 0);
+  double get minExtent => topPadding + _navBarHeight + bottomHeight;
 
   // Hauteur maximale = large title déplié
   @override
-  double get maxExtent =>
-      topPadding + expandedHeight + (bottom != null ? 52 : 0);
+  double get maxExtent => topPadding + expandedHeight + bottomHeight;
 
   @override
   bool shouldRebuild(_LargeTitleDelegate old) =>
       old.title != title ||
       old.expandedHeight != expandedHeight ||
+      old.bottomHeight != bottomHeight ||
       old.bottom != bottom;
 
   @override
@@ -75,8 +82,13 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
   ) {
     // 0.0 = complètement déplié, 1.0 = complètement replié
     final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final currentHeight = (maxExtent - shrinkOffset).clamp(
+      minExtent,
+      maxExtent,
+    );
     final colors = context.colors;
     final theme = Theme.of(context);
+    final largeTitleBottom = bottomHeight + AppSpacing.sm;
 
     return RepaintBoundary(
       child: ClipRect(
@@ -97,75 +109,81 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
                 ),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: topPadding),
+            child: SizedBox(
+              height: currentHeight,
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  // ── Compact nav bar (toujours présente) ──────────
+                  Positioned(
+                    top: topPadding,
+                    left: 0,
+                    right: 0,
+                    height: _navBarHeight,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Titre compact — apparaît en fadant au collapse
+                        Opacity(
+                          opacity: collapse,
+                          child: Text(
+                            title,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: colors.labelPrimary,
+                            ),
+                          ),
+                        ),
 
-                // ── Compact nav bar (toujours présente) ──────────
-                SizedBox(
-                  height: 44,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Titre compact — apparaît en fadant au collapse
-                      Opacity(
-                        opacity: collapse,
+                        // Actions à droite
+                        if (actions.isNotEmpty)
+                          Positioned(
+                            right: AppSpacing.lg,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: actions,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Large title — disparaît en fadant au collapse ──
+                  Positioned(
+                    left: AppSpacing.lg,
+                    right: AppSpacing.lg,
+                    bottom: largeTitleBottom,
+                    child: Opacity(
+                      opacity: (1 - collapse * 2).clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        // Glisse vers le haut en se repliant
+                        offset: Offset(0, -shrinkOffset * 0.3),
                         child: Text(
                           title,
-                          style: theme.textTheme.headlineSmall?.copyWith(
+                          style: theme.textTheme.displayLarge?.copyWith(
                             color: colors.labelPrimary,
                           ),
                         ),
                       ),
-
-                      // Actions à droite
-                      if (actions.isNotEmpty)
-                        Positioned(
-                          right: AppSpacing.lg,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: actions,
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
-                ),
 
-                // ── Large title — disparaît en fadant au collapse ──
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: AppSpacing.lg,
-                    right: AppSpacing.lg,
-                    bottom: AppSpacing.sm,
-                  ),
-                  child: Opacity(
-                    opacity: (1 - collapse * 2).clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      // Glisse vers le haut en se repliant
-                      offset: Offset(0, -shrinkOffset * 0.3),
-                      child: Text(
-                        title,
-                        style: theme.textTheme.displayLarge?.copyWith(
-                          color: colors.labelPrimary,
+                  // ── Bottom (search bar, segment control) ─────────
+                  if (bottom != null)
+                    Positioned(
+                      left: AppSpacing.lg,
+                      right: AppSpacing.lg,
+                      bottom: 0,
+                      height: bottomHeight,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: bottom!,
                         ),
                       ),
                     ),
-                  ),
-                ),
-
-                // ── Bottom (search bar, segment control) ─────────
-                if (bottom != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                    ),
-                    child: bottom!,
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
