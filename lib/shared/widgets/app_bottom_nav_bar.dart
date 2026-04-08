@@ -23,10 +23,6 @@ import 'package:troona/features/player/presentation/widgets/rotating_artwork.dar
 /// Both sections share one [BackdropFilter] / [RepaintBoundary], keeping the
 /// screen within the two-filter budget.
 ///
-/// **Hero transition**: the artwork thumbnail carries the tag
-/// `'artwork_<trackId>'` which matches [ArtworkCarousel] in [FullPlayerPage],
-/// producing a smooth expanding-circle animation when the full player opens.
-///
 /// **Rebuild strategy**: [BlocBuilder] is gated by [_navKey] — only the track
 /// ID and play/pause flag trigger a rebuild. Position / progress events from
 /// the audio stream are ignored.
@@ -39,6 +35,11 @@ enum AppTab {
 }
 
 class AppBottomNavBar extends StatefulWidget {
+  static const double miniPlayerRowHeight = 64;
+  static const double navRowHeight = 64;
+  static const double activeHeight = miniPlayerRowHeight + navRowHeight;
+  static const double floatingMargin = 12;
+
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
 
@@ -47,7 +48,12 @@ class AppBottomNavBar extends StatefulWidget {
   /// covers that role.
   final bool showMiniPlayer;
 
-  const AppBottomNavBar({super.key, required this.currentTab, required this.onTabChanged, this.showMiniPlayer = true});
+  const AppBottomNavBar({
+    super.key,
+    required this.currentTab,
+    required this.onTabChanged,
+    this.showMiniPlayer = true,
+  });
 
   @override
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
@@ -65,14 +71,18 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
         return _NavBarBody(
           currentTab: widget.currentTab,
           onTabChanged: widget.onTabChanged,
-          playerState: widget.showMiniPlayer ? resolvedPlayerState : null,
+          playerState: resolvedPlayerState,
+          showMiniPlayer: widget.showMiniPlayer,
         );
       },
     );
   }
 
   (String?, bool) _navKey(PlayerState s) => switch (s) {
-    PlayerActive(:final currentTrack, :final isPlaying) => (currentTrack.id, isPlaying),
+    PlayerActive(:final currentTrack, :final isPlaying) => (
+      currentTrack.id,
+      isPlaying,
+    ),
     PlayerLoading(:final track) => (track.id, true),
     _ => (null, false),
   };
@@ -107,8 +117,14 @@ class _NavBarBody extends StatelessWidget {
 
   /// Non-null when a track is active; drives the mini player row visibility.
   final PlayerActive? playerState;
+  final bool showMiniPlayer;
 
-  const _NavBarBody({required this.currentTab, required this.onTabChanged, required this.playerState});
+  const _NavBarBody({
+    required this.currentTab,
+    required this.onTabChanged,
+    required this.playerState,
+    required this.showMiniPlayer,
+  });
 
   static const _tabs = [
     (AppTab.home, EvaIcons.home, 'Home'),
@@ -122,7 +138,7 @@ class _NavBarBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final glass = GlassTheme.card(context);
     final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
-    final isActive = playerState != null;
+    final isMiniPlayerVisible = showMiniPlayer && playerState != null;
 
     final body = Container(
       decoration: BoxDecoration(
@@ -137,12 +153,14 @@ class _NavBarBody extends StatelessWidget {
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
-            child: isActive ? _MiniPlayerRow(state: playerState!, radius: radius) : const SizedBox.shrink(),
+            child: isMiniPlayerVisible
+                ? _MiniPlayerRow(state: playerState!, radius: radius)
+                : const SizedBox.shrink(),
           ),
 
           // ── Nav tabs row — always present ────────────────────────────────
           SizedBox(
-            height: 64,
+            height: AppBottomNavBar.navRowHeight,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -184,7 +202,11 @@ class _NavBarBody extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: glass.blurSigma, sigmaY: glass.blurSigma, tileMode: TileMode.clamp),
+          filter: ImageFilter.blur(
+            sigmaX: glass.blurSigma,
+            sigmaY: glass.blurSigma,
+            tileMode: TileMode.clamp,
+          ),
           child: body,
         ),
       ),
@@ -200,9 +222,6 @@ class _NavBarBody extends StatelessWidget {
 /// play/pause and skip controls intercept their own taps so they do not
 /// trigger the surrounding [GestureDetector].
 ///
-/// The [Hero] tag `'artwork_<trackId>'` matches [ArtworkCarousel] so the
-/// artwork expands from the 38 px thumbnail to the full carousel disc when
-/// the full player opens (and contracts back on dismiss).
 class _MiniPlayerRow extends StatelessWidget {
   final PlayerActive state;
   final BorderRadius radius;
@@ -225,99 +244,117 @@ class _MiniPlayerRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Transform.translate(
         offset: const Offset(0, -1),
-        child: Hero(
-          tag: 'track_${state.currentTrack.id}',
-          child: Container(
-            height: 64,
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              //color: Colors.black.withValues(alpha: .38),
-              border: Border.all(color: Colors.white.withValues(alpha: .11)),
-              // boxShadow: [
-              //   BoxShadow(color: Colors.black.withValues(alpha: .30), blurRadius: 18, offset: const Offset(0, 8)),
-              //   BoxShadow(color: colors.accent.withValues(alpha: .10), blurRadius: 22, spreadRadius: -8),
-              // ],
-            ),
-            child: ClipRRect(
-              borderRadius: radius,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
-                      ),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: Colors.white.withValues(alpha: .11)),
+          ),
+          child: ClipRRect(
+            borderRadius: radius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
                     ),
                   ),
-                  _MiniPlayerProgressFill(progressTint: glass.highlight.withValues(alpha: .02)),
-                  Row(
-                    children: [
-                      const SizedBox(width: 12),
-          
-                      // ── Artwork thumbnail ────────────────────────
-                      SizedBox.square(
-                        dimension: 42,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: state.currentTrack.artworkPath != null
-                              ? Image.file(File(state.currentTrack.artworkPath!), fit: BoxFit.cover)
-                              : ColoredBox(
-                                  color: colors.glassFill,
-                                  child: Icon(EvaIcons.music, color: colors.labelTertiary, size: 18),
+                ),
+                _MiniPlayerProgressFill(
+                  progressTint: glass.highlight.withValues(alpha: .02),
+                ),
+                Row(
+                  children: [
+                    const SizedBox(width: 12),
+
+                    // ── Artwork thumbnail ────────────────────────
+                    SizedBox.square(
+                      dimension: 42,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: state.currentTrack.artworkPath != null
+                            ? Image.file(
+                                File(state.currentTrack.artworkPath!),
+                                fit: BoxFit.cover,
+                              )
+                            : ColoredBox(
+                                color: colors.glassFill,
+                                child: Icon(
+                                  EvaIcons.music,
+                                  color: colors.labelTertiary,
+                                  size: 18,
                                 ),
-                        ),
+                              ),
                       ),
-          
-                      const SizedBox(width: 12),
-          
-                      // ── Track title and artist ─────────────────────────────
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              state.currentTrack.title,
-                              style: TextStyle(color: colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // ── Track title and artist ─────────────────────────────
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.currentTrack.title,
+                            style: TextStyle(
+                              color: colors.labelPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
-                            Text(
-                              state.currentTrack.artist,
-                              style: TextStyle(color: colors.labelSecondary, fontSize: 11),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            state.currentTrack.artist,
+                            style: TextStyle(
+                              color: colors.labelSecondary,
+                              fontSize: 11,
                             ),
-                          ],
-                        ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-          
-                      // ── Play / Pause ───────────────────────────────────────
-                      CupertinoButton(
-                        padding: const EdgeInsets.all(10),
-                        onPressed: () => context.read<PlayerBloc>().add(
-                          state.isPlaying ? const PauseRequested() : const ResumeRequested(),
-                        ),
-                        child: Icon(
-                          state.isPlaying ? EvaIcons.pauseCircle : EvaIcons.playCircle,
-                          color: colors.labelPrimary,
-                          size: 22,
-                        ),
+                    ),
+
+                    // ── Play / Pause ───────────────────────────────────────
+                    CupertinoButton(
+                      padding: const EdgeInsets.all(10),
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        state.isPlaying
+                            ? const PauseRequested()
+                            : const ResumeRequested(),
                       ),
-          
-                      // ── Skip next ──────────────────────────────────────────
-                      CupertinoButton(
-                        padding: const EdgeInsets.only(right: 12),
-                        onPressed: () => context.read<PlayerBloc>().add(const SkipNextRequested()),
-                        child: Icon(EvaIcons.skipForward, color: colors.labelPrimary, size: 22),
+                      child: Icon(
+                        state.isPlaying
+                            ? EvaIcons.pauseCircle
+                            : EvaIcons.playCircle,
+                        color: colors.labelPrimary,
+                        size: 22,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+
+                    // ── Skip next ──────────────────────────────────────────
+                    CupertinoButton(
+                      padding: const EdgeInsets.only(right: 12),
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        const SkipNextRequested(),
+                      ),
+                      child: Icon(
+                        EvaIcons.skipForward,
+                        color: colors.labelPrimary,
+                        size: 22,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -362,7 +399,13 @@ class _MiniPlayerProgressFill extends StatelessWidget {
                         progressTint.withValues(alpha: .14),
                       ],
                     ),
-                    boxShadow: [BoxShadow(color: progressTint.withValues(alpha: .18), blurRadius: 18, spreadRadius: 2)],
+                    boxShadow: [
+                      BoxShadow(
+                        color: progressTint.withValues(alpha: .18),
+                        blurRadius: 18,
+                        spreadRadius: 2,
+                      ),
+                    ],
                   ),
                   child: const SizedBox.expand(),
                 ),
@@ -415,10 +458,14 @@ class _CenterArtworkSlot extends StatelessWidget {
           //       ),
           //     ),
           //   ),
-    
+
           // Rotating artwork disc — elevated 12 px above the bar surface.
           Positioned(
-            child: RotatingArtwork(track: track, isPlaying: isPlaying, size: 56),
+            child: RotatingArtwork(
+              track: track,
+              isPlaying: isPlaying,
+              size: 56,
+            ),
           ),
         ],
       ),
@@ -434,7 +481,12 @@ class _TabItem extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _TabItem({required this.icon, required this.label, required this.isActive, required this.onTap});
+  const _TabItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -454,7 +506,11 @@ class _TabItem extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 label,
-                style: TextStyle(color: labelColor, fontSize: 10, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  color: labelColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

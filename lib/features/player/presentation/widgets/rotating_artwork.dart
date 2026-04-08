@@ -63,30 +63,27 @@ class _RotatingArtworkState extends State<RotatingArtwork>
   Widget build(BuildContext context) {
     return RotationTransition(
       turns: _ctrl,
-      child: Hero(
-        tag: 'artwork_${widget.track?.id ?? 'none'}',
-        child: SizedBox.square(
-          dimension: widget.size,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: .45),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipOval(
-              child: widget.track?.artworkPath != null
-                  ? Image.file(
-                      File(widget.track!.artworkPath!),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _placeholder,
-                    )
-                  : _placeholder,
-            ),
+      child: SizedBox.square(
+        dimension: widget.size,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .45),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: widget.track?.artworkPath != null
+                ? Image.file(
+                    File(widget.track!.artworkPath!),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _placeholder,
+                  )
+                : _placeholder,
           ),
         ),
       ),
