@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -22,6 +24,7 @@ import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -54,12 +57,13 @@ class _LibraryPageState extends State<LibraryPage> {
           BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
             selector: _selectedFilterFromState,
             builder: (context, filter) => CustomSliverHeader(
-              title: 'Bibliothèque',
+              title: 'Library',
               actions: [
                 _SortButton(),
-                IconButton(
-                  icon: const Icon(CupertinoIcons.arrow_clockwise),
-                  onPressed: () => context.read<LibraryBloc>().add(
+                SizedBox(width: AppSpacing.sm),
+                GlassIconButton(
+                  icon: LucideIcons.refreshCw,
+                  onTap: () => context.read<LibraryBloc>().add(
                     const LibraryRefreshRequested(),
                   ),
                 ),
@@ -75,8 +79,8 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                 ],
               ),
-              bottomHeight: AppSpacing.tabBarHeight + AppSpacing.sm,
-              expandedHeight: 136,
+              bottomHeight: AppSpacing.tabBarHeight + AppSpacing.xl,
+              expandedHeight: 130,
             ),
           ),
 
@@ -129,9 +133,14 @@ class _LibraryPageState extends State<LibraryPage> {
             },
           ),
 
-          // Padding bas pour le mini player
-          const SliverPadding(
-            padding: EdgeInsets.only(bottom: AppSpacing.miniPlayerHeight + 16),
+          // Padding bas
+          SliverPadding(
+            padding: EdgeInsets.only(
+              bottom:
+                  AppSpacing.bottomBlockHeight +
+                  MediaQuery.of(context).padding.bottom +
+                  AppSpacing.md,
+            ),
           ),
         ],
       ),
@@ -178,6 +187,7 @@ class _LibraryPageState extends State<LibraryPage> {
 // Corps des listes selon le filtre actif
 class _LibraryBody extends StatelessWidget {
   final LibraryLoaded loaded;
+
   const _LibraryBody({required this.loaded});
 
   @override
@@ -214,6 +224,7 @@ Widget _animatedLibraryItem(
 
 class _AllView extends StatelessWidget {
   final LibraryLoaded loaded;
+
   const _AllView({required this.loaded});
 
   @override
@@ -222,15 +233,16 @@ class _AllView extends StatelessWidget {
       slivers: [
         // Section Albums (grille horizontale scrollable)
         if (loaded.visibleAlbums.isNotEmpty) ...[
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
           _SectionHeader(
             title: 'Albums',
-            onSeeAll: () => context.read<LibraryBloc>().add(
+            onViewAll: () => context.read<LibraryBloc>().add(
               const LibraryFilterChanged(LibraryFilter.albums),
             ),
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 170,
+              height: 200,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -245,19 +257,20 @@ class _AllView extends StatelessWidget {
               ),
             ),
           ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.lg)),
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
         ],
 
         // Section Titres
         if (loaded.visibleTracks.isNotEmpty) ...[
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
           _SectionHeader(
             title: 'Titres',
-            onSeeAll: () => context.read<LibraryBloc>().add(
+            onViewAll: () => context.read<LibraryBloc>().add(
               const LibraryFilterChanged(LibraryFilter.tracks),
             ),
           ),
           _TracksView(
-            tracks: loaded.visibleTracks.take(5).toList(),
+            tracks: loaded.visibleTracks.take(10).toList(),
             compact: true,
           ),
         ],
@@ -271,6 +284,7 @@ class _AllView extends StatelessWidget {
 class _TracksView extends StatelessWidget {
   final List<Track> tracks;
   final bool compact;
+
   const _TracksView({required this.tracks, this.compact = false});
 
   @override
@@ -319,27 +333,31 @@ class _TracksView extends StatelessWidget {
 
 class _AlbumsView extends StatelessWidget {
   final List<Album> albums;
+
   const _AlbumsView({required this.albums});
 
   @override
   Widget build(BuildContext context) {
     if (albums.isEmpty) {
-      return const SliverFillRemaining(
+      return SliverFillRemaining(
         child: EmptyState(
           message: 'Aucun album trouvé',
-          icon: Icons.album_rounded,
+          icon: LucideIcons.disc,
         ),
       );
     }
-    // Grille 2 colonnes, style Apple Music
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg) +
+          const EdgeInsets.only(top: AppSpacing.lg),
+
+      //todo: Also check when miniPlayer is not showing
       sliver: SliverGrid.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.82, // artwork carré + titre en dessous
+          // crossAxisSpacing: AppSpacing.md,
+          // mainAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.86,
         ),
         itemCount: albums.length,
         itemBuilder: (context, i) => _animatedLibraryItem(
@@ -359,6 +377,7 @@ class _AlbumsView extends StatelessWidget {
 
 class _ArtistsView extends StatelessWidget {
   final List<Artist> artists;
+
   const _ArtistsView({required this.artists});
 
   @override
@@ -371,16 +390,27 @@ class _ArtistsView extends StatelessWidget {
         ),
       );
     }
-    return SliverList.separated(
-      itemCount: artists.length,
-      separatorBuilder: (_, _) =>
-          Divider(height: 0.5, indent: 60, color: context.colors.separator),
-      itemBuilder: (context, i) => _animatedLibraryItem(
-        ArtistCard(
-          key: ValueKey('artist-${artists[i].id}-$i'),
-          artist: artists[i],
+    return SliverPadding(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg) +
+          const EdgeInsets.only(top: AppSpacing.lg),
+      //todo: Also check when miniPlayer is not showing
+      sliver: SliverGrid.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          // crossAxisSpacing: AppSpacing.md,
+          // mainAxisSpacing: AppSpacing.md,
+          childAspectRatio: 0.86,
         ),
-        i,
+        itemCount: artists.length,
+        itemBuilder: (context, i) => _animatedLibraryItem(
+          ArtistCard(
+            key: ValueKey('artist-${artists[i].id}-$i'),
+            artist: artists[i],
+          ),
+          i,
+          slideY: .06,
+        ),
       ),
     );
   }
@@ -390,8 +420,9 @@ class _ArtistsView extends StatelessWidget {
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final VoidCallback? onSeeAll;
-  const _SectionHeader({required this.title, this.onSeeAll});
+  final VoidCallback? onViewAll;
+
+  const _SectionHeader({required this.title, this.onViewAll});
 
   @override
   Widget build(BuildContext context) {
@@ -400,30 +431,58 @@ class _SectionHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
-            AppSpacing.xl,
+            0,
             AppSpacing.lg,
-            AppSpacing.sm,
+            AppSpacing.md,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 title,
-                style: context.textTheme.headlineSmall?.copyWith(
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
                   color: context.colors.labelPrimary,
                 ),
               ),
-              if (onSeeAll != null)
-                CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: onSeeAll,
-                  child: Text(
-                    'Voir tout',
-                    style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colors.accent,
+              if (onViewAll != null)
+                GestureDetector(
+                  onTap: onViewAll,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: .15),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: const Text(
+                      'View All',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
+              // CupertinoButton(
+              //   padding: EdgeInsets.zero,
+              //   onPressed: onViewAll,
+              //   child: Text(
+              //     'View all',
+              //     style: context.textTheme.labelLarge?.copyWith(
+              //       color: context.colors.accent,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -438,6 +497,7 @@ class _SectionHeader extends StatelessWidget {
 
 class _ScanBanner extends StatelessWidget {
   final ScanProgress progress;
+
   const _ScanBanner({required this.progress});
 
   @override
@@ -519,10 +579,9 @@ class _SortButton extends StatelessWidget {
     return BlocSelector<LibraryBloc, LibraryState, LibrarySort>(
       selector: (s) => s is LibraryLoaded ? s.sort : LibrarySort.title,
       builder: (context, sort) {
-        return CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => _showSortSheet(context, sort),
-          child: Icon(CupertinoIcons.sort_down, color: context.colors.accent),
+        return GlassIconButton(
+          onTap: () => _showSortSheet(context, sort),
+          icon: LucideIcons.arrowDownNarrowWide,
         );
       },
     );
@@ -544,14 +603,14 @@ class _SortButton extends StatelessWidget {
             isDefaultAction: sort == current,
             onPressed: () {
               context.read<LibraryBloc>().add(LibrarySortChanged(sort));
-              Navigator.of(context).pop();
+              context.pop();
             },
             child: Text(label),
           );
         }).toList(),
         cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
+          onPressed: () => context.pop(),
+          child: const Text('Cancel'),
         ),
       ),
     );

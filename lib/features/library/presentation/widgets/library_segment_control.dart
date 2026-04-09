@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -18,10 +19,10 @@ class LibrarySegmentControl extends StatelessWidget {
   });
 
   static const _tabs = [
-    (LibraryFilter.all, 'Tout', CupertinoIcons.square_grid_2x2_fill),
-    (LibraryFilter.tracks, 'Titres', CupertinoIcons.music_note_list),
-    (LibraryFilter.albums, 'Albums', CupertinoIcons.square_stack_fill),
-    (LibraryFilter.artists, 'Artistes', CupertinoIcons.person_2_fill),
+    (LibraryFilter.all, 'All', LucideIcons.galleryVerticalEnd),
+    (LibraryFilter.tracks, 'Tracks', LucideIcons.music),
+    (LibraryFilter.albums, 'Albums', LucideIcons.disc),
+    (LibraryFilter.artists, 'Artists', LucideIcons.micVocal),
   ];
 
   static const _animationDuration = Duration(milliseconds: 320);
@@ -31,93 +32,98 @@ class LibrarySegmentControl extends StatelessWidget {
     final colors = context.colors;
     final baseConfig = GlassTheme.card(context);
 
-    return GlassCard(
-      config: GlassConfig(
-        blurSigma: baseConfig.blurSigma,
-        fill: baseConfig.fill,
-        border: baseConfig.border,
-        highlight: baseConfig.highlight,
-        borderWidth: baseConfig.borderWidth,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        padding: const EdgeInsets.all(4),
-      ),
-      child: SizedBox(
-        height: AppSpacing.tabBarHeight - 8,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final selectedIndex = _tabs.indexWhere((tab) => tab.$1 == selected);
-            final tabWidth = constraints.maxWidth / _tabs.length;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: GlassCard(
+        config: GlassConfig(
+          blurSigma: baseConfig.blurSigma,
+          fill: baseConfig.fill,
+          border: baseConfig.border,
+          highlight: baseConfig.highlight,
+          borderWidth: baseConfig.borderWidth,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          padding: const EdgeInsets.all(4),
+        ),
+        child: SizedBox(
+          height: AppSpacing.tabBarHeight - AppSpacing.sm,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final selectedIndex = _tabs.indexWhere(
+                (tab) => tab.$1 == selected,
+              );
+              final tabWidth = constraints.maxWidth / _tabs.length;
 
-            return Stack(
-              children: [
-                AnimatedPositioned(
-                  duration: _animationDuration,
-                  curve: Curves.easeOutCubic,
-                  left: selectedIndex * tabWidth,
-                  top: 0,
-                  bottom: 0,
-                  width: tabWidth,
-                  child: IgnorePointer(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            colors.accent.withValues(alpha: .26),
-                            colors.accent.withValues(alpha: .16),
+              return Stack(
+                children: [
+                  AnimatedPositioned(
+                    duration: _animationDuration,
+                    curve: Curves.easeOutCubic,
+                    left: selectedIndex * tabWidth,
+                    top: 0,
+                    bottom: 0,
+                    width: tabWidth,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colors.accent.withValues(alpha: .26),
+                              colors.accent.withValues(alpha: .16),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: colors.accent.withValues(alpha: .24),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.accent.withValues(alpha: .10),
+                              blurRadius: 16,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 8),
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusMd,
-                        ),
-                        border: Border.all(
-                          color: colors.accent.withValues(alpha: .24),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: colors.accent.withValues(alpha: .10),
-                            blurRadius: 16,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
                       ),
                     ),
                   ),
-                ),
 
-                Row(
-                  children: _tabs.map((tab) {
-                    final (filter, label, icon) = tab;
-                    final isSelected = selected == filter;
+                  Row(
+                    children: _tabs.map((tab) {
+                      final (filter, label, icon) = tab;
+                      final isSelected = selected == filter;
 
-                    return Expanded(
-                      child: Semantics(
-                        button: true,
-                        selected: isSelected,
-                        label: label,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            if (isSelected) return;
-                            HapticFeedback.selectionClick();
-                            onChanged(filter);
-                          },
-                          child: _SegmentTabItem(
-                            label: label,
-                            icon: icon,
-                            isSelected: isSelected,
-                            duration: _animationDuration,
+                      return Expanded(
+                        child: Semantics(
+                          button: true,
+                          selected: isSelected,
+                          label: label,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              if (isSelected) return;
+                              HapticFeedback.selectionClick();
+                              onChanged(filter);
+                            },
+                            child: _SegmentTabItem(
+                              label: label,
+                              icon: icon,
+                              isSelected: isSelected,
+                              duration: _animationDuration,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            );
-          },
+                      );
+                    }).toList(),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

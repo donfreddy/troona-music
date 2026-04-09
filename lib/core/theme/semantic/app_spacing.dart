@@ -18,20 +18,11 @@ abstract final class AppSpacing {
 
   // Hauteurs de composants
   static const double trackRowHeight = 52.0;
-  // static const double miniPlayerHeight = 64.0;
+  static const double artworkBigHeight = 50.0;
+  static const double artworkSmallHeight = 126.0;
   static const double tabBarHeight = 56.0;
-  // static const double navBarHeight = 44.0;
-  static const double miniPlayerHeight = 58;
-  static const double navBarHeight = 62;
+  static const double miniPlayerHeight = 64;
+  static const double navBarHeight = 64;
   static const double bottomBlockHeight =
-      miniPlayerHeight + 6 + navBarHeight; // 126px + safeArea
+      miniPlayerHeight + 6 + navBarHeight; // 128px + safeArea
 }
-
-// Dans chaque CustomScrollView
-// SliverPadding(
-//   padding: EdgeInsets.only(
-//     bottom: AppSpacing.bottomBlockHeight
-//           + MediaQuery.of(context).padding.bottom
-//           + 12,   // padding de la nav
-//   ),
-// ),

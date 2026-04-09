@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
 class RotatingArtwork extends StatefulWidget {
@@ -95,10 +95,6 @@ class _RotatingArtworkState extends State<RotatingArtwork>
       color: Colors.white.withValues(alpha: .12),
       shape: BoxShape.circle,
     ),
-    child: const Icon(
-      EvaIcons.music,
-      color: Colors.white38,
-      //size: 22,
-    ),
+    child: const Icon(LucideIcons.music4, size: 26),
   );
 }

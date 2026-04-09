@@ -55,6 +55,8 @@ abstract final class AppTheme {
         iconTheme: IconThemeData(color: colors.accent),
       ),
 
+      iconTheme: IconThemeData(color: Colors.white70, size: 22.0),
+
       // Page transitions iOS
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

@@ -1,8 +1,7 @@
-// Mosaic 2×2 pour les playlists sans artwork
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 
@@ -17,21 +16,17 @@ class PlaylistMosaic extends StatelessWidget {
       color: Colors.white.withValues(alpha: .08),
       child: trackIds.isEmpty
           ? const Center(
-              child: Icon(
-                CupertinoIcons.music_note_list,
-                color: Colors.white30,
-                size: 48,
-              ),
+              child: Icon(LucideIcons.music, color: Colors.white30, size: 48),
             )
           : GridView.count(
               crossAxisCount: 2,
+              padding: EdgeInsets.zero,
               physics: const NeverScrollableScrollPhysics(),
               children: List.generate(4, (i) {
                 final id = trackIds.length > i ? trackIds[i] : null;
                 if (id == null) {
                   return ColoredBox(color: Colors.white.withValues(alpha: .05));
                 }
-                // FutureBuilder récupère l'artwork depuis Isar
                 return FutureBuilder<String?>(
                   future: getIt<IsarLibraryDataSource>().getArtworkPathById(id),
                   builder: (_, snap) {

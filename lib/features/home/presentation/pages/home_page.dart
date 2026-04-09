@@ -61,9 +61,12 @@ class _HomePageState extends State<HomePage> {
             },
 
             // Padding pour la BottomNavBar
-            const SliverPadding(
+            SliverPadding(
               padding: EdgeInsets.only(
-                bottom: AppSpacing.miniPlayerHeight + AppSpacing.xl3,
+                bottom:
+                    AppSpacing.bottomBlockHeight +
+                    MediaQuery.of(context).padding.bottom +
+                    AppSpacing.md,
               ),
             ),
           ],
@@ -214,6 +217,7 @@ class _HomeFeedBody extends StatelessWidget {
 class _SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback onViewAll;
+
   const _SectionHeader({required this.title, required this.onViewAll});
 
   @override

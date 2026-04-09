@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ArtistDetailPage extends StatefulWidget {
-  const ArtistDetailPage({super.key});
+  final String id;
+
+  const ArtistDetailPage({super.key, required this.id});
 
   @override
   State<ArtistDetailPage> createState() => _ArtistDetailPageState();
@@ -10,6 +12,9 @@ class ArtistDetailPage extends StatefulWidget {
 class _ArtistDetailPageState extends State<ArtistDetailPage> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Artist Detail Page')));
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Center(child: Text('Artist ID: ${widget.id}')),
+    );
   }
 }

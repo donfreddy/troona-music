@@ -241,10 +241,10 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                                       _leaveFullPlayerTo(context, '/library');
                                     case AppTab.search:
                                       _leaveFullPlayerTo(context, '/search');
-                                    case AppTab.settings:
+                                    case AppTab.playlists:
                                       _leaveFullPlayerTo(
                                         context,
-                                        '/settings',
+                                        '/playlists',
                                       );
                                     case AppTab.player:
                                       break;
