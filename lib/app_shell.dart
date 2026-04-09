@@ -7,7 +7,7 @@ import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/permission_handler.dart';
-import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
@@ -18,8 +18,13 @@ import 'package:troona/services/scanner/media_scanner_service.dart';
 
 class AppShell extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
+  final String location;
 
-  const AppShell({super.key, required this.navigationShell});
+  const AppShell({
+    super.key,
+    required this.navigationShell,
+    required this.location,
+  });
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -95,16 +100,15 @@ class _AppShellState extends State<AppShell> {
             );
           }
 
-          final location = GoRouterState.of(context).matchedLocation;
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
           
-          // Only show tabs on the root location of each branch
+          // Use the location passed from the router
           final isRootPage = [
             AppRoute.home,
             AppRoute.library,
             AppRoute.search,
             AppRoute.playlists,
-          ].contains(location);
+          ].contains(widget.location);
 
           return Scaffold(
             backgroundColor: Colors.black,

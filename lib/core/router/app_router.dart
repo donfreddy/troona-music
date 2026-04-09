@@ -6,7 +6,7 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
-import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
@@ -52,13 +52,17 @@ final appRouter = GoRouter(
             BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
             BlocProvider<LibraryBloc>(create: (_) => getIt<LibraryBloc>()),
           ],
-          child: AppShell(navigationShell: navigationShell),
+          child: AppShell(
+            navigationShell: navigationShell,
+            location: state.matchedLocation,
+          ),
         );
       },
       branches: [
         // Branch: Home
         StatefulShellBranch(
           routes: [
+            GoRoute(path: '/', redirect: (_, _) => AppRoute.home),
             GoRoute(
               path: AppRoute.home,
               builder: (context, _) => BlocProvider(
