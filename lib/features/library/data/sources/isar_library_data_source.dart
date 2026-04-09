@@ -114,6 +114,20 @@ class IsarLibraryDataSource {
       .anyOf(ids, (q, id) => q.deviceIdEqualTo(id))
       .findAll();
 
+  /// Returns the list of tracks by artist ID.
+  Future<List<TrackModel>> getTracksByArtistId(int artistId) async => _isar
+      .trackModels
+      .where()
+      .artistIdEqualTo(artistId)
+      .findAll();
+
+  /// Returns the list of tracks by album ID.
+  Future<List<TrackModel>> getTracksByAlbumId(int albumId) async => _isar
+      .trackModels
+      .where()
+      .albumIdEqualTo(albumId)
+      .findAll();
+
   // ── Likes playlist (Spotify-style) ─────────────────────────────────────────
 
   static const likesPlaylistId = 'likes';
