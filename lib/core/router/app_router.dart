@@ -29,7 +29,7 @@ abstract class AppRoute {
   static const player = '/player';
   static const permission = '/permission';
   static const settings = '/settings';
-  
+
   static const albumDetail = 'album_detail';
   static const artistDetail = 'artist_detail';
   static const playlistDetail = 'playlist_detail';
@@ -78,12 +78,14 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'albums/:id',
                   name: AppRoute.albumDetail,
-                  builder: (_, state) => AlbumDetailPage(id: state.pathParameters['id']!),
+                  builder: (_, state) =>
+                      AlbumDetailPage(id: state.pathParameters['id']!),
                 ),
                 GoRoute(
                   path: 'artists/:id',
                   name: AppRoute.artistDetail,
-                  builder: (_, state) => ArtistDetailPage(id: state.pathParameters['id']!),
+                  builder: (_, state) =>
+                      ArtistDetailPage(id: state.pathParameters['id']!),
                 ),
               ],
             ),
@@ -108,7 +110,8 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
-                  builder: (_, state) => PlaylistDetailPage(id: state.pathParameters['id']!),
+                  builder: (_, state) =>
+                      PlaylistDetailPage(id: state.pathParameters['id']!),
                 ),
               ],
             ),
@@ -140,7 +143,13 @@ final appRouter = GoRouter(
         child: MultiBlocProvider(
           providers: [
             BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
-            BlocProvider(create: (_) => LikesCubit(addTrack: getIt(), removeTrack: getIt(), isTrackLiked: getIt())),
+            BlocProvider(
+              create: (_) => LikesCubit(
+                addTrack: getIt(),
+                removeTrack: getIt(),
+                isTrackLiked: getIt(),
+              ),
+            ),
           ],
           child: const FullPlayerPage(),
         ),
@@ -151,10 +160,17 @@ final appRouter = GoRouter(
 
 class _StubPage extends StatelessWidget {
   final String title;
+
   const _StubPage({required this.title});
+
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Colors.transparent,
-    body: Center(child: Text('$title - coming soon', style: const TextStyle(color: Colors.white70, fontSize: 20))),
+    body: Center(
+      child: Text(
+        '$title - coming soon',
+        style: const TextStyle(color: Colors.white70, fontSize: 20),
+      ),
+    ),
   );
 }

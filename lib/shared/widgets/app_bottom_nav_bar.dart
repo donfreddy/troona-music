@@ -47,11 +47,17 @@ class AppBottomNavBar extends StatefulWidget {
   /// covers that role.
   final bool showMiniPlayer;
 
+  /// Whether to show the navigation tabs.
+  /// Set to false on sub-pages (detail pages) where only the mini player
+  /// should remain visible.
+  final bool showTabs;
+
   const AppBottomNavBar({
     super.key,
     required this.currentTab,
     required this.onTabChanged,
     this.showMiniPlayer = true,
+    this.showTabs = true,
   });
 
   @override
@@ -72,6 +78,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
           onTabChanged: widget.onTabChanged,
           playerState: resolvedPlayerState,
           showMiniPlayer: widget.showMiniPlayer,
+          showTabs: widget.showTabs,
         );
       },
     );
@@ -117,12 +124,14 @@ class _NavBarBody extends StatelessWidget {
   /// Non-null when a track is active; drives the mini player row visibility.
   final PlayerActive? playerState;
   final bool showMiniPlayer;
+  final bool showTabs;
 
   const _NavBarBody({
     required this.currentTab,
     required this.onTabChanged,
     required this.playerState,
     required this.showMiniPlayer,
+    required this.showTabs,
   });
 
   static const _tabs = [
@@ -138,6 +147,8 @@ class _NavBarBody extends StatelessWidget {
     final glass = GlassTheme.card(context);
     final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
     final isMiniPlayerVisible = showMiniPlayer && playerState != null;
+
+    if (!isMiniPlayerVisible && !showTabs) return const SizedBox.shrink();
 
     final body = Container(
       decoration: BoxDecoration(
@@ -157,36 +168,37 @@ class _NavBarBody extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
 
-          // ── Nav tabs row — always present ────────────────────────────────
-          SizedBox(
-            height: AppSpacing.navBarHeight,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Row(
-                  children: _tabs.map((tab) {
-                    final (appTab, icon, label) = tab;
-                    if (appTab == AppTab.player) {
+          // ── Nav tabs row — visible only on root pages ────────────────────
+          if (showTabs)
+            SizedBox(
+              height: AppSpacing.navBarHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Row(
+                    children: _tabs.map((tab) {
+                      final (appTab, icon, label) = tab;
+                      if (appTab == AppTab.player) {
+                        return Expanded(
+                          child: _CenterArtworkSlot(
+                            track: playerState?.currentTrack,
+                            isPlaying: playerState?.isPlaying ?? false,
+                          ),
+                        );
+                      }
                       return Expanded(
-                        child: _CenterArtworkSlot(
-                          track: playerState?.currentTrack,
-                          isPlaying: playerState?.isPlaying ?? false,
+                        child: _TabItem(
+                          icon: icon!,
+                          label: label!,
+                          isActive: currentTab == appTab,
+                          onTap: () => onTabChanged(appTab),
                         ),
                       );
-                    }
-                    return Expanded(
-                      child: _TabItem(
-                        icon: icon!,
-                        label: label!,
-                        isActive: currentTab == appTab,
-                        onTap: () => onTabChanged(appTab),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

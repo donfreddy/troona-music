@@ -68,7 +68,6 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
     }
   }
 
-  @override
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id) async {
     try {
       final tracks = await _cache.getTracksByAlbumId(id);
