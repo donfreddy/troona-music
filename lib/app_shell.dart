@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/permission_handler.dart';
@@ -10,25 +11,15 @@ import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
-import 'package:troona/services/scanner/media_scanner_service.dart';
-import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
 
-/// Root scaffold for all shell routes (routes that share the bottom nav bar).
-///
-/// The [AppBottomNavBar] is positioned at the bottom and internally manages
-/// both the mini player row (when a track is active) and the nav tabs — as a
-/// single unified glass container.
-///
-/// The initial library scan is dispatched here in [State.initState] via
-/// `addPostFrameCallback`. This keeps `app_router.dart` free of
-/// business-logic triggers.
 class AppShell extends StatefulWidget {
-  /// The currently active page injected by GoRouter's [ShellRoute].
-  final Widget child;
+  final StatefulNavigationShell navigationShell;
 
-  const AppShell({super.key, required this.child});
+  const AppShell({super.key, required this.navigationShell});
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -41,8 +32,6 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    // Dispatch the scan after the first frame so that BlocProvider ancestors
-    // are fully wired before context.read is called.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final hasPermission = await AppPermissionHandler.hasAudioPermission();
@@ -52,18 +41,20 @@ class _AppShellState extends State<AppShell> {
   }
 
   void _onTabChanged(AppTab tab) {
-    switch (tab) {
-      case AppTab.home:
-        context.go('/home');
-      case AppTab.library:
-        context.go('/library');
-      case AppTab.search:
-        context.go('/search');
-      case AppTab.playlists:
-        context.go('/playlists');
-      case AppTab.player:
-        break; // handled by the centre artwork slot in AppBottomNavBar
-    }
+    if (tab == AppTab.player) return;
+
+    final index = switch (tab) {
+      AppTab.home => 0,
+      AppTab.library => 1,
+      AppTab.search => 2,
+      AppTab.playlists => 3,
+      _ => 0,
+    };
+
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
 
   @override
@@ -79,9 +70,7 @@ class _AppShellState extends State<AppShell> {
               !_didRequestPlaybackRestore && _canRestorePlayback(current),
           listener: (context, state) {
             _didRequestPlaybackRestore = true;
-            context.read<PlayerBloc>().add(
-              const RestorePlaybackSessionRequested(),
-            );
+            context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
           },
         ),
         BlocListener<PlayerBloc, PlayerState>(
@@ -91,8 +80,7 @@ class _AppShellState extends State<AppShell> {
               (current is PlayerLoading || current is PlayerActive),
           listener: (context, state) {
             _didRestoreFullPlayerRoute = true;
-            if (GoRouterState.of(context).matchedLocation !=
-                FullPlayerPage.routeName) {
+            if (GoRouterState.of(context).matchedLocation != FullPlayerPage.routeName) {
               context.push(FullPlayerPage.routeName);
             }
           },
@@ -103,14 +91,20 @@ class _AppShellState extends State<AppShell> {
           if (_shouldShowBootstrap(libraryState)) {
             return _LibraryBootstrapScreen(
               state: libraryState,
-              onRetry: () =>
-                  context.read<LibraryBloc>().add(const LibraryScanRequested()),
+              onRetry: () => context.read<LibraryBloc>().add(const LibraryScanRequested()),
             );
           }
 
-          final currentTab = _tabForLocation(
-            GoRouterState.of(context).matchedLocation,
-          );
+          final location = GoRouterState.of(context).matchedLocation;
+          final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
+          
+          // Only show tabs on the root location of each branch
+          final isRootPage = [
+            AppRoute.home,
+            AppRoute.library,
+            AppRoute.search,
+            AppRoute.playlists,
+          ].contains(location);
 
           return Scaffold(
             backgroundColor: Colors.black,
@@ -119,8 +113,7 @@ class _AppShellState extends State<AppShell> {
                 Positioned.fill(
                   child: BlocSelector<PlayerBloc, PlayerState, String?>(
                     selector: (s) => switch (s) {
-                      PlayerActive(:final currentTrack) =>
-                        currentTrack.artworkPath,
+                      PlayerActive(:final currentTrack) => currentTrack.artworkPath,
                       PlayerLoading(:final track) => track.artworkPath,
                       _ => null,
                     },
@@ -131,13 +124,11 @@ class _AppShellState extends State<AppShell> {
                     ),
                   ),
                 ),
+                
+                // ── The Branch Content ─────────────────────────────────────────
+                Positioned.fill(child: widget.navigationShell),
 
-                // ── Active page ───────────────────────────────────────────────
-                Positioned.fill(child: widget.child),
-
-                if (libraryState case LibraryScanning(
-                  :final cached,
-                ) when cached != null)
+                if (libraryState case LibraryScanning(:final cached) when cached != null)
                   Positioned(
                     top: safeTop + 12,
                     left: 12,
@@ -145,7 +136,7 @@ class _AppShellState extends State<AppShell> {
                     child: _LibraryRescanBanner(state: libraryState),
                   ),
 
-                // ── Unified bottom bar (mini player + nav tabs) ─────────────
+                // ── Bottom Bar ────────────────────────────────────────────────
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -155,6 +146,7 @@ class _AppShellState extends State<AppShell> {
                     child: AppBottomNavBar(
                       currentTab: currentTab,
                       onTabChanged: _onTabChanged,
+                      showTabs: isRootPage,
                     ),
                   ),
                 ),
@@ -180,13 +172,17 @@ class _AppShellState extends State<AppShell> {
     _ => false,
   };
 
-  AppTab _tabForLocation(String location) {
-    if (location == '/library') return AppTab.library;
-    if (location == '/search') return AppTab.search;
-    if (location == '/playlists') return AppTab.playlists;
-    return AppTab.home;
-  }
+  AppTab _tabForIndex(int index) => switch (index) {
+    0 => AppTab.home,
+    1 => AppTab.library,
+    2 => AppTab.search,
+    3 => AppTab.playlists,
+    _ => AppTab.home,
+  };
 }
+
+// Keep the private bootstrap/banner classes below...
+// (I am keeping them identical to your previous version but ensuring they are in the file)
 
 class _LibraryBootstrapScreen extends StatelessWidget {
   final LibraryState state;

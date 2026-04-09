@@ -7,7 +7,11 @@ import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
+import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
+import 'package:troona/features/playlist/presentation/widgets/playlist_detail_page.dart';
+import 'package:troona/features/playlist/presentation/pages/playlist_page.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -15,109 +19,128 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Application router.
-///
-/// **BLoC lifecycle notes**:
-/// - [PlayerBloc] is a **singleton** (registered via `get_it`). It must not be
-///   closed by the widget tree, so it is provided with [BlocProvider.value].
-/// - [LibraryBloc] is a **factory** that is owned and closed by the
-///   [ShellRoute]'s [BlocProvider]. The initial scan is triggered in
-///   [AppShell.initState] via `addPostFrameCallback`, not here, to keep
-///   routing and business logic decoupled.
+abstract class AppRoute {
+  static const home = '/home';
+  static const library = '/library';
+  static const search = '/search';
+  static const playlists = '/playlists';
+  static const player = '/player';
+  static const permission = '/permission';
+  static const settings = '/settings';
+  
+  static const albumDetail = 'album_detail';
+  static const artistDetail = 'artist_detail';
+  static const playlistDetail = 'playlist_detail';
+}
+
 final appRouter = GoRouter(
-  navigatorKey: _shellNavigatorKey,
-  initialLocation: '/home',
-
-  /// Permission guard — fires before every navigation event.
-  ///
-  /// Skips the check when already on `/permission` to prevent an infinite
-  /// redirect loop. All other routes require audio permission; if absent the
-  /// user is sent to the onboarding gate.
+  navigatorKey: _rootNavigatorKey,
+  initialLocation: AppRoute.home,
   redirect: (BuildContext context, GoRouterState state) async {
-    if (state.matchedLocation == '/permission') return null;
+    if (state.matchedLocation == AppRoute.permission) return null;
     final hasPermission = await AppPermissionHandler.hasAudioPermission();
-    return hasPermission ? null : '/permission';
+    return hasPermission ? null : AppRoute.permission;
   },
-
   routes: [
-    // ── Shell: all pages that share the bottom navigation bar ───────────────
-    ShellRoute(
-      builder: (context, state, child) => MultiBlocProvider(
-        providers: [
-          // PlayerBloc is a singleton — use .value so the provider never
-          // calls close() on it when the shell is torn down.
-          BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
-
-          // LibraryBloc is a factory — the provider owns its lifecycle.
-          // The initial scan is dispatched from AppShell.initState.
-          BlocProvider<LibraryBloc>(create: (_) => getIt<LibraryBloc>()),
-        ],
-        child: AppShell(child: child),
-      ),
-      routes: [
-        GoRoute(
-          path: '/home',
-          builder: (context, _) => BlocProvider(
-            create: (_) => getIt<HomeBloc>(),
-            child: const HomePage(),
-          ),
+    // ── STATEFUL SHELL ROUTE ────────────────────────────────────────────────
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
+            BlocProvider<LibraryBloc>(create: (_) => getIt<LibraryBloc>()),
+          ],
+          child: AppShell(navigationShell: navigationShell),
+        );
+      },
+      branches: [
+        // Branch: Home
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoute.home,
+              builder: (context, _) => BlocProvider(
+                create: (_) => getIt<HomeBloc>(),
+                child: const HomePage(),
+              ),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/library',
-          builder: (_, _) => LibraryPage(),
+        // Branch: Library
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoute.library,
+              builder: (_, _) => LibraryPage(),
+              routes: [
+                GoRoute(
+                  path: 'albums/:id',
+                  name: AppRoute.albumDetail,
+                  builder: (_, state) => AlbumDetailPage(id: state.pathParameters['id']!),
+                ),
+                GoRoute(
+                  path: 'artists/:id',
+                  name: AppRoute.artistDetail,
+                  builder: (_, state) => ArtistDetailPage(id: state.pathParameters['id']!),
+                ),
+              ],
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/search',
-          builder: (_, _) => const _StubPage(title: 'Search'),
+        // Branch: Search
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoute.search,
+              builder: (_, _) => const _StubPage(title: 'Search'),
+            ),
+          ],
         ),
-        GoRoute(
-          path: '/settings',
-          builder: (context, _) => BlocProvider(
-            create: (_) => getIt<SettingsCubit>()..load(),
-            child: const SettingsPage(),
-          ),
+        // Branch: Playlists
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoute.playlists,
+              builder: (context, _) => const PlaylistPage(),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  name: AppRoute.playlistDetail,
+                  builder: (_, state) => PlaylistDetailPage(id: state.pathParameters['id']!),
+                ),
+              ],
+            ),
+          ],
         ),
       ],
     ),
 
-    // ── Permission gate: shown when audio/storage permission is missing ─────
-    // Outside the shell — no bottom nav, no PlayerBloc overhead.
-    GoRoute(path: '/permission', builder: (_, _) => const PermissionPage()),
-
-    // ── FullPlayer: fullscreen modal outside the shell (no bottom bar) ──────
-    //
-    // Uses CustomTransitionPage with a bare fade instead of CupertinoPage's
-    // built-in slide. The drag-to-dismiss gesture in FullPlayerPage drives the
-    // visual translation manually; using a slide here would conflict and
-    // produce a double-animation glitch. A short fade lets the Hero animation
-    // (artwork expanding/contracting) be the primary visual transition —
-    // matching the Apple Music approach.
+    // ── Utility Routes ──────────────────────────────────────────────────────
     GoRoute(
-      path: '/player',
+      path: AppRoute.settings,
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, _) => BlocProvider(
+        create: (_) => getIt<SettingsCubit>()..load(),
+        child: const SettingsPage(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoute.permission,
+      builder: (_, _) => const PermissionPage(),
+    ),
+    GoRoute(
+      path: AppRoute.player,
+      parentNavigatorKey: _rootNavigatorKey,
       pageBuilder: (context, state) => CustomTransitionPage(
         fullscreenDialog: true,
-        transitionDuration: const Duration(milliseconds: 320),
-        reverseTransitionDuration: const Duration(milliseconds: 280),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(
-              opacity: CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeInOut,
-              ),
-              child: child,
-            ),
+            FadeTransition(opacity: animation, child: child),
         child: MultiBlocProvider(
           providers: [
             BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
-            BlocProvider(
-              create: (_) => LikesCubit(
-                addTrack: getIt(),
-                removeTrack: getIt(),
-                isTrackLiked: getIt(),
-              ),
-            ),
+            BlocProvider(create: (_) => LikesCubit(addTrack: getIt(), removeTrack: getIt(), isTrackLiked: getIt())),
           ],
           child: const FullPlayerPage(),
         ),
@@ -126,19 +149,12 @@ final appRouter = GoRouter(
   ],
 );
 
-/// Placeholder widget for routes that are not yet implemented.
 class _StubPage extends StatelessWidget {
   final String title;
   const _StubPage({required this.title});
-
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.black,
-    body: Center(
-      child: Text(
-        '$title — coming soon',
-        style: const TextStyle(color: Colors.white, fontSize: 18),
-      ),
-    ),
+    backgroundColor: Colors.transparent,
+    body: Center(child: Text('$title - coming soon', style: const TextStyle(color: Colors.white70, fontSize: 20))),
   );
 }
