@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart' show CupertinoButton;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -31,14 +30,14 @@ enum AppTab {
   library,
   player, // centre artwork slot — opens FullPlayer, not a real tab
   search,
-  settings,
+  playlists,
 }
 
 class AppBottomNavBar extends StatefulWidget {
-  static const double miniPlayerRowHeight = 64;
-  static const double navRowHeight = 64;
-  static const double activeHeight = miniPlayerRowHeight + navRowHeight;
-  static const double floatingMargin = 12;
+  // static const double miniPlayerRowHeight = 64;
+  // static const double navRowHeight = 64;
+  // static const double activeHeight = miniPlayerRowHeight + navRowHeight;
+  // static const double floatingMargin = 12;
 
   final AppTab currentTab;
   final ValueChanged<AppTab> onTabChanged;
@@ -127,11 +126,11 @@ class _NavBarBody extends StatelessWidget {
   });
 
   static const _tabs = [
-    (AppTab.home, EvaIcons.home, 'Home'),
-    (AppTab.library, EvaIcons.list, 'Library'),
+    (AppTab.home, LucideIcons.house, 'Home'),
+    (AppTab.library, LucideIcons.library, 'Library'),
     (AppTab.player, null, null), // centre artwork slot
-    (AppTab.search, EvaIcons.search, 'Search'),
-    (AppTab.settings, EvaIcons.activity, 'Settings'),
+    (AppTab.search, LucideIcons.search, 'Search'),
+    (AppTab.playlists, LucideIcons.listMusic, 'Playlists'),
   ];
 
   @override
@@ -160,7 +159,7 @@ class _NavBarBody extends StatelessWidget {
 
           // ── Nav tabs row — always present ────────────────────────────────
           SizedBox(
-            height: AppBottomNavBar.navRowHeight,
+            height: AppSpacing.navBarHeight,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -245,7 +244,7 @@ class _MiniPlayerRow extends StatelessWidget {
       child: Transform.translate(
         offset: const Offset(0, -1),
         child: Container(
-          height: 64,
+          height: AppSpacing.miniPlayerHeight,
           decoration: BoxDecoration(
             borderRadius: radius,
             border: Border.all(color: Colors.white.withValues(alpha: .11)),
@@ -265,7 +264,7 @@ class _MiniPlayerRow extends StatelessWidget {
                   ),
                 ),
                 _MiniPlayerProgressFill(
-                  progressTint: glass.highlight.withValues(alpha: .02),
+                  progressTint: Colors.white.withValues(alpha: .1),
                 ),
                 Row(
                   children: [
@@ -284,7 +283,7 @@ class _MiniPlayerRow extends StatelessWidget {
                             : ColoredBox(
                                 color: colors.glassFill,
                                 child: Icon(
-                                  EvaIcons.music,
+                                  LucideIcons.music,
                                   color: colors.labelTertiary,
                                   size: 18,
                                 ),
@@ -324,33 +323,26 @@ class _MiniPlayerRow extends StatelessWidget {
                     ),
 
                     // ── Play / Pause ───────────────────────────────────────
-                    CupertinoButton(
-                      padding: const EdgeInsets.all(10),
+                    IconButton(
                       onPressed: () => context.read<PlayerBloc>().add(
                         state.isPlaying
                             ? const PauseRequested()
                             : const ResumeRequested(),
                       ),
-                      child: Icon(
+                      icon: Icon(
                         state.isPlaying
-                            ? EvaIcons.pauseCircle
-                            : EvaIcons.playCircle,
-                        color: colors.labelPrimary,
-                        size: 22,
+                            ? LucideIcons.pause
+                            : LucideIcons.play,
+
                       ),
                     ),
 
                     // ── Skip next ──────────────────────────────────────────
-                    CupertinoButton(
-                      padding: const EdgeInsets.only(right: 12),
+                    IconButton(
                       onPressed: () => context.read<PlayerBloc>().add(
                         const SkipNextRequested(),
                       ),
-                      child: Icon(
-                        EvaIcons.skipForward,
-                        color: colors.labelPrimary,
-                        size: 22,
-                      ),
+                      icon: Icon(LucideIcons.skipForward),
                     ),
                   ],
                 ),
@@ -388,25 +380,26 @@ class _MiniPlayerProgressFill extends StatelessWidget {
               child: FractionallySizedBox(
                 widthFactor: animatedProgress <= 0 ? 0.02 : animatedProgress,
                 heightFactor: 1,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        progressTint.withValues(alpha: .42),
-                        progressTint.withValues(alpha: .28),
-                        progressTint.withValues(alpha: .14),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: progressTint.withValues(alpha: .18),
-                        blurRadius: 18,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
+                child: ColoredBox(
+                  color: progressTint,
+                  // decoration: BoxDecoration(
+                  //   gradient: LinearGradient(
+                  //     begin: Alignment.centerLeft,
+                  //     end: Alignment.centerRight,
+                  //     colors: [
+                  //       // progressTint.withValues(alpha: .42),
+                  //       // progressTint.withValues(alpha: .28),
+                  //       progressTint.withValues(alpha: .14),
+                  //     ],
+                  //   ),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: progressTint.withValues(alpha: .18),
+                    //     blurRadius: 18,
+                    //     spreadRadius: 2,
+                    //   ),
+                    // ],
+                  //),
                   child: const SizedBox.expand(),
                 ),
               ),
@@ -462,7 +455,7 @@ class _CenterArtworkSlot extends StatelessWidget {
           // Rotating artwork disc — elevated 12 px above the bar surface.
           Positioned(
             child: RotatingArtwork(
-              track: track,
+              track: null,
               isPlaying: isPlaying,
               size: 56,
             ),
@@ -502,16 +495,16 @@ class _TabItem extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: labelColor, size: 22),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  color: labelColor,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Icon(icon, color: labelColor, size: 24),
+              // const SizedBox(height: 3),
+              // Text(
+              //   label,
+              //   style: TextStyle(
+              //     color: labelColor,
+              //     fontSize: 10,
+              //     fontWeight: FontWeight.w500,
+              //   ),
+              // ),
             ],
           ),
         ),

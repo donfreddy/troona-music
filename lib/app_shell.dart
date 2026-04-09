@@ -59,8 +59,8 @@ class _AppShellState extends State<AppShell> {
         context.go('/library');
       case AppTab.search:
         context.go('/search');
-      case AppTab.settings:
-        context.go('/settings');
+      case AppTab.playlists:
+        context.go('/playlists');
       case AppTab.player:
         break; // handled by the centre artwork slot in AppBottomNavBar
     }
@@ -183,7 +183,7 @@ class _AppShellState extends State<AppShell> {
   AppTab _tabForLocation(String location) {
     if (location == '/library') return AppTab.library;
     if (location == '/search') return AppTab.search;
-    if (location == '/settings') return AppTab.settings;
+    if (location == '/playlists') return AppTab.playlists;
     return AppTab.home;
   }
 }
