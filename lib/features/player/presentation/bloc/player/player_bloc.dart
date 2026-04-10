@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
@@ -152,6 +153,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayTrackRequested event,
     Emitter<PlayerState> emit,
   ) async {
+    unawaited(AppHaptics.lightImpact());
     if (state is PlayerActive && (state as PlayerActive).isPlaying) {
       await _fadeOut((state as PlayerActive).volume, durationMs: 150);
     }
@@ -192,6 +194,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    unawaited(AppHaptics.lightImpact());
     final currentVolume = (state as PlayerActive).volume;
 
     await _fadeOut(currentVolume, durationMs: 200);
@@ -204,6 +207,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    unawaited(AppHaptics.lightImpact());
     final current = state as PlayerActive;
 
     final newPosition = Duration(
@@ -231,6 +235,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     SkipNextRequested event,
     Emitter<PlayerState> emit,
   ) async {
+    unawaited(AppHaptics.mediumImpact());
     if (state is PlayerActive) {
       final currentVolume = (state as PlayerActive).volume;
       await _fadeOut(currentVolume, durationMs: 100);
@@ -246,6 +251,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    unawaited(AppHaptics.mediumImpact());
     final current = state as PlayerActive;
     final currentVolume = current.volume;
 
@@ -286,6 +292,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    unawaited(AppHaptics.selectionClick());
     final current = state as PlayerActive;
     await _toggleShuffle(ToggleShuffleParams(enabled: !current.shuffleEnabled));
   }
@@ -293,7 +300,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Future<void> _onRepeatModeChangeRequested(
     RepeatModeChangeRequested event,
     Emitter<PlayerState> emit,
-  ) async => _setRepeatMode(SetRepeatModeParams(mode: event.mode));
+  ) async {
+    unawaited(AppHaptics.selectionClick());
+    await _setRepeatMode(SetRepeatModeParams(mode: event.mode));
+  }
 
   Future<void> _onVolumeChangeRequested(
     VolumeChangeRequested event,
@@ -582,17 +592,25 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _onAudioError(_AudioErrorOccurred event, Emitter<PlayerState> emit) {
+    final currentState = state;
     emit(
       PlayerError(
         message: event.message,
-        lastTrack: switch (state) {
+        lastTrack: switch (currentState) {
           PlayerActive(:final currentTrack) => currentTrack,
           PlayerLoading(:final track) => track,
           _ => null,
         },
-        lastQueue: state is PlayerActive ? (state as PlayerActive).queue : null,
+        lastQueue: currentState is PlayerActive ? currentState.queue : null,
       ),
     );
+
+    // Smart Recovery: if we were playing or trying to play, try to skip to next
+    if (currentState is PlayerActive && currentState.queue.hasNext) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!isClosed) add(const SkipNextRequested());
+      });
+    }
   }
 
   void _persistPositionIfNeeded(PlayerActive state) {
