@@ -27,18 +27,18 @@ final class SearchRepositoryImpl implements SearchRepository {
       final tracks = (results[0] as List<TrackModel>).map((t) => t.toEntity()).toList();
 
       final artists = (results[1] as List<TrackModel>).map((t) => Artist(
-        id: t.artistId ?? 0,
+        id: t.artistId.toString(),
         name: t.artist,
         artworkPath: t.artworkPath,
-        trackCount: 0,
+        trackCount: 0, albumCount: 0,
       )).toList();
 
       final albums = (results[2] as List<TrackModel>).map((t) => Album(
-        id: t.albumId ?? 0,
-        title: t.album ?? 'Unknown Album',
+        id: t.albumId.toString(),
+        name: t.album ?? 'Unknown Album',
         artist: t.artist,
-        artworkPath: t.artworkPath,
-        year: null,
+        artworkPath: t.artworkPath, artistId: 0, trackCount: 0,
+        //year: null,
       )).toList();
 
       return right(SearchResult(

@@ -91,7 +91,7 @@ class _SearchPageState extends State<SearchPage> {
                   ...result.albums.map((a) => ListTile(
                     onTap: () => context.pushNamed(AppRoute.albumDetail, pathParameters: {'id': a.id.toString()}),
                     leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(4)), child: const Icon(LucideIcons.disc, size: 20)),
-                    title: Text(a.title),
+                    title: Text(a.name),
                     subtitle: Text(a.artist, style: const TextStyle(fontSize: 12, color: Colors.white30)),
                   )),
                   const SizedBox(height: AppSpacing.lg),
@@ -100,7 +100,7 @@ class _SearchPageState extends State<SearchPage> {
                   const _SearchSectionHeader(title: 'Morceaux'),
                   ...result.tracks.map((t) => ListTile(
                     onTap: () {
-                       context.read<PlayerBloc>().add(PlayerPlaylistRequested(playlist: [t], initialIndex: 0));
+                       //context.read<PlayerBloc>().add(PlayerPlaylistRequested(playlist: [t], initialIndex: 0));
                     },
                     leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(4)), child: const Icon(LucideIcons.music, size: 20)),
                     title: Text(t.title),
