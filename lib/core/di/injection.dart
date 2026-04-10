@@ -125,6 +125,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<ArtistDetailRepository>(
     () => ArtistDetailRepositoryImpl(source: getIt(), cache: getIt()),
   );
+  getIt.registerLazySingleton<PlaylistRepository>(
+    () => PlaylistRepositoryImpl(cache: getIt()),
+  );
   getIt.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(getIt()),
   );
@@ -223,6 +226,14 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<ArtistDetailBloc>(
     () => ArtistDetailBloc(repo: getIt()),
+  );
+
+  getIt.registerFactory<PlaylistBloc>(
+    () => PlaylistBloc(repo: getIt()),
+  );
+
+  getIt.registerFactory<PlaylistDetailBloc>(
+    () => PlaylistDetailBloc(repo: getIt()),
   );
 
   getIt.registerFactory<AlbumDetailBloc>(

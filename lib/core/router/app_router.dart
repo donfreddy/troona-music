@@ -12,6 +12,8 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
+import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
+import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_detail_page.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_page.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
@@ -121,13 +123,21 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoute.playlists,
-              builder: (context, _) => const PlaylistPage(),
+              builder: (context, _) => BlocProvider(
+                create: (_) => getIt<PlaylistBloc>()..add(PlaylistListRequested()),
+                child: const PlaylistPage(),
+              ),
               routes: [
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
-                  builder: (_, state) =>
-                      PlaylistDetailPage(id: state.pathParameters['id']!),
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    return BlocProvider(
+                      create: (_) => getIt<PlaylistDetailBloc>()..add(PlaylistDetailRequested(id)),
+                      child: PlaylistDetailPage(id: id),
+                    );
+                  },
                 ),
               ],
             ),

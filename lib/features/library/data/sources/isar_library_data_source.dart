@@ -100,12 +100,80 @@ class IsarLibraryDataSource {
       ?.artworkPath;
 
   /// Returns up to [limit] playlists ordered by Isar insertion ID.
-  Future<List<PlaylistModel>> getPlaylists({int limit = 10}) async =>
+  Future<List<PlaylistModel>> getPlaylists({int limit = 50}) async =>
       _isar.playlistModels.where().findAll(limit: limit);
 
   /// Returns the playlist with [playlistId], or null if it does not exist.
   Future<PlaylistModel?> getPlaylistById(String playlistId) async =>
       _isar.playlistModels.where().playlistIdEqualTo(playlistId).findFirst();
+
+  /// Creates a new playlist.
+  Future<PlaylistModel> createPlaylist({
+    required String title,
+    String? description,
+    String? artworkPath,
+  }) async {
+    final playlist = PlaylistModel()
+      ..playlistId = DateTime.now().millisecondsSinceEpoch.toString()
+      ..name = title
+      ..description = description
+      ..artworkPath = artworkPath
+      ..trackIds = [];
+
+    _isar.write((isar) {
+      playlist.id = isar.playlistModels.autoIncrement();
+      isar.playlistModels.put(playlist);
+    });
+    return playlist;
+  }
+
+  /// Updates an existing playlist.
+  Future<void> updatePlaylist(PlaylistModel playlist) async {
+    _isar.write((isar) {
+      isar.playlistModels.put(playlist);
+    });
+  }
+
+  /// Deletes a playlist by its internal playlistId.
+  Future<void> deletePlaylist(String playlistId) async {
+    _isar.write((isar) {
+      final playlist = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlistId)
+          .findFirst();
+      if (playlist != null) {
+        isar.playlistModels.delete(playlist.id);
+      }
+    });
+  }
+
+  /// Adds a track to a playlist.
+  Future<void> addTrackToPlaylist(String playlistId, String trackId) async {
+    _isar.write((isar) {
+      final playlist = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlistId)
+          .findFirst();
+      if (playlist != null && !playlist.trackIds.contains(trackId)) {
+        playlist.trackIds.add(trackId);
+        isar.playlistModels.put(playlist);
+      }
+    });
+  }
+
+  /// Removes a track from a playlist.
+  Future<void> removeTrackFromPlaylist(String playlistId, String trackId) async {
+    _isar.write((isar) {
+      final playlist = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlistId)
+          .findFirst();
+      if (playlist != null) {
+        playlist.trackIds.remove(trackId);
+        isar.playlistModels.put(playlist);
+      }
+    });
+  }
 
   /// Returns the list of tracks by their stable device IDs.
   Future<List<TrackModel>> getTracksByIds(List<String> ids) async => _isar
