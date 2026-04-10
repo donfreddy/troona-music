@@ -53,6 +53,10 @@ final class SpeedChangeRequested extends PlayerEvent {
   const SpeedChangeRequested(this.speed);
 }
 
+final class PlayerDismissed extends PlayerEvent {
+  const PlayerDismissed();
+}
+
 final class RestorePlaybackSessionRequested extends PlayerEvent {
   const RestorePlaybackSessionRequested();
 }

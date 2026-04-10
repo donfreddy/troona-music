@@ -123,6 +123,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<RepeatModeChangeRequested>(_onRepeatModeChangeRequested);
     on<VolumeChangeRequested>(_onVolumeChangeRequested);
     on<SpeedChangeRequested>(_onSpeedChangeRequested);
+    on<PlayerDismissed>(_onPlayerDismissed);
     on<RestorePlaybackSessionRequested>(
       _onRestorePlaybackSessionRequested,
       transformer: droppable(),
@@ -265,6 +266,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       _persistSession(next);
     }
     await _setSpeed(SetSpeedParams(speed: event.speed));
+  }
+
+  Future<void> _onPlayerDismissed(
+    PlayerDismissed event,
+    Emitter<PlayerState> emit,
+  ) async {
+    await _clearPersistedSession();
+    emit(const PlayerIdle());
   }
 
   Future<void> _onRestorePlaybackSessionRequested(
@@ -439,11 +448,20 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           _restoringSnapshot = null;
         }
       case PlayerActive():
-        final next = (state as PlayerActive).copyWith(status: event.status);
-        emit(next);
+        final current = state as PlayerActive;
+        final next = current.copyWith(status: event.status);
+
         if (_shouldClearSessionAfterStop(next)) {
-          unawaited(_clearPersistedSession());
+          // Au lieu de Idle, on reste en Active mais on reset la position à 0
+          // et on s'assure que le statut est "paused" pour l'UI.
+          final resetState = next.copyWith(
+            status: PlaybackStatus.paused,
+            position: Duration.zero,
+          );
+          emit(resetState);
+          _persistSession(resetState);
         } else {
+          emit(next);
           _persistSession(next);
         }
       case _:

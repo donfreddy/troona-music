@@ -109,6 +109,8 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
         _lastActiveState = next;
         return next;
       case PlayerIdle():
+        _lastActiveState = null;
+        return null;
       case PlayerError():
         return _lastActiveState;
     }
@@ -253,120 +255,127 @@ class _MiniPlayerRow extends StatelessWidget {
     final colors = context.colors;
     final glass = GlassTheme.miniPlayer(context);
 
-    return GestureDetector(
-      onTap: () => _openFullPlayer(context),
-      onVerticalDragEnd: (d) {
-        // Swipe up with sufficient velocity → open full player.
-        if (d.velocity.pixelsPerSecond.dy < -300) {
-          _openFullPlayer(context);
-        }
+    return Dismissible(
+      key: ValueKey(state.currentTrack.id),
+      direction: DismissDirection.down,
+      onDismissed: (_) {
+        context.read<PlayerBloc>().add(const PlayerDismissed());
       },
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        height: AppSpacing.miniPlayerHeight,
-        decoration: showTabs
-            ? BoxDecoration(
-                borderRadius: radius,
-                border: Border.all(
-                  width: showTabs ? 0 : 1,
-                  color: glass.border,
-                ),
-              )
-            : null,
-        child: ClipRRect(
-          borderRadius: radius,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (showTabs)
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+      child: GestureDetector(
+        onTap: () => _openFullPlayer(context),
+        onVerticalDragEnd: (d) {
+          // Swipe up with sufficient velocity → open full player.
+          if (d.velocity.pixelsPerSecond.dy < -300) {
+            _openFullPlayer(context);
+          }
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: AppSpacing.miniPlayerHeight,
+          decoration: showTabs
+              ? BoxDecoration(
+                  borderRadius: radius,
+                  border: Border.all(
+                    width: showTabs ? 0 : 1,
+                    color: glass.border,
+                  ),
+                )
+              : null,
+          child: ClipRRect(
+            borderRadius: radius,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (showTabs)
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                      ),
                     ),
                   ),
-                ),
-              _MiniPlayerProgressFill(progressTint: glass.border),
-              Row(
-                children: [
-                  const SizedBox(width: 12),
+                _MiniPlayerProgressFill(progressTint: glass.border),
+                Row(
+                  children: [
+                    const SizedBox(width: 12),
 
-                  // ── Artwork thumbnail ────────────────────────
-                  SizedBox.square(
-                    dimension: 42,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: state.currentTrack.artworkPath != null
-                          ? Image.file(
-                              File(state.currentTrack.artworkPath!),
-                              fit: BoxFit.cover,
-                            )
-                          : ColoredBox(
-                              color: colors.glassFill,
-                              child: Icon(
-                                LucideIcons.music,
-                                color: colors.labelTertiary,
-                                size: 18,
+                    // ── Artwork thumbnail ────────────────────────
+                    SizedBox.square(
+                      dimension: 42,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: state.currentTrack.artworkPath != null
+                            ? Image.file(
+                                File(state.currentTrack.artworkPath!),
+                                fit: BoxFit.cover,
+                              )
+                            : ColoredBox(
+                                color: colors.glassFill,
+                                child: Icon(
+                                  LucideIcons.music,
+                                  color: colors.labelTertiary,
+                                  size: 18,
+                                ),
                               ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // ── Track title and artist ─────────────────────────────
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.currentTrack.title,
+                            style: TextStyle(
+                              color: colors.labelPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // ── Track title and artist ─────────────────────────────
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.currentTrack.title,
-                          style: TextStyle(
-                            color: colors.labelPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          state.currentTrack.artist,
-                          style: TextStyle(
-                            color: colors.labelSecondary,
-                            fontSize: 11,
+                          Text(
+                            state.currentTrack.artist,
+                            style: TextStyle(
+                              color: colors.labelSecondary,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // ── Play / Pause ───────────────────────────────────────
-                  IconButton(
-                    onPressed: () => context.read<PlayerBloc>().add(
-                      state.isPlaying
-                          ? const PauseRequested()
-                          : const ResumeRequested(),
+                    // ── Play / Pause ───────────────────────────────────────
+                    IconButton(
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        state.isPlaying
+                            ? const PauseRequested()
+                            : const ResumeRequested(),
+                      ),
+                      icon: Icon(
+                        state.isPlaying ? LucideIcons.pause : LucideIcons.play,
+                      ),
                     ),
-                    icon: Icon(
-                      state.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                    ),
-                  ),
 
-                  // ── Skip next ──────────────────────────────────────────
-                  IconButton(
-                    onPressed: () => context.read<PlayerBloc>().add(
-                      const SkipNextRequested(),
+                    // ── Skip next ──────────────────────────────────────────
+                    IconButton(
+                      onPressed: () => context.read<PlayerBloc>().add(
+                        const SkipNextRequested(),
+                      ),
+                      icon: Icon(LucideIcons.skipForward),
                     ),
-                    icon: Icon(LucideIcons.skipForward),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
