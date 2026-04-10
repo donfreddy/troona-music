@@ -7,8 +7,8 @@ import 'package:palette_generator_master/palette_generator_master.dart';
 
 enum DynamicBackgroundTone { ambient, immersive }
 
-/// Extrait la couleur dominante de l'artwork en cours
-/// et anime un dégradé plus vivant dérivé de la pochette.
+/// Extracts the dominant color from the current artwork
+/// and animates a vibrant gradient derived from the cover.
 class DynamicBackground extends StatefulWidget {
   final String? artworkPath;
   final Widget child;
@@ -83,61 +83,39 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     try {
       final palette = await PaletteGeneratorMaster.fromImageProvider(
         FileImage(File(path)),
-        size: const Size(100, 100), // thumbnail pour la perf
+        size: const Size(64, 64), // Smaller = faster and more "averaged"
       );
-      final dominant =
-          palette.darkVibrantColor?.color ??
-          palette.vibrantColor?.color ??
-          palette.dominantColor?.color ??
-          const Color(0xFF1A0533);
 
-      // Prend une deuxième teinte (vibrant si dispo) pour l'animation
-      final secondary =
-          palette.vibrantColor?.color ??
-          palette.lightVibrantColor?.color ??
-          palette.mutedColor?.color ??
-          dominant;
+      // Strategy: Look for the most representative color
+      // but saturated enough not to be grey.
+      final primaryColor = palette.vibrantColor?.color ?? 
+                          palette.dominantColor?.color ?? 
+                          const Color(0xFF1A0533);
 
-      Color tune(
-        Color c, {
-        required double minLightness,
-        required double maxLightness,
-        required double saturationBoost,
-      }) {
+      final secondaryColor = palette.darkVibrantColor?.color ?? 
+                            palette.mutedColor?.color ?? 
+                            primaryColor;
+
+      // Function to harmonize the color without denaturing it
+      Color adapt(Color c, {required bool isTop}) {
         final hsl = HSLColor.fromColor(c);
+        // Keep the Hue intact!
+        // Just adjust saturation to make it "pop"
+        // and lightness to keep the background dark (readability)
         return hsl
-            .withSaturation((hsl.saturation * saturationBoost).clamp(0.22, 0.9))
-            .withLightness(hsl.lightness.clamp(minLightness, maxLightness))
+            .withSaturation((hsl.saturation * 1.1).clamp(0.4, 0.9))
+            .withLightness(isTop ? 0.25 : 0.15) 
             .toColor();
       }
 
-      final immersive = widget.tone == DynamicBackgroundTone.immersive;
-      final top1 = Color.lerp(
-        const Color(0xFF995b8e),
-        tune(
-          dominant,
-          minLightness: immersive ? 0.28 : 0.34,
-          maxLightness: immersive ? 0.5 : 0.58,
-          saturationBoost: immersive ? 0.95 : 1.05,
-        ),
-        0.55,
-      )!;
-      final top2 = Color.lerp(
-        const Color(0xFF653e78),
-        tune(
-          secondary,
-          minLightness: immersive ? 0.16 : 0.2,
-          maxLightness: immersive ? 0.34 : 0.38,
-          saturationBoost: immersive ? 0.9 : 1.0,
-        ),
-        0.45,
-      )!;
+      final top1 = adapt(primaryColor, isTop: true);
+      final top2 = adapt(secondaryColor, isTop: false);
 
       if (!mounted || requestId != _paletteRequestId) return;
       _rememberPalette(path, top1, top2);
       _animatePaletteTo(top1, top2);
     } catch (_) {
-      /* fichier inaccessible ou palette vide */
+      /* inaccessible file or empty palette */
     }
   }
 
@@ -160,6 +138,8 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   String _cacheKey(String path) => '${widget.tone.name}|$path';
 
   void _animatePaletteTo(Color nextA, Color nextB) {
+    // Take a snapshot of the current animated colors to use as a starting point for the next transition.
+    // This prevents "jumps" if a new artwork is loaded before the previous animation finished.
     final currentA = Color.lerp(_fromColorA, _toColorA, _paletteCtrl.value)!;
     final currentB = Color.lerp(_fromColorB, _toColorB, _paletteCtrl.value)!;
     setState(() {
