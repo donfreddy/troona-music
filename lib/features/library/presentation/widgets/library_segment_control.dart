@@ -5,7 +5,7 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 
 class LibrarySegmentControl extends StatelessWidget {

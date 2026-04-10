@@ -8,7 +8,8 @@ abstract interface class AlbumDetailRepository {
 
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(String id);
 
-  Future<Either<Failure, List<Track>>> getTracksByArtistId(int id);
+  // todo: remove and put to artiste details repo
+  // Future<Either<Failure, List<Track>>> getTracksByArtistId(int id);
 
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id);
 }

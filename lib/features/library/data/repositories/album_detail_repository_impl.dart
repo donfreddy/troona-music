@@ -58,16 +58,17 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, List<Track>>> getTracksByArtistId(int id) async {
-    try {
-      final tracks = await _cache.getTracksByArtistId(id);
-      return right(tracks.map((t) => t.toEntity()).toList());
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
+  // @override
+  // Future<Either<Failure, List<Track>>> getTracksByArtistId(int id) async {
+  //   try {
+  //     final tracks = await _cache.getTracksByArtistId(id);
+  //     return right(tracks.map((t) => t.toEntity()).toList());
+  //   } catch (e, st) {
+  //     return left(ErrorHandler.handle(e, st));
+  //   }
+  // }
 
+  @override
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id) async {
     try {
       final tracks = await _cache.getTracksByAlbumId(id);

@@ -164,7 +164,11 @@ class _NavBarBody extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
             child: isMiniPlayerVisible
-                ? _MiniPlayerRow(state: playerState!, radius: radius)
+                ? _MiniPlayerRow(
+                    state: playerState!,
+                    radius: radius,
+                    showTabs: showTabs,
+                  )
                 : const SizedBox.shrink(),
           ),
 
@@ -236,8 +240,13 @@ class _NavBarBody extends StatelessWidget {
 class _MiniPlayerRow extends StatelessWidget {
   final PlayerActive state;
   final BorderRadius radius;
+  final bool showTabs;
 
-  const _MiniPlayerRow({required this.state, required this.radius});
+  const _MiniPlayerRow({
+    required this.state,
+    required this.radius,
+    this.showTabs = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -253,19 +262,23 @@ class _MiniPlayerRow extends StatelessWidget {
         }
       },
       behavior: HitTestBehavior.opaque,
-      child: Transform.translate(
-        offset: const Offset(0, -1),
-        child: Container(
-          height: AppSpacing.miniPlayerHeight,
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(color: Colors.white.withValues(alpha: .11)),
-          ),
-          child: ClipRRect(
-            borderRadius: radius,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
+      child: Container(
+        height: AppSpacing.miniPlayerHeight,
+        decoration: showTabs
+            ? BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(
+                  width: showTabs ? 0 : 1,
+                  color: glass.border,
+                ),
+              )
+            : null,
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (showTabs)
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -275,91 +288,85 @@ class _MiniPlayerRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                _MiniPlayerProgressFill(
-                  progressTint: Colors.white.withValues(alpha: .1),
-                ),
-                Row(
-                  children: [
-                    const SizedBox(width: 12),
+              _MiniPlayerProgressFill(progressTint: glass.border),
+              Row(
+                children: [
+                  const SizedBox(width: 12),
 
-                    // ── Artwork thumbnail ────────────────────────
-                    SizedBox.square(
-                      dimension: 42,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: state.currentTrack.artworkPath != null
-                            ? Image.file(
-                                File(state.currentTrack.artworkPath!),
-                                fit: BoxFit.cover,
-                              )
-                            : ColoredBox(
-                                color: colors.glassFill,
-                                child: Icon(
-                                  LucideIcons.music,
-                                  color: colors.labelTertiary,
-                                  size: 18,
-                                ),
+                  // ── Artwork thumbnail ────────────────────────
+                  SizedBox.square(
+                    dimension: 42,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: state.currentTrack.artworkPath != null
+                          ? Image.file(
+                              File(state.currentTrack.artworkPath!),
+                              fit: BoxFit.cover,
+                            )
+                          : ColoredBox(
+                              color: colors.glassFill,
+                              child: Icon(
+                                LucideIcons.music,
+                                color: colors.labelTertiary,
+                                size: 18,
                               ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // ── Track title and artist ─────────────────────────────
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            state.currentTrack.title,
-                            style: TextStyle(
-                              color: colors.labelPrimary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // ── Track title and artist ─────────────────────────────
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.currentTrack.title,
+                          style: TextStyle(
+                            color: colors.labelPrimary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
-                          Text(
-                            state.currentTrack.artist,
-                            style: TextStyle(
-                              color: colors.labelSecondary,
-                              fontSize: 11,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          state.currentTrack.artist,
+                          style: TextStyle(
+                            color: colors.labelSecondary,
+                            fontSize: 11,
                           ),
-                        ],
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
+                  ),
 
-                    // ── Play / Pause ───────────────────────────────────────
-                    IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(
-                        state.isPlaying
-                            ? const PauseRequested()
-                            : const ResumeRequested(),
-                      ),
-                      icon: Icon(
-                        state.isPlaying
-                            ? LucideIcons.pause
-                            : LucideIcons.play,
-
-                      ),
+                  // ── Play / Pause ───────────────────────────────────────
+                  IconButton(
+                    onPressed: () => context.read<PlayerBloc>().add(
+                      state.isPlaying
+                          ? const PauseRequested()
+                          : const ResumeRequested(),
                     ),
-
-                    // ── Skip next ──────────────────────────────────────────
-                    IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(
-                        const SkipNextRequested(),
-                      ),
-                      icon: Icon(LucideIcons.skipForward),
+                    icon: Icon(
+                      state.isPlaying ? LucideIcons.pause : LucideIcons.play,
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+
+                  // ── Skip next ──────────────────────────────────────────
+                  IconButton(
+                    onPressed: () => context.read<PlayerBloc>().add(
+                      const SkipNextRequested(),
+                    ),
+                    icon: Icon(LucideIcons.skipForward),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -404,13 +411,13 @@ class _MiniPlayerProgressFill extends StatelessWidget {
                   //       progressTint.withValues(alpha: .14),
                   //     ],
                   //   ),
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     color: progressTint.withValues(alpha: .18),
-                    //     blurRadius: 18,
-                    //     spreadRadius: 2,
-                    //   ),
-                    // ],
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: progressTint.withValues(alpha: .18),
+                  //     blurRadius: 18,
+                  //     spreadRadius: 2,
+                  //   ),
+                  // ],
                   //),
                   child: const SizedBox.expand(),
                 ),
@@ -466,11 +473,7 @@ class _CenterArtworkSlot extends StatelessWidget {
 
           // Rotating artwork disc — elevated 12 px above the bar surface.
           Positioned(
-            child: RotatingArtwork(
-              track: null,
-              isPlaying: isPlaying,
-              size: 56,
-            ),
+            child: RotatingArtwork(track: null, isPlaying: isPlaying, size: 56),
           ),
         ],
       ),

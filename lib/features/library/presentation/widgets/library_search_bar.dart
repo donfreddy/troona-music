@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/utils/debouncer.dart';
-import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 
 class LibrarySearchBar extends StatefulWidget {

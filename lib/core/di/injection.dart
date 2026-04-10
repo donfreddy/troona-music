@@ -22,7 +22,7 @@ import 'package:troona/features/library/domain/use_cases/remove_track_from_likes
 import 'package:troona/features/library/domain/use_cases/is_track_in_likes_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
-import 'package:troona/features/library/presentation/bloc/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
