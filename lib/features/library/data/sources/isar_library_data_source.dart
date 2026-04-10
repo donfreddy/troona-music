@@ -116,7 +116,7 @@ class IsarLibraryDataSource {
     final playlist = PlaylistModel()
       ..playlistId = DateTime.now().millisecondsSinceEpoch.toString()
       ..name = title
-      //..description = description
+     // ..description = description
       ..artworkPath = artworkPath
       ..trackIds = [];
 
@@ -265,6 +265,38 @@ class IsarLibraryDataSource {
   /// [TrackModel.indexedAt] descending (newest first).
   Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
       _isar.trackModels.where().sortByIndexedAtDesc().findAll(limit: limit);
+
+  /// Returns a list of tracks grouped by artist.
+  Future<List<TrackModel>> getUniqueArtists({int limit = 5}) async {
+    final tracks = _isar.trackModels.where().findAll();
+    final seenArtists = <String>{};
+    final uniqueTracks = <TrackModel>[];
+
+    for (final track in tracks) {
+      if (!seenArtists.contains(track.artist)) {
+        seenArtists.add(track.artist);
+        uniqueTracks.add(track);
+        if (uniqueTracks.length >= limit) break;
+      }
+    }
+    return uniqueTracks;
+  }
+
+  /// Returns a list of tracks grouped by album.
+  Future<List<TrackModel>> getUniqueAlbums({int limit = 5}) async {
+    final tracks = _isar.trackModels.where().sortByIndexedAtDesc().findAll();
+    final seenAlbums = <String>{};
+    final uniqueTracks = <TrackModel>[];
+
+    for (final track in tracks) {
+      if (track.album != null && !seenAlbums.contains(track.album)) {
+        seenAlbums.add(track.album!);
+        uniqueTracks.add(track);
+        if (uniqueTracks.length >= limit) break;
+      }
+    }
+    return uniqueTracks;
+  }
 
   // ---------------------------------------------------------------------------
   // Write operations  (wrapped in Isar.write for atomicity)

@@ -1,73 +1,63 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
-import 'package:troona/shared/widgets/empty_state.dart';
-import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/features/home/presentation/widgets/playlist_card.dart';
-import 'package:troona/features/home/presentation/widgets/shimmer_row.dart';
 import 'package:troona/features/home/presentation/widgets/trending_row.dart';
-import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/library/presentation/widgets/artist_card.dart';
+import 'package:troona/features/home/presentation/widgets/playlist_card.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<HomeBloc>().add(const HomeFeedRequested());
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, state) => CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+      body: RefreshIndicator(
+        onRefresh: () async => context.read<HomeBloc>().add(HomeRefreshRequested()),
+        child: CustomScrollView(
           slivers: [
-            // Safe area top + avatar + cloche
-            SliverToBoxAdapter(child: _HomeHeader()),
-
-            // Corps selon état
-            switch (state) {
-              HomeLoading() || HomeInitial() => SliverList.builder(
-                itemCount: 8,
-                itemBuilder: (_, _) => const ShimmerRow(),
-              ),
-              HomeLoaded(:final feed, :final totalTracks) => _HomeFeedBody(
-                feed: feed,
-                totalTracks: totalTracks,
-              ),
-              HomeError(:final message) => SliverFillRemaining(
-                child: ErrorView(
-                  message: message,
-                  onRetry: () => context.read<HomeBloc>().add(
-                    const HomeRefreshRequested(),
-                  ),
-                ),
-              ),
-            },
-
-            // Padding pour la BottomNavBar
-            SliverPadding(
-              padding: EdgeInsets.only(
-                bottom:
-                    AppSpacing.bottomBlockHeight +
-                    MediaQuery.of(context).padding.bottom +
-                    AppSpacing.md,
-              ),
+            _HomeAppBar(),
+            BlocBuilder<HomeBloc, HomeState>(
+              builder: (context, state) {
+                if (state is HomeLoading) {
+                  return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+                }
+                if (state is HomeLoaded) {
+                  final feed = state.feed;
+                  return SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: AppSpacing.md),
+                      
+                      // 1. Recently Played (Songs)
+                      _SectionHeader(title: 'Recently Played'),
+                      //TrendingRow(tracks: feed.recentlyPlayed),
+                      
+                      // 2. Your Artists (Artists)
+                      _SectionHeader(title: 'Your Artists'),
+                      _ArtistCarousel(artists: feed.yourArtists),
+                      
+                      // 3. New Albums (Albums)
+                      _SectionHeader(title: 'New Albums'),
+                      _AlbumCarousel(albums: feed.newAlbums),
+                      
+                      // 4. Your Playlists (Playlists)
+                      _SectionHeader(title: 'Your Playlists'),
+                      _PlaylistCarousel(playlists: feed.yourPlaylists),
+                      
+                      const SizedBox(height: 120),
+                    ]),
+                  );
+                }
+                if (state is HomeError) {
+                  return SliverFillRemaining(child: Center(child: Text(state.message)));
+                }
+                return const SliverToBoxAdapter(child: SizedBox.shrink());
+              },
             ),
           ],
         ),
@@ -76,199 +66,114 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.md,
-          AppSpacing.lg,
-          AppSpacing.xl,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Avatar utilisateur
-            GestureDetector(
-              onTap: () => context.go('/settings'),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: .15),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .25),
-                    width: 1.5,
-                  ),
-                ),
-                child: const Icon(
-                  EvaIcons.settingsOutline,
-                  color: Colors.white70,
-                  //size: 22,
-                ),
-              ),
-            ),
-
-            // Cloche notifications
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: .10),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: .15),
-                  width: 0.5,
-                ),
-              ),
-              child: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () {},
-                child: const Icon(
-                  EvaIcons.bellOutline,
-                  color: Colors.white70,
-                  //size: 20,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeFeedBody extends StatelessWidget {
-  final HomeFeed feed;
-  final int totalTracks;
-
-  const _HomeFeedBody({required this.feed, required this.totalTracks});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverMainAxisGroup(
-      slivers: [
-        // ── Section Popular Playlists ──────────────────────
-        _SectionHeader(
-          title: 'Popular Playlists',
-          onViewAll: () => context.go('/playlists'),
-        ),
-
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 220,
-            child: feed.popularPlaylists.isEmpty
-                ? const EmptyState(
-                    message: 'Aucune playlist trouvée',
-                    icon: Icons.playlist_play,
-                  )
-                : ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                    ),
-                    itemCount: feed.popularPlaylists.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(width: AppSpacing.md),
-                    itemBuilder: (context, i) =>
-                        PlaylistCard(playlist: feed.popularPlaylists[i]),
-                  ),
-          ),
-        ),
-
-        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-
-        // ── Section Trending Now ──────────────────────────
-        _SectionHeader(
-          title: 'Trending Now ${feed.trendingTracks.length}',
-          onViewAll: () => context.go('/library'),
-        ),
-
-        SliverList.separated(
-          itemCount: feed.trendingTracks.length,
-          separatorBuilder: (_, _) => Divider(
-            height: 0.5,
-            indent: 74,
-            color: Colors.white.withValues(alpha: .08),
-          ),
-          itemBuilder: (context, i) => TrendingRow(
-            track: feed.trendingTracks[i],
-            rank: i + 1,
-            onTap: () => context.read<PlayerBloc>().add(
-              PlayTrackRequested(
-                feed.trendingTracks[i],
-                contextQueue: feed.trendingTracks,
-                contextIndex: i,
-              ),
-            ),
-          ),
-        ),
+    return SliverAppBar(
+      floating: true,
+      backgroundColor: Colors.black.withValues(alpha: .8),
+      title: const Text('Troona', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+      actions: [
+        GlassIconButton(icon: LucideIcons.settings, onTap: () => context.push(AppRoute.settings)),
+        const SizedBox(width: AppSpacing.md),
       ],
     );
   }
 }
 
-// ── Section header ────────────────────────────────────────
-
 class _SectionHeader extends StatelessWidget {
   final String title;
-  final VoidCallback onViewAll;
-
-  const _SectionHeader({required this.title, required this.onViewAll});
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          0,
-          AppSpacing.lg,
-          AppSpacing.md,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.4,
-              ),
-            ),
-            GestureDetector(
-              onTap: onViewAll,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .15),
-                    width: 0.5,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+class _ArtistCarousel extends StatelessWidget {
+  final List artists;
+  const _ArtistCarousel({required this.artists});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 140,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        scrollDirection: Axis.horizontal,
+        itemCount: artists.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (context, index) {
+          final artist = artists[index];
+          return ArtistCard(artist: artist);
+        },
+      ),
+    );
+  }
+}
+
+class _AlbumCarousel extends StatelessWidget {
+  final List albums;
+  const _AlbumCarousel({required this.albums});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        scrollDirection: Axis.horizontal,
+        itemCount: albums.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (context, index) {
+          final album = albums[index];
+          return InkWell(
+            onTap: () => context.pushNamed(AppRoute.albumDetail, pathParameters: {'id': album.id.toString()}),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
+                  child: const Icon(LucideIcons.disc, color: Colors.white24, size: 48),
                 ),
-                child: const Text(
-                  'View All',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+                const SizedBox(height: AppSpacing.xs),
+                SizedBox(width: 130, child: Text(album.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                SizedBox(width: 130, child: Text(album.artist, style: const TextStyle(color: Colors.white30, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis)),
+              ],
             ),
-          ],
-        ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _PlaylistCarousel extends StatelessWidget {
+  final List playlists;
+  const _PlaylistCarousel({required this.playlists});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        scrollDirection: Axis.horizontal,
+        itemCount: playlists.length,
+        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+        itemBuilder: (context, index) {
+          final playlist = playlists[index];
+          return PlaylistCard(playlist: playlist);
+        },
       ),
     );
   }
