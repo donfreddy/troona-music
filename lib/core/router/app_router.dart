@@ -16,6 +16,8 @@ import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_blo
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_detail_page.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_page.dart';
+import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
+import 'package:troona/features/search/presentation/pages/search_page.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -114,7 +116,10 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoute.search,
-              builder: (_, _) => const _StubPage(title: 'Search'),
+              builder: (context, _) => BlocProvider(
+                create: (_) => getIt<SearchBloc>(),
+                child: const SearchPage(),
+              ),
             ),
           ],
         ),

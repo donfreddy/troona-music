@@ -128,6 +128,9 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),
   );
+  getIt.registerLazySingleton<SearchRepository>(
+    () => SearchRepositoryImpl(db: getIt()),
+  );
   getIt.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(getIt()),
   );
@@ -222,6 +225,10 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<HomeBloc>(
     () => HomeBloc(repo: getIt()),
+  );
+
+  getIt.registerFactory<SearchBloc>(
+    () => SearchBloc(repo: getIt()),
   );
 
   getIt.registerFactory<ArtistDetailBloc>(

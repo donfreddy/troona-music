@@ -84,6 +84,28 @@ class IsarLibraryDataSource {
       .artistContains(query, caseSensitive: false)
       .findAll();
 
+  /// Case-insensitive search for artists.
+  Future<List<TrackModel>> searchArtists(String query) async {
+    final tracks = _isar.trackModels
+        .where()
+        .artistContains(query, caseSensitive: false)
+        .findAll();
+
+    final seen = <String>{};
+    return tracks.where((t) => seen.add(t.artist)).toList();
+  }
+
+  /// Case-insensitive search for albums.
+  Future<List<TrackModel>> searchAlbums(String query) async {
+    final tracks = _isar.trackModels
+        .where()
+        .albumContains(query, caseSensitive: false)
+        .findAll();
+
+    final seen = <String>{};
+    return tracks.where((t) => t.album != null && seen.add(t.album!)).toList();
+  }
+
   /// Returns tracks that have no artwork cached yet (null or empty path).
   Future<List<TrackModel>> getTracksWithoutArtwork() async => _isar.trackModels
       .where()
