@@ -116,7 +116,7 @@ class IsarLibraryDataSource {
     final playlist = PlaylistModel()
       ..playlistId = DateTime.now().millisecondsSinceEpoch.toString()
       ..name = title
-      ..description = description
+      //..description = description
       ..artworkPath = artworkPath
       ..trackIds = [];
 

@@ -70,10 +70,10 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   Future<Either<Failure, Unit>> updatePlaylist(Playlist playlist) async {
     try {
       final model = PlaylistModel()
-        ..id = playlist.id
-        ..playlistId = playlist.playlistId
+       // ..id = playlist.id
+        ..playlistId = playlist.id
         ..name = playlist.name
-        ..description = playlist.description
+        //..description = playlist.description
         ..artworkPath = playlist.artworkPath
         ..trackIds = playlist.trackIds;
       
