@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
-import 'package:troona/features/settings/presentation/widgets/section_header.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_section_header.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/slider_tile.dart';
 
@@ -50,7 +50,7 @@ class _SettingsView extends StatelessWidget {
           SliverList(
             delegate: SliverChildListDelegate([
               // Appearance
-              SectionHeader('Appearance'),
+              SettingsSectionHeader('Appearance'),
               SegmentedRow<AppThemeMode>(
                 label: 'Theme',
                 values: AppThemeMode.values,
@@ -65,7 +65,7 @@ class _SettingsView extends StatelessWidget {
               ),
 
               // Playback
-              SectionHeader('Playback'),
+              SettingsSectionHeader('Playback'),
               SwitchListTile(
                 title: const Text('Gapless playback'),
                 value: settings.gaplessPlayback,
@@ -105,7 +105,7 @@ class _SettingsView extends StatelessWidget {
               ),
 
               // Library
-              SectionHeader('Library'),
+              SettingsSectionHeader('Library'),
               SwitchListTile(
                 title: const Text('Scan on startup'),
                 value: settings.scanOnStartup,
@@ -118,7 +118,7 @@ class _SettingsView extends StatelessWidget {
               ),
 
               // UI
-              SectionHeader('Interface'),
+              SettingsSectionHeader('Interface'),
               SwitchListTile(
                 title: const Text('Haptic feedback'),
                 value: settings.hapticFeedbackEnabled,
@@ -138,7 +138,7 @@ class _SettingsView extends StatelessWidget {
               ),
 
               // Sleep Timer
-              SectionHeader('Sleep Timer'),
+              SettingsSectionHeader('Sleep Timer'),
               SwitchListTile(
                 title: const Text('Sleep timer'),
                 subtitle: Text('${settings.sleepTimerMinutes} min'),
@@ -158,7 +158,7 @@ class _SettingsView extends StatelessWidget {
                 ),
 
               // Reset
-              SectionHeader('Reset'),
+              SettingsSectionHeader('Reset'),
               ListTile(
                 leading: const Icon(Icons.music_off_outlined),
                 title: const Text('Clear playback session'),

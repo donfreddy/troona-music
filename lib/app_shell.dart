@@ -34,16 +34,54 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   bool _didRequestPlaybackRestore = false;
   bool _didRestoreFullPlayerRoute = false;
+  String _currentLocation = '';
 
   @override
   void initState() {
     super.initState();
+    _currentLocation = widget.location;
+    // Listen to GoRouter navigation changes so we can track the current
+    // route even when go_router's shell builder isn't re-invoked (e.g.
+    // when popping back from a sub-route within the same branch).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      GoRouter.of(context).routerDelegate.addListener(_onRouteChanged);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       final hasPermission = await AppPermissionHandler.hasAudioPermission();
       if (!mounted || !hasPermission) return;
       context.read<LibraryBloc>().add(const LibraryBootstrapRequested());
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.location != oldWidget.location) {
+      _currentLocation = widget.location;
+    }
+  }
+
+  void _onRouteChanged() {
+    if (!mounted) return;
+    final newLocation =
+        GoRouter.of(context).routeInformationProvider.value.uri.path;
+    if (newLocation != _currentLocation) {
+      setState(() => _currentLocation = newLocation);
+    }
+  }
+
+  @override
+  void dispose() {
+    // The listener is added in a post-frame callback, so GoRouter's context
+    // may not be available if the widget was disposed before the callback.
+    try {
+      GoRouter.of(context).routerDelegate.removeListener(_onRouteChanged);
+    } catch (_) {
+      // GoRouter context no longer available — safe to ignore.
+    }
+    super.dispose();
   }
 
   void _onTabChanged(AppTab tab) {
@@ -113,13 +151,15 @@ class _AppShellState extends State<AppShell> {
 
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
           
-          // Use the location passed from the router
+          // Use the live _currentLocation which is updated via both
+          // the widget prop and the GoRouter listener, ensuring we
+          // always know the actual route — even after popping.
           final isRootPage = [
             AppRoute.home,
             AppRoute.library,
             AppRoute.search,
             AppRoute.playlists,
-          ].contains(widget.location);
+          ].contains(_currentLocation);
 
           return Scaffold(
             backgroundColor: Colors.black,

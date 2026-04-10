@@ -180,9 +180,12 @@ class JustAudioAdapter implements AudioServicePort {
           fadeDuration,
           updateSubject: false,
         );
+        // Always pause and restore volume, even if the fade was interrupted
+        // by a subsequent resume. This prevents the player from staying in
+        // a playing state with near-zero volume.
+        await _player.pause();
+        await _player.setVolume(targetVolume);
         if (completed) {
-          await _player.pause();
-          await _player.setVolume(targetVolume);
           _volumeSubject.add(targetVolume);
         }
       } else {

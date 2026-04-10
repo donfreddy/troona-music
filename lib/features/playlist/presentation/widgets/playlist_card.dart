@@ -2,29 +2,31 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/home/presentation/widgets/playlist_mosaic.dart';
+import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 
 class PlaylistCard extends StatelessWidget {
   final Playlist playlist;
+  final double size;
 
-  const PlaylistCard({super.key, required this.playlist});
+  const PlaylistCard({super.key, required this.playlist, this.size = 160});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.go('/playlists/${playlist.id}'),
+      onTap: () => context.goNamed(AppRoute.playlistDetail, pathParameters: {'id': playlist.id}),
       child: SizedBox(
-        width: 160,
+        width: size,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               child: SizedBox.square(
-                dimension: 160,
+                dimension: size,
                 child: playlist.artworkPath != null
                     ? Image.file(File(playlist.artworkPath!), fit: BoxFit.cover)
                     : PlaylistMosaic(trackIds: playlist.trackIds),
@@ -36,11 +38,7 @@ class PlaylistCard extends StatelessWidget {
             // Titre
             Text(
               playlist.name,
-              style: TextStyle(
-                color: context.colors.labelPrimary,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: context.colors.labelPrimary, fontSize: 15, fontWeight: FontWeight.w600),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -49,10 +47,7 @@ class PlaylistCard extends StatelessWidget {
 
             Text(
               '${playlist.trackIds.length} tracks',
-              style: TextStyle(
-                color: context.colors.labelSecondary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: context.colors.labelSecondary, fontSize: 13),
             ),
           ],
         ),
