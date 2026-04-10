@@ -119,6 +119,12 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(db: getIt()),
   );
+  getIt.registerLazySingleton<AlbumDetailRepository>(
+    () => AlbumDetailRepositoryImpl(source: getIt(), cache: getIt()),
+  );
+  getIt.registerLazySingleton<ArtistDetailRepository>(
+    () => ArtistDetailRepositoryImpl(source: getIt(), cache: getIt()),
+  );
   getIt.registerLazySingleton<PlayerRepository>(
     () => PlayerRepositoryImpl(getIt()),
   );
@@ -213,6 +219,14 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<HomeBloc>(
     () => HomeBloc(repo: getIt()),
+  );
+
+  getIt.registerFactory<ArtistDetailBloc>(
+    () => ArtistDetailBloc(repo: getIt()),
+  );
+
+  getIt.registerFactory<AlbumDetailBloc>(
+    () => AlbumDetailBloc(repo: getIt()),
   );
 
   // LibraryBloc remains a factory so each ShellRoute mount creates a fresh

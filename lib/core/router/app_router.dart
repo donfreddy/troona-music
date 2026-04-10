@@ -7,6 +7,7 @@ import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
@@ -94,8 +95,13 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'artists/:id',
                   name: AppRoute.artistDetail,
-                  builder: (_, state) =>
-                      ArtistDetailPage(id: state.pathParameters['id']!),
+                  builder: (context, state) {
+                    final id = int.parse(state.pathParameters['id']!);
+                    return BlocProvider(
+                      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+                      child: ArtistDetailPage(id: id.toString()),
+                    );
+                  },
                 ),
               ],
             ),
