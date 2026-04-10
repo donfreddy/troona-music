@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
@@ -15,6 +16,7 @@ import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
 
 part 'player_event.dart';
+
 part 'player_state.dart';
 
 @injectable
@@ -48,6 +50,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   late final StreamSubscription<double> _volumeSub;
   int? _lastPersistedPositionSecond;
   PlaybackSessionSnapshot? _restoringSnapshot;
+  Timer? _recoveryTimer;
+  bool _isManualSeeking = false;
 
   PlayerBloc({
     required PlayTrackUseCase playTrack,
@@ -154,9 +158,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     unawaited(AppHaptics.lightImpact());
-    if (state is PlayerActive && (state as PlayerActive).isPlaying) {
-      await _fadeOut((state as PlayerActive).volume, durationMs: 150);
-    }
 
     emit(PlayerLoading(event.track));
 
@@ -195,11 +196,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
-    final currentVolume = (state as PlayerActive).volume;
-
-    await _fadeOut(currentVolume, durationMs: 200);
-    await _pause();
-    await _setVolume(SetVolumeParams(volume: currentVolume));
+    unawaited(_pause(fadeDuration: 150.ms));
+    //await _pause(fadeDuration: const Duration(milliseconds: 150));
   }
 
   Future<void> _onResumeRequested(
@@ -208,17 +206,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
-    final current = state as PlayerActive;
-
-    final newPosition = Duration(
-      seconds: (current.position.inSeconds - 2).clamp(0, 999999),
-    );
-    await _seek(SeekParams(position: newPosition));
-
-    final targetVolume = current.volume;
-    await _setVolume(SetVolumeParams(volume: 0));
-    await _resume();
-    await _fadeIn(targetVolume, durationMs: 300);
+    unawaited(_resume(fadeDuration: 250.ms));
+    //await _resume(fadeDuration: const Duration(milliseconds: 250));
   }
 
   Future<void> _onSeekRequested(
@@ -226,9 +215,16 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
-    // Mise à jour optimiste
-    emit((state as PlayerActive).copyWith(position: event.position));
-    await _seek(SeekParams(position: event.position));
+    _isManualSeeking = true;
+    try {
+      // Mise à jour optimiste
+      emit((state as PlayerActive).copyWith(position: event.position));
+      await _seek(SeekParams(position: event.position));
+    } finally {
+      // Petit délai pour ignorer les derniers évènements de position obsolètes du stream
+      await Future.delayed(const Duration(milliseconds: 150));
+      _isManualSeeking = false;
+    }
   }
 
   Future<void> _onSkipNextRequested(
@@ -236,14 +232,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     unawaited(AppHaptics.mediumImpact());
-    if (state is PlayerActive) {
-      final currentVolume = (state as PlayerActive).volume;
-      await _fadeOut(currentVolume, durationMs: 100);
-      await _skipNext();
-      await _fadeIn(currentVolume, durationMs: 200);
-    } else {
-      await _skipNext();
-    }
+    await _skipNext();
   }
 
   Future<void> _onSkipPreviousRequested(
@@ -253,39 +242,22 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.mediumImpact());
     final current = state as PlayerActive;
-    final currentVolume = current.volume;
-
-    await _fadeOut(currentVolume, durationMs: 100);
 
     if (current.position.inSeconds > 3) {
-      emit(current.copyWith(position: Duration.zero));
-      await _seek(SeekParams(position: Duration.zero));
+      _isManualSeeking = true;
+      try {
+        emit(current.copyWith(position: Duration.zero));
+        await _seek(SeekParams(position: Duration.zero));
+      } finally {
+        await Future.delayed(const Duration(milliseconds: 150));
+        _isManualSeeking = false;
+      }
     } else {
       await _skipPrevious();
     }
-
-    await _fadeIn(currentVolume, durationMs: 200);
   }
 
   // ── Helpers de transition audio ──────────────────────────────────────────────
-
-  Future<void> _fadeIn(double targetVolume, {required int durationMs}) async {
-    final steps = 10;
-    final stepDuration = Duration(milliseconds: durationMs ~/ steps);
-    for (var i = 1; i <= steps; i++) {
-      await _setVolume(SetVolumeParams(volume: targetVolume * (i / steps)));
-      await Future.delayed(stepDuration);
-    }
-  }
-
-  Future<void> _fadeOut(double currentVolume, {required int durationMs}) async {
-    final steps = 10;
-    final stepDuration = Duration(milliseconds: durationMs ~/ steps);
-    for (var i = steps; i >= 0; i--) {
-      await _setVolume(SetVolumeParams(volume: currentVolume * (i / steps)));
-      await Future.delayed(stepDuration);
-    }
-  }
 
   Future<void> _onShuffleToggleRequested(
     ShuffleToggleRequested event,
@@ -426,10 +398,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (event.tracks.isEmpty) return;
 
-    if (state is PlayerActive && (state as PlayerActive).isPlaying) {
-      await _fadeOut((state as PlayerActive).volume, durationMs: 150);
-    }
-
     emit(PlayerLoading(event.tracks[event.startIndex]));
     await _setQueue(
       SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
@@ -458,7 +426,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   // ════════════════════════════════════════════════════════════════════════════
 
   void _onPositionUpdated(_PositionUpdated event, Emitter<PlayerState> emit) {
-    if (state is PlayerActive) {
+    if (state is PlayerActive && !_isManualSeeking) {
       final next = (state as PlayerActive).copyWith(position: event.position);
       emit(next);
       _persistPositionIfNeeded(next);
@@ -513,10 +481,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
           emit(next);
 
-          if (event.status == PlaybackStatus.playing) {
-            unawaited(_fadeIn(targetVolume, durationMs: 400));
-          }
-
           _persistSession(next);
           _restoringSnapshot = null;
         }
@@ -554,8 +518,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         );
         final next = current.copyWith(
           currentTrack: event.track,
-          position:
-              trackIndex >= 0 && trackIndex != current.queue.currentIndex
+          position: trackIndex >= 0 && trackIndex != current.queue.currentIndex
               ? Duration.zero
               : current.position,
           duration: Duration(milliseconds: event.track!.durationMs),
@@ -607,7 +570,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     // Smart Recovery: if we were playing or trying to play, try to skip to next
     if (currentState is PlayerActive && currentState.queue.hasNext) {
-      Future.delayed(const Duration(seconds: 2), () {
+      _recoveryTimer?.cancel();
+      _recoveryTimer = Timer(const Duration(seconds: 2), () {
         if (!isClosed) add(const SkipNextRequested());
       });
     }
@@ -671,6 +635,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   @override
   Future<void> close() async {
+    _recoveryTimer?.cancel();
     await Future.wait([
       _positionSub.cancel(),
       _bufferedSub.cancel(),

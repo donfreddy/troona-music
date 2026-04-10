@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -11,9 +11,13 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/domain/entities/playback_state.dart';
+import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
+
+import '../../features/player/domain/entities/repeat_mode.dart';
 
 /// Unified bottom bar: an optional mini player row stacked above the five nav
 /// tabs inside a single glass container.
@@ -70,7 +74,6 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
-      buildWhen: (p, c) => _navKey(p) != _navKey(c),
       builder: (context, playerState) {
         final resolvedPlayerState = _resolvePlayerState(playerState);
         return _NavBarBody(
@@ -94,26 +97,32 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   };
 
   PlayerActive? _resolvePlayerState(PlayerState state) {
-    switch (state) {
-      case PlayerActive():
-        _lastActiveState = state;
-        return state;
-      case PlayerLoading(:final track):
-        final previous = _lastActiveState;
-        if (previous == null) return null;
-        final next = previous.copyWith(
-          currentTrack: track,
-          position: Duration.zero,
-          duration: Duration(milliseconds: track.durationMs),
-        );
-        _lastActiveState = next;
-        return next;
-      case PlayerIdle():
-        _lastActiveState = null;
-        return null;
-      case PlayerError():
-        return _lastActiveState;
+    if (state is PlayerActive) {
+      _lastActiveState = state;
+      return state;
     }
+    if (state is PlayerLoading) {
+      // Si on charge, on garde l'ancien état mais on met à jour le titre/pochette
+      final previous = _lastActiveState;
+      final next = PlayerActive(
+        currentTrack: state.track,
+        status: PlaybackStatus.paused,
+        position: Duration.zero,
+        buffered: Duration.zero,
+        duration: Duration(milliseconds: state.track.durationMs),
+        queue: previous?.queue ?? Queue.single(state.track),
+        shuffleEnabled: previous?.shuffleEnabled ?? false,
+        repeatMode: previous?.repeatMode ?? RepeatMode.off,
+      );
+      _lastActiveState = next;
+      return next;
+    }
+    if (state is PlayerIdle) {
+      _lastActiveState = null;
+      return null;
+    }
+    // Pour PlayerError, on garde le dernier état valide pour ne pas faire disparaître le player
+    return _lastActiveState;
   }
 }
 

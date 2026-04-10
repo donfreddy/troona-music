@@ -46,6 +46,8 @@ class JustAudioAdapter implements AudioServicePort {
   /// BehaviorSubject for volume; seeded with the player's initial volume.
   final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
+  int _fadeVersion = 0;
+
   JustAudioAdapter() : _player = AudioPlayer(handleInterruptions: false) {
     _initStreams();
   }
@@ -168,9 +170,24 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> pause() async {
+  Future<Either<Failure, Unit>> pause({Duration? fadeDuration}) async {
     try {
-      await _player.pause();
+      if (fadeDuration != null && fadeDuration > Duration.zero) {
+        final targetVolume = _volumeSubject.value;
+        final completed = await _fade(
+          _player.volume,
+          0.0,
+          fadeDuration,
+          updateSubject: false,
+        );
+        if (completed) {
+          await _player.pause();
+          await _player.setVolume(targetVolume);
+          _volumeSubject.add(targetVolume);
+        }
+      } else {
+        await _player.pause();
+      }
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -178,9 +195,16 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> resume() async {
+  Future<Either<Failure, Unit>> resume({Duration? fadeDuration}) async {
     try {
-      await _player.play();
+      if (fadeDuration != null && fadeDuration > Duration.zero) {
+        final targetVolume = _volumeSubject.value;
+        await _player.setVolume(0.0);
+        await _player.play();
+        await _fade(0.0, targetVolume, fadeDuration);
+      } else {
+        await _player.play();
+      }
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -200,12 +224,33 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> skipToNext() async {
     try {
+      final isPlaying = _player.playing;
+      final targetVolume = _volumeSubject.value;
+
+      if (isPlaying) {
+        final completed = await _fade(
+          _player.volume, 0.0,
+          const Duration(milliseconds: 80),
+          updateSubject: false,
+        );
+        if (!completed) return right(unit);
+      }
+
       if (_player.hasNext) {
         await _player.seekToNext();
       } else if (_currentQueue?.repeatMode == RepeatMode.all) {
         // Manual wrap-around when repeat-all is active.
         await _player.seek(Duration.zero, index: 0);
         await _player.play();
+      }
+
+      if (isPlaying) {
+        await _fade(
+          0.0,
+          targetVolume,
+          const Duration(milliseconds: 120),
+          updateSubject: false,
+        );
       }
       return right(unit);
     } catch (e, st) {
@@ -216,12 +261,33 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> skipToPrevious() async {
     try {
+      final isPlaying = _player.playing;
+      final targetVolume = _volumeSubject.value;
+
+      if (isPlaying) {
+        final completed = await _fade(
+          _player.volume, 0.0,
+          const Duration(milliseconds: 80),
+          updateSubject: false,
+        );
+        if (!completed) return right(unit);
+      }
+
       if (_player.hasPrevious) {
         await _player.seekToPrevious();
       } else if (_currentQueue?.repeatMode == RepeatMode.all) {
         final last = (_currentQueue?.length ?? 1) - 1;
         await _player.seek(Duration.zero, index: last);
         await _player.play();
+      }
+
+      if (isPlaying) {
+        await _fade(
+          0.0,
+          targetVolume,
+          const Duration(milliseconds: 120),
+          updateSubject: false,
+        );
       }
       return right(unit);
     } catch (e, st) {
@@ -412,6 +478,30 @@ class JustAudioAdapter implements AudioServicePort {
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
+
+  Future<bool> _fade(
+    double from,
+    double to,
+    Duration duration, {
+    bool updateSubject = true,
+  }) async {
+    final version = ++_fadeVersion;
+    final steps = 10;
+    final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
+    final stepValue = (to - from) / steps;
+
+    for (var i = 1; i <= steps; i++) {
+      await Future.delayed(stepDuration);
+      if (_fadeVersion != version) return false;
+
+      final newVolume = (from + stepValue * i).clamp(0.0, 1.0);
+      await _player.setVolume(newVolume);
+    }
+    if (updateSubject) {
+      _volumeSubject.add(to);
+    }
+    return true;
+  }
 
   void _updateQueue(Queue queue) {
     _currentQueue = queue;
