@@ -188,7 +188,18 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    final currentVolume = (state as PlayerActive).volume;
+
+    // 1. Fade out volume
+    for (var i = 10; i >= 0; i--) {
+      await _setVolume(SetVolumeParams(volume: currentVolume * (i / 10)));
+      await Future.delayed(const Duration(milliseconds: 20));
+    }
+
     await _pause();
+
+    // 2. Restaurer le volume cible pour le prochain resume
+    await _setVolume(SetVolumeParams(volume: currentVolume));
   }
 
   Future<void> _onResumeRequested(
@@ -196,7 +207,25 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
+    final current = state as PlayerActive;
+
+    // 1. Petit retour en arrière (Back-skip) de 2 secondes
+    final newPosition = Duration(
+      seconds: (current.position.inSeconds - 2).clamp(0, 999999),
+    );
+    await _seek(SeekParams(position: newPosition));
+
+    // 2. Mettre le volume à 0 avant de start
+    final targetVolume = current.volume;
+    await _setVolume(SetVolumeParams(volume: 0));
+
     await _resume();
+
+    // 3. Fade in volume
+    for (var i = 1; i <= 10; i++) {
+      await _setVolume(SetVolumeParams(volume: targetVolume * (i / 10)));
+      await Future.delayed(const Duration(milliseconds: 30));
+    }
   }
 
   Future<void> _onSeekRequested(
