@@ -152,6 +152,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayTrackRequested event,
     Emitter<PlayerState> emit,
   ) async {
+    if (state is PlayerActive && (state as PlayerActive).isPlaying) {
+      await _fadeOut((state as PlayerActive).volume, durationMs: 150);
+    }
+
     emit(PlayerLoading(event.track));
 
     if (event.contextQueue != null) {
@@ -190,15 +194,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state is! PlayerActive) return;
     final currentVolume = (state as PlayerActive).volume;
 
-    // 1. Fade out volume
-    for (var i = 10; i >= 0; i--) {
-      await _setVolume(SetVolumeParams(volume: currentVolume * (i / 10)));
-      await Future.delayed(const Duration(milliseconds: 20));
-    }
-
+    await _fadeOut(currentVolume, durationMs: 200);
     await _pause();
-
-    // 2. Restaurer le volume cible pour le prochain resume
     await _setVolume(SetVolumeParams(volume: currentVolume));
   }
 
@@ -209,23 +206,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state is! PlayerActive) return;
     final current = state as PlayerActive;
 
-    // 1. Petit retour en arrière (Back-skip) de 2 secondes
     final newPosition = Duration(
       seconds: (current.position.inSeconds - 2).clamp(0, 999999),
     );
     await _seek(SeekParams(position: newPosition));
 
-    // 2. Mettre le volume à 0 avant de start
     final targetVolume = current.volume;
     await _setVolume(SetVolumeParams(volume: 0));
-
     await _resume();
-
-    // 3. Fade in volume
-    for (var i = 1; i <= 10; i++) {
-      await _setVolume(SetVolumeParams(volume: targetVolume * (i / 10)));
-      await Future.delayed(const Duration(milliseconds: 30));
-    }
+    await _fadeIn(targetVolume, durationMs: 300);
   }
 
   Future<void> _onSeekRequested(
@@ -242,7 +231,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     SkipNextRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    await _skipNext();
+    if (state is PlayerActive) {
+      final currentVolume = (state as PlayerActive).volume;
+      await _fadeOut(currentVolume, durationMs: 100);
+      await _skipNext();
+      await _fadeIn(currentVolume, durationMs: 200);
+    } else {
+      await _skipNext();
+    }
   }
 
   Future<void> _onSkipPreviousRequested(
@@ -251,12 +247,37 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (state is! PlayerActive) return;
     final current = state as PlayerActive;
-    // Convention Apple : < 3s → track précédent, sinon → seek(0)
+    final currentVolume = current.volume;
+
+    await _fadeOut(currentVolume, durationMs: 100);
+
     if (current.position.inSeconds > 3) {
       emit(current.copyWith(position: Duration.zero));
       await _seek(SeekParams(position: Duration.zero));
     } else {
       await _skipPrevious();
+    }
+
+    await _fadeIn(currentVolume, durationMs: 200);
+  }
+
+  // ── Helpers de transition audio ──────────────────────────────────────────────
+
+  Future<void> _fadeIn(double targetVolume, {required int durationMs}) async {
+    final steps = 10;
+    final stepDuration = Duration(milliseconds: durationMs ~/ steps);
+    for (var i = 1; i <= steps; i++) {
+      await _setVolume(SetVolumeParams(volume: targetVolume * (i / steps)));
+      await Future.delayed(stepDuration);
+    }
+  }
+
+  Future<void> _fadeOut(double currentVolume, {required int durationMs}) async {
+    final steps = 10;
+    final stepDuration = Duration(milliseconds: durationMs ~/ steps);
+    for (var i = steps; i >= 0; i--) {
+      await _setVolume(SetVolumeParams(volume: currentVolume * (i / steps)));
+      await Future.delayed(stepDuration);
     }
   }
 
@@ -394,6 +415,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (event.tracks.isEmpty) return;
+
+    if (state is PlayerActive && (state as PlayerActive).isPlaying) {
+      await _fadeOut((state as PlayerActive).volume, durationMs: 150);
+    }
+
     emit(PlayerLoading(event.tracks[event.startIndex]));
     await _setQueue(
       SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
@@ -458,6 +484,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             event.status == PlaybackStatus.paused) {
           final queue = _audioServicePort.currentQueue ?? Queue.single(track);
           final restored = _restoringSnapshot;
+          final targetVolume = restored?.volume ?? 1.0;
+
           final next = PlayerActive(
             currentTrack: track,
             status: event.status,
@@ -469,10 +497,16 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             queue: queue,
             shuffleEnabled: queue.shuffleEnabled,
             repeatMode: queue.repeatMode,
-            volume: restored?.volume ?? 1.0,
+            volume: targetVolume,
             speed: restored?.speed ?? 1.0,
           );
+
           emit(next);
+
+          if (event.status == PlaybackStatus.playing) {
+            unawaited(_fadeIn(targetVolume, durationMs: 400));
+          }
+
           _persistSession(next);
           _restoringSnapshot = null;
         }
