@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,18 +32,24 @@ class TroonaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenUtilInit(
-      // Design canvas size used in Figma / design tool.
-      designSize: const Size(390, 844),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (_, child) => MaterialApp.router(
-        title: 'Troona',
-        routerConfig: appRouter,
-        themeMode: ThemeMode.dark,
-        theme: AppTheme.dark,
-        darkTheme: AppTheme.dark,
-        debugShowCheckedModeBanner: false,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: getIt<PlayerBloc>()),
+        BlocProvider.value(value: getIt<TrackPaletteCubit>()),
+      ],
+      child: ScreenUtilInit(
+        // Design canvas size used in Figma / design tool.
+        designSize: const Size(390, 844),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (_, child) => MaterialApp.router(
+          title: 'Troona',
+          routerConfig: appRouter,
+          themeMode: ThemeMode.dark,
+          theme: AppTheme.dark,
+          darkTheme: AppTheme.dark,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }

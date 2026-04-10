@@ -42,6 +42,7 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
@@ -208,6 +209,8 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<SettingsCubit>(
     () => SettingsCubit(getIt(), getIt<AudioSessionService>(), getIt()),
   );
+
+  getIt.registerSingleton<TrackPaletteCubit>(TrackPaletteCubit());
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
   // subscriptions to AudioServicePort. A factory would re-subscribe on every

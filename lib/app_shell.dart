@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
@@ -88,6 +89,16 @@ class _AppShellState extends State<AppShell> {
             if (GoRouterState.of(context).matchedLocation != FullPlayerPage.routeName) {
               context.push(FullPlayerPage.routeName);
             }
+          },
+        ),
+        BlocListener<PlayerBloc, PlayerState>(
+          listener: (context, state) {
+            final track = switch (state) {
+              PlayerActive(:final currentTrack) => currentTrack,
+              PlayerLoading(:final track) => track,
+              _ => null,
+            };
+            context.read<TrackPaletteCubit>().updateTrack(track);
           },
         ),
       ],
