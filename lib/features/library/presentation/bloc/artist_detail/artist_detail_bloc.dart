@@ -43,13 +43,13 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
         final tracks = tracksRes.getOrElse(() => []);
         final albums = albumsRes.getOrElse(() => []);
         
-        emit(ArtistDetailLoaded(
-          ArtistDetail(
-            artist: artist,
-            topTracks: tracks,
-            albums: albums,
-          ),
-        ));
+        // emit(ArtistDetailLoaded(
+        //   ArtistDetail(
+        //     artist: artist,
+        //     topTracks: tracks,
+        //     albums: albums,
+        //   ),
+        // ));
       },
     );
   }

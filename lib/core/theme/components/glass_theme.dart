@@ -231,20 +231,20 @@ abstract final class GlassTheme {
   //   blur   14 px logical
 
   static const _cardDark = GlassConfig(
-    blurSigma: 14,
-    fill: Color(0x14FFFFFF), // 8 %  — iOS ultraThinMaterial dark
-    border: Color(0x1FFFFFFF), // 12 % — top-edge highlight
-    highlight: Color(0x0DFFFFFF), // 5 %  — diagonal sheen
-    borderRadius: BorderRadius.all(Radius.circular(20)),
+    blurSigma: 20,
+    fill: Color(0x0AFFFFFF), // 4 % — Much darker for "Deep Glass" look
+    border: Color(0x22FFFFFF), // 13 % — Sharper edge highlight
+    highlight: Color(0x0DFFFFFF), // 5 %
+    borderRadius: BorderRadius.all(Radius.circular(24)),
   );
 
   static const _miniPlayerDark = GlassConfig(
-    blurSigma: 24,
-    fill: Color(0x16FFFFFF), // 9 %
-    border: Color(0x21FFFFFF), // 13 %
-    highlight: Color(0x0DFFFFFF), // 5 %
-    borderRadius: BorderRadius.all(Radius.circular(16)),
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    blurSigma: 28, // Heavy blur for the pill
+    fill: Color(0x08FFFFFF), // 3 %
+    border: Color(0x28FFFFFF), // 16 % — Brighter edge to define the pill
+    highlight: Color(0x0FFFFFFF), // 6 %
+    borderRadius: BorderRadius.all(Radius.circular(40)), // Pill shape
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
   );
 
   static const _nowPlayingDark = GlassConfig(
