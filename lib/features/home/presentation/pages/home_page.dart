@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -14,6 +13,14 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+
+Widget _animatedHomeItem(Widget child, int index, {double slideY = .08, int stepMs = 40}) {
+  final delay = Duration(milliseconds: (index * stepMs).clamp(0, 240));
+  return child
+      .animate(delay: delay)
+      .fadeIn(duration: 280.ms, curve: Curves.easeOutCubic)
+      .slideY(begin: slideY, end: 0, duration: 360.ms, curve: Curves.easeOutCubic);
+}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -38,74 +45,14 @@ class HomePage extends StatelessWidget {
                   final feed = state.feed;
                   return SliverMainAxisGroup(
                     slivers: ([
-                      // 1. Recently Played (Songs)
-                      if (feed.recentlyPlayed.isNotEmpty) ...[
-                        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-                        SliverToBoxAdapter(child: SectionHeader(title: 'Recently Played')),
-                        _RecentlyPlayerView(tracks: feed.recentlyPlayed),
-                        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
-                      ],
+                      if (feed.recentlyPlayed.isNotEmpty) _RecentlyPlayerView(tracks: feed.recentlyPlayed),
 
-                      // 2. Your Artists (Artists)
-                      if (feed.yourArtists.isNotEmpty) ...[
-                        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-                        SliverToBoxAdapter(
-                          child: SectionHeader(title: 'Your Artists', onViewAll: () {}),
-                        ),
-                        SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: 140,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                              itemCount: feed.yourArtists.length,
-                              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-                              itemBuilder: (context, i) => ArtistCard(artist: feed.yourArtists[i], size: 100),
-                            ),
-                          ),
-                        ),
-                      ],
+                      if (feed.yourArtists.isNotEmpty) _YourArtistsView(artists: feed.yourArtists),
 
-                      // 3. New Albums (Albums)
-                      if (feed.newAlbums.isNotEmpty) ...[
-                        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-                        SliverToBoxAdapter(
-                          child: SectionHeader(title: 'New Albums', onViewAll: () {}),
-                        ),
-                        SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: 180,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                              itemCount: feed.newAlbums.length,
-                              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-                              itemBuilder: (context, i) => AlbumCard(album: feed.newAlbums[i], size: 130),
-                            ),
-                          ),
-                        ),
-                      ],
+                      if (feed.newAlbums.isNotEmpty) _NewAlbumsView(albums: feed.newAlbums),
 
-                      // // 4. Your Playlists (Playlists)
-                      if (feed.yourPlaylists.isNotEmpty) ...[
-                        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-                        SliverToBoxAdapter(child: SectionHeader(title: 'Your Playlists')),
-                        SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: 180,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                              itemCount: feed.yourPlaylists.length,
-                              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-                              itemBuilder: (context, i) => PlaylistCard(playlist: feed.yourPlaylists[i], size: 130),
-                            ),
-                          ),
-                        ),
-                      ],
+                      if (feed.yourPlaylists.isNotEmpty) _YourPlaylistsView(playlists: feed.yourPlaylists),
 
-                      // SectionHeader(title: 'Your Playlists'),
-                      // _PlaylistCarousel(playlists: feed.yourPlaylists),
                       SliverPadding(
                         padding: EdgeInsets.only(
                           bottom: AppSpacing.bottomBlockHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
@@ -127,11 +74,113 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _HomeHeader extends StatelessWidget {
-  const _HomeHeader();
+class _YourArtistsView extends StatelessWidget {
+  final List artists; // Assume this matches your feed.yourArtists type
+
+  const _YourArtistsView({required this.artists});
 
   @override
   Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
+        SliverToBoxAdapter(
+          child: _animatedHomeItem(SectionHeader(title: 'Your Artists', onViewAll: () {}), 0, slideY: 0.05),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 140,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: artists.length,
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (context, i) =>
+                  _animatedHomeItem(ArtistCard(artist: artists[i], size: 100), i, slideY: 0.04),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NewAlbumsView extends StatelessWidget {
+  final List albums;
+
+  const _NewAlbumsView({required this.albums});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
+        SliverToBoxAdapter(
+          child: _animatedHomeItem(SectionHeader(title: 'New Albums', onViewAll: () {}), 0, slideY: 0.05),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: albums.length,
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (context, i) => _animatedHomeItem(AlbumCard(album: albums[i], size: 130), i, slideY: 0.04),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _YourPlaylistsView extends StatelessWidget {
+  final List playlists;
+
+  const _YourPlaylistsView({required this.playlists});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
+        SliverToBoxAdapter(child: _animatedHomeItem(SectionHeader(title: 'Your Playlists'), 0, slideY: 0.05)),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: playlists.length,
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (context, i) =>
+                  _animatedHomeItem(PlaylistCard(playlist: playlists[i], size: 130), i, slideY: 0.04),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader();
+
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'Good Afternoon';
+    } else {
+      return 'Good Evening';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Adding entry animation to the header as well
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -139,11 +188,11 @@ class _HomeHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Good Evening', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            Text(_greeting, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
             Text('Welcome back to your music', style: TextStyle(color: context.colors.labelSecondary, fontSize: 18)),
           ],
         ),
-      ),
+      ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }
@@ -155,35 +204,39 @@ class _RecentlyPlayerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final isActive = context.select<PlayerBloc, bool>(
-    //   (b) =>
-    //       b.state is PlayerActive &&
-    //       (b.state as PlayerActive).currentTrack.id == widget.track.id,
-    // );
-
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg) + const EdgeInsets.only(top: AppSpacing.xs),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          children: [
-            Row(
+    return SliverMainAxisGroup(
+      slivers: [
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
+        SliverToBoxAdapter(child: _animatedHomeItem(SectionHeader(title: 'Recently Played'), 0, slideY: 0.05)),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg) + const EdgeInsets.only(top: AppSpacing.xs),
+          sliver: SliverToBoxAdapter(
+            child: Column(
               children: [
-                Expanded(child: _RecentlyPlayerCard(track: tracks[0])),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: _RecentlyPlayerCard(track: tracks[1])),
+                if (tracks.length >= 2)
+                  Row(
+                    children: [
+                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[0]), 1, slideY: 0.03)),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[1]), 2, slideY: 0.03)),
+                    ],
+                  ),
+                if (tracks.length >= 4) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[2]), 3, slideY: 0.03)),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[3]), 4, slideY: 0.03)),
+                    ],
+                  ),
+                ],
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(child: _RecentlyPlayerCard(track: tracks[2])),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(child: _RecentlyPlayerCard(track: tracks[3])),
-              ],
-            ),
-          ],
+          ),
         ),
-      ),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
+      ],
     );
   }
 }
@@ -221,17 +274,6 @@ class _RecentlyPlayerCard extends StatelessWidget {
                             child: const Icon(LucideIcons.music, color: Colors.white30),
                           ),
                   ),
-
-                  // if (isActive)
-                  //   Positioned.fill(
-                  //     child: DecoratedBox(
-                  //       decoration: BoxDecoration(
-                  //         color: Colors.black.withValues(alpha: .4),
-                  //         borderRadius: BorderRadius.circular(8),
-                  //       ),
-                  //       child: Icon(LucideIcons.music2, color: context.colors.labelPrimary, size: 20),
-                  //     ),
-                  //   ),
                 ],
               ),
             ),
@@ -245,12 +287,7 @@ class _RecentlyPlayerCard extends StatelessWidget {
                 children: [
                   Text(
                     track.title,
-                    style: TextStyle(
-                      color: context.colors.labelPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      //fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    ),
+                    style: TextStyle(color: context.colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -265,63 +302,6 @@ class _RecentlyPlayerCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AlbumCarousel extends StatelessWidget {
-  final List albums;
-  const _AlbumCarousel({required this.albums});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        scrollDirection: Axis.horizontal,
-        itemCount: albums.length,
-        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
-        itemBuilder: (context, index) {
-          final album = albums[index];
-          return InkWell(
-            onTap: () => context.pushNamed(AppRoute.albumDetail, pathParameters: {'id': album.id.toString()}),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: const Icon(LucideIcons.disc, color: Colors.white24, size: 48),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                SizedBox(
-                  width: 130,
-                  child: Text(
-                    album.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(
-                  width: 130,
-                  child: Text(
-                    album.artist,
-                    style: const TextStyle(color: Colors.white30, fontSize: 11),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
       ),
     );
   }
