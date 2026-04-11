@@ -489,8 +489,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final next = current.copyWith(status: event.status);
 
         if (_shouldClearSessionAfterStop(next)) {
-          // Au lieu de Idle, on reste en Active mais on reset la position à 0
-          // et on s'assure que le statut est "paused" pour l'UI.
+          // Instead of Idle (clearing player), we stay Active but reset position to 0
+          // and ensure the status is "paused" for the UI.
           final resetState = next.copyWith(
             status: PlaybackStatus.paused,
             position: Duration.zero,
@@ -498,8 +498,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           emit(resetState);
           _persistSession(resetState);
 
-          // Action explicite pour synchroniser le moteur audio just_audio avec l'UI
-          unawaited(_seek(const SeekParams(position: Duration.zero)));
+          // Explicitly sync the audio engine to position 0
+          unawaited(_audioServicePort.seekTo(Duration.zero));
         } else {
           emit(next);
           _persistSession(next);
@@ -588,15 +588,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   bool _shouldClearSessionAfterStop(PlayerActive state) {
+    // ProcessingState.completed (mapped to stopped) in just_audio signifies
+    // the end of the entire playlist when repetition is off.
     if (state.status != PlaybackStatus.stopped) return false;
     if (state.queue.repeatMode != RepeatMode.off) return false;
-    if (state.queue.currentIndex != state.queue.playbackTracks.length - 1) {
-      return false;
-    }
-    final durationMs = state.duration.inMilliseconds == 0
-        ? state.currentTrack.durationMs
-        : state.duration.inMilliseconds;
-    return durationMs > 0 && state.position.inMilliseconds >= durationMs - 1500;
+
+    // We assume that if it's completed, it's the end, regardless of sub-second
+    // precision issues with the last reported position.
+    return true;
   }
 
   void _persistSession(PlayerActive state) {
