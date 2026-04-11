@@ -13,13 +13,16 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedHomeItem(Widget child, int index, {double slideY = .08, int stepMs = 40}) {
-  final delay = Duration(milliseconds: (index * stepMs).clamp(0, 240));
-  return child
-      .animate(delay: delay)
-      .fadeIn(duration: 280.ms, curve: Curves.easeOutCubic)
-      .slideY(begin: slideY, end: 0, duration: 360.ms, curve: Curves.easeOutCubic);
+Widget _animatedHomeItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
+  return EntranceFader.staggered(
+    key: key,
+    index: index,
+    stepMs: stepMs,
+    slideY: slideY,
+    child: child,
+  );
 }
 
 class HomePage extends StatelessWidget {
@@ -96,7 +99,7 @@ class _YourArtistsView extends StatelessWidget {
               itemCount: artists.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) =>
-                  _animatedHomeItem(ArtistCard(artist: artists[i], size: 100), i, slideY: 0.04),
+                  _animatedHomeItem(ArtistCard(artist: artists[i], size: 100), key: ValueKey('artist-${artists[i].id}'), i, slideY: 0.04),
             ),
           ),
         ),
@@ -126,7 +129,7 @@ class _NewAlbumsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, i) => _animatedHomeItem(AlbumCard(album: albums[i], size: 130), i, slideY: 0.04),
+              itemBuilder: (context, i) => _animatedHomeItem(AlbumCard(album: albums[i], size: 130), key: ValueKey('album-${albums[i].id}'), i, slideY: 0.04),
             ),
           ),
         ),
@@ -155,7 +158,7 @@ class _YourPlaylistsView extends StatelessWidget {
               itemCount: playlists.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) =>
-                  _animatedHomeItem(PlaylistCard(playlist: playlists[i], size: 130), i, slideY: 0.04),
+                  _animatedHomeItem(PlaylistCard(playlist: playlists[i], size: 130), key: ValueKey('playlist-${playlists[i].id}'), i, slideY: 0.04),
             ),
           ),
         ),

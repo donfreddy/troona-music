@@ -18,13 +18,16 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_button.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedArtistItem(Widget child, int index, {double slideY = .08, int stepMs = 40}) {
-  final delay = Duration(milliseconds: (index * stepMs).clamp(0, 240));
-  return child
-      .animate(delay: delay)
-      .fadeIn(duration: 280.ms, curve: Curves.easeOutCubic)
-      .slideY(begin: slideY, end: 0, duration: 360.ms, curve: Curves.easeOutCubic);
+Widget _animatedArtistItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
+  return EntranceFader.staggered(
+    key: key,
+    index: index,
+    stepMs: stepMs,
+    slideY: slideY,
+    child: child,
+  );
 }
 
 class ArtistDetailPage extends StatelessWidget {
@@ -243,6 +246,7 @@ class _ArtistTopTracksList extends StatelessWidget {
           separatorBuilder: (_, _) => Divider(height: 0.5, indent: 72, color: context.colors.separator),
           itemBuilder: (context, i) => _animatedArtistItem(
             TrackListTile(
+              key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
               onTap: () =>
                   context.read<PlayerBloc>().add(PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i)),
