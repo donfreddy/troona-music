@@ -18,6 +18,7 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_button.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
 
 Widget _animatedAlbumItem(Widget child, int index, {double slideY = .08, int stepMs = 40}) {
   final delay = Duration(milliseconds: (index * stepMs).clamp(0, 240));
@@ -38,9 +39,17 @@ class AlbumDetailPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: BlocBuilder<AlbumDetailBloc, AlbumDetailState>(
         builder: (context, state) {
-          return CustomScrollView(
-            slivers: [
-              const SliverToBoxAdapter(child: _AlbumDetailHeader()),
+          final artworkPath = switch (state) {
+            AlbumDetailLoaded(:final data) => data.album.artworkPath,
+            _ => null,
+          };
+
+          return DynamicBackground(
+            artworkPath: artworkPath,
+            tone: DynamicBackgroundTone.immersive,
+            child: CustomScrollView(
+              slivers: [
+                const SliverToBoxAdapter(child: _AlbumDetailHeader()),
 
               // Corps selon l'état du BLoC
               ...switch (state) {
@@ -68,7 +77,8 @@ class AlbumDetailPage extends StatelessWidget {
                   bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
                 ),
               ),
-            ],
+              ],
+            ),
           );
         },
       ),
@@ -123,7 +133,7 @@ class _AlbumMetadataView extends StatelessWidget {
                 ),
                 _animatedAlbumItem(
                   Text(
-                    '2024 . ${album.trackCount} tracks . 3 min', // TODO: Make dynamic later
+                    '2024 • ${album.trackCount} tracks • 3 min', // TODO: Make dynamic later
                     style: TextStyle(color: context.colors.labelTertiary, fontWeight: FontWeight.w500, fontSize: 15),
                   ),
                   3,

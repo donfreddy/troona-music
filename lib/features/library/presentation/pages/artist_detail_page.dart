@@ -137,7 +137,7 @@ class _ArtistSliverAppBar extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   _animatedArtistItem(
                     Text(
-                      '${artist.trackCount} songs · ${artist.albumCount} albums',
+                      '${artist.trackCount} songs • ${artist.albumCount} albums',
                       style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 16),
                     ),
                     1,
