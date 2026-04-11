@@ -72,7 +72,7 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoute.home,
               builder: (context, _) => BlocProvider(
-                create: (_) => getIt<HomeBloc>(),
+                create: (_) => getIt<HomeBloc>()..add(HomeRefreshRequested()),
                 child: const HomePage(),
               ),
             ),
@@ -84,6 +84,30 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoute.library,
               builder: (_, _) => LibraryPage(),
+              routes: [
+                GoRoute(
+                  path: 'albums/:id',
+                  name: AppRoute.albumDetail,
+                  builder: (context, state) {
+                    final id = int.parse(state.pathParameters['id']!);
+                    return BlocProvider(
+                      create: (_) => getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
+                      child: AlbumDetailPage(id: id.toString()),
+                    );
+                  },
+                ),
+                GoRoute(
+                  path: 'artists/:id',
+                  name: AppRoute.artistDetail,
+                  builder: (context, state) {
+                    final id = int.parse(state.pathParameters['id']!);
+                    return BlocProvider(
+                      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+                      child: ArtistDetailPage(id: id.toString()),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -108,6 +132,19 @@ final appRouter = GoRouter(
                 create: (_) => getIt<PlaylistBloc>()..add(PlaylistListRequested()),
                 child: const PlaylistPage(),
               ),
+              routes: [
+                GoRoute(
+                  path: ':id',
+                  name: AppRoute.playlistDetail,
+                  builder: (context, state) {
+                    final id = state.pathParameters['id']!;
+                    return BlocProvider(
+                      create: (_) => getIt<PlaylistDetailBloc>()..add(PlaylistDetailRequested(id)),
+                      child: PlaylistDetailPage(id: id),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -148,44 +185,6 @@ final appRouter = GoRouter(
           child: const FullPlayerPage(),
         ),
       ),
-    ),
-
-    // ── Shared Detail Routes (Top-level to preserve stack context without jumping branches)
-    GoRoute(
-      path: '/albums/:id',
-      name: AppRoute.albumDetail,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final id = int.parse(state.pathParameters['id']!);
-        return BlocProvider(
-          create: (_) => getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
-          child: AlbumDetailPage(id: id.toString()),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/artists/:id',
-      name: AppRoute.artistDetail,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final id = int.parse(state.pathParameters['id']!);
-        return BlocProvider(
-          create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
-          child: ArtistDetailPage(id: id.toString()),
-        );
-      },
-    ),
-    GoRoute(
-      path: '/playlists/:id',
-      name: AppRoute.playlistDetail,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) {
-        final id = state.pathParameters['id']!;
-        return BlocProvider(
-          create: (_) => getIt<PlaylistDetailBloc>()..add(PlaylistDetailRequested(id)),
-          child: PlaylistDetailPage(id: id),
-        );
-      },
     ),
   ],
 );
