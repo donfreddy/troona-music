@@ -11,11 +11,9 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   final LocalAudioDataSource _source;
   final IsarLibraryDataSource _cache;
 
-  const AlbumDetailRepositoryImpl({
-    required LocalAudioDataSource source,
-    required IsarLibraryDataSource cache,
-  }) : _source = source,
-       _cache = cache;
+  const AlbumDetailRepositoryImpl({required LocalAudioDataSource source, required IsarLibraryDataSource cache})
+    : _source = source,
+      _cache = cache;
 
   @override
   Future<Either<Failure, Album>> getAlbumById(String id) async {
@@ -27,30 +25,23 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
 
       final albums = await _source.getAlbums();
       final album = albums.where((a) => a.id == targetId).firstOrNull;
+      final tracks = await _cache.getTracksByAlbumId(targetId);
 
       if (album == null) {
         return left(const DatabaseFailure('Album not found'));
       }
 
-      return right(album.toEntity());
+      return right(album.toEntity().copyWith(artworkPath: tracks[0].artworkPath));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
   }
 
   @override
-  Future<Either<Failure, List<Album>>> getAlbumsByArtistId(String id) async {
+  Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int artistId) async {
     try {
-      final targetArtistId = int.tryParse(id);
-      if (targetArtistId == null) {
-        return left(const DatabaseFailure('Invalid artist ID format'));
-      }
-
       final albums = await _source.getAlbums();
-      final artistAlbums = albums
-          .where((a) => a.artistId == targetArtistId)
-          .map((a) => a.toEntity())
-          .toList();
+      final artistAlbums = albums.where((a) => a.artistId == artistId).map((a) => a.toEntity()).toList();
 
       return right(artistAlbums);
     } catch (e, st) {

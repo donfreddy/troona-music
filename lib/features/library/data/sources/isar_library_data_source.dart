@@ -103,7 +103,7 @@ class IsarLibraryDataSource {
         .findAll();
 
     final seen = <String>{};
-    return tracks.where((t) => t.album != null && seen.add(t.album!)).toList();
+    return tracks.where((t) => seen.add(t.album)).toList();
   }
 
   /// Returns tracks that have no artwork cached yet (null or empty path).
@@ -216,6 +216,7 @@ class IsarLibraryDataSource {
       .trackModels
       .where()
       .albumIdEqualTo(albumId)
+      .sortByTrackNumber()
       .findAll();
 
   // ── Likes playlist (Spotify-style) ─────────────────────────────────────────
@@ -311,8 +312,8 @@ class IsarLibraryDataSource {
     final uniqueTracks = <TrackModel>[];
 
     for (final track in tracks) {
-      if (track.album != null && !seenAlbums.contains(track.album)) {
-        seenAlbums.add(track.album!);
+      if (!seenAlbums.contains(track.album)) {
+        seenAlbums.add(track.album);
         uniqueTracks.add(track);
         if (uniqueTracks.length >= limit) break;
       }

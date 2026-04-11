@@ -29,13 +29,13 @@ final class HomeRepositoryImpl implements HomeRepository {
       final artists = (results[1] as List<TrackModel>).map((t) => Artist(
         id: t.artistId.toString(),
         name: t.artist,
-        artworkPath: t.artworkPath,
+        //artworkPath: t.artworkPath,
         trackCount: 0, albumCount: 0, // Optionnel ici
       )).toList();
 
       final albums = (results[2] as List<TrackModel>).map((t) => Album(
         id: t.albumId.toString(),
-        name: t.album ?? 'Unknown Album',
+        name: t.album,
         artist: t.artist,
         artworkPath: t.artworkPath, artistId: 0, trackCount: 0,
         //year: null,

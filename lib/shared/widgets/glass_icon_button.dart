@@ -50,13 +50,8 @@ class GlassIconButton extends StatefulWidget {
   final _GlassIconVariant _variant;
 
   /// Glass-fill variant — secondary controls.
-  const GlassIconButton({
-    super.key,
-    required this.icon,
-    this.onTap,
-    this.size = GlassIconButtonSize.md,
-    this.iconColor,
-  }) : _variant = _GlassIconVariant.glass;
+  const GlassIconButton({super.key, required this.icon, this.onTap, this.size = GlassIconButtonSize.md, this.iconColor})
+    : _variant = _GlassIconVariant.glass;
 
   /// Accent-fill variant — primary action (play/pause).
   const GlassIconButton.accent({
@@ -94,7 +89,7 @@ class _GlassIconButtonState extends State<GlassIconButton> {
 
     final double diameter = switch (widget.size) {
       GlassIconButtonSize.sm => 32,
-      GlassIconButtonSize.md => 44,
+      GlassIconButtonSize.md => 45,
       GlassIconButtonSize.lg => 56,
     };
 
@@ -128,12 +123,7 @@ class _GlassIconButtonState extends State<GlassIconButton> {
           decoration: BoxDecoration(
             color: bgColor,
             shape: BoxShape.circle,
-            border: isAccent
-                ? null
-                : Border.all(
-                    color: Colors.white.withValues(alpha: .12),
-                    width: 0.5,
-                  ),
+            border: isAccent ? null : Border.all(color: Colors.white.withValues(alpha: .12), width: 0.5),
           ),
           child: Icon(widget.icon, color: resolvedIconColor, size: iconSize),
         ),

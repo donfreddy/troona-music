@@ -10,18 +10,12 @@ part 'album_detail_state.dart';
 class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
   final AlbumDetailRepository _repo;
 
-  AlbumDetailBloc({required AlbumDetailRepository repo})
-    : _repo = repo,
-      super(AlbumDetailInitial()) {
-    
+  AlbumDetailBloc({required AlbumDetailRepository repo}) : _repo = repo, super(AlbumDetailInitial()) {
     // On utilise droppable pour ignorer les nouveaux événements si un chargement est déjà en cours
     on<AlbumDetailRequested>(_onAlbumDetailRequested, transformer: droppable());
   }
 
-  Future<void> _onAlbumDetailRequested(
-    AlbumDetailRequested event,
-    Emitter<AlbumDetailState> emit,
-  ) async {
+  Future<void> _onAlbumDetailRequested(AlbumDetailRequested event, Emitter<AlbumDetailState> emit) async {
     // Si on est déjà chargé, on ne remet pas l'écran de chargement complet (optionnel selon ton UX)
     if (state is! AlbumDetailLoaded) {
       emit(const AlbumDetailLoading());
@@ -29,25 +23,25 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
 
     final result = await _repo.getAlbumById(event.id.toString());
 
-    result.fold(
-      (failure) => emit(AlbumDetailError(failure.message)),
-      (album) async {
-        // Une fois l'album chargé, on récupère les pistes et les autres albums de l'artiste
-        final tracksResult = await _repo.getTracksByAlbumId(event.id);
-        
-        tracksResult.fold(
-          (failure) => emit(AlbumDetailError(failure.message)),
-          (tracks) {
-            emit(AlbumDetailLoaded(
+    await result.fold((failure) async => emit(AlbumDetailError(failure.message)), (album) async {
+      // Une fois l'album chargé, on récupère les pistes et les autres albums de l'artiste
+      final tracksResult = await _repo.getTracksByAlbumId(event.id);
+
+      await tracksResult.fold((failure) async => emit(AlbumDetailError(failure.message)), (tracks) async {
+        final artistAlbumsResult = await _repo.getAlbumsByArtistId(album.artistId);
+
+        await artistAlbumsResult.fold((failure) async => emit(AlbumDetailError(failure.message)), (albums) async {
+          emit(
+            AlbumDetailLoaded(
               AlbumDetail(
                 album: album,
                 albumTracks: tracks,
-                artistAlbums: const [], // Tu pourras charger ça plus tard si besoin
+                artistAlbums: albums.where((a) => a.id != album.id).toList(),
               ),
-            ));
-          },
-        );
-      },
-    );
+            ),
+          );
+        });
+      });
+    });
   }
 }

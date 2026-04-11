@@ -45,8 +45,19 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   @override
   Future<Either<Failure, List<Album>>> getAlbums() async {
     try {
-      final albums = await _source.getAlbums();
-      return right(albums.map((a) => a.toEntity()).toList());
+      //TODO: immolement this proprely later
+      
+      // final albums = await _source.getAlbums();
+      final tracks = await _cache.getUniqueAlbums(limit: 100);
+      final albums = tracks.map((t) => Album(
+        id: t.albumId.toString(),
+        name: t.album,
+        artist: t.artist,
+        artworkPath: t.artworkPath, artistId: 0, trackCount: 0,
+        //year: null,
+      )).toList();
+      // return right(albums.map((a) => a.toEntity()).toList());
+      return right(albums);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

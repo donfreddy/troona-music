@@ -60,10 +60,10 @@ class JustAudioAdapter implements AudioServicePort {
     // just_audio API naming differs across versions; try both dynamically.
     final dynamic p = _player;
     try {
-      p.setCrossfadeDuration(crossfade);
+     // p.setCrossfadeDuration(crossfade);
     } catch (_) {
       try {
-        p.setCrossFadeDuration(crossfade);
+       // p.setCrossFadeDuration(crossfade);
       } catch (_) {
         // Crossfade not supported on this platform/version — ignore.
       }

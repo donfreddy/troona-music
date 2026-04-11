@@ -14,4 +14,15 @@ class Album {
     required this.trackCount,
     this.artworkPath,
   });
+
+  Album copyWith({String? artworkPath}) {
+    return Album(
+      id: id,
+      name: name,
+      artist: artist,
+      artistId: artistId,
+      trackCount: trackCount,
+      artworkPath: artworkPath ?? this.artworkPath,
+    );
+  }
 }
