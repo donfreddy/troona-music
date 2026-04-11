@@ -238,6 +238,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   Future<void> _onPlayerDismissed(PlayerDismissed event, Emitter<PlayerState> emit) async {
+    await _audioServicePort.stop(); // On arrête concrètement l'engin audio (ex: swipe en cours de lecture)
     await _clearPersistedSession();
     emit(const PlayerIdle());
   }
@@ -397,6 +398,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           final resetState = next.copyWith(status: PlaybackStatus.paused, position: Duration.zero);
           emit(resetState);
           _persistSession(resetState);
+          
+          // Action explicite pour synchroniser le moteur audio just_audio avec l'UI
+          unawaited(_seek(const SeekParams(position: Duration.zero)));
         } else {
           emit(next);
           _persistSession(next);
