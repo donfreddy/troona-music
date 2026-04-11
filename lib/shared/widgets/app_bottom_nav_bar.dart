@@ -375,9 +375,11 @@ class _MiniPlayerRow extends StatelessWidget {
 
                     // ── Skip next ──────────────────────────────────────────
                     IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(
-                        const SkipNextRequested(),
-                      ),
+                      onPressed: state.hasNext
+                          ? () => context.read<PlayerBloc>().add(
+                              const SkipNextRequested(),
+                            )
+                          : null,
                       icon: Icon(LucideIcons.skipForward),
                     ),
                   ],

@@ -50,10 +50,10 @@ abstract interface class AudioServicePort {
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue});
 
   /// Pauses playback.
-  Future<Either<Failure, Unit>> pause({Duration? fadeDuration});
+  Future<Either<Failure, Unit>> pause();
 
   /// Resumes playback.
-  Future<Either<Failure, Unit>> resume({Duration? fadeDuration});
+  Future<Either<Failure, Unit>> resume();
 
   /// Seeks to [position].
   Future<Either<Failure, Unit>> seekTo(Duration position);

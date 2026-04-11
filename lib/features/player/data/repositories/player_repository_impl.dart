@@ -53,12 +53,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
       _port.playTrack(track, queue: queue);
 
   @override
-  Future<Either<Failure, Unit>> pause({Duration? fadeDuration}) =>
-      _port.pause(fadeDuration: fadeDuration);
+  Future<Either<Failure, Unit>> pause() => _port.pause();
 
   @override
-  Future<Either<Failure, Unit>> resume({Duration? fadeDuration}) =>
-      _port.resume(fadeDuration: fadeDuration);
+  Future<Either<Failure, Unit>> resume() => _port.resume();
 
   @override
   Future<Either<Failure, Unit>> seekTo(Duration position) =>

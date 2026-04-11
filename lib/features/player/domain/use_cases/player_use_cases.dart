@@ -11,8 +11,7 @@ import 'package:troona/features/player/domain/repositories/player_repository.dar
 class PauseUseCase {
   final PlayerRepository _repo;
   const PauseUseCase(this._repo);
-  Future<Either<Failure, Unit>> call({Duration? fadeDuration}) =>
-      _repo.pause(fadeDuration: fadeDuration);
+  Future<Either<Failure, Unit>> call() => _repo.pause();
 }
 
 // ── Resume ───────────────────────────────────────────────────────────────────
@@ -21,8 +20,7 @@ class PauseUseCase {
 class ResumeUseCase {
   final PlayerRepository _repo;
   const ResumeUseCase(this._repo);
-  Future<Either<Failure, Unit>> call({Duration? fadeDuration}) =>
-      _repo.resume(fadeDuration: fadeDuration);
+  Future<Either<Failure, Unit>> call() => _repo.resume();
 }
 
 // ── Seek ─────────────────────────────────────────────────────────────────────

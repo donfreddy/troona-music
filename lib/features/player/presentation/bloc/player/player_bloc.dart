@@ -196,7 +196,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
-    await _pause(fadeDuration: 150.ms);
+    await _pause();
   }
 
   Future<void> _onResumeRequested(
@@ -205,7 +205,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
-    await _resume(fadeDuration: 250.ms);
+    await _resume();
   }
 
   Future<void> _onSeekRequested(

@@ -15,8 +15,8 @@ abstract interface class PlayerRepository {
   Stream<double> get volumeStream;
 
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue});
-  Future<Either<Failure, Unit>> pause({Duration? fadeDuration});
-  Future<Either<Failure, Unit>> resume({Duration? fadeDuration});
+  Future<Either<Failure, Unit>> pause();
+  Future<Either<Failure, Unit>> resume();
   Future<Either<Failure, Unit>> seekTo(Duration position);
   Future<Either<Failure, Unit>> skipToNext();
   Future<Either<Failure, Unit>> skipToPrevious();

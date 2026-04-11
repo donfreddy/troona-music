@@ -168,9 +168,9 @@ class _MarqueeState extends State<Marquee> {
 }
 
 //todo:
-// Looping Infini (Seamless) : Au lieu de défiler jusqu'au bout 
+// Looping Infini (Seamless) : Au lieu de défiler jusqu'au bout
 // et de "sauter" brusquement au début.
-// implémenté un système de clonage du texte. Le titre apparaît désormais 
+// implémenté un système de clonage du texte. Le titre apparaît désormais
 // une deuxième fois (séparé par un espace paramétrable).
-// Dès que le clone atteint la position de départ, on revient à l'offset 0 
+// Dès que le clone atteint la position de départ, on revient à l'offset 0
 // de façon invisible pour l'utilisateur, créant une boucle parfaite et infinie.
