@@ -16,6 +16,7 @@ import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
+import 'package:troona/shared/widgets/marquee.dart';
 
 import '../../features/player/domain/entities/repeat_mode.dart';
 
@@ -339,15 +340,13 @@ class _MiniPlayerRow extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            state.currentTrack.title,
+                          Marquee(
+                            text: state.currentTrack.title,
                             style: TextStyle(
                               color: colors.labelPrimary,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             state.currentTrack.artist,

@@ -14,6 +14,7 @@ import 'package:troona/features/player/presentation/widgets/player_controls.dart
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/marquee.dart';
 
 class FullPlayerPage extends StatefulWidget {
   const FullPlayerPage({super.key});
@@ -377,16 +378,14 @@ class _TrackInfo extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                track?.title ?? '—',
+              Marquee(
+                text: track?.title ?? '—',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.5,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(

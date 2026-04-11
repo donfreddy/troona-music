@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-/// Un widget d'animation centralisé qui gère correctement son cycle de vie (mounted).
-/// Il résout spécifiquement l'erreur "AnimationController.forward() called after dispose()"
-/// causée par flutter_animate dans des SliverLists lorsque l'utilisateur navigue rapidement.
 class EntranceFader extends StatefulWidget {
   final Widget child;
   final Duration delay;
@@ -18,7 +15,7 @@ class EntranceFader extends StatefulWidget {
     this.offset = const Offset(0, 0.15),
   });
 
-  /// Constructeur utilitaire pour échelonner facilement les animations en fonction d'un index.
+  /// Utility constructor for easily scaling animations based on an index.
   factory EntranceFader.staggered({
     Key? key,
     required Widget child,
