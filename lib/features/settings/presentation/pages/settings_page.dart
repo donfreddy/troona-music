@@ -189,9 +189,7 @@ class _SettingsView extends StatelessWidget {
                   await cubit.clearPlaybackSession();
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Playback session cleared'),
-                    ),
+                    const SnackBar(content: Text('Playback session cleared')),
                   );
                 },
               ),

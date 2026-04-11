@@ -88,7 +88,11 @@ class _MarqueeState extends State<Marquee> {
       if (max <= 0) break;
 
       // Scroll to the end: linear, constant speed like Apple Music
-      await _controller.animateTo(max, duration: widget.scrollDuration, curve: Curves.linear);
+      await _controller.animateTo(
+        max,
+        duration: widget.scrollDuration,
+        curve: Curves.linear,
+      );
 
       if (!mounted || !_isAnimating) break;
 
@@ -117,7 +121,9 @@ class _MarqueeState extends State<Marquee> {
           shaderCallback: (bounds) {
             if (!_isOverflowing) {
               // No overflow → no fade
-              return const LinearGradient(colors: [Colors.white, Colors.white]).createShader(bounds);
+              return const LinearGradient(
+                colors: [Colors.white, Colors.white],
+              ).createShader(bounds);
             }
 
             final leftFade = widget.fadeWidth / bounds.width;
@@ -126,8 +132,18 @@ class _MarqueeState extends State<Marquee> {
             if (hasScrolledLeft) {
               // Text currently scrolling → fades on both sides
               return LinearGradient(
-                stops: [0, leftFade.clamp(0.0, 0.3), rightFade.clamp(0.7, 1.0), 1],
-                colors: const [Colors.transparent, Colors.white, Colors.white, Colors.transparent],
+                stops: [
+                  0,
+                  leftFade.clamp(0.0, 0.3),
+                  rightFade.clamp(0.7, 1.0),
+                  1,
+                ],
+                colors: const [
+                  Colors.transparent,
+                  Colors.white,
+                  Colors.white,
+                  Colors.transparent,
+                ],
               ).createShader(bounds);
             } else {
               // Initial position → fade only to the right
@@ -141,7 +157,8 @@ class _MarqueeState extends State<Marquee> {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             controller: _controller,
-            physics: const NeverScrollableScrollPhysics(), // the user does not scroll
+            physics:
+                const NeverScrollableScrollPhysics(), // the user does not scroll
             child: Text(widget.text, style: widget.style, maxLines: 1),
           ),
         );

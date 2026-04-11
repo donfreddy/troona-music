@@ -15,9 +15,6 @@ final class SearchResult {
 
   bool get isEmpty => tracks.isEmpty && artists.isEmpty && albums.isEmpty;
 
-  factory SearchResult.empty() => const SearchResult(
-    tracks: [],
-    artists: [],
-    albums: [],
-  );
+  factory SearchResult.empty() =>
+      const SearchResult(tracks: [], artists: [], albums: []);
 }

@@ -22,7 +22,7 @@ abstract final class ColorPrimitives {
 
   // Dark — Aligné sur web-theme.css (oklch 0.145 0 0) et Deep Glass
   static const bgPrimaryDark = Color(0xFF030213); // Deep Midnight from your CSS
-  static const bgSecondaryDark = Color(0xFF08071A); 
+  static const bgSecondaryDark = Color(0xFF08071A);
   static const bgTertiaryDark = Color(0xFF0C0B24);
   static const bgElevatedDark = Color(0xFF14132B);
 
@@ -53,7 +53,9 @@ abstract final class ColorPrimitives {
   static const glassHighlightLight = Color(0x33FFFFFF); // 20%
 
   // Dark : "Deep Glass" — beaucoup plus sombre et transparent
-  static const glassFillDark = Color(0x08FFFFFF); // 3% - Ultra thin for deep look
+  static const glassFillDark = Color(
+    0x08FFFFFF,
+  ); // 3% - Ultra thin for deep look
   static const glassBorderDark = Color(0x28FFFFFF); // 16% - Sharper highlight
   static const glassHighlightDark = Color(0x0FFFFFFF); // 6%
 

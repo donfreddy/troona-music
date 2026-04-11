@@ -88,13 +88,15 @@ class _DynamicBackgroundState extends State<DynamicBackground>
 
       // Strategy: Look for the most representative color
       // but saturated enough not to be grey.
-      final primaryColor = palette.vibrantColor?.color ?? 
-                          palette.dominantColor?.color ?? 
-                          const Color(0xFF1A0533);
+      final primaryColor =
+          palette.vibrantColor?.color ??
+          palette.dominantColor?.color ??
+          const Color(0xFF1A0533);
 
-      final secondaryColor = palette.darkVibrantColor?.color ?? 
-                            palette.mutedColor?.color ?? 
-                            primaryColor;
+      final secondaryColor =
+          palette.darkVibrantColor?.color ??
+          palette.mutedColor?.color ??
+          primaryColor;
 
       // Function to harmonize the color without denaturing it
       Color adapt(Color c, {required bool isTop}) {
@@ -104,7 +106,7 @@ class _DynamicBackgroundState extends State<DynamicBackground>
         // and lightness to keep the background dark (readability)
         return hsl
             .withSaturation((hsl.saturation * 1.1).clamp(0.4, 0.9))
-            .withLightness(isTop ? 0.25 : 0.15) 
+            .withLightness(isTop ? 0.25 : 0.15)
             .toColor();
       }
 

@@ -59,16 +59,16 @@ class JustAudioAdapter implements AudioServicePort {
 
   /// Applies user playback preferences that affect the underlying player.
   void applySettings(AppSettings settings) {
-    final crossfade = settings.crossfadeEnabled
-        ? Duration(milliseconds: settings.crossfadeDurationMs)
-        : Duration.zero;
+    // final crossfade = settings.crossfadeEnabled
+    //     ? Duration(milliseconds: settings.crossfadeDurationMs)
+    //     : Duration.zero;
     // just_audio API naming differs across versions; try both dynamically.
-    final dynamic p = _player;
+    // final dynamic p = _player;
     try {
-     // p.setCrossfadeDuration(crossfade);
+      // p.setCrossfadeDuration(crossfade);
     } catch (_) {
       try {
-       // p.setCrossFadeDuration(crossfade);
+        // p.setCrossFadeDuration(crossfade);
       } catch (_) {
         // Crossfade not supported on this platform/version — ignore.
       }
@@ -256,7 +256,8 @@ class JustAudioAdapter implements AudioServicePort {
 
       if (isPlaying) {
         final completed = await _fade(
-          _player.volume, 0.0,
+          _player.volume,
+          0.0,
           const Duration(milliseconds: 80),
           updateSubject: false,
         );
@@ -293,7 +294,8 @@ class JustAudioAdapter implements AudioServicePort {
 
       if (isPlaying) {
         final completed = await _fade(
-          _player.volume, 0.0,
+          _player.volume,
+          0.0,
           const Duration(milliseconds: 80),
           updateSubject: false,
         );
@@ -514,7 +516,9 @@ class JustAudioAdapter implements AudioServicePort {
   }) async {
     final version = ++_fadeVersion;
     final steps = 10;
-    final stepDuration = Duration(milliseconds: duration.inMilliseconds ~/ steps);
+    final stepDuration = Duration(
+      milliseconds: duration.inMilliseconds ~/ steps,
+    );
     final stepValue = (to - from) / steps;
 
     for (var i = 1; i <= steps; i++) {

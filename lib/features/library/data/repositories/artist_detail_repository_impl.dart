@@ -15,8 +15,8 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   const ArtistDetailRepositoryImpl({
     required LocalAudioDataSource source,
     required IsarLibraryDataSource cache,
-  })  : _source = source,
-        _cache = cache;
+  }) : _source = source,
+       _cache = cache;
 
   @override
   Future<Either<Failure, Artist>> getArtistById(String id) async {
@@ -43,12 +43,14 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   Future<Either<Failure, List<Track>>> getTopTracksByArtistId(String id) async {
     try {
       final targetId = int.tryParse(id);
-      if (targetId == null) return left(const DatabaseFailure('Invalid ID format'));
+      if (targetId == null) {
+        return left(const DatabaseFailure('Invalid ID format'));
+      }
 
       // On récupère tous les morceaux de cet artiste depuis le cache Isar
       final tracks = await _cache.getTracksByArtistId(targetId);
-      
-      // Ici tu pourrais trier par nombre d'écoutes si tu avais l'info, 
+
+      // Ici tu pourrais trier par nombre d'écoutes si tu avais l'info,
       // pour l'instant on prend les morceaux de l'artiste.
       return right(tracks.map((t) => t.toEntity()).toList());
     } catch (e, st) {
@@ -60,7 +62,9 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(String id) async {
     try {
       final targetId = int.tryParse(id);
-      if (targetId == null) return left(const DatabaseFailure('Invalid ID format'));
+      if (targetId == null) {
+        return left(const DatabaseFailure('Invalid ID format'));
+      }
 
       final albums = await _source.getAlbums();
       final artistAlbums = albums

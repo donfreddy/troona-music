@@ -239,29 +239,21 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  getIt.registerFactory<HomeBloc>(
-    () => HomeBloc(repo: getIt()),
-  );
+  getIt.registerFactory<HomeBloc>(() => HomeBloc(repo: getIt()));
 
-  getIt.registerFactory<SearchBloc>(
-    () => SearchBloc(repo: getIt()),
-  );
+  getIt.registerFactory<SearchBloc>(() => SearchBloc(repo: getIt()));
 
   getIt.registerFactory<ArtistDetailBloc>(
     () => ArtistDetailBloc(repo: getIt()),
   );
 
-  getIt.registerFactory<PlaylistBloc>(
-    () => PlaylistBloc(repo: getIt()),
-  );
+  getIt.registerFactory<PlaylistBloc>(() => PlaylistBloc(repo: getIt()));
 
   getIt.registerFactory<PlaylistDetailBloc>(
     () => PlaylistDetailBloc(repo: getIt()),
   );
 
-  getIt.registerFactory<AlbumDetailBloc>(
-    () => AlbumDetailBloc(repo: getIt()),
-  );
+  getIt.registerFactory<AlbumDetailBloc>(() => AlbumDetailBloc(repo: getIt()));
 
   // LibraryBloc remains a factory so each ShellRoute mount creates a fresh
   // instance with a clean state. The initial scan is triggered by AppShell.

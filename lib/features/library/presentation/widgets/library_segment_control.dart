@@ -31,7 +31,6 @@ class LibrarySegmentControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final baseConfig = GlassTheme.card(context);
 
     return Padding(

@@ -11,8 +11,8 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final SearchRepository _repo;
 
   SearchBloc({required SearchRepository repo})
-      : _repo = repo,
-        super(SearchInitial()) {
+    : _repo = repo,
+      super(SearchInitial()) {
     on<SearchTextChanged>(
       _onTextChanged,
       transformer: (events, mapper) => events
@@ -41,7 +41,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     );
   }
 
-  void _onClearRequested(SearchClearRequested event, Emitter<SearchState> emit) {
+  void _onClearRequested(
+    SearchClearRequested event,
+    Emitter<SearchState> emit,
+  ) {
     emit(SearchInitial());
   }
 }

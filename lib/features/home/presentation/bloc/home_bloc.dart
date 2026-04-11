@@ -31,12 +31,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final feedResult = results[0];
     final countResult = results[1];
 
-    feedResult.fold(
-      (f) => emit(HomeError(f.message)),
-      (feed) {
-        final count = countResult.fold((_) => 0, (c) => c as int);
-        emit(HomeLoaded(feed as HomeFeed, totalTracks: count));
-      },
-    );
+    feedResult.fold((f) => emit(HomeError(f.message)), (feed) {
+      final count = countResult.fold((_) => 0, (c) => c as int);
+      emit(HomeLoaded(feed as HomeFeed, totalTracks: count));
+    });
   }
 }

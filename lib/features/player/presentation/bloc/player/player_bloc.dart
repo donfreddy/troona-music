@@ -94,15 +94,25 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       (pos) => add(_PositionUpdated(pos)),
       onError: (e) => add(_AudioErrorOccurred(e.toString())),
     );
-    _bufferedSub = audioServicePort.bufferedPositionStream.listen((buf) => add(_BufferedUpdated(buf)));
-    _durationSub = audioServicePort.durationStream.listen((dur) => add(_DurationUpdated(dur)));
+    _bufferedSub = audioServicePort.bufferedPositionStream.listen(
+      (buf) => add(_BufferedUpdated(buf)),
+    );
+    _durationSub = audioServicePort.durationStream.listen(
+      (dur) => add(_DurationUpdated(dur)),
+    );
     _statusSub = audioServicePort.statusStream.listen(
       (status) => add(_StatusChanged(status)),
       onError: (e) => add(_AudioErrorOccurred(e.toString())),
     );
-    _trackSub = audioServicePort.currentTrackStream.listen((track) => add(_TrackChanged(track)));
-    _queueSub = audioServicePort.queueStream.listen((queue) => add(_QueueChanged(queue)));
-    _volumeSub = audioServicePort.volumeStream.listen((vol) => add(_VolumeUpdated(vol)));
+    _trackSub = audioServicePort.currentTrackStream.listen(
+      (track) => add(_TrackChanged(track)),
+    );
+    _queueSub = audioServicePort.queueStream.listen(
+      (queue) => add(_QueueChanged(queue)),
+    );
+    _volumeSub = audioServicePort.volumeStream.listen(
+      (vol) => add(_VolumeUpdated(vol)),
+    );
 
     // ── Enregistrement des handlers ───────────────────────────────────────
     on<PlayTrackRequested>(_onPlayTrackRequested, transformer: droppable());
@@ -110,13 +120,19 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<ResumeRequested>(_onResumeRequested, transformer: droppable());
     on<SeekRequested>(_onSeekRequested, transformer: droppable());
     on<SkipNextRequested>(_onSkipNextRequested, transformer: droppable());
-    on<SkipPreviousRequested>(_onSkipPreviousRequested, transformer: droppable());
+    on<SkipPreviousRequested>(
+      _onSkipPreviousRequested,
+      transformer: droppable(),
+    );
     on<ShuffleToggleRequested>(_onShuffleToggleRequested);
     on<RepeatModeChangeRequested>(_onRepeatModeChangeRequested);
     on<VolumeChangeRequested>(_onVolumeChangeRequested);
     on<SpeedChangeRequested>(_onSpeedChangeRequested);
     on<PlayerDismissed>(_onPlayerDismissed);
-    on<RestorePlaybackSessionRequested>(_onRestorePlaybackSessionRequested, transformer: droppable());
+    on<RestorePlaybackSessionRequested>(
+      _onRestorePlaybackSessionRequested,
+      transformer: droppable(),
+    );
     on<QueueSetRequested>(_onQueueSetRequested, transformer: droppable());
     on<TrackAddedToQueue>(_onTrackAddedToQueue);
     on<TrackRemovedFromQueue>(_onTrackRemovedFromQueue);
@@ -137,38 +153,65 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   // HANDLERS — commandes utilisateur
   // ════════════════════════════════════════════════════════════════════════════
 
-  Future<void> _onPlayTrackRequested(PlayTrackRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onPlayTrackRequested(
+    PlayTrackRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     unawaited(AppHaptics.lightImpact());
 
     emit(PlayerLoading(event.track));
 
     if (event.contextQueue != null) {
-      final result = await _setQueue(SetQueueParams(tracks: event.contextQueue!, startIndex: event.contextIndex ?? 0));
+      final result = await _setQueue(
+        SetQueueParams(
+          tracks: event.contextQueue!,
+          startIndex: event.contextIndex ?? 0,
+        ),
+      );
       if (result.isLeft()) {
-        emit(PlayerError(message: result.fold((f) => f.message, (_) => ''), lastTrack: event.track));
+        emit(
+          PlayerError(
+            message: result.fold((f) => f.message, (_) => ''),
+            lastTrack: event.track,
+          ),
+        );
       }
     } else {
       final result = await _playTrack(PlayTrackParams(track: event.track));
       if (result.isLeft()) {
-        emit(PlayerError(message: result.fold((f) => f.message, (_) => ''), lastTrack: event.track));
+        emit(
+          PlayerError(
+            message: result.fold((f) => f.message, (_) => ''),
+            lastTrack: event.track,
+          ),
+        );
       }
     }
     // État Active arrive via _onTrackChanged + _onStatusChanged
   }
 
-  Future<void> _onPauseRequested(PauseRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onPauseRequested(
+    PauseRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
     await _pause(fadeDuration: 150.ms);
   }
 
-  Future<void> _onResumeRequested(ResumeRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onResumeRequested(
+    ResumeRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.lightImpact());
     await _resume(fadeDuration: 250.ms);
   }
 
-  Future<void> _onSeekRequested(SeekRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onSeekRequested(
+    SeekRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is! PlayerActive) return;
     _isManualSeeking = true;
     try {
@@ -182,12 +225,18 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
-  Future<void> _onSkipNextRequested(SkipNextRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onSkipNextRequested(
+    SkipNextRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     unawaited(AppHaptics.mediumImpact());
     await _skipNext();
   }
 
-  Future<void> _onSkipPreviousRequested(SkipPreviousRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onSkipPreviousRequested(
+    SkipPreviousRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.mediumImpact());
     final current = state as PlayerActive;
@@ -208,19 +257,28 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   // ── Helpers de transition audio ──────────────────────────────────────────────
 
-  Future<void> _onShuffleToggleRequested(ShuffleToggleRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onShuffleToggleRequested(
+    ShuffleToggleRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is! PlayerActive) return;
     unawaited(AppHaptics.selectionClick());
     final current = state as PlayerActive;
     await _toggleShuffle(ToggleShuffleParams(enabled: !current.shuffleEnabled));
   }
 
-  Future<void> _onRepeatModeChangeRequested(RepeatModeChangeRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onRepeatModeChangeRequested(
+    RepeatModeChangeRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     unawaited(AppHaptics.selectionClick());
     await _setRepeatMode(SetRepeatModeParams(mode: event.mode));
   }
 
-  Future<void> _onVolumeChangeRequested(VolumeChangeRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onVolumeChangeRequested(
+    VolumeChangeRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     // Mise à jour optimiste du volume dans l'UI
     if (state is PlayerActive) {
       emit((state as PlayerActive).copyWith(volume: event.volume));
@@ -228,7 +286,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _setVolume(SetVolumeParams(volume: event.volume));
   }
 
-  Future<void> _onSpeedChangeRequested(SpeedChangeRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onSpeedChangeRequested(
+    SpeedChangeRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (state is PlayerActive) {
       final next = (state as PlayerActive).copyWith(speed: event.speed);
       emit(next);
@@ -237,8 +298,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _setSpeed(SetSpeedParams(speed: event.speed));
   }
 
-  Future<void> _onPlayerDismissed(PlayerDismissed event, Emitter<PlayerState> emit) async {
-    await _audioServicePort.stop(); // On arrête concrètement l'engin audio (ex: swipe en cours de lecture)
+  Future<void> _onPlayerDismissed(
+    PlayerDismissed event,
+    Emitter<PlayerState> emit,
+  ) async {
+    await _audioServicePort
+        .stop(); // On arrête concrètement l'engin audio (ex: swipe en cours de lecture)
     await _clearPersistedSession();
     emit(const PlayerIdle());
   }
@@ -263,7 +328,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       return;
     }
 
-    final trackById = {for (final model in cachedTracks) model.deviceId: model.toEntity()};
+    final trackById = {
+      for (final model in cachedTracks) model.deviceId: model.toEntity(),
+    };
     final originalTracks = snapshot.originalTrackIds
         .map((id) => trackById[id])
         .whereType<Track>()
@@ -274,25 +341,34 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         .toList(growable: false);
 
     final hasMissingOriginalTracks =
-        originalTracks.isNotEmpty && originalTracks.length != snapshot.originalTrackIds.length;
-    final hasMissingPlaybackTracks = playbackTracks.length != snapshot.playbackTrackIds.length;
+        originalTracks.isNotEmpty &&
+        originalTracks.length != snapshot.originalTrackIds.length;
+    final hasMissingPlaybackTracks =
+        playbackTracks.length != snapshot.playbackTrackIds.length;
 
-    if (playbackTracks.isEmpty || hasMissingOriginalTracks || hasMissingPlaybackTracks) {
+    if (playbackTracks.isEmpty ||
+        hasMissingOriginalTracks ||
+        hasMissingPlaybackTracks) {
       await _clearPersistedSession();
       return;
     }
 
-    final restoredIndex = playbackTracks.indexWhere((t) => t.id == snapshot.currentTrackId);
+    final restoredIndex = playbackTracks.indexWhere(
+      (t) => t.id == snapshot.currentTrackId,
+    );
     if (restoredIndex < 0) {
       await _clearPersistedSession();
       return;
     }
-    final currentIndex = (restoredIndex >= 0 ? restoredIndex : snapshot.currentIndex).clamp(
-      0,
-      playbackTracks.length - 1,
-    );
+    final currentIndex =
+        (restoredIndex >= 0 ? restoredIndex : snapshot.currentIndex).clamp(
+          0,
+          playbackTracks.length - 1,
+        );
     final queue = Queue(
-      originalTracks: List.unmodifiable(originalTracks.isEmpty ? playbackTracks : originalTracks),
+      originalTracks: List.unmodifiable(
+        originalTracks.isEmpty ? playbackTracks : originalTracks,
+      ),
       playbackTracks: List.unmodifiable(playbackTracks),
       currentIndex: currentIndex,
       shuffleEnabled: snapshot.shuffleEnabled,
@@ -316,21 +392,34 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
-  Future<void> _onQueueSetRequested(QueueSetRequested event, Emitter<PlayerState> emit) async {
+  Future<void> _onQueueSetRequested(
+    QueueSetRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
     if (event.tracks.isEmpty) return;
 
     emit(PlayerLoading(event.tracks[event.startIndex]));
-    await _setQueue(SetQueueParams(tracks: event.tracks, startIndex: event.startIndex));
+    await _setQueue(
+      SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
+    );
   }
 
-  Future<void> _onTrackAddedToQueue(TrackAddedToQueue event, Emitter<PlayerState> emit) async =>
-      _addToQueue(AddToQueueParams(track: event.track));
+  Future<void> _onTrackAddedToQueue(
+    TrackAddedToQueue event,
+    Emitter<PlayerState> emit,
+  ) async => _addToQueue(AddToQueueParams(track: event.track));
 
-  Future<void> _onTrackRemovedFromQueue(TrackRemovedFromQueue event, Emitter<PlayerState> emit) async =>
-      _removeFromQueue(RemoveFromQueueParams(index: event.index));
+  Future<void> _onTrackRemovedFromQueue(
+    TrackRemovedFromQueue event,
+    Emitter<PlayerState> emit,
+  ) async => _removeFromQueue(RemoveFromQueueParams(index: event.index));
 
-  Future<void> _onQueueItemMoved(QueueItemMoved event, Emitter<PlayerState> emit) async =>
-      _moveQueueItem(MoveQueueItemParams(oldIndex: event.oldIndex, newIndex: event.newIndex));
+  Future<void> _onQueueItemMoved(
+    QueueItemMoved event,
+    Emitter<PlayerState> emit,
+  ) async => _moveQueueItem(
+    MoveQueueItemParams(oldIndex: event.oldIndex, newIndex: event.newIndex),
+  );
 
   // ════════════════════════════════════════════════════════════════════════════
   // HANDLERS — streams entrants
@@ -353,8 +442,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   void _onDurationUpdated(_DurationUpdated event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
       final current = state as PlayerActive;
-      final fallbackDuration = Duration(milliseconds: current.currentTrack.durationMs);
-      final next = current.copyWith(duration: event.duration == Duration.zero ? fallbackDuration : event.duration);
+      final fallbackDuration = Duration(
+        milliseconds: current.currentTrack.durationMs,
+      );
+      final next = current.copyWith(
+        duration: event.duration == Duration.zero
+            ? fallbackDuration
+            : event.duration,
+      );
       emit(next);
       _persistSession(next);
     }
@@ -363,7 +458,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   void _onStatusChanged(_StatusChanged event, Emitter<PlayerState> emit) {
     switch (state) {
       case PlayerLoading(:final track):
-        if (event.status == PlaybackStatus.playing || event.status == PlaybackStatus.paused) {
+        if (event.status == PlaybackStatus.playing ||
+            event.status == PlaybackStatus.paused) {
           final queue = _audioServicePort.currentQueue ?? Queue.single(track);
           final restored = _restoringSnapshot;
           final targetVolume = restored?.volume ?? 1.0;
@@ -395,10 +491,13 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         if (_shouldClearSessionAfterStop(next)) {
           // Au lieu de Idle, on reste en Active mais on reset la position à 0
           // et on s'assure que le statut est "paused" pour l'UI.
-          final resetState = next.copyWith(status: PlaybackStatus.paused, position: Duration.zero);
+          final resetState = next.copyWith(
+            status: PlaybackStatus.paused,
+            position: Duration.zero,
+          );
           emit(resetState);
           _persistSession(resetState);
-          
+
           // Action explicite pour synchroniser le moteur audio just_audio avec l'UI
           unawaited(_seek(const SeekParams(position: Duration.zero)));
         } else {
@@ -417,12 +516,18 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         emit(PlayerLoading(event.track!));
       case PlayerActive():
         final current = state as PlayerActive;
-        final trackIndex = current.queue.playbackTracks.indexWhere((t) => t.id == event.track!.id);
+        final trackIndex = current.queue.playbackTracks.indexWhere(
+          (t) => t.id == event.track!.id,
+        );
         final next = current.copyWith(
           currentTrack: event.track,
-          position: trackIndex >= 0 && trackIndex != current.queue.currentIndex ? Duration.zero : current.position,
+          position: trackIndex >= 0 && trackIndex != current.queue.currentIndex
+              ? Duration.zero
+              : current.position,
           duration: Duration(milliseconds: event.track!.durationMs),
-          queue: trackIndex >= 0 ? current.queue.copyWith(currentIndex: trackIndex) : current.queue,
+          queue: trackIndex >= 0
+              ? current.queue.copyWith(currentIndex: trackIndex)
+              : current.queue,
         );
         emit(next);
         _persistSession(next);
@@ -503,8 +608,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       _sessionStore.save(
         PlaybackSessionSnapshot(
           currentTrackId: state.currentTrack.id,
-          originalTrackIds: state.queue.originalTracks.map((t) => t.id).toList(growable: false),
-          playbackTrackIds: state.queue.playbackTracks.map((t) => t.id).toList(growable: false),
+          originalTrackIds: state.queue.originalTracks
+              .map((t) => t.id)
+              .toList(growable: false),
+          playbackTrackIds: state.queue.playbackTracks
+              .map((t) => t.id)
+              .toList(growable: false),
           currentIndex: state.queue.currentIndex,
           positionMs: positionMs,
           wasPlaying: state.isPlaying,

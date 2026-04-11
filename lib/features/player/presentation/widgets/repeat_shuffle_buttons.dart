@@ -15,7 +15,7 @@ class ShuffleButton extends StatelessWidget {
         final enabled = _shuffle(state) ?? false;
 
         return _ControlButton(
-          icon:  EvaIcons.shuffle2,
+          icon: EvaIcons.shuffle2,
           active: enabled,
           onPressed: () =>
               context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
@@ -48,9 +48,7 @@ class RepeatButton extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 Icon(
-                  mode == RepeatMode.one
-                      ? Icons.repeat_on_sharp
-                      : Icons.repeat,
+                  mode == RepeatMode.one ? Icons.repeat_on_sharp : Icons.repeat,
                   color: mode == RepeatMode.off
                       ? Colors.white.withValues(alpha: .4)
                       : Colors.white,

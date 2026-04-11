@@ -20,7 +20,17 @@ abstract interface class PlaylistRepository {
   Future<Either<Failure, Unit>> deletePlaylist(String id);
 
   // Gestion des morceaux
-  Future<Either<Failure, Unit>> addTrackToPlaylist(String playlistId, int trackId);
-  Future<Either<Failure, Unit>> removeTrackFromPlaylist(String playlistId, int trackId);
-  Future<Either<Failure, Unit>> reorderTracks(String playlistId, int oldIndex, int newIndex);
+  Future<Either<Failure, Unit>> addTrackToPlaylist(
+    String playlistId,
+    int trackId,
+  );
+  Future<Either<Failure, Unit>> removeTrackFromPlaylist(
+    String playlistId,
+    int trackId,
+  );
+  Future<Either<Failure, Unit>> reorderTracks(
+    String playlistId,
+    int oldIndex,
+    int newIndex,
+  );
 }

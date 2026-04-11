@@ -87,14 +87,14 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
     );
   }
 
-  (String?, bool) _navKey(PlayerState s) => switch (s) {
-    PlayerActive(:final currentTrack, :final isPlaying) => (
-      currentTrack.id,
-      isPlaying,
-    ),
-    PlayerLoading(:final track) => (track.id, true),
-    _ => (null, false),
-  };
+  // (String?, bool) _navKey(PlayerState s) => switch (s) {
+  //   PlayerActive(:final currentTrack, :final isPlaying) => (
+  //     currentTrack.id,
+  //     isPlaying,
+  //   ),
+  //   PlayerLoading(:final track) => (track.id, true),
+  //   _ => (null, false),
+  // };
 
   PlayerActive? _resolvePlayerState(PlayerState state) {
     if (state is PlayerActive) {

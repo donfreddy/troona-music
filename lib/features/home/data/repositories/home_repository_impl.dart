@@ -24,24 +24,39 @@ final class HomeRepositoryImpl implements HomeRepository {
         _db.getPlaylists(limit: 3),
       ]);
 
-      final recentTracks = (results[0] as List<TrackModel>).map((t) => t.toEntity()).toList();
-      
-      final artists = (results[1] as List<TrackModel>).map((t) => Artist(
-        id: t.artistId.toString(),
-        name: t.artist,
-        //artworkPath: t.artworkPath,
-        trackCount: 0, albumCount: 0, // Optionnel ici
-      )).toList();
+      final recentTracks = (results[0] as List<TrackModel>)
+          .map((t) => t.toEntity())
+          .toList();
 
-      final albums = (results[2] as List<TrackModel>).map((t) => Album(
-        id: t.albumId.toString(),
-        name: t.album,
-        artist: t.artist,
-        artworkPath: t.artworkPath, artistId: 0, trackCount: 0,
-        //year: null,
-      )).toList();
+      final artists = (results[1] as List<TrackModel>)
+          .map(
+            (t) => Artist(
+              id: t.artistId.toString(),
+              name: t.artist,
+              //artworkPath: t.artworkPath,
+              trackCount: 0,
+              albumCount: 0, // Optionnel ici
+            ),
+          )
+          .toList();
 
-      final playlists = (results[3] as List<PlaylistModel>).map((p) => p.toEntity()).toList();
+      final albums = (results[2] as List<TrackModel>)
+          .map(
+            (t) => Album(
+              id: t.albumId.toString(),
+              name: t.album,
+              artist: t.artist,
+              artworkPath: t.artworkPath,
+              artistId: 0,
+              trackCount: 0,
+              //year: null,
+            ),
+          )
+          .toList();
+
+      final playlists = (results[3] as List<PlaylistModel>)
+          .map((p) => p.toEntity())
+          .toList();
 
       return right(
         HomeFeed(

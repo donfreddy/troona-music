@@ -33,7 +33,11 @@ final class PlaylistReorderTracksRequested extends PlaylistDetailEvent {
   final String playlistId;
   final int oldIndex;
   final int newIndex;
-  const PlaylistReorderTracksRequested(this.playlistId, this.oldIndex, this.newIndex);
+  const PlaylistReorderTracksRequested(
+    this.playlistId,
+    this.oldIndex,
+    this.newIndex,
+  );
   @override
   List<Object?> get props => [playlistId, oldIndex, newIndex];
 }

@@ -37,7 +37,8 @@ const double _kDismissThreshold = 0.25;
 /// Maximum opacity reduction at the edge of the dismiss threshold.
 const double _kMaxOpacityReduction = 0.35;
 
-class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProviderStateMixin {
+class _FullPlayerPageState extends State<FullPlayerPage>
+    with SingleTickerProviderStateMixin {
   // ── Drag-to-dismiss state ─────────────────────────────────────────────────
   late final AnimationController _snapBack;
   late Animation<double> _snapAnim;
@@ -63,11 +64,14 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
     super.initState();
 
     _snapAnim = const AlwaysStoppedAnimation(0);
-    _snapBack = AnimationController(vsync: this, duration: const Duration(milliseconds: 280))
-      ..addListener(() {
-        if (!mounted) return;
-        setState(() => _dragOffset = _snapAnim.value);
-      });
+    _snapBack =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 280),
+        )..addListener(() {
+          if (!mounted) return;
+          setState(() => _dragOffset = _snapAnim.value);
+        });
 
     final playerState = context.read<PlayerBloc>().state;
     final initialTrack = _resolveTrack(playerState);
@@ -98,7 +102,8 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
     final velocity = d.velocity.pixelsPerSecond.dy;
     final screenH = MediaQuery.of(context).size.height;
 
-    if (velocity > _kDismissVelocity || _dragOffset > screenH * _kDismissThreshold) {
+    if (velocity > _kDismissVelocity ||
+        _dragOffset > screenH * _kDismissThreshold) {
       // Reset the manual translate so the Hero widget is back at its natural
       // screen position before the fade-out route transition starts. Without
       // this reset, the Hero would fly from the dragged (offset) position
@@ -137,7 +142,8 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
     final screenH = MediaQuery.of(context).size.height;
 
     // Fade the page out slightly as the user drags down.
-    final opacity = 1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
+    final opacity =
+        1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
     return PopScope(
       canPop: true,
@@ -179,7 +185,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                             tone: DynamicBackgroundTone.immersive,
                             child: const SizedBox.expand(),
                           ),
-                      
+
                           // Scrollable content
                           SafeArea(
                             bottom: false,
@@ -187,9 +193,9 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                               children: [
                                 // Top bar: dismiss + drag indicator + options
                                 _TopBar(),
-                      
+
                                 const SizedBox(height: AppSpacing.lg),
-                      
+
                                 // Track info + like
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -197,9 +203,9 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                                   ),
                                   child: _TrackInfo(track: track),
                                 ),
-                      
+
                                 const SizedBox(height: AppSpacing.lg),
-                      
+
                                 // Artwork carousel
                                 if (state is PlayerActive)
                                   ArtworkCarousel(
@@ -209,15 +215,15 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                                   )
                                 else if (track != null)
                                   const SizedBox(height: AppSpacing.xl2),
-                      
+
                                 // Playback controls
                                 const PlayerControls(),
-                      
+
                                 const SizedBox(height: AppSpacing.xl2),
                               ],
                             ),
                           ),
-                      
+
                           // Nav bar at bottom — mini player hidden
                           Positioned(
                             bottom: 0,
@@ -242,10 +248,7 @@ class _FullPlayerPageState extends State<FullPlayerPage> with SingleTickerProvid
                                     case AppTab.search:
                                       _leaveFullPlayerTo(context, '/search');
                                     case AppTab.playlists:
-                                      _leaveFullPlayerTo(
-                                        context,
-                                        '/playlists',
-                                      );
+                                      _leaveFullPlayerTo(context, '/playlists');
                                     case AppTab.player:
                                       break;
                                   }
@@ -273,27 +276,41 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _dismissFullPlayer(context),
-            child: const Icon(EvaIcons.chevronDown, color: Colors.white, size: 22),
+            child: const Icon(
+              EvaIcons.chevronDown,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
 
           // Drag indicator pill
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(
+              color: Colors.white30,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
 
           CupertinoButton(
             padding: EdgeInsets.zero,
             onPressed: () => _showOptionsSheet(context),
-            child: const Icon(EvaIcons.moreVertical, color: Colors.white, size: 22),
+            child: const Icon(
+              EvaIcons.moreVertical,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
         ],
       ),
@@ -322,7 +339,10 @@ class _TopBar extends StatelessWidget {
             child: const Text('Voir l\'album'),
           ),
         ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annuler'),
+        ),
       ),
     );
   }
@@ -369,7 +389,10 @@ class _TrackInfo extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              Text(track?.artist ?? '—', style: const TextStyle(color: Colors.white60, fontSize: 16)),
+              Text(
+                track?.artist ?? '—',
+                style: const TextStyle(color: Colors.white60, fontSize: 16),
+              ),
             ],
           ),
         ),
@@ -433,8 +456,16 @@ class _BottomActions extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _ActionButton(icon: CupertinoIcons.list_bullet, label: 'File', onTap: () => _showQueue(context)),
-        _ActionButton(icon: CupertinoIcons.play, label: 'AirPlay', onTap: () {}),
+        _ActionButton(
+          icon: CupertinoIcons.list_bullet,
+          label: 'File',
+          onTap: () => _showQueue(context),
+        ),
+        _ActionButton(
+          icon: CupertinoIcons.play,
+          label: 'AirPlay',
+          onTap: () {},
+        ),
       ],
     );
   }
@@ -444,7 +475,10 @@ class _BottomActions extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(value: context.read<PlayerBloc>(), child: const QueueSheet()),
+      builder: (_) => BlocProvider.value(
+        value: context.read<PlayerBloc>(),
+        child: const QueueSheet(),
+      ),
     );
   }
 }
@@ -453,7 +487,11 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  const _ActionButton({required this.icon, required this.label, required this.onTap});
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -465,7 +503,10 @@ class _ActionButton extends StatelessWidget {
         children: [
           Icon(icon, color: Colors.white60, size: 22),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
+          ),
         ],
       ),
     );

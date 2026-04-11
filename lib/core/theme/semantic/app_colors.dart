@@ -150,12 +150,20 @@ final class AppColors extends ThemeExtension<AppColors> {
       separator: Color.lerp(separator, other.separator, t)!,
       separatorOpaque: Color.lerp(separatorOpaque, other.separatorOpaque, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
-      accentForeground: Color.lerp(accentForeground, other.accentForeground, t)!,
+      accentForeground: Color.lerp(
+        accentForeground,
+        other.accentForeground,
+        t,
+      )!,
       glassFill: Color.lerp(glassFill, other.glassFill, t)!,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,
       vibrancyLabel: Color.lerp(vibrancyLabel, other.vibrancyLabel, t)!,
-      vibrancySecondary: Color.lerp(vibrancySecondary, other.vibrancySecondary, t)!,
+      vibrancySecondary: Color.lerp(
+        vibrancySecondary,
+        other.vibrancySecondary,
+        t,
+      )!,
     );
   }
 }

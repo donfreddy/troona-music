@@ -16,9 +16,9 @@ class TrackPaletteState {
   });
 
   factory TrackPaletteState.initial() => const TrackPaletteState(
-        primary: Color(0xFF7B4D91),
-        secondary: Color(0xFF4A244F),
-      );
+    primary: Color(0xFF7B4D91),
+    secondary: Color(0xFF4A244F),
+  );
 }
 
 class TrackPaletteCubit extends Cubit<TrackPaletteState> {
@@ -50,11 +50,13 @@ class TrackPaletteCubit extends Cubit<TrackPaletteState> {
         size: const Size(64, 64),
       );
 
-      final primaryColor = palette.vibrantColor?.color ??
+      final primaryColor =
+          palette.vibrantColor?.color ??
           palette.dominantColor?.color ??
           const Color(0xFF1A0533);
 
-      final secondaryColor = palette.darkVibrantColor?.color ??
+      final secondaryColor =
+          palette.darkVibrantColor?.color ??
           palette.mutedColor?.color ??
           primaryColor;
 

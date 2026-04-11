@@ -72,8 +72,12 @@ final class PlaybackSessionSnapshot {
 
     return PlaybackSessionSnapshot(
       currentTrackId: currentTrackId,
-      originalTrackIds: originalTrackIds.whereType<String>().toList(growable: false),
-      playbackTrackIds: playbackTrackIds.whereType<String>().toList(growable: false),
+      originalTrackIds: originalTrackIds.whereType<String>().toList(
+        growable: false,
+      ),
+      playbackTrackIds: playbackTrackIds.whereType<String>().toList(
+        growable: false,
+      ),
       currentIndex: currentIndex,
       positionMs: positionMs,
       wasPlaying: wasPlaying,
@@ -112,9 +116,13 @@ final class PlaybackSessionStore {
 
   bool get wasFullPlayerOpen => _prefs.getBool(_fullPlayerOpenKey) ?? false;
 
-  Future<void> setFullPlayerOpen(bool value) => _prefs.setBool(_fullPlayerOpenKey, value);
+  Future<void> setFullPlayerOpen(bool value) =>
+      _prefs.setBool(_fullPlayerOpenKey, value);
 
   Future<void> clear() async {
-    await Future.wait([_prefs.remove(_sessionKey), _prefs.remove(_fullPlayerOpenKey)]);
+    await Future.wait([
+      _prefs.remove(_sessionKey),
+      _prefs.remove(_fullPlayerOpenKey),
+    ]);
   }
 }

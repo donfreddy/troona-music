@@ -21,7 +21,13 @@ import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedAlbumItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
+Widget _animatedAlbumItem(
+  Widget child,
+  int index, {
+  Key? key,
+  double slideY = 0.15,
+  int stepMs = 22,
+}) {
   return EntranceFader.staggered(
     key: key,
     index: index,
@@ -54,32 +60,43 @@ class AlbumDetailPage extends StatelessWidget {
               slivers: [
                 const SliverToBoxAdapter(child: _AlbumDetailHeader()),
 
-              // Corps selon l'état du BLoC
-              ...switch (state) {
-                AlbumDetailInitial() ||
-                AlbumDetailLoading() => [const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))],
-                AlbumDetailLoaded(:final data) => [
-                  _AlbumMetadataView(album: data.album),
-                  _AlbumActionsView(album: data.album),
-                  _AlbumTracksView(tracks: data.albumTracks),
-                  if (data.artistAlbums.isNotEmpty)
-                    _MoreByArtistView(artistName: data.album.artist, albums: data.artistAlbums),
-                ],
-                AlbumDetailError(:final message) => [
-                  SliverFillRemaining(
-                    child: ErrorView(
-                      message: message,
-                      onRetry: () => context.read<AlbumDetailBloc>().add(AlbumDetailRequested(int.parse(id))),
+                // Corps selon l'état du BLoC
+                ...switch (state) {
+                  AlbumDetailInitial() || AlbumDetailLoading() => [
+                    const SliverFillRemaining(
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                  ),
-                ],
-              },
+                  ],
+                  AlbumDetailLoaded(:final data) => [
+                    _AlbumMetadataView(album: data.album),
+                    _AlbumActionsView(album: data.album),
+                    _AlbumTracksView(tracks: data.albumTracks),
+                    if (data.artistAlbums.isNotEmpty)
+                      _MoreByArtistView(
+                        artistName: data.album.artist,
+                        albums: data.artistAlbums,
+                      ),
+                  ],
+                  AlbumDetailError(:final message) => [
+                    SliverFillRemaining(
+                      child: ErrorView(
+                        message: message,
+                        onRetry: () => context.read<AlbumDetailBloc>().add(
+                          AlbumDetailRequested(int.parse(id)),
+                        ),
+                      ),
+                    ),
+                  ],
+                },
 
-              SliverPadding(
-                padding: EdgeInsets.only(
-                  bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                    bottom:
+                        AppSpacing.miniPlayerHeight +
+                        MediaQuery.of(context).padding.bottom +
+                        AppSpacing.md,
+                  ),
                 ),
-              ),
               ],
             ),
           );
@@ -107,7 +124,11 @@ class _AlbumMetadataView extends StatelessWidget {
                     ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
-                        child: Icon(LucideIcons.disc, color: Colors.white30, size: 64),
+                        child: Icon(
+                          LucideIcons.disc,
+                          color: Colors.white30,
+                          size: 64,
+                        ),
                       ),
               ),
             ),
@@ -121,7 +142,11 @@ class _AlbumMetadataView extends StatelessWidget {
                 _animatedAlbumItem(
                   Text(
                     album.name,
-                    style: TextStyle(color: context.colors.labelPrimary, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: context.colors.labelPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   1,
@@ -130,14 +155,22 @@ class _AlbumMetadataView extends StatelessWidget {
                 _animatedAlbumItem(
                   Text(
                     album.artist,
-                    style: TextStyle(color: context.colors.labelSecondary, fontSize: 18, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: context.colors.labelSecondary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   2,
                 ),
                 _animatedAlbumItem(
                   Text(
                     '2024 • ${album.trackCount} tracks • 3 min', // TODO: Make dynamic later
-                    style: TextStyle(color: context.colors.labelTertiary, fontWeight: FontWeight.w500, fontSize: 15),
+                    style: TextStyle(
+                      color: context.colors.labelTertiary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
                   ),
                   3,
                 ),
@@ -166,7 +199,11 @@ class _AlbumActionsView extends StatelessWidget {
               Row(
                 children: [
                   Flexible(
-                    child: GlassButton(label: 'Play Album', leading: Icon(LucideIcons.play), onTap: () {}),
+                    child: GlassButton(
+                      label: 'Play Album',
+                      leading: Icon(LucideIcons.play),
+                      onTap: () {},
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
@@ -199,13 +236,19 @@ class _AlbumTracksView extends StatelessWidget {
         ),
         SliverList.separated(
           itemCount: tracks.length,
-          separatorBuilder: (_, _) => Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          separatorBuilder: (_, _) =>
+              Divider(height: 0.5, indent: 72, color: context.colors.separator),
           itemBuilder: (context, i) => _animatedAlbumItem(
             AlbumTrackListTile(
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
-              onTap: () =>
-                  context.read<PlayerBloc>().add(PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i)),
+              onTap: () => context.read<PlayerBloc>().add(
+                PlayTrackRequested(
+                  tracks[i],
+                  contextQueue: tracks,
+                  contextIndex: i,
+                ),
+              ),
             ),
             i + 6,
           ),
@@ -229,7 +272,10 @@ class _MoreByArtistView extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: AppSpacing.xl2),
-              _animatedAlbumItem(SectionHeader(title: 'Plus de ${artistName.toTitleCase()}'), 0),
+              _animatedAlbumItem(
+                SectionHeader(title: 'Plus de ${artistName.toTitleCase()}'),
+                0,
+              ),
             ],
           ),
         ),
@@ -242,8 +288,11 @@ class _MoreByArtistView extends StatelessWidget {
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) => _animatedAlbumItem(
-              AlbumCard(album: albums[i], size: 130),
-              key: ValueKey('album-${albums[i].id}'), i, slideY: 0.04),
+                AlbumCard(album: albums[i], size: 130),
+                key: ValueKey('album-${albums[i].id}'),
+                i,
+                slideY: 0.04,
+              ),
             ),
           ),
         ),
@@ -259,16 +308,31 @@ class _AlbumDetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
-            GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () => {}),
-          ],
-        ),
-      ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
+      child:
+          Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GlassIconButton(
+                      icon: LucideIcons.arrowLeft,
+                      onTap: () => context.pop(),
+                    ),
+                    GlassIconButton(
+                      icon: LucideIcons.ellipsisVertical,
+                      onTap: () => {},
+                    ),
+                  ],
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }

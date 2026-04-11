@@ -17,7 +17,10 @@ class AlbumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.pushNamed(AppRoute.albumDetail, pathParameters: {'id': album.id}),
+      onTap: () => context.pushNamed(
+        AppRoute.albumDetail,
+        pathParameters: {'id': album.id},
+      ),
       child: SizedBox(
         width: size,
         child: Column(
@@ -30,7 +33,11 @@ class AlbumCard extends StatelessWidget {
                     ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
-                        child: Icon(LucideIcons.disc, color: Colors.white30, size: 64),
+                        child: Icon(
+                          LucideIcons.disc,
+                          color: Colors.white30,
+                          size: 64,
+                        ),
                       ),
               ),
             ),
@@ -42,13 +49,19 @@ class AlbumCard extends StatelessWidget {
                 children: [
                   Text(
                     album.name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     album.artist,
-                    style: TextStyle(color: context.colors.labelSecondary, fontSize: 13),
+                    style: TextStyle(
+                      color: context.colors.labelSecondary,
+                      fontSize: 13,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

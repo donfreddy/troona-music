@@ -138,7 +138,7 @@ class IsarLibraryDataSource {
     final playlist = PlaylistModel()
       ..playlistId = DateTime.now().millisecondsSinceEpoch.toString()
       ..name = title
-     // ..description = description
+      // ..description = description
       ..artworkPath = artworkPath
       ..trackIds = [];
 
@@ -184,7 +184,10 @@ class IsarLibraryDataSource {
   }
 
   /// Removes a track from a playlist.
-  Future<void> removeTrackFromPlaylist(String playlistId, String trackId) async {
+  Future<void> removeTrackFromPlaylist(
+    String playlistId,
+    String trackId,
+  ) async {
     _isar.write((isar) {
       final playlist = isar.playlistModels
           .where()
@@ -205,11 +208,8 @@ class IsarLibraryDataSource {
       .findAll();
 
   /// Returns the list of tracks by artist ID.
-  Future<List<TrackModel>> getTracksByArtistId(int artistId) async => _isar
-      .trackModels
-      .where()
-      .artistIdEqualTo(artistId)
-      .findAll();
+  Future<List<TrackModel>> getTracksByArtistId(int artistId) async =>
+      _isar.trackModels.where().artistIdEqualTo(artistId).findAll();
 
   /// Returns the list of tracks by album ID.
   Future<List<TrackModel>> getTracksByAlbumId(int albumId) async => _isar

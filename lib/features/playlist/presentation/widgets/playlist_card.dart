@@ -17,7 +17,10 @@ class PlaylistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.goNamed(AppRoute.playlistDetail, pathParameters: {'id': playlist.id}),
+      onTap: () => context.goNamed(
+        AppRoute.playlistDetail,
+        pathParameters: {'id': playlist.id},
+      ),
       child: SizedBox(
         width: size,
         child: Column(
@@ -38,7 +41,11 @@ class PlaylistCard extends StatelessWidget {
             // Titre
             Text(
               playlist.name,
-              style: TextStyle(color: context.colors.labelPrimary, fontSize: 15, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: context.colors.labelPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -47,7 +54,10 @@ class PlaylistCard extends StatelessWidget {
 
             Text(
               '${playlist.trackIds.length} tracks',
-              style: TextStyle(color: context.colors.labelSecondary, fontSize: 13),
+              style: TextStyle(
+                color: context.colors.labelSecondary,
+                fontSize: 13,
+              ),
             ),
           ],
         ),

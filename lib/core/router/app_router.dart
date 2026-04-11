@@ -91,7 +91,9 @@ final appRouter = GoRouter(
                   builder: (context, state) {
                     final id = int.parse(state.pathParameters['id']!);
                     return BlocProvider(
-                      create: (_) => getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
+                      create: (_) =>
+                          getIt<AlbumDetailBloc>()
+                            ..add(AlbumDetailRequested(id)),
                       child: AlbumDetailPage(id: id.toString()),
                     );
                   },
@@ -102,7 +104,9 @@ final appRouter = GoRouter(
                   builder: (context, state) {
                     final id = int.parse(state.pathParameters['id']!);
                     return BlocProvider(
-                      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+                      create: (_) =>
+                          getIt<ArtistDetailBloc>()
+                            ..add(ArtistDetailRequested(id)),
                       child: ArtistDetailPage(id: id.toString()),
                     );
                   },
@@ -129,7 +133,8 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoute.playlists,
               builder: (context, _) => BlocProvider(
-                create: (_) => getIt<PlaylistBloc>()..add(PlaylistListRequested()),
+                create: (_) =>
+                    getIt<PlaylistBloc>()..add(PlaylistListRequested()),
                 child: const PlaylistPage(),
               ),
               routes: [
@@ -139,7 +144,9 @@ final appRouter = GoRouter(
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     return BlocProvider(
-                      create: (_) => getIt<PlaylistDetailBloc>()..add(PlaylistDetailRequested(id)),
+                      create: (_) =>
+                          getIt<PlaylistDetailBloc>()
+                            ..add(PlaylistDetailRequested(id)),
                       child: PlaylistDetailPage(id: id),
                     );
                   },

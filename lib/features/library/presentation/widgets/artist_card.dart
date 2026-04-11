@@ -15,7 +15,10 @@ class ArtistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-       onTap: () => context.goNamed(AppRoute.artistDetail, pathParameters: {'id': artist.id}),
+      onTap: () => context.goNamed(
+        AppRoute.artistDetail,
+        pathParameters: {'id': artist.id},
+      ),
       child: SizedBox(
         width: size,
         child: Column(
@@ -27,7 +30,11 @@ class ArtistCard extends StatelessWidget {
                     ? Image.file(File(artist.artworkPath!), fit: BoxFit.cover)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
-                        child: Icon(LucideIcons.micVocal, color: Colors.white30, size: 64),
+                        child: Icon(
+                          LucideIcons.micVocal,
+                          color: Colors.white30,
+                          size: 64,
+                        ),
                       ),
               ),
             ),

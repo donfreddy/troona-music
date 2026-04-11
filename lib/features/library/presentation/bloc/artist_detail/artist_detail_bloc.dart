@@ -18,7 +18,10 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
   ArtistDetailBloc({required ArtistDetailRepository repo})
     : _repo = repo,
       super(ArtistDetailInitial()) {
-    on<ArtistDetailRequested>(_onArtistDetailRequested, transformer: droppable());
+    on<ArtistDetailRequested>(
+      _onArtistDetailRequested,
+      transformer: droppable(),
+    );
   }
 
   Future<void> _onArtistDetailRequested(
@@ -30,7 +33,7 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
     }
 
     final id = event.id.toString();
-    
+
     // On lance les 3 requêtes en parallèle pour la performance
     final results = await Future.wait([
       _repo.getArtistById(id),
@@ -42,20 +45,15 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
     final tracksRes = results[1] as Either<Failure, List<Track>>;
     final albumsRes = results[2] as Either<Failure, List<Album>>;
 
-    artistRes.fold(
-      (f) => emit(ArtistDetailError(f.message)),
-      (artist) {
-        final tracks = tracksRes.getOrElse(() => []);
-        final albums = albumsRes.getOrElse(() => []);
-        
-        emit(ArtistDetailLoaded(
-          ArtistDetail(
-            artist: artist,
-            topTracks: tracks,
-            albums: albums,
-          ),
-        ));
-      },
-    );
+    artistRes.fold((f) => emit(ArtistDetailError(f.message)), (artist) {
+      final tracks = tracksRes.getOrElse(() => []);
+      final albums = albumsRes.getOrElse(() => []);
+
+      emit(
+        ArtistDetailLoaded(
+          ArtistDetail(artist: artist, topTracks: tracks, albums: albums),
+        ),
+      );
+    });
   }
 }

@@ -1,5 +1,4 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -136,7 +135,7 @@ class _SkipNextButton extends StatelessWidget {
             width: 52,
             height: 52,
             child: Icon(
-               EvaIcons.skipForwardOutline,
+              EvaIcons.skipForwardOutline,
               color: enabled
                   ? Colors.white
                   : Colors.white.withValues(alpha: .3),

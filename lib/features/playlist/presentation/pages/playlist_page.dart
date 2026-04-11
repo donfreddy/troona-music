@@ -19,7 +19,10 @@ class PlaylistPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Playlists', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text(
+          'Playlists',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.md),
@@ -47,13 +50,18 @@ class PlaylistPage extends StatelessWidget {
           if (state is PlaylistLoaded) {
             final playlists = state.playlists;
             if (playlists.isEmpty) {
-              return const Center(child: Text('Aucune playlist pour le moment', style: TextStyle(color: Colors.white30)));
+              return const Center(
+                child: Text(
+                  'Aucune playlist pour le moment',
+                  style: TextStyle(color: Colors.white30),
+                ),
+              );
             }
 
             return ListView.separated(
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: playlists.length,
-              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
               itemBuilder: (context, index) {
                 final playlist = playlists[index];
                 return _PlaylistTile(playlist: playlist);
@@ -79,7 +87,10 @@ class _PlaylistTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => context.pushNamed(AppRoute.playlistDetail, pathParameters: {'id': playlist.id}),
+      onTap: () => context.pushNamed(
+        AppRoute.playlistDetail,
+        pathParameters: {'id': playlist.id},
+      ),
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.sm),
@@ -104,14 +115,35 @@ class _PlaylistTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(playlist.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  if (playlist.name != null && playlist.name!.isNotEmpty)
-                    Text(playlist.name!, style: const TextStyle(color: Colors.white30, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text('${playlist.trackIds.length} morceaux', style: const TextStyle(color: Colors.white30, fontSize: 12)),
+                  Text(
+                    playlist.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (playlist.name.isNotEmpty)
+                    Text(
+                      playlist.name,
+                      style: const TextStyle(
+                        color: Colors.white30,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  Text(
+                    '${playlist.trackIds.length} morceaux',
+                    style: const TextStyle(color: Colors.white30, fontSize: 12),
+                  ),
                 ],
               ),
             ),
-            const Icon(LucideIcons.chevronRight, size: 20, color: Colors.white24),
+            const Icon(
+              LucideIcons.chevronRight,
+              size: 20,
+              color: Colors.white24,
+            ),
           ],
         ),
       ),

@@ -7,6 +7,7 @@ sealed class SearchState extends Equatable {
 }
 
 final class SearchInitial extends SearchState {}
+
 final class SearchLoading extends SearchState {}
 
 final class SearchLoaded extends SearchState {

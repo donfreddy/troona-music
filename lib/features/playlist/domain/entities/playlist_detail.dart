@@ -5,8 +5,5 @@ final class PlaylistDetail {
   final Playlist playlist;
   final List<Track> tracks;
 
-  const PlaylistDetail({
-    required this.playlist,
-    required this.tracks,
-  });
+  const PlaylistDetail({required this.playlist, required this.tracks});
 }

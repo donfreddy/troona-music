@@ -15,7 +15,13 @@ import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart
 import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedHomeItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
+Widget _animatedHomeItem(
+  Widget child,
+  int index, {
+  Key? key,
+  double slideY = 0.15,
+  int stepMs = 22,
+}) {
   return EntranceFader.staggered(
     key: key,
     index: index,
@@ -33,39 +39,53 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
-        onRefresh: () async => context.read<HomeBloc>().add(HomeRefreshRequested()),
+        onRefresh: () async =>
+            context.read<HomeBloc>().add(HomeRefreshRequested()),
         child: CustomScrollView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           slivers: [
             const SliverToBoxAdapter(child: _HomeHeader()),
 
             BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
-                  return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+                  return const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
                 if (state is HomeLoaded) {
                   final feed = state.feed;
                   return SliverMainAxisGroup(
                     slivers: ([
-                      if (feed.recentlyPlayed.isNotEmpty) _RecentlyPlayerView(tracks: feed.recentlyPlayed),
+                      if (feed.recentlyPlayed.isNotEmpty)
+                        _RecentlyPlayerView(tracks: feed.recentlyPlayed),
 
-                      if (feed.yourArtists.isNotEmpty) _YourArtistsView(artists: feed.yourArtists),
+                      if (feed.yourArtists.isNotEmpty)
+                        _YourArtistsView(artists: feed.yourArtists),
 
-                      if (feed.newAlbums.isNotEmpty) _NewAlbumsView(albums: feed.newAlbums),
+                      if (feed.newAlbums.isNotEmpty)
+                        _NewAlbumsView(albums: feed.newAlbums),
 
-                      if (feed.yourPlaylists.isNotEmpty) _YourPlaylistsView(playlists: feed.yourPlaylists),
+                      if (feed.yourPlaylists.isNotEmpty)
+                        _YourPlaylistsView(playlists: feed.yourPlaylists),
 
                       SliverPadding(
                         padding: EdgeInsets.only(
-                          bottom: AppSpacing.bottomBlockHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                          bottom:
+                              AppSpacing.bottomBlockHeight +
+                              MediaQuery.of(context).padding.bottom +
+                              AppSpacing.md,
                         ),
                       ),
                     ]),
                   );
                 }
                 if (state is HomeError) {
-                  return SliverFillRemaining(child: Center(child: Text(state.message)));
+                  return SliverFillRemaining(
+                    child: Center(child: Text(state.message)),
+                  );
                 }
                 return const SliverToBoxAdapter(child: SizedBox.shrink());
               },
@@ -88,7 +108,11 @@ class _YourArtistsView extends StatelessWidget {
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
         SliverToBoxAdapter(
-          child: _animatedHomeItem(SectionHeader(title: 'Your Artists', onViewAll: () {}), 0, slideY: 0.05),
+          child: _animatedHomeItem(
+            SectionHeader(title: 'Your Artists', onViewAll: () {}),
+            0,
+            slideY: 0.05,
+          ),
         ),
         SliverToBoxAdapter(
           child: SizedBox(
@@ -98,8 +122,12 @@ class _YourArtistsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: artists.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, i) =>
-                  _animatedHomeItem(ArtistCard(artist: artists[i], size: 100), key: ValueKey('artist-${artists[i].id}'), i, slideY: 0.04),
+              itemBuilder: (context, i) => _animatedHomeItem(
+                ArtistCard(artist: artists[i], size: 100),
+                key: ValueKey('artist-${artists[i].id}'),
+                i,
+                slideY: 0.04,
+              ),
             ),
           ),
         ),
@@ -119,7 +147,11 @@ class _NewAlbumsView extends StatelessWidget {
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
         SliverToBoxAdapter(
-          child: _animatedHomeItem(SectionHeader(title: 'New Albums', onViewAll: () {}), 0, slideY: 0.05),
+          child: _animatedHomeItem(
+            SectionHeader(title: 'New Albums', onViewAll: () {}),
+            0,
+            slideY: 0.05,
+          ),
         ),
         SliverToBoxAdapter(
           child: SizedBox(
@@ -129,7 +161,12 @@ class _NewAlbumsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, i) => _animatedHomeItem(AlbumCard(album: albums[i], size: 130), key: ValueKey('album-${albums[i].id}'), i, slideY: 0.04),
+              itemBuilder: (context, i) => _animatedHomeItem(
+                AlbumCard(album: albums[i], size: 130),
+                key: ValueKey('album-${albums[i].id}'),
+                i,
+                slideY: 0.04,
+              ),
             ),
           ),
         ),
@@ -148,7 +185,13 @@ class _YourPlaylistsView extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-        SliverToBoxAdapter(child: _animatedHomeItem(SectionHeader(title: 'Your Playlists'), 0, slideY: 0.05)),
+        SliverToBoxAdapter(
+          child: _animatedHomeItem(
+            SectionHeader(title: 'Your Playlists'),
+            0,
+            slideY: 0.05,
+          ),
+        ),
         SliverToBoxAdapter(
           child: SizedBox(
             height: 180,
@@ -157,8 +200,12 @@ class _YourPlaylistsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               itemCount: playlists.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, i) =>
-                  _animatedHomeItem(PlaylistCard(playlist: playlists[i], size: 130), key: ValueKey('playlist-${playlists[i].id}'), i, slideY: 0.04),
+              itemBuilder: (context, i) => _animatedHomeItem(
+                PlaylistCard(playlist: playlists[i], size: 130),
+                key: ValueKey('playlist-${playlists[i].id}'),
+                i,
+                slideY: 0.04,
+              ),
             ),
           ),
         ),
@@ -186,16 +233,37 @@ class _HomeHeader extends StatelessWidget {
     // Adding entry animation to the header as well
     return SafeArea(
       bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xl),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_greeting, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            Text('Welcome back to your music', style: TextStyle(color: context.colors.labelSecondary, fontSize: 18)),
-          ],
-        ),
-      ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
+      child:
+          Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _greeting,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Welcome back to your music',
+                      style: TextStyle(
+                        color: context.colors.labelSecondary,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }
@@ -210,27 +278,59 @@ class _RecentlyPlayerView extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-        SliverToBoxAdapter(child: _animatedHomeItem(SectionHeader(title: 'Recently Played'), 0, slideY: 0.05)),
+        SliverToBoxAdapter(
+          child: _animatedHomeItem(
+            SectionHeader(title: 'Recently Played'),
+            0,
+            slideY: 0.05,
+          ),
+        ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg) + const EdgeInsets.only(top: AppSpacing.xs),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppSpacing.lg) +
+              const EdgeInsets.only(top: AppSpacing.xs),
           sliver: SliverToBoxAdapter(
             child: Column(
               children: [
                 if (tracks.length >= 2)
                   Row(
                     children: [
-                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[0]), 1, slideY: 0.03)),
+                      Expanded(
+                        child: _animatedHomeItem(
+                          _RecentlyPlayerCard(track: tracks[0]),
+                          1,
+                          slideY: 0.03,
+                        ),
+                      ),
                       const SizedBox(width: AppSpacing.md),
-                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[1]), 2, slideY: 0.03)),
+                      Expanded(
+                        child: _animatedHomeItem(
+                          _RecentlyPlayerCard(track: tracks[1]),
+                          2,
+                          slideY: 0.03,
+                        ),
+                      ),
                     ],
                   ),
                 if (tracks.length >= 4) ...[
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
-                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[2]), 3, slideY: 0.03)),
+                      Expanded(
+                        child: _animatedHomeItem(
+                          _RecentlyPlayerCard(track: tracks[2]),
+                          3,
+                          slideY: 0.03,
+                        ),
+                      ),
                       const SizedBox(width: AppSpacing.md),
-                      Expanded(child: _animatedHomeItem(_RecentlyPlayerCard(track: tracks[3]), 4, slideY: 0.03)),
+                      Expanded(
+                        child: _animatedHomeItem(
+                          _RecentlyPlayerCard(track: tracks[3]),
+                          4,
+                          slideY: 0.03,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -260,7 +360,10 @@ class _RecentlyPlayerCard extends StatelessWidget {
         border: Border.all(color: glass.border, width: glass.borderWidth),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
         child: Row(
           children: [
             // Artwork
@@ -271,10 +374,18 @@ class _RecentlyPlayerCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: track.artworkPath != null
-                        ? Image.file(File(track.artworkPath!), width: 50, height: 50, fit: BoxFit.cover)
+                        ? Image.file(
+                            File(track.artworkPath!),
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          )
                         : Container(
                             color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(LucideIcons.music, color: Colors.white30),
+                            child: const Icon(
+                              LucideIcons.music,
+                              color: Colors.white30,
+                            ),
                           ),
                   ),
                 ],
@@ -290,13 +401,20 @@ class _RecentlyPlayerCard extends StatelessWidget {
                 children: [
                   Text(
                     track.title,
-                    style: TextStyle(color: context.colors.labelPrimary, fontSize: 13, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: context.colors.labelPrimary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     track.artist,
-                    style: TextStyle(color: context.colors.labelSecondary, fontSize: 11),
+                    style: TextStyle(
+                      color: context.colors.labelSecondary,
+                      fontSize: 11,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

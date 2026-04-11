@@ -106,7 +106,9 @@ class _AppShellState extends State<AppShell> {
               !_didRequestPlaybackRestore && _canRestorePlayback(current),
           listener: (context, state) {
             _didRequestPlaybackRestore = true;
-            context.read<PlayerBloc>().add(const RestorePlaybackSessionRequested());
+            context.read<PlayerBloc>().add(
+              const RestorePlaybackSessionRequested(),
+            );
           },
         ),
         BlocListener<PlayerBloc, PlayerState>(
@@ -116,7 +118,8 @@ class _AppShellState extends State<AppShell> {
               (current is PlayerLoading || current is PlayerActive),
           listener: (context, state) {
             _didRestoreFullPlayerRoute = true;
-            if (GoRouterState.of(context).matchedLocation != FullPlayerPage.routeName) {
+            if (GoRouterState.of(context).matchedLocation !=
+                FullPlayerPage.routeName) {
               context.push(FullPlayerPage.routeName);
             }
           },
@@ -137,12 +140,13 @@ class _AppShellState extends State<AppShell> {
           if (_shouldShowBootstrap(libraryState)) {
             return _LibraryBootstrapScreen(
               state: libraryState,
-              onRetry: () => context.read<LibraryBloc>().add(const LibraryScanRequested()),
+              onRetry: () =>
+                  context.read<LibraryBloc>().add(const LibraryScanRequested()),
             );
           }
 
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
-          
+
           // Use the live _currentLocation which is updated via both
           // the widget prop and the GoRouter listener, ensuring we
           // always know the actual route — even after popping.
@@ -160,7 +164,8 @@ class _AppShellState extends State<AppShell> {
                 Positioned.fill(
                   child: BlocSelector<PlayerBloc, PlayerState, String?>(
                     selector: (s) => switch (s) {
-                      PlayerActive(:final currentTrack) => currentTrack.artworkPath,
+                      PlayerActive(:final currentTrack) =>
+                        currentTrack.artworkPath,
                       PlayerLoading(:final track) => track.artworkPath,
                       _ => null,
                     },
@@ -171,11 +176,13 @@ class _AppShellState extends State<AppShell> {
                     ),
                   ),
                 ),
-                
+
                 // ── The Branch Content ─────────────────────────────────────────
                 Positioned.fill(child: widget.navigationShell),
 
-                if (libraryState case LibraryScanning(:final cached) when cached != null)
+                if (libraryState case LibraryScanning(
+                  :final cached,
+                ) when cached != null)
                   Positioned(
                     top: safeTop + 12,
                     left: 12,

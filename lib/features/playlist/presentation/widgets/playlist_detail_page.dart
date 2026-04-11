@@ -5,7 +5,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
-import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 
 class PlaylistDetailPage extends StatelessWidget {
@@ -26,7 +25,11 @@ class PlaylistDetailPage extends StatelessWidget {
             final data = state.data;
             return CustomScrollView(
               slivers: [
-                _SliverHeader(id: id, name: data.playlist.name, description: data.playlist.name),
+                _SliverHeader(
+                  id: id,
+                  name: data.playlist.name,
+                  description: data.playlist.name,
+                ),
                 _TrackList(playlistId: id, tracks: data.tracks),
                 const SliverToBoxAdapter(child: SizedBox(height: 120)),
               ],
@@ -85,15 +88,32 @@ class _SliverHeader extends StatelessWidget {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: .5), blurRadius: 20, spreadRadius: 5),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: .5),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
                       ],
                     ),
-                    child: const Icon(LucideIcons.listMusic, size: 64, color: Colors.white24),
+                    child: const Icon(
+                      LucideIcons.listMusic,
+                      size: 64,
+                      color: Colors.white24,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  Text(name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   if (description != null)
-                    Text(description!, style: const TextStyle(color: Colors.white30)),
+                    Text(
+                      description!,
+                      style: const TextStyle(color: Colors.white30),
+                    ),
                 ],
               ),
             ),
@@ -113,7 +133,12 @@ class _TrackList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (tracks.isEmpty) {
       return const SliverFillRemaining(
-        child: Center(child: Text('Aucun morceau dans cette playlist', style: TextStyle(color: Colors.white30))),
+        child: Center(
+          child: Text(
+            'Aucun morceau dans cette playlist',
+            style: TextStyle(color: Colors.white30),
+          ),
+        ),
       );
     }
 
@@ -121,11 +146,18 @@ class _TrackList extends StatelessWidget {
       itemCount: tracks.length,
       onReorder: (oldIndex, newIndex) {
         if (newIndex > oldIndex) newIndex -= 1;
-        context.read<PlaylistDetailBloc>().add(PlaylistReorderTracksRequested(playlistId, oldIndex, newIndex));
+        context.read<PlaylistDetailBloc>().add(
+          PlaylistReorderTracksRequested(playlistId, oldIndex, newIndex),
+        );
       },
       itemBuilder: (context, index) {
         final track = tracks[index];
-        return _TrackTile(key: ValueKey(track.id), track: track, playlistId: playlistId, index: index);
+        return _TrackTile(
+          key: ValueKey(track.id),
+          track: track,
+          playlistId: playlistId,
+          index: index,
+        );
       },
     );
   }
@@ -135,7 +167,12 @@ class _TrackTile extends StatelessWidget {
   final Track track;
   final String playlistId;
   final int index;
-  const _TrackTile({super.key, required this.track, required this.playlistId, required this.index});
+  const _TrackTile({
+    super.key,
+    required this.track,
+    required this.playlistId,
+    required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -160,10 +197,24 @@ class _TrackTile extends StatelessWidget {
               color: Colors.white10,
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
             ),
-            child: const Icon(LucideIcons.music, size: 20, color: Colors.white30),
+            child: const Icon(
+              LucideIcons.music,
+              size: 20,
+              color: Colors.white30,
+            ),
           ),
-          title: Text(track.title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(track.artist, style: const TextStyle(color: Colors.white30, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: Text(
+            track.title,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            track.artist,
+            style: const TextStyle(color: Colors.white30, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -175,8 +226,13 @@ class _TrackTile extends StatelessWidget {
               //   },
               // ),
               const ReorderableDragStartListener(
-                index: 0, // Ignored here as we use ReorderableDelayedDragStartListener
-                child: Icon(LucideIcons.gripVertical, size: 20, color: Colors.white12),
+                index:
+                    0, // Ignored here as we use ReorderableDelayedDragStartListener
+                child: Icon(
+                  LucideIcons.gripVertical,
+                  size: 20,
+                  color: Colors.white12,
+                ),
               ),
             ],
           ),
@@ -185,26 +241,31 @@ class _TrackTile extends StatelessWidget {
     );
   }
 
-  void _showTrackOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.grey[900],
-      builder: (ctx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(LucideIcons.trash2, color: Colors.redAccent),
-            title: const Text('Retirer de la playlist', style: TextStyle(color: Colors.redAccent)),
-            onTap: () {
-              context.read<PlaylistDetailBloc>().add(PlaylistRemoveTrackRequested(playlistId, track.id as int));
-              Navigator.pop(ctx);
-            },
-          ),
-          const SizedBox(height: AppSpacing.md),
-        ],
-      ),
-    );
-  }
+  // void _showTrackOptions(BuildContext context) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Colors.grey[900],
+  //     builder: (ctx) => Column(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         ListTile(
+  //           leading: const Icon(LucideIcons.trash2, color: Colors.redAccent),
+  //           title: const Text(
+  //             'Retirer de la playlist',
+  //             style: TextStyle(color: Colors.redAccent),
+  //           ),
+  //           onTap: () {
+  //             context.read<PlaylistDetailBloc>().add(
+  //               PlaylistRemoveTrackRequested(playlistId, track.id as int),
+  //             );
+  //             Navigator.pop(ctx);
+  //           },
+  //         ),
+  //         const SizedBox(height: AppSpacing.md),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   List<Track> tracksFromEntity(PlaylistDetailState state) {
     if (state is PlaylistDetailLoaded) return state.data.tracks;

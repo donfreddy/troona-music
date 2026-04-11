@@ -39,11 +39,11 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
 
     if (widget.playlist == null) {
       context.read<PlaylistBloc>().add(
-            PlaylistCreateRequested(
-              title: _titleController.text.trim(),
-              description: _descController.text.trim(),
-            ),
-          );
+        PlaylistCreateRequested(
+          title: _titleController.text.trim(),
+          description: _descController.text.trim(),
+        ),
+      );
     } else {
       // TODO: Implémenter PlaylistUpdateRequested dans le BLoC
     }
@@ -72,7 +72,10 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
             onPressed: _onSave,
             child: const Text(
               'Enregistrer',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -130,7 +133,10 @@ class _PlaylistImagePicker extends StatelessWidget {
         children: [
           Icon(LucideIcons.imagePlus, size: 42, color: Colors.white30),
           SizedBox(height: AppSpacing.sm),
-          Text('Ajouter un visuel', style: TextStyle(color: Colors.white30, fontSize: 12)),
+          Text(
+            'Ajouter un visuel',
+            style: TextStyle(color: Colors.white30, fontSize: 12),
+          ),
         ],
       ),
     );

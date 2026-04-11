@@ -7,6 +7,7 @@ sealed class PlaylistState extends Equatable {
 }
 
 final class PlaylistInitial extends PlaylistState {}
+
 final class PlaylistLoading extends PlaylistState {}
 
 final class PlaylistLoaded extends PlaylistState {
