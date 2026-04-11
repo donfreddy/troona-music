@@ -17,7 +17,7 @@ class AlbumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.goNamed(AppRoute.albumDetail, pathParameters: {'id': album.id}),
+      onTap: () => context.pushNamed(AppRoute.albumDetail, pathParameters: {'id': album.id}),
       child: SizedBox(
         width: size,
         child: Column(

@@ -36,7 +36,7 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
               AlbumDetail(
                 album: album,
                 albumTracks: tracks,
-                artistAlbums: albums.where((a) => a.id != album.id).toList(),
+                artistAlbums: albums.where((a) => a.name != album.name).toList(),
               ),
             ),
           );

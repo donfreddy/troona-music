@@ -43,7 +43,18 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
       final albums = await _source.getAlbums();
       final artistAlbums = albums.where((a) => a.artistId == artistId).map((a) => a.toEntity()).toList();
 
-      return right(artistAlbums);
+      final resultAlbums = <Album>[];
+      for (final a in artistAlbums) {
+        final albumId = int.tryParse(a.id);
+        if (albumId != null) {
+          final tracks = await _cache.getTracksByAlbumId(albumId);
+          resultAlbums.add(a.copyWith(artworkPath: tracks.firstOrNull?.artworkPath));
+        } else {
+          resultAlbums.add(a);
+        }
+      }
+
+      return right(resultAlbums);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
