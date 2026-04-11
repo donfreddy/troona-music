@@ -48,6 +48,11 @@ class JustAudioAdapter implements AudioServicePort {
 
   int _fadeVersion = 0;
 
+  /// Mutex for pause/resume to prevent concurrent execution.
+  /// When the user taps pause then quickly taps play, the resume must wait
+  /// for the pause to finish before starting playback.
+  Future<void>? _playbackCommandLock;
+
   JustAudioAdapter() : _player = AudioPlayer(handleInterruptions: false) {
     _initStreams();
   }
@@ -170,24 +175,19 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> pause({Duration? fadeDuration}) async {
+  Future<Either<Failure, Unit>> pause({Duration? fadeDuration}) {
+    return _runExclusive(() => _doPause(fadeDuration: fadeDuration));
+  }
+
+  Future<Either<Failure, Unit>> _doPause({Duration? fadeDuration}) async {
     try {
       if (fadeDuration != null && fadeDuration > Duration.zero) {
         final targetVolume = _volumeSubject.value;
-        final completed = await _fade(
-          _player.volume,
-          0.0,
-          fadeDuration,
-          updateSubject: false,
-        );
-        // Always pause and restore volume, even if the fade was interrupted
-        // by a subsequent resume. This prevents the player from staying in
-        // a playing state with near-zero volume.
+        await _fade(_player.volume, 0.0, fadeDuration, updateSubject: false);
+        // Always pause and restore volume regardless of fade completion.
         await _player.pause();
         await _player.setVolume(targetVolume);
-        if (completed) {
-          _volumeSubject.add(targetVolume);
-        }
+        _volumeSubject.add(targetVolume);
       } else {
         await _player.pause();
       }
@@ -198,7 +198,11 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> resume({Duration? fadeDuration}) async {
+  Future<Either<Failure, Unit>> resume({Duration? fadeDuration}) {
+    return _runExclusive(() => _doResume(fadeDuration: fadeDuration));
+  }
+
+  Future<Either<Failure, Unit>> _doResume({Duration? fadeDuration}) async {
     try {
       if (fadeDuration != null && fadeDuration > Duration.zero) {
         final targetVolume = _volumeSubject.value;
@@ -211,6 +215,26 @@ class JustAudioAdapter implements AudioServicePort {
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  /// Ensures only one pause/resume command runs at a time.
+  /// If a previous command is still executing (e.g. fade animation),
+  /// the new one waits for it to complete first.
+  Future<Either<Failure, Unit>> _runExclusive(
+    Future<Either<Failure, Unit>> Function() action,
+  ) async {
+    // Wait for any in-flight pause/resume to finish.
+    while (_playbackCommandLock != null) {
+      await _playbackCommandLock;
+    }
+    final completer = Completer<void>();
+    _playbackCommandLock = completer.future;
+    try {
+      return await action();
+    } finally {
+      _playbackCommandLock = null;
+      completer.complete();
     }
   }
 

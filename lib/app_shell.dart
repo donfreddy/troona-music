@@ -35,17 +35,16 @@ class _AppShellState extends State<AppShell> {
   bool _didRequestPlaybackRestore = false;
   bool _didRestoreFullPlayerRoute = false;
   String _currentLocation = '';
+  GoRouter? _router;
 
   @override
   void initState() {
     super.initState();
     _currentLocation = widget.location;
-    // Listen to GoRouter navigation changes so we can track the current
-    // route even when go_router's shell builder isn't re-invoked (e.g.
-    // when popping back from a sub-route within the same branch).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      GoRouter.of(context).routerDelegate.addListener(_onRouteChanged);
+      _router = GoRouter.of(context);
+      _router!.routeInformationProvider.addListener(_onRouteChanged);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -65,8 +64,7 @@ class _AppShellState extends State<AppShell> {
 
   void _onRouteChanged() {
     if (!mounted) return;
-    final newLocation =
-        GoRouter.of(context).routeInformationProvider.value.uri.path;
+    final newLocation = _router!.routeInformationProvider.value.uri.path;
     if (newLocation != _currentLocation) {
       setState(() => _currentLocation = newLocation);
     }
@@ -74,13 +72,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
-    // The listener is added in a post-frame callback, so GoRouter's context
-    // may not be available if the widget was disposed before the callback.
-    try {
-      GoRouter.of(context).routerDelegate.removeListener(_onRouteChanged);
-    } catch (_) {
-      // GoRouter context no longer available — safe to ignore.
-    }
+    _router?.routeInformationProvider.removeListener(_onRouteChanged);
     super.dispose();
   }
 
