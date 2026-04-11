@@ -5,6 +5,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 
 final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
@@ -25,17 +26,20 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
         return left(const DatabaseFailure('Invalid album ID format'));
       }
 
-      final albums = await _source.getAlbums();
-      final album = albums.where((a) => a.id == targetId).firstOrNull;
       final tracks = await _cache.getTracksByAlbumId(targetId);
-
-      if (album == null) {
+      if (tracks.isEmpty) {
         return left(const DatabaseFailure('Album not found'));
       }
+      final firstTrack = tracks.first;
 
-      return right(
-        album.toEntity().copyWith(artworkPath: tracks[0].artworkPath),
-      );
+      return right(Album(
+        id: firstTrack.albumId.toString(),
+        name: firstTrack.album,
+        artist: firstTrack.artist,
+        artworkPath: firstTrack.artworkPath,
+        artistId: firstTrack.artistId,
+        trackCount: tracks.length,
+      ));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -44,24 +48,24 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   @override
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int artistId) async {
     try {
-      final albums = await _source.getAlbums();
-      final artistAlbums = albums
-          .where((a) => a.artistId == artistId)
-          .map((a) => a.toEntity())
-          .toList();
-
-      final resultAlbums = <Album>[];
-      for (final a in artistAlbums) {
-        final albumId = int.tryParse(a.id);
-        if (albumId != null) {
-          final tracks = await _cache.getTracksByAlbumId(albumId);
-          resultAlbums.add(
-            a.copyWith(artworkPath: tracks.firstOrNull?.artworkPath),
-          );
-        } else {
-          resultAlbums.add(a);
-        }
+      final tracks = await _cache.getTracksByArtistId(artistId);
+      
+      final albumGroups = <String, List<TrackModel>>{};
+      for (final t in tracks) {
+        albumGroups.putIfAbsent(t.album, () => []).add(t);
       }
+
+      final resultAlbums = albumGroups.values.map((group) {
+        final firstTrack = group.first;
+        return Album(
+          id: firstTrack.albumId.toString(),
+          name: firstTrack.album,
+          artist: firstTrack.artist,
+          artworkPath: firstTrack.artworkPath,
+          artistId: firstTrack.artistId,
+          trackCount: group.length,
+        );
+      }).toList();
 
       return right(resultAlbums);
     } catch (e, st) {

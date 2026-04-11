@@ -6,6 +6,7 @@ import 'package:troona/features/library/data/sources/local_audio_data_source.dar
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 
 final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
@@ -26,14 +27,22 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid artist ID format'));
       }
 
-      final artists = await _source.getArtists();
-      final artist = artists.where((a) => a.id == targetId).firstOrNull;
+      final tracks = await _cache.getTracksByArtistId(targetId);
 
-      if (artist == null) {
+      if (tracks.isEmpty) {
         return left(const DatabaseFailure('Artist not found'));
       }
 
-      return right(artist.toEntity());
+      final firstTrack = tracks.first;
+      final albumCount = tracks.map((t) => t.albumId).toSet().length;
+
+      return right(Artist(
+        id: firstTrack.artistId.toString(),
+        name: firstTrack.artist,
+        albumCount: albumCount,
+        trackCount: tracks.length,
+        artworkPath: firstTrack.artworkPath,
+      ));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -66,11 +75,25 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid ID format'));
       }
 
-      final albums = await _source.getAlbums();
-      final artistAlbums = albums
-          .where((a) => a.artistId == targetId)
-          .map((a) => a.toEntity())
-          .toList();
+      final tracks = await _cache.getTracksByArtistId(targetId);
+      
+      // Group by album name to reliably count tracks and grab the first artwork
+      final albumGroups = <String, List<TrackModel>>{};
+      for (final t in tracks) {
+        albumGroups.putIfAbsent(t.album, () => []).add(t);
+      }
+
+      final artistAlbums = albumGroups.values.map((group) {
+        final firstTrack = group.first;
+        return Album(
+          id: firstTrack.albumId.toString(),
+          name: firstTrack.album,
+          artist: firstTrack.artist,
+          artworkPath: firstTrack.artworkPath,
+          artistId: firstTrack.artistId,
+          trackCount: group.length,
+        );
+      }).toList();
 
       return right(artistAlbums);
     } catch (e, st) {

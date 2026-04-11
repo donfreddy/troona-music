@@ -7,6 +7,7 @@ import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
@@ -47,22 +48,25 @@ final class LibraryRepositoryImpl implements LibraryRepository {
     try {
       //TODO: immolement this proprely later
 
-      // final albums = await _source.getAlbums();
-      final tracks = await _cache.getUniqueAlbums(limit: 100);
-      final albums = tracks
-          .map(
-            (t) => Album(
-              id: t.albumId.toString(),
-              name: t.album,
-              artist: t.artist,
-              artworkPath: t.artworkPath,
-              artistId: 0,
-              trackCount: 0,
-              //year: null,
-            ),
-          )
-          .toList();
-      // return right(albums.map((a) => a.toEntity()).toList());
+      final tracks = await _cache.getAllTracks();
+      
+      final albumGroups = <String, List<TrackModel>>{};
+      for (final t in tracks) {
+        albumGroups.putIfAbsent(t.album, () => []).add(t);
+      }
+
+      final albums = albumGroups.values.map((group) {
+        final firstTrack = group.first;
+        return Album(
+          id: firstTrack.albumId.toString(),
+          name: firstTrack.album,
+          artist: firstTrack.artist,
+          artworkPath: firstTrack.artworkPath,
+          artistId: firstTrack.artistId,
+          trackCount: group.length,
+        );
+      }).toList();
+
       return right(albums);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -72,8 +76,27 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   @override
   Future<Either<Failure, List<Artist>>> getArtists() async {
     try {
-      final artists = await _source.getArtists();
-      return right(artists.map((a) => a.toEntity()).toList());
+      final tracks = await _cache.getAllTracks();
+      
+      final artistGroups = <String, List<TrackModel>>{};
+      for (final t in tracks) {
+        artistGroups.putIfAbsent(t.artist, () => []).add(t);
+      }
+
+      final artists = artistGroups.values.map((group) {
+        final firstTrack = group.first;
+        final albumCount = group.map((t) => t.albumId).toSet().length;
+
+        return Artist(
+          id: firstTrack.artistId.toString(),
+          name: firstTrack.artist,
+          albumCount: albumCount,
+          trackCount: group.length,
+          artworkPath: firstTrack.artworkPath,
+        );
+      }).toList();
+
+      return right(artists);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
