@@ -1,7 +1,12 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:dartz/dartz.dart';
+import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_detail.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 
 part 'artist_detail_event.dart';
@@ -33,9 +38,9 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
       _repo.getAlbumsByArtistId(id),
     ]);
 
-    final artistRes = results[0];
-    final tracksRes = results[1];
-    final albumsRes = results[2];
+    final artistRes = results[0] as Either<Failure, Artist>;
+    final tracksRes = results[1] as Either<Failure, List<Track>>;
+    final albumsRes = results[2] as Either<Failure, List<Album>>;
 
     artistRes.fold(
       (f) => emit(ArtistDetailError(f.message)),
@@ -43,13 +48,13 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
         final tracks = tracksRes.getOrElse(() => []);
         final albums = albumsRes.getOrElse(() => []);
         
-        // emit(ArtistDetailLoaded(
-        //   ArtistDetail(
-        //     artist: artist,
-        //     topTracks: tracks,
-        //     albums: albums,
-        //   ),
-        // ));
+        emit(ArtistDetailLoaded(
+          ArtistDetail(
+            artist: artist,
+            topTracks: tracks,
+            albums: albums,
+          ),
+        ));
       },
     );
   }
