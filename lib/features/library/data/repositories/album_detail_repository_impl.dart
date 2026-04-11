@@ -2,21 +2,16 @@ import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
-import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 
 final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
-  final LocalAudioDataSource _source;
   final IsarLibraryDataSource _cache;
 
-  const AlbumDetailRepositoryImpl({
-    required LocalAudioDataSource source,
-    required IsarLibraryDataSource cache,
-  }) : _source = source,
-       _cache = cache;
+  const AlbumDetailRepositoryImpl({required IsarLibraryDataSource cache})
+    : _cache = cache;
 
   @override
   Future<Either<Failure, Album>> getAlbumById(String id) async {
@@ -32,14 +27,16 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
       }
       final firstTrack = tracks.first;
 
-      return right(Album(
-        id: firstTrack.albumId.toString(),
-        name: firstTrack.album,
-        artist: firstTrack.artist,
-        artworkPath: firstTrack.artworkPath,
-        artistId: firstTrack.artistId,
-        trackCount: tracks.length,
-      ));
+      return right(
+        Album(
+          id: firstTrack.albumId.toString(),
+          name: firstTrack.album,
+          artist: firstTrack.artist,
+          artworkPath: firstTrack.artworkPath,
+          artistId: firstTrack.artistId,
+          trackCount: tracks.length,
+        ),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -49,7 +46,7 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int artistId) async {
     try {
       final tracks = await _cache.getTracksByArtistId(artistId);
-      
+
       final albumGroups = <String, List<TrackModel>>{};
       for (final t in tracks) {
         albumGroups.putIfAbsent(t.album, () => []).add(t);

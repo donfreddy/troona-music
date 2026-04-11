@@ -19,7 +19,6 @@ import 'package:troona/features/playlist/presentation/pages/playlist_page.dart';
 import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
 import 'package:troona/features/search/presentation/pages/search_page.dart';
 import 'package:troona/features/permissions/presentation/pages/permission_page.dart';
-import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
@@ -178,17 +177,8 @@ final appRouter = GoRouter(
         fullscreenDialog: true,
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(opacity: animation, child: child),
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
-            BlocProvider(
-              create: (_) => LikesCubit(
-                addTrack: getIt(),
-                removeTrack: getIt(),
-                isTrackLiked: getIt(),
-              ),
-            ),
-          ],
+        child: BlocProvider<PlayerBloc>.value(
+          value: getIt<PlayerBloc>(),
           child: const FullPlayerPage(),
         ),
       ),

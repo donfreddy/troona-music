@@ -19,8 +19,20 @@ import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedArtistItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
-  return EntranceFader.staggered(key: key, index: index, stepMs: stepMs, slideY: slideY, child: child);
+Widget _animatedArtistItem(
+  Widget child,
+  int index, {
+  Key? key,
+  double slideY = 0.15,
+  int stepMs = 22,
+}) {
+  return EntranceFader.staggered(
+    key: key,
+    index: index,
+    stepMs: stepMs,
+    slideY: slideY,
+    child: child,
+  );
 }
 
 class ArtistDetailPage extends StatelessWidget {
@@ -41,19 +53,28 @@ class ArtistDetailPage extends StatelessWidget {
             case ArtistDetailError(:final message):
               return ErrorView(
                 message: message,
-                onRetry: () => context.read<ArtistDetailBloc>().add(ArtistDetailRequested(int.parse(id))),
+                onRetry: () => context.read<ArtistDetailBloc>().add(
+                  ArtistDetailRequested(int.parse(id)),
+                ),
               );
             case ArtistDetailLoaded(:final data):
               return CustomScrollView(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 slivers: [
                   _ArtistSliverAppBar(artist: data.artist),
                   _ArtistActionsView(tracks: data.topTracks),
-                  if (data.albums.isNotEmpty) _ArtistAlbumsGrid(albums: data.albums),
-                  if (data.topTracks.isNotEmpty) _ArtistTopTracksList(tracks: data.topTracks),
+                  if (data.albums.isNotEmpty)
+                    _ArtistAlbumsGrid(albums: data.albums),
+                  if (data.topTracks.isNotEmpty)
+                    _ArtistTopTracksList(tracks: data.topTracks),
                   SliverPadding(
                     padding: EdgeInsets.only(
-                      bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                      bottom:
+                          AppSpacing.miniPlayerHeight +
+                          MediaQuery.of(context).padding.bottom +
+                          AppSpacing.md,
                     ),
                   ),
                 ],
@@ -75,19 +96,29 @@ class _ArtistSliverAppBar extends StatelessWidget {
       expandedHeight: 320,
       pinned: true,
       stretch: true,
-      backgroundColor: Colors.transparent, // Le fond derrière l'image (si élastique)
+      backgroundColor:
+          Colors.transparent, // Le fond derrière l'image (si élastique)
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
+        child: GlassIconButton(
+          icon: LucideIcons.arrowLeft,
+          onTap: () => context.pop(),
+        ),
       ),
       actions: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () {}),
+          child: GlassIconButton(
+            icon: LucideIcons.ellipsisVertical,
+            onTap: () {},
+          ),
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
+        stretchModes: const [
+          StretchMode.zoomBackground,
+          StretchMode.blurBackground,
+        ],
         background: Stack(
           fit: StackFit.expand,
           children: [
@@ -95,7 +126,11 @@ class _ArtistSliverAppBar extends StatelessWidget {
                 ? Image.file(File(artist.artworkPath!), fit: BoxFit.cover)
                 : Container(
                     color: Colors.white.withValues(alpha: .08),
-                    child: const Icon(LucideIcons.user, color: Colors.white30, size: 80),
+                    child: const Icon(
+                      LucideIcons.user,
+                      color: Colors.white30,
+                      size: 80,
+                    ),
                   ),
             // Dégradé sombre pour toujours lisibiliser le texte (similaire au web)
             Container(
@@ -103,7 +138,11 @@ class _ArtistSliverAppBar extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: .4), Colors.black.withValues(alpha: .7), Colors.black],
+                  colors: [
+                    Colors.black.withValues(alpha: .4),
+                    Colors.black.withValues(alpha: .7),
+                    Colors.black,
+                  ],
                 ),
               ),
             ),
@@ -134,7 +173,10 @@ class _ArtistSliverAppBar extends StatelessWidget {
                   _animatedArtistItem(
                     Text(
                       '${artist.trackCount} songs • ${artist.albumCount} albums',
-                      style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 16),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: .7),
+                        fontSize: 16,
+                      ),
                     ),
                     1,
                   ),
@@ -156,7 +198,10 @@ class _ArtistActionsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xl,
+          vertical: AppSpacing.lg,
+        ),
         child: Row(
           children: [
             Flexible(
@@ -167,7 +212,11 @@ class _ArtistActionsView extends StatelessWidget {
                   onTap: () {
                     if (tracks.isNotEmpty) {
                       context.read<PlayerBloc>().add(
-                        PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+                        PlayTrackRequested(
+                          tracks[0],
+                          contextQueue: tracks,
+                          contextIndex: 0,
+                        ),
                       );
                     }
                   },
@@ -176,7 +225,10 @@ class _ArtistActionsView extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            _animatedArtistItem(GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}), 3),
+            _animatedArtistItem(
+              GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
+              3,
+            ),
           ],
         ),
       ),
@@ -211,7 +263,10 @@ class _ArtistAlbumsGrid extends StatelessWidget {
             ),
             itemCount: albums.length,
             itemBuilder: (context, i) => _animatedArtistItem(
-              AlbumCard(key: ValueKey('artist-album-${albums[i].id}'), album: albums[i]),
+              AlbumCard(
+                key: ValueKey('artist-album-${albums[i].id}'),
+                album: albums[i],
+              ),
               i + 5,
               slideY: 0.04,
             ),
@@ -232,17 +287,30 @@ class _ArtistTopTracksList extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
-          child: Column(children: [_animatedArtistItem(const SectionHeader(title: 'Popular Songs'), 5)]),
+          child: Column(
+            children: [
+              _animatedArtistItem(
+                const SectionHeader(title: 'Popular Songs'),
+                5,
+              ),
+            ],
+          ),
         ),
         SliverList.separated(
           itemCount: tracks.length,
-          separatorBuilder: (_, _) => Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          separatorBuilder: (_, _) =>
+              Divider(height: 0.5, indent: 72, color: context.colors.separator),
           itemBuilder: (context, i) => _animatedArtistItem(
             TrackListTile(
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
-              onTap: () =>
-                  context.read<PlayerBloc>().add(PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i)),
+              onTap: () => context.read<PlayerBloc>().add(
+                PlayTrackRequested(
+                  tracks[i],
+                  contextQueue: tracks,
+                  contextIndex: i,
+                ),
+              ),
             ),
             i + 6,
           ),

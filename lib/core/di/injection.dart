@@ -51,6 +51,7 @@ import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
+import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 
 /// The global service locator.
 ///
@@ -124,20 +125,16 @@ Future<void> configureDependencies() async {
 
   // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
-    () => LibraryRepositoryImpl(
-      source: getIt(),
-      cache: getIt(),
-      scanner: getIt(),
-    ),
+    () => LibraryRepositoryImpl(cache: getIt(), scanner: getIt()),
   );
   getIt.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(db: getIt()),
   );
   getIt.registerLazySingleton<AlbumDetailRepository>(
-    () => AlbumDetailRepositoryImpl(source: getIt(), cache: getIt()),
+    () => AlbumDetailRepositoryImpl(cache: getIt()),
   );
   getIt.registerLazySingleton<ArtistDetailRepository>(
-    () => ArtistDetailRepositoryImpl(source: getIt(), cache: getIt()),
+    () => ArtistDetailRepositoryImpl(cache: getIt()),
   );
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),
@@ -237,6 +234,10 @@ Future<void> configureDependencies() async {
       sessionStore: getIt(),
       libraryCache: getIt(),
     ),
+  );
+
+  getIt.registerSingleton<LikesCubit>(
+    LikesCubit(addTrack: getIt(), removeTrack: getIt(), isTrackLiked: getIt()),
   );
 
   getIt.registerFactory<HomeBloc>(() => HomeBloc(repo: getIt()));

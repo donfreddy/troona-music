@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
-import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -10,14 +9,10 @@ import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 
 final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
-  final LocalAudioDataSource _source;
   final IsarLibraryDataSource _cache;
 
-  const ArtistDetailRepositoryImpl({
-    required LocalAudioDataSource source,
-    required IsarLibraryDataSource cache,
-  }) : _source = source,
-       _cache = cache;
+  const ArtistDetailRepositoryImpl({required IsarLibraryDataSource cache})
+    : _cache = cache;
 
   @override
   Future<Either<Failure, Artist>> getArtistById(String id) async {
@@ -36,13 +31,15 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
       final firstTrack = tracks.first;
       final albumCount = tracks.map((t) => t.albumId).toSet().length;
 
-      return right(Artist(
-        id: firstTrack.artistId.toString(),
-        name: firstTrack.artist,
-        albumCount: albumCount,
-        trackCount: tracks.length,
-        artworkPath: firstTrack.artworkPath,
-      ));
+      return right(
+        Artist(
+          id: firstTrack.artistId.toString(),
+          name: firstTrack.artist,
+          albumCount: albumCount,
+          trackCount: tracks.length,
+          artworkPath: firstTrack.artworkPath,
+        ),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -76,7 +73,7 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
       }
 
       final tracks = await _cache.getTracksByArtistId(targetId);
-      
+
       // Group by album name to reliably count tracks and grab the first artwork
       final albumGroups = <String, List<TrackModel>>{};
       for (final t in tracks) {

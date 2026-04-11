@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
-import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -12,16 +11,13 @@ import 'package:troona/features/library/domain/repositories/library_repository.d
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 final class LibraryRepositoryImpl implements LibraryRepository {
-  final LocalAudioDataSource _source;
   final IsarLibraryDataSource _cache;
   final MediaScannerService _scanner;
 
   const LibraryRepositoryImpl({
-    required LocalAudioDataSource source,
     required IsarLibraryDataSource cache,
     required MediaScannerService scanner,
-  }) : _source = source,
-       _cache = cache,
+  }) : _cache = cache,
        _scanner = scanner;
 
   @override
@@ -49,7 +45,7 @@ final class LibraryRepositoryImpl implements LibraryRepository {
       //TODO: immolement this proprely later
 
       final tracks = await _cache.getAllTracks();
-      
+
       final albumGroups = <String, List<TrackModel>>{};
       for (final t in tracks) {
         albumGroups.putIfAbsent(t.album, () => []).add(t);
@@ -77,7 +73,7 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   Future<Either<Failure, List<Artist>>> getArtists() async {
     try {
       final tracks = await _cache.getAllTracks();
-      
+
       final artistGroups = <String, List<TrackModel>>{};
       for (final t in tracks) {
         artistGroups.putIfAbsent(t.artist, () => []).add(t);
