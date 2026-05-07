@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -46,23 +47,29 @@ class ArtistDetailPage extends StatelessWidget {
             child: switch (state) {
               ArtistDetailInitial() || ArtistDetailLoading() => const Center(child: CircularProgressIndicator()),
               ArtistDetailError(:final message) => ErrorView(
-                  message: message,
-                  onRetry: () => context.read<ArtistDetailBloc>().add(ArtistDetailRequested(int.parse(id))),
-                ),
+                message: message,
+                onRetry: () => context.read<ArtistDetailBloc>().add(ArtistDetailRequested(int.parse(id))),
+              ),
               ArtistDetailLoaded(:final data) => CustomScrollView(
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                  slivers: [
-                    _ArtistSliverAppBar(artist: data.artist),
-                    _ArtistActionsView(tracks: data.topTracks),
-                    if (data.albums.isNotEmpty) _ArtistAlbumsGrid(albums: data.albums),
-                    if (data.topTracks.isNotEmpty) _ArtistTopTracksList(tracks: data.topTracks),
-                    SliverPadding(
-                      padding: EdgeInsets.only(
-                        bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
-                      ),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                slivers: [
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _ArtistHeroDelegate(
+                      artist: data.artist,
+                      tracks: data.topTracks,
+                      topPadding: MediaQuery.of(context).padding.top,
                     ),
-                  ],
-                ),
+                  ),
+                  if (data.albums.isNotEmpty) _ArtistAlbumsGrid(albums: data.albums),
+                  if (data.topTracks.isNotEmpty) _ArtistTopTracksList(tracks: data.topTracks),
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                    ),
+                  ),
+                ],
+              ),
             },
           );
         },
@@ -71,125 +78,198 @@ class ArtistDetailPage extends StatelessWidget {
   }
 }
 
-class _ArtistSliverAppBar extends StatelessWidget {
+class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   final Artist artist;
-  const _ArtistSliverAppBar({required this.artist});
+  final List<Track> tracks;
+  final double topPadding;
+
+  const _ArtistHeroDelegate({required this.artist, required this.tracks, required this.topPadding});
+
+  static const double _navBarHeight = 44.0;
+  static const double _actionsBarHeight = 64.0;
+  static const double _expandedExtra = 260.0;
 
   @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      expandedHeight: 320,
-      pinned: true,
-      stretch: true,
-      backgroundColor: Colors.transparent, // Le fond derrière l'image (si élastique)
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () {}),
-        ),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        stretchModes: const [StretchMode.zoomBackground, StretchMode.blurBackground],
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            artist.artworkPath != null
-                ? Image.file(File(artist.artworkPath!), fit: BoxFit.cover)
-                : Container(
-                    color: Colors.white.withValues(alpha: .08),
-                    child: const Icon(LucideIcons.user, color: Colors.white30, size: 80),
-                  ),
-            // Dégradé sombre pour toujours lisibiliser le texte (similaire au web)
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: .4), Colors.black.withValues(alpha: .7), Colors.black],
-                ),
+  double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
+
+  @override
+  double get maxExtent => topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+
+  @override
+  bool shouldRebuild(_ArtistHeroDelegate old) =>
+      old.artist != artist || old.tracks != tracks || old.topPadding != topPadding;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final bottomScrimOpacity = (1 - shrinkOffset / 24).clamp(0.0, 1.0);
+    final currentHeight = (maxExtent - shrinkOffset).clamp(minExtent, maxExtent);
+    final colors = context.colors;
+
+    return RepaintBoundary(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: collapse * 20, sigmaY: collapse * 20),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+              border: Border(
+                bottom: BorderSide(color: colors.separator.withValues(alpha: collapse), width: 0.5),
               ),
             ),
-            // Titre et infos overlays en bas de l'image
-            Positioned(
-              bottom: AppSpacing.lg,
-              left: AppSpacing.xl,
-              right: AppSpacing.xl,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+            child: SizedBox(
+              height: currentHeight,
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
                 children: [
-                  _animatedArtistItem(
-                    Text(
-                      artist.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        height: 1.1,
+                  // ── Image hero en background (parallax) ────────────────────
+                  Positioned(
+                    top: -shrinkOffset * 0.4,
+                    left: 0,
+                    right: 0,
+                    bottom: _actionsBarHeight,
+                    child: Opacity(
+                      opacity: (1 - collapse).clamp(0.0, 1.0),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          artist.artworkPath != null
+                              ? Image.file(File(artist.artworkPath!), fit: BoxFit.cover)
+                              : Container(
+                                  color: Colors.white.withValues(alpha: .08),
+                                  child: const Icon(LucideIcons.user, color: Colors.white30, size: 80),
+                                ),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.black.withValues(alpha: .3 * bottomScrimOpacity),
+                                  Colors.black.withValues(alpha: .6 * bottomScrimOpacity),
+                                  Colors.black.withValues(alpha: .85 * bottomScrimOpacity),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    0,
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  _animatedArtistItem(
-                    Text(
-                      '${artist.trackCount} songs • ${artist.albumCount} albums',
-                      style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 16),
+
+                  // ── Titre + stats grand format ────────────────────────────
+                  Positioned(
+                    bottom: _actionsBarHeight + AppSpacing.lg,
+                    left: AppSpacing.xl,
+                    right: AppSpacing.xl,
+                    child: Opacity(
+                      opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
+                      child: Transform.translate(
+                        offset: Offset(0, shrinkOffset * 0.2),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _animatedArtistItem(
+                              Text(
+                                artist.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 44,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.1,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              0,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            _animatedArtistItem(
+                              Text(
+                                '${artist.trackCount} songs • ${artist.albumCount} albums',
+                                style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 15),
+                              ),
+                              1,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    1,
+                  ),
+
+                  // ── Navbar compacte (back + titre + more) ─────────────────
+                  Positioned(
+                    top: topPadding,
+                    left: 0,
+                    right: 0,
+                    height: _navBarHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Opacity(
+                            opacity: collapse,
+                            child: Text(
+                              artist.name,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            child: GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
+                          ),
+                          Positioned(
+                            right: 0,
+                            child: GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () {}),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // ── Barre Play/Shuffle dans bottom ────────────────────────
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: _actionsBarHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: GlassButton(
+                              label: 'Play',
+                              leading: const Icon(LucideIcons.play),
+                              onTap: () {
+                                if (tracks.isNotEmpty) {
+                                  context.read<PlayerBloc>().add(
+                                    PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ArtistActionsView extends StatelessWidget {
-  final List<Track> tracks;
-  const _ArtistActionsView({required this.tracks});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
-        child: Row(
-          children: [
-            Flexible(
-              child: _animatedArtistItem(
-                GlassButton(
-                  label: 'Play',
-                  leading: const Icon(LucideIcons.play),
-                  onTap: () {
-                    if (tracks.isNotEmpty) {
-                      context.read<PlayerBloc>().add(
-                        PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
-                      );
-                    }
-                  },
-                ),
-                2,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            _animatedArtistItem(GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}), 3),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+// ── Albums grid ───────────────────────────────────────────────────────────────
 class _ArtistAlbumsGrid extends StatelessWidget {
   final List<Album> albums;
   const _ArtistAlbumsGrid({required this.albums});
@@ -229,6 +309,7 @@ class _ArtistAlbumsGrid extends StatelessWidget {
   }
 }
 
+// ── Popular songs ─────────────────────────────────────────────────────────────
 class _ArtistTopTracksList extends StatelessWidget {
   final List<Track> tracks;
   const _ArtistTopTracksList({required this.tracks});

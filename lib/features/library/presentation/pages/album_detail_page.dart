@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,20 +21,8 @@ import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
-Widget _animatedAlbumItem(
-  Widget child,
-  int index, {
-  Key? key,
-  double slideY = 0.15,
-  int stepMs = 22,
-}) {
-  return EntranceFader.staggered(
-    key: key,
-    index: index,
-    stepMs: stepMs,
-    slideY: slideY,
-    child: child,
-  );
+Widget _animatedAlbumItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
+  return EntranceFader.staggered(key: key, index: index, stepMs: stepMs, slideY: slideY, child: child);
 }
 
 class AlbumDetailPage extends StatelessWidget {
@@ -48,57 +36,42 @@ class AlbumDetailPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: BlocBuilder<AlbumDetailBloc, AlbumDetailState>(
         builder: (context, state) {
-          final artworkPath = switch (state) {
-            AlbumDetailLoaded(:final data) => data.album.artworkPath,
+          final album = switch (state) {
+            AlbumDetailLoaded(:final data) => data.album,
             _ => null,
           };
 
           return DynamicBackground(
-            artworkPath: artworkPath,
+            artworkPath: album?.artworkPath,
             tone: DynamicBackgroundTone.immersive,
-            child: CustomScrollView(
-              slivers: [
-                const SliverToBoxAdapter(child: _AlbumDetailHeader()),
-
-                // Corps selon l'état du BLoC
-                ...switch (state) {
-                  AlbumDetailInitial() || AlbumDetailLoading() => [
-                    const SliverFillRemaining(
-                      child: Center(child: CircularProgressIndicator()),
+            child: switch (state) {
+              AlbumDetailInitial() || AlbumDetailLoading() => const Center(child: CircularProgressIndicator()),
+              AlbumDetailError(:final message) => ErrorView(
+                message: message,
+                onRetry: () => context.read<AlbumDetailBloc>().add(AlbumDetailRequested(int.parse(id))),
+              ),
+              AlbumDetailLoaded(:final data) => CustomScrollView(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                slivers: [
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _AlbumHeroDelegate(
+                      album: data.album,
+                      tracks: data.albumTracks,
+                      topPadding: MediaQuery.of(context).padding.top,
                     ),
-                  ],
-                  AlbumDetailLoaded(:final data) => [
-                    _AlbumMetadataView(album: data.album),
-                    _AlbumActionsView(album: data.album),
-                    _AlbumTracksView(tracks: data.albumTracks),
-                    if (data.artistAlbums.isNotEmpty)
-                      _MoreByArtistView(
-                        artistName: data.album.artist,
-                        albums: data.artistAlbums,
-                      ),
-                  ],
-                  AlbumDetailError(:final message) => [
-                    SliverFillRemaining(
-                      child: ErrorView(
-                        message: message,
-                        onRetry: () => context.read<AlbumDetailBloc>().add(
-                          AlbumDetailRequested(int.parse(id)),
-                        ),
-                      ),
-                    ),
-                  ],
-                },
-
-                SliverPadding(
-                  padding: EdgeInsets.only(
-                    bottom:
-                        AppSpacing.miniPlayerHeight +
-                        MediaQuery.of(context).padding.bottom +
-                        AppSpacing.md,
                   ),
-                ),
-              ],
-            ),
+                  _AlbumTracksView(tracks: data.albumTracks),
+                  if (data.artistAlbums.isNotEmpty)
+                    _MoreByArtistView(artistName: data.album.artist, albums: data.artistAlbums),
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                    ),
+                  ),
+                ],
+              ),
+            },
           );
         },
       ),
@@ -106,118 +79,198 @@ class AlbumDetailPage extends StatelessWidget {
   }
 }
 
-class _AlbumMetadataView extends StatelessWidget {
+class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
   final Album album;
-  const _AlbumMetadataView({required this.album});
+  final List<Track> tracks;
+  final double topPadding;
+
+  const _AlbumHeroDelegate({required this.album, required this.tracks, required this.topPadding});
+
+  static const double _navBarHeight = 44.0;
+  static const double _actionsBarHeight = 64.0;
+  static const double _expandedExtra = 300.0;
 
   @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Column(
-        children: [
-          _animatedAlbumItem(
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              child: SizedBox.square(
-                dimension: 200,
-                child: album.artworkPath != null
-                    ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: Icon(
-                          LucideIcons.disc,
-                          color: Colors.white30,
-                          size: 64,
+  double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
+
+  @override
+  double get maxExtent => topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+
+  @override
+  bool shouldRebuild(_AlbumHeroDelegate old) =>
+      old.album != album || old.tracks != tracks || old.topPadding != topPadding;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final currentHeight = (maxExtent - shrinkOffset).clamp(minExtent, maxExtent);
+    final colors = context.colors;
+    final theme = Theme.of(context);
+
+    return RepaintBoundary(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: collapse * 20, sigmaY: collapse * 20),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+              border: Border(
+                bottom: BorderSide(color: colors.separator.withValues(alpha: collapse), width: 0.5),
+              ),
+            ),
+            child: SizedBox(
+              height: currentHeight,
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  // ── Contenu étendu (image + textes) ──────────────────────
+                  Positioned(
+                    top: topPadding + _navBarHeight,
+                    left: 0,
+                    right: 0,
+                    bottom: _actionsBarHeight,
+                    child: Opacity(
+                      opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
+                      child: SingleChildScrollView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: AppSpacing.xl),
+                            _animatedAlbumItem(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                                child: SizedBox.square(
+                                  dimension: 180,
+                                  child: album.artworkPath != null
+                                      ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
+                                      : Container(
+                                          color: Colors.white.withValues(alpha: .08),
+                                          child: const Icon(LucideIcons.disc, color: Colors.white30, size: 64),
+                                        ),
+                                ),
+                              ),
+                              0,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                              child: Column(
+                                children: [
+                                  _animatedAlbumItem(
+                                    Text(
+                                      album.name,
+                                      style: TextStyle(
+                                        color: colors.labelPrimary,
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    1,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  _animatedAlbumItem(
+                                    Text(
+                                      album.artist,
+                                      style: TextStyle(
+                                        color: colors.labelSecondary,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    2,
+                                  ),
+                                  _animatedAlbumItem(
+                                    Text(
+                                      '2024 • ${album.trackCount} tracks',
+                                      style: TextStyle(color: colors.labelTertiary, fontSize: 14),
+                                    ),
+                                    3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-              ),
-            ),
-            0,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Column(
-              children: [
-                _animatedAlbumItem(
-                  Text(
-                    album.name,
-                    style: TextStyle(
-                      color: context.colors.labelPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  1,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                _animatedAlbumItem(
-                  Text(
-                    album.artist,
-                    style: TextStyle(
-                      color: context.colors.labelSecondary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  2,
-                ),
-                _animatedAlbumItem(
-                  Text(
-                    '2024 • ${album.trackCount} tracks • 3 min', // TODO: Make dynamic later
-                    style: TextStyle(
-                      color: context.colors.labelTertiary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15,
-                    ),
-                  ),
-                  3,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class _AlbumActionsView extends StatelessWidget {
-  final Album album;
-  const _AlbumActionsView({required this.album});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-        child: Column(
-          children: [
-            const SizedBox(height: AppSpacing.xl2),
-            _animatedAlbumItem(
-              Row(
-                children: [
-                  Flexible(
-                    child: GlassButton(
-                      label: 'Play Album',
-                      leading: Icon(LucideIcons.play),
-                      onTap: () {},
+                  // ── Navbar compacte (back + titre + more) ─────────────────
+                  Positioned(
+                    top: topPadding,
+                    left: 0,
+                    right: 0,
+                    height: _navBarHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Opacity(
+                            opacity: collapse,
+                            child: Text(
+                              album.name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: colors.labelPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            child: GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
+                          ),
+                          Positioned(
+                            right: 0,
+                            child: GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () {}),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
+
+                  // ── Barre Play/Shuffle dans bottom ────────────────────────
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: _actionsBarHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: GlassButton(
+                              label: 'Play Album',
+                              leading: const Icon(LucideIcons.play),
+                              onTap: () {
+                                if (tracks.isNotEmpty) {
+                                  context.read<PlayerBloc>().add(
+                                    PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              4,
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
+// ── Tracks ────────────────────────────────────────────────────────────────────
 class _AlbumTracksView extends StatelessWidget {
   final List<Track> tracks;
   const _AlbumTracksView({required this.tracks});
@@ -236,19 +289,13 @@ class _AlbumTracksView extends StatelessWidget {
         ),
         SliverList.separated(
           itemCount: tracks.length,
-          separatorBuilder: (_, _) =>
-              Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          separatorBuilder: (_, _) => Divider(height: 0.5, indent: 72, color: context.colors.separator),
           itemBuilder: (context, i) => _animatedAlbumItem(
             AlbumTrackListTile(
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
-              onTap: () => context.read<PlayerBloc>().add(
-                PlayTrackRequested(
-                  tracks[i],
-                  contextQueue: tracks,
-                  contextIndex: i,
-                ),
-              ),
+              onTap: () =>
+                  context.read<PlayerBloc>().add(PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i)),
             ),
             i + 6,
           ),
@@ -258,6 +305,7 @@ class _AlbumTracksView extends StatelessWidget {
   }
 }
 
+// ── More by artist ────────────────────────────────────────────────────────────
 class _MoreByArtistView extends StatelessWidget {
   final String artistName;
   final List<Album> albums;
@@ -272,10 +320,7 @@ class _MoreByArtistView extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: AppSpacing.xl2),
-              _animatedAlbumItem(
-                SectionHeader(title: 'Plus de ${artistName.toTitleCase()}'),
-                0,
-              ),
+              _animatedAlbumItem(SectionHeader(title: 'Plus de ${artistName.toTitleCase()}'), 0),
             ],
           ),
         ),
@@ -297,42 +342,6 @@ class _MoreByArtistView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _AlbumDetailHeader extends StatelessWidget {
-  const _AlbumDetailHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child:
-          Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GlassIconButton(
-                      icon: LucideIcons.arrowLeft,
-                      onTap: () => context.pop(),
-                    ),
-                    GlassIconButton(
-                      icon: LucideIcons.ellipsisVertical,
-                      onTap: () => {},
-                    ),
-                  ],
-                ),
-              )
-              .animate()
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }
