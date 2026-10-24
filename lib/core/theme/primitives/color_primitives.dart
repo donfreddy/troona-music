@@ -20,11 +20,12 @@ abstract final class ColorPrimitives {
   static const bgTertiaryLight = Color(0xFFFFFFFF);
   static const bgElevatedLight = Color(0xFFFFFFFF);
 
-  // Dark — Aligné sur web-theme.css (oklch 0.145 0 0) et Deep Glass
-  static const bgPrimaryDark = Color(0xFF030213); // Deep Midnight from your CSS
-  static const bgSecondaryDark = Color(0xFF08071A);
-  static const bgTertiaryDark = Color(0xFF0C0B24);
-  static const bgElevatedDark = Color(0xFF14132B);
+  // Dark: pure black base, glass only reads well on true black.
+  // Surfaces sampled from the reference design (mini player body #07090E).
+  static const bgPrimaryDark = Color(0xFF000000);
+  static const bgSecondaryDark = Color(0xFF07090E);
+  static const bgTertiaryDark = Color(0xFF0C0E14);
+  static const bgElevatedDark = Color(0xFF14161D);
 
   // ── Text iOS ─────────────────────────────────────────────
   static const labelPrimaryLight = Color(0xFF000000);
@@ -43,8 +44,18 @@ abstract final class ColorPrimitives {
   static const separatorOpaqueLight = Color(0xFFC6C6C8);
   static const separatorOpaqueDark = Color(0xFF38383A);
 
-  // ── Accent (rose Apple Music) ────────────────────────────
-  static const accent = Color(0xFFFC3C44); // rouge Apple Music
+  // ── Accent (lilas / indigo) ──────────────────────────────
+  static const accent = Color(0xFFB79CFF); // lilac, readable on black
+  static const accentForeground = Color(0xFF12081F); // dark text on lilac
+  static const accentGlow = Color(0xFF261548); // active tab glow (sampled)
+
+  // ── Progress (icy blue to white arc) ─────────────────────
+  static const progressStart = Color(0xFF8FB4FF);
+  static const progressEnd = Color(0xFFFFFFFF);
+
+  // ── Ambient background fallback (no artwork) ─────────────
+  static const ambientTop = Color(0xFFA670AB); // top glow (sampled)
+  static const ambientEdge = Color(0xFF644573); // glow edges (sampled)
 
   // ── Glass primitives (DEEP GLASS STYLE) ──────────────────
   // Light : fond blanc semi-transparent

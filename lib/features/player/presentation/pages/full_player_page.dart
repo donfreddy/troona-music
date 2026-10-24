@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -390,18 +391,19 @@ class _TrackInfo extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Marquee(
-                text: track?.title ?? '—',
-                style: const TextStyle(
+                text: track?.title ?? '',
+                style: AppTypography.nowPlayingTitle.copyWith(
                   color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                track?.artist ?? '—',
-                style: const TextStyle(color: Colors.white60, fontSize: 16),
+                track?.artist ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.nowPlayingArtist.copyWith(
+                  color: Colors.white70,
+                ),
               ),
             ],
           ),

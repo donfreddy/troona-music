@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppTypography {
+  /// Now Playing track title: large and thin, the reference's signature.
+  static const nowPlayingTitle = TextStyle(
+    fontSize: 40,
+    fontWeight: FontWeight.w300,
+    letterSpacing: -1.0,
+    height: 1.1,
+  );
+
+  /// Now Playing artist line, under [nowPlayingTitle].
+  static const nowPlayingArtist = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w400,
+    letterSpacing: -0.2,
+    height: 1.3,
+  );
+
   // Flutter n'a pas SF Pro en natif.
   // Sur iOS : le système utilise SF Pro automatiquement si fontFamily est null.
   // Sur Android : on embarque une Google Font proche (Nunito ou DM Sans).
   //static const _fontFamily = null; // null = SF Pro sur iOS
 
   static TextTheme get textTheme => const TextTheme(
-    // Large Title — titre de page (scroll collapse)
+    // Large Title: page title (scroll collapse). Thin, as in the reference.
     displayLarge: TextStyle(
       fontSize: 34,
-      fontWeight: FontWeight.w700,
-      letterSpacing: 0.37,
+      fontWeight: FontWeight.w300,
+      letterSpacing: -0.5,
       height: 1.21,
     ),
 

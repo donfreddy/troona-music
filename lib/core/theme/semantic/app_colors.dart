@@ -20,8 +20,13 @@ final class AppColors extends ThemeExtension<AppColors> {
   final Color separatorOpaque;
 
   // ── Accent ───────────────────────────────────────────────
-  final Color accent; // rouge Apple Music
+  final Color accent; // lilas
   final Color accentForeground; // texte sur fond accent
+  final Color accentGlow; // lueur sous l'onglet actif
+
+  // ── Progress ─────────────────────────────────────────────
+  final Color progressStart; // début de l'arc (bleu glacé)
+  final Color progressEnd; // tête de l'arc (blanc)
 
   // ── Glass ────────────────────────────────────────────────
   final Color glassFill; // fond du verre
@@ -45,6 +50,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     required this.separatorOpaque,
     required this.accent,
     required this.accentForeground,
+    required this.accentGlow,
+    required this.progressStart,
+    required this.progressEnd,
     required this.glassFill,
     required this.glassBorder,
     required this.glassHighlight,
@@ -66,7 +74,10 @@ final class AppColors extends ThemeExtension<AppColors> {
     separator: ColorPrimitives.separatorLight,
     separatorOpaque: ColorPrimitives.separatorOpaqueLight,
     accent: ColorPrimitives.accent,
-    accentForeground: ColorPrimitives.white,
+    accentForeground: ColorPrimitives.accentForeground,
+    accentGlow: ColorPrimitives.accentGlow,
+    progressStart: ColorPrimitives.progressStart,
+    progressEnd: ColorPrimitives.progressEnd,
     glassFill: ColorPrimitives.glassFillLight,
     glassBorder: ColorPrimitives.glassBorderLight,
     glassHighlight: ColorPrimitives.glassHighlightLight,
@@ -86,7 +97,10 @@ final class AppColors extends ThemeExtension<AppColors> {
     separator: ColorPrimitives.separatorDark,
     separatorOpaque: ColorPrimitives.separatorOpaqueDark,
     accent: ColorPrimitives.accent,
-    accentForeground: ColorPrimitives.white,
+    accentForeground: ColorPrimitives.accentForeground,
+    accentGlow: ColorPrimitives.accentGlow,
+    progressStart: ColorPrimitives.progressStart,
+    progressEnd: ColorPrimitives.progressEnd,
     glassFill: ColorPrimitives.glassFillDark,
     glassBorder: ColorPrimitives.glassBorderDark,
     glassHighlight: ColorPrimitives.glassHighlightDark,
@@ -110,6 +124,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     Color? separatorOpaque,
     Color? accent,
     Color? accentForeground,
+    Color? accentGlow,
+    Color? progressStart,
+    Color? progressEnd,
     Color? glassFill,
     Color? glassBorder,
     Color? glassHighlight,
@@ -128,6 +145,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     separatorOpaque: separatorOpaque ?? this.separatorOpaque,
     accent: accent ?? this.accent,
     accentForeground: accentForeground ?? this.accentForeground,
+    accentGlow: accentGlow ?? this.accentGlow,
+    progressStart: progressStart ?? this.progressStart,
+    progressEnd: progressEnd ?? this.progressEnd,
     glassFill: glassFill ?? this.glassFill,
     glassBorder: glassBorder ?? this.glassBorder,
     glassHighlight: glassHighlight ?? this.glassHighlight,
@@ -155,6 +175,9 @@ final class AppColors extends ThemeExtension<AppColors> {
         other.accentForeground,
         t,
       )!,
+      accentGlow: Color.lerp(accentGlow, other.accentGlow, t)!,
+      progressStart: Color.lerp(progressStart, other.progressStart, t)!,
+      progressEnd: Color.lerp(progressEnd, other.progressEnd, t)!,
       glassFill: Color.lerp(glassFill, other.glassFill, t)!,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,

@@ -1,14 +1,16 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:palette_generator_master/palette_generator_master.dart';
+import 'package:troona/core/theme/primitives/color_primitives.dart';
 
 enum DynamicBackgroundTone { ambient, immersive }
 
-/// Extracts the dominant color from the current artwork
-/// and animates a vibrant gradient derived from the cover.
+/// Extracts the dominant color from the current artwork and paints a static
+/// glow derived from the cover, cross-fading only when the artwork changes.
+///
+/// The glow is deliberately static: a continuously animated background forces
+/// every [BackdropFilter] above it to re-blur on each frame.
 class DynamicBackground extends StatefulWidget {
   final String? artworkPath;
   final Widget child;
@@ -26,28 +28,26 @@ class DynamicBackground extends StatefulWidget {
 }
 
 class _DynamicBackgroundState extends State<DynamicBackground>
-    with TickerProviderStateMixin {
-  static const _defaultColorA = Color(0xFF7B4D91);
-  static const _defaultColorB = Color(0xFF4A244F);
+    with SingleTickerProviderStateMixin {
+  static const _defaultColorA = ColorPrimitives.ambientTop;
+  static const _defaultColorB = ColorPrimitives.ambientEdge;
   static const _maxPaletteCacheEntries = 48;
   static final Map<String, _CachedPalette> _paletteCache = {};
 
-  late AnimationController _ctrl;
   late AnimationController _paletteCtrl;
-  Color _fromColorA = const Color(0xFF995b8e);
-  Color _fromColorB = const Color(0xFF653e78);
-  Color _toColorA = const Color(0xFF995b8e);
-  Color _toColorB = const Color(0xFF653e78);
+  Color _fromColorA = _defaultColorA;
+  Color _fromColorB = _defaultColorB;
+  Color _toColorA = _defaultColorA;
+  Color _toColorB = _defaultColorB;
   int _paletteRequestId = 0;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: 10.seconds)
-      ..repeat(reverse: true);
+    // Matches the 300 to 400 ms tint cross-fade of the reference.
     _paletteCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 680),
+      duration: const Duration(milliseconds: 380),
     )..value = 1;
     if (widget.artworkPath == null) {
       _setPaletteImmediately(_defaultColorA, _defaultColorB);
@@ -157,7 +157,6 @@ class _DynamicBackgroundState extends State<DynamicBackground>
 
   @override
   void dispose() {
-    _ctrl.dispose();
     _paletteCtrl.dispose();
     super.dispose();
   }
@@ -165,17 +164,15 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: Listenable.merge([_ctrl, _paletteCtrl]),
+      animation: _paletteCtrl,
       builder: (_, child) {
-        final t = _ctrl.value;
-        final drift = sin(t * pi * 2);
         final immersive = widget.tone == DynamicBackgroundTone.immersive;
         final paletteT = Curves.easeInOutCubic.transform(_paletteCtrl.value);
         final colorA = Color.lerp(_fromColorA, _toColorA, paletteT)!;
         final colorB = Color.lerp(_fromColorB, _toColorB, paletteT)!;
-        final leftCenter = Alignment(-1.1 + (drift * 0.05), -1.02);
-        final rightCenter = Alignment(1.08 - (drift * 0.04), -0.98);
-        final bridgeCenter = Alignment(0, -1.14 + (drift * 0.03));
+        const leftCenter = Alignment(-1.1, -1.02);
+        const rightCenter = Alignment(1.08, -0.98);
+        const bridgeCenter = Alignment(0, -1.14);
         final leftGlow = Color.lerp(colorA, Colors.white, 0.08)!;
         final rightGlow = Color.lerp(colorB, Colors.white, 0.12)!;
         final bridgeGlow = Color.lerp(colorA, colorB, 0.5)!;
