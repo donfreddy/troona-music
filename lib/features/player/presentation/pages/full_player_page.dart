@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
@@ -44,6 +45,9 @@ class FullPlayerPage extends StatefulWidget {
 
 /// Minimum downward velocity (px/s) that triggers an instant dismiss.
 const double _kDismissVelocity = 400;
+
+/// Minimum upward velocity (px/s) that opens the queue.
+const double _kQueueVelocity = 600;
 
 /// Minimum drag distance (fraction of screen height) that triggers dismiss.
 const double _kDismissThreshold = 0.25;
@@ -246,6 +250,12 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   void _onDragEnd(DragEndDetails d) {
     final velocity = d.velocity.pixelsPerSecond.dy;
     final screenH = MediaQuery.of(context).size.height;
+
+    // A flick up opens the queue, the mirror of drag-to-dismiss.
+    if (velocity < -_kQueueVelocity && _dragOffset == 0) {
+      showQueueSheet(context);
+      return;
+    }
 
     if (velocity > _kDismissVelocity ||
         _dragOffset > screenH * _kDismissThreshold) {
@@ -459,20 +469,10 @@ class _TopBar extends StatelessWidget {
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.sm,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _dismissFullPlayer(context),
-            child: const Icon(
-              EvaIcons.chevronDown,
-              color: Colors.white,
-              size: 22,
-            ),
-          ),
-
-          // Drag indicator pill
+          // Drag indicator pill, centred whatever the buttons on each side.
           Container(
             width: 40,
             height: 4,
@@ -481,15 +481,39 @@ class _TopBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-
-          CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () => _showOptionsSheet(context),
-            child: const Icon(
-              EvaIcons.moreVertical,
-              color: Colors.white,
-              size: 22,
-            ),
+          Row(
+            children: [
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _dismissFullPlayer(context),
+                child: const Icon(
+                  EvaIcons.chevronDown,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              const Spacer(),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size.square(40),
+                onPressed: () => showQueueSheet(context),
+                child: const Icon(
+                  LucideIcons.listMusic,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                minimumSize: const Size.square(40),
+                onPressed: () => _showOptionsSheet(context),
+                child: const Icon(
+                  EvaIcons.moreVertical,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -674,74 +698,6 @@ class _VolumeSlider extends StatelessWidget {
         ),
         const Icon(CupertinoIcons.volume_up, color: Colors.white38, size: 16),
       ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ignore: unused_element
-class _BottomActions extends StatelessWidget {
-  const _BottomActions();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _ActionButton(
-          icon: CupertinoIcons.list_bullet,
-          label: 'File',
-          onTap: () => _showQueue(context),
-        ),
-        _ActionButton(
-          icon: CupertinoIcons.play,
-          label: 'AirPlay',
-          onTap: () {},
-        ),
-      ],
-    );
-  }
-
-  void _showQueue(BuildContext context) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider.value(
-        value: context.read<PlayerBloc>(),
-        child: const QueueSheet(),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white60, size: 22),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white60, fontSize: 11),
-          ),
-        ],
-      ),
     );
   }
 }
