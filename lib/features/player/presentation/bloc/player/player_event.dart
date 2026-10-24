@@ -87,21 +87,42 @@ final class TrackAddedToQueue extends QueueEditEvent {
 
   /// Playback index to insert at (e.g. undoing a removal); null appends.
   final int? index;
-  const TrackAddedToQueue(this.track, {this.index});
+
+  /// The removal this insert undoes: skipped if that removal did not
+  /// happen (rejected by the player, or skipped as stale), which would
+  /// otherwise queue the track twice.
+  final TrackRemovedFromQueue? undoing;
+
+  const TrackAddedToQueue(this.track, {this.index, this.undoing});
 }
 
+/// Edits address tracks by index, computed on the queue the UI shows. When
+/// an earlier edit is rejected, later indexes point at other tracks: with
+/// [trackId] set, an edit whose track is no longer at its index is skipped.
 final class TrackRemovedFromQueue extends QueueEditEvent {
   final int index;
-  const TrackRemovedFromQueue({required this.index});
+
+  /// Id of the track expected at [index].
+  final String? trackId;
+
+  const TrackRemovedFromQueue({required this.index, this.trackId});
 }
 
 final class QueueItemMoved extends QueueEditEvent {
   final int oldIndex;
   final int newIndex;
-  const QueueItemMoved({required this.oldIndex, required this.newIndex});
+
+  /// Id of the track expected at [oldIndex].
+  final String? trackId;
+
+  const QueueItemMoved({
+    required this.oldIndex,
+    required this.newIndex,
+    this.trackId,
+  });
 }
 
-// ── Streams entrants (internes — jamais émis par l'UI) ────────────────────────
+// ── Streams entrants (internal, never sent by the UI) ────────────────────────
 
 final class _DurationUpdated extends PlayerEvent {
   final Duration duration;

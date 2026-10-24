@@ -145,6 +145,12 @@ final class FakeAudioPort implements AudioServicePort {
   /// When set, every edit is rolled back like a rejected player call.
   bool failEdits = false;
 
+  /// Rejects only the next [failNextEdits] edits.
+  int failNextEdits = 0;
+
+  /// Holds the next edit on the player until completed.
+  Completer<void>? editGate;
+
   /// Mirrors the real adapter: the queue is updated and emitted first, then
   /// restored and emitted again if the player call fails.
   Future<Either<Failure, Unit>> _edit(
@@ -154,9 +160,14 @@ final class FakeAudioPort implements AudioServicePort {
     queueEdits.add('start $name');
     final before = queue;
     if (before != null) _emitQueue(apply(before));
+    final gate = editGate;
+    editGate = null;
+    if (gate != null) await gate.future;
     await Future<void>.delayed(Duration.zero);
     queueEdits.add('end $name');
-    if (failEdits && before != null) {
+    final fail = failEdits || failNextEdits > 0;
+    if (failNextEdits > 0) failNextEdits--;
+    if (fail && before != null) {
       _emitQueue(before);
       return const Left(PlaybackFailure('rejected'));
     }

@@ -82,8 +82,9 @@ class _QueueSheetState extends State<QueueSheet> {
   void _move(int from, int to) {
     final queue = _shown;
     if (queue == null || from == to) return;
+    final trackId = queue.playbackTracks[from].id;
     setState(() => _shown = queue.moveItem(from, to));
-    _bloc.add(QueueItemMoved(oldIndex: from, newIndex: to));
+    _bloc.add(QueueItemMoved(oldIndex: from, newIndex: to, trackId: trackId));
   }
 
   /// [track] is the row's track when it was built: if the queue moved on
@@ -108,11 +109,17 @@ class _QueueSheetState extends State<QueueSheet> {
     _removalTimer = Timer(_undoWindow, () {
       if (mounted) setState(() => _removal = null);
     });
+    final edit = TrackRemovedFromQueue(index: index, trackId: track.id);
     setState(() {
       _shown = queue.removeAt(index);
-      _removal = _Removal(track, index, lengthAfter: tracks.length - 1);
+      _removal = _Removal(
+        track,
+        index,
+        lengthAfter: tracks.length - 1,
+        edit: edit,
+      );
     });
-    _bloc.add(TrackRemovedFromQueue(index: index));
+    _bloc.add(edit);
   }
 
   void _bumpSalt(String id) => _keySalt[id] = (_keySalt[id] ?? 0) + 1;
@@ -123,9 +130,8 @@ class _QueueSheetState extends State<QueueSheet> {
     if (removal == null || queue == null) return;
     _removalTimer?.cancel();
     // A longer queue means the player rejected the removal and restored
-    // the track: inserting it again would queue it twice. Known gap: an
-    // undo tapped while the removal is still pending on the player, which
-    // is then rejected, still duplicates the track (a window of a few ms).
+    // the track: nothing to undo. A removal still pending on the player is
+    // covered by the bloc, which skips the undo if the removal fails.
     if (queue.playbackTracks.length > removal.lengthAfter) {
       setState(() => _removal = null);
       return;
@@ -137,7 +143,9 @@ class _QueueSheetState extends State<QueueSheet> {
       _shown = queue.insertAt(at, removal.track);
       _removal = null;
     });
-    _bloc.add(TrackAddedToQueue(removal.track, index: at));
+    _bloc.add(
+      TrackAddedToQueue(removal.track, index: at, undoing: removal.edit),
+    );
   }
 
   void _jumpTo(int index) => _bloc.add(QueueIndexRequested(index));
@@ -317,7 +325,14 @@ final class _Removal {
   /// Queue length right after the removal.
   final int lengthAfter;
 
-  const _Removal(this.track, this.index, {required this.lengthAfter});
+  final TrackRemovedFromQueue edit;
+
+  const _Removal(
+    this.track,
+    this.index, {
+    required this.lengthAfter,
+    required this.edit,
+  });
 }
 
 // ── Pieces ────────────────────────────────────────────────────────────────────

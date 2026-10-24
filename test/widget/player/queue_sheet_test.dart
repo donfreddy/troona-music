@@ -174,6 +174,45 @@ void main() {
     expect(port.queueEdits.where((e) => e.startsWith('start add')), isEmpty);
   });
 
+  testWidgets('a swipe chained on a rejected one removes nothing else', (
+    tester,
+  ) async {
+    await pumpSheet(tester);
+    port.failNextEdits = 1;
+    final firstEdit = port.editGate = Completer<void>();
+
+    await tester.drag(find.text('Title d'), const Offset(-500, 0));
+    await dismissFrames(tester);
+    // "e" shows at index 3 while the removal of "d" is still pending.
+    await tester.drag(find.text('Title e'), const Offset(-500, 0));
+    await dismissFrames(tester);
+    firstEdit.complete();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(playerOrder(), ['a', 'b', 'c', 'd', 'e', 'f']);
+    expect(shownOrder(tester, ['d', 'e', 'f']), ['d', 'e', 'f']);
+    expect(find.text('UP NEXT • 3'), findsOneWidget);
+  });
+
+  testWidgets('undo while a rejected removal is pending adds nothing', (
+    tester,
+  ) async {
+    await pumpSheet(tester);
+    port.failNextEdits = 1;
+    final removal = port.editGate = Completer<void>();
+
+    await tester.drag(find.text('Title e'), const Offset(-500, 0));
+    await dismissFrames(tester);
+    await tester.tap(find.text('Undo'));
+    await tester.pump();
+    removal.complete();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(playerOrder(), ['a', 'b', 'c', 'd', 'e', 'f']);
+    expect(find.text('Title e'), findsOneWidget);
+    expect(port.queueEdits.where((e) => e.startsWith('start add')), isEmpty);
+  });
+
   testWidgets('a dismiss landing on a track change removes nothing', (
     tester,
   ) async {

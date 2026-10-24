@@ -456,21 +456,46 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
+  /// Removals that did not happen, so their undo inserts nothing.
+  /// Identity: two removals of the same slot are different edits.
+  final _failedRemovals = Set<TrackRemovedFromQueue>.identity();
+
+  /// Whether the port's queue (the one edits apply to, and up to date:
+  /// edits run one at a time) still has [trackId] at [index].
+  bool _isAt(int index, String? trackId) {
+    if (trackId == null) return true;
+    final tracks = _audioServicePort.currentQueue?.playbackTracks;
+    return tracks != null &&
+        index >= 0 &&
+        index < tracks.length &&
+        tracks[index].id == trackId;
+  }
+
   Future<void> _onQueueEdit(
     QueueEditEvent event,
     Emitter<PlayerState> emit,
   ) async {
-    await switch (event) {
-      TrackAddedToQueue(:final track, :final index) => _addToQueue(
-        AddToQueueParams(track: track, index: index),
-      ),
-      TrackRemovedFromQueue(:final index) => _removeFromQueue(
-        RemoveFromQueueParams(index: index),
-      ),
-      QueueItemMoved(:final oldIndex, :final newIndex) => _moveQueueItem(
-        MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
-      ),
-    };
+    switch (event) {
+      case TrackAddedToQueue(:final undoing?)
+          when _failedRemovals.remove(undoing):
+        return;
+      case TrackAddedToQueue(:final track, :final index):
+        await _addToQueue(AddToQueueParams(track: track, index: index));
+      case TrackRemovedFromQueue(:final index, :final trackId):
+        if (!_isAt(index, trackId)) {
+          _failedRemovals.add(event);
+          return;
+        }
+        final result = await _removeFromQueue(
+          RemoveFromQueueParams(index: index),
+        );
+        if (result.isLeft()) _failedRemovals.add(event);
+      case QueueItemMoved(:final oldIndex, :final newIndex, :final trackId):
+        if (!_isAt(oldIndex, trackId)) return;
+        await _moveQueueItem(
+          MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
+        );
+    }
   }
 
   // ════════════════════════════════════════════════════════════════════════════

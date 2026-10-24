@@ -113,6 +113,78 @@ void main() {
     });
   });
 
+  group('PlayerBloc queue edits with a rejected one', () {
+    final tracks = [
+      for (final id in 'vwxyz'.split('')) testTrack(id, durationMs: 180000),
+    ];
+    List<String> ids() => [for (final t in port.queue!.playbackTracks) t.id];
+
+    setUp(() async {
+      await activate();
+      port.queue = Queue.fromTracks(tracks);
+    });
+
+    test('a removal whose track moved after a rejection is skipped', () async {
+      port.failNextEdits = 1;
+      // Two swipes in a row on the sheet: y at 3, then z, shown at 3.
+      bloc
+        ..add(const TrackRemovedFromQueue(index: 3, trackId: 'y'))
+        ..add(const TrackRemovedFromQueue(index: 3, trackId: 'z'));
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'w', 'x', 'y', 'z']);
+      expect(port.queueEdits, ['start remove 3', 'end remove 3']);
+    });
+
+    test('a move whose track moved after a rejection is skipped', () async {
+      port.failNextEdits = 1;
+      bloc
+        ..add(const TrackRemovedFromQueue(index: 1, trackId: 'w'))
+        ..add(const QueueItemMoved(oldIndex: 1, newIndex: 3, trackId: 'x'));
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'w', 'x', 'y', 'z']);
+    });
+
+    test('the undo of a rejected removal adds nothing', () async {
+      port.failNextEdits = 1;
+      // Undo tapped while the removal is still on its way to the player.
+      const removal = TrackRemovedFromQueue(index: 2, trackId: 'x');
+      bloc
+        ..add(removal)
+        ..add(TrackAddedToQueue(tracks[2], index: 2, undoing: removal));
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'w', 'x', 'y', 'z']);
+    });
+
+    test('the undo of an applied removal puts the track back', () async {
+      const removal = TrackRemovedFromQueue(index: 2, trackId: 'x');
+      bloc
+        ..add(removal)
+        ..add(TrackAddedToQueue(tracks[2], index: 2, undoing: removal));
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'w', 'x', 'y', 'z']);
+      expect(port.queueEdits, [
+        'start remove 2',
+        'end remove 2',
+        'start add x@2',
+        'end add x@2',
+      ]);
+    });
+
+    test('edits on tracks still in place apply after a rejection', () async {
+      port.failNextEdits = 1;
+      bloc
+        ..add(const TrackRemovedFromQueue(index: 3, trackId: 'y'))
+        ..add(const TrackRemovedFromQueue(index: 1, trackId: 'w'));
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'x', 'y', 'z']);
+    });
+  });
+
   group('PlayerBloc track changes', () {
     test('follow the playing entry when a track is queued twice', () async {
       // [a, b, a]: the second "a" starts after "b".
