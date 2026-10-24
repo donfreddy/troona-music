@@ -11,7 +11,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
 
 /// Gap left free around the time label at the bottom of the ring, per side.
-const double _kLabelGap = 12 * math.pi / 180;
+const double _kLabelGap = GlassLens.labelGap;
 
 /// The arc starts just left of the label (6 o'clock) and runs clockwise, up
 /// the left side, as in the reference.

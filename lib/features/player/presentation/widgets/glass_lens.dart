@@ -31,6 +31,10 @@ class GlassLens extends StatelessWidget {
   /// progress arc is drawn on it.
   static const double hairlineFraction = 0.795;
 
+  /// Angle left open on each side of 6 o'clock on the hairline, where the
+  /// time label sits. The progress arc uses the same gap.
+  static const double labelGap = 12 * math.pi / 180;
+
   @override
   Widget build(BuildContext context) {
     final holeFraction = holeDiameter / diameter;
@@ -126,10 +130,15 @@ class _LensRimPainter extends CustomPainter {
         ).createShader(outer),
     );
 
-    // Inner hairline, as in the reference.
-    canvas.drawCircle(
-      center,
-      radius * GlassLens.hairlineFraction,
+    // Inner hairline, as in the reference, open behind the time label.
+    canvas.drawArc(
+      Rect.fromCircle(
+        center: center,
+        radius: radius * GlassLens.hairlineFraction,
+      ),
+      math.pi / 2 + GlassLens.labelGap,
+      2 * math.pi - 2 * GlassLens.labelGap,
+      false,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
