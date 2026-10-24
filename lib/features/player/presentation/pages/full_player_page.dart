@@ -47,18 +47,62 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   double _dragOffset = 0;
   Track? _lastResolvedTrack;
 
+  /// Last queue shown by the carousel, kept while the next track loads so
+  /// the stage is not unmounted (and its scroll state lost) on every swipe.
+  List<Track> _stageQueue = const [];
+  int _stageIndex = 0;
+
+  /// Index the user swiped to, used to disambiguate duplicate tracks while
+  /// the requested track loads.
+  int? _requestedStageIndex;
+
   // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
-    final state = context.read<PlayerBloc>().state;
-    if (state is! PlayerActive) return;
-    if (index == state.queue.currentIndex) return;
+    if (index == _stageIndex || index >= _stageQueue.length) return;
+    _requestedStageIndex = index;
     context.read<PlayerBloc>().add(
       PlayTrackRequested(
-        state.queue.playbackTracks[index],
-        contextQueue: state.queue.playbackTracks,
+        _stageQueue[index],
+        contextQueue: _stageQueue,
         contextIndex: index,
       ),
     );
+  }
+
+  /// Queue and index for the carousel; null when nothing was ever loaded.
+  (List<Track>, int)? _resolveStage(PlayerState state) {
+    switch (state) {
+      case PlayerActive(:final queue):
+        _requestedStageIndex = null;
+        _stageQueue = queue.playbackTracks;
+        _stageIndex = queue.currentIndex;
+      case PlayerLoading(:final track):
+        // Keep the swiped index when it already holds this track: a queue
+        // may contain the same track twice.
+        final requested = _requestedStageIndex;
+        if (requested != null &&
+            requested < _stageQueue.length &&
+            _stageQueue[requested].id == track.id) {
+          _stageIndex = requested;
+        } else {
+          final index = _stageQueue.indexWhere((t) => t.id == track.id);
+          if (index < 0) {
+            _stageQueue = [track];
+            _stageIndex = 0;
+          } else {
+            _stageIndex = index;
+          }
+        }
+      case PlayerIdle():
+        // Dismissed: never replay or animate across a stale queue.
+        _stageQueue = const [];
+        _stageIndex = 0;
+        _requestedStageIndex = null;
+      case PlayerError():
+        break;
+    }
+    if (_stageQueue.isEmpty) return null;
+    return (_stageQueue, _stageIndex.clamp(0, _stageQueue.length - 1));
   }
 
   @override
@@ -190,6 +234,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                       _structuralKey(prev) != _structuralKey(curr),
                   builder: (context, state) {
                     final track = _resolveTrack(state);
+                    final stage = _resolveStage(state);
 
                     return Stack(
                       children: [
@@ -221,10 +266,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                               const SizedBox(height: AppSpacing.lg),
 
                               // Artwork carousel
-                              if (state is PlayerActive)
+                              if (stage case (final queue, final index))
                                 ArtworkCarousel(
-                                  queue: state.queue.playbackTracks,
-                                  currentIndex: state.queue.currentIndex,
+                                  queue: queue,
+                                  currentIndex: index,
                                   onPageChanged: _onCarouselPageChanged,
                                 )
                               else if (track != null)
@@ -378,34 +423,89 @@ void _leaveFullPlayerTo(BuildContext context, String location) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _TrackInfo extends StatelessWidget {
+const Duration _kTitleSwapDuration = Duration(milliseconds: 280);
+
+class _TrackInfo extends StatefulWidget {
   final Track? track;
   const _TrackInfo({required this.track});
 
   @override
+  State<_TrackInfo> createState() => _TrackInfoState();
+}
+
+class _TrackInfoState extends State<_TrackInfo> {
+  /// Bumped on every track change. Keying the switcher by track id would
+  /// collide on a fast A, B, A skip while A is still leaving.
+  int _swap = 0;
+
+  @override
+  void didUpdateWidget(_TrackInfo old) {
+    super.didUpdateWidget(old);
+    if (old.track?.id != widget.track?.id) _swap++;
+  }
+
+  /// Static on purpose: a new closure on every build would make
+  /// [AnimatedSwitcher] rebuild all running transitions. Direction comes from
+  /// the animation itself: a reversing child is the one leaving.
+  static Widget _titleTransition(Widget child, Animation<double> animation) {
+    return AnimatedBuilder(
+      animation: animation,
+      child: child,
+      builder: (_, child) {
+        final leaving = animation.status == AnimationStatus.reverse;
+        final t = leaving
+            ? Curves.easeInCubic.transform(animation.value)
+            : const Interval(
+                0.35,
+                1,
+                curve: Curves.easeOutCubic,
+              ).transform(animation.value);
+        return FractionalTranslation(
+          translation: Offset(0, (1 - t) * (leaving ? -0.6 : 0.6)),
+          child: Opacity(opacity: t, child: child),
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final track = widget.track;
     return Row(
       children: [
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Marquee(
-                text: track?.title ?? '',
-                style: AppTypography.nowPlayingTitle.copyWith(
-                  color: Colors.white,
-                ),
+          // Track change: the old title leaves upwards, the new one rises
+          // from below slightly later, both clipped to this box.
+          child: ClipRect(
+            child: AnimatedSwitcher(
+              duration: _kTitleSwapDuration,
+              transitionBuilder: _titleTransition,
+              layoutBuilder: (current, previous) => Stack(
+                alignment: Alignment.centerLeft,
+                children: [...previous, ?current],
               ),
-              const SizedBox(height: 4),
-              Text(
-                track?.artist ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.nowPlayingArtist.copyWith(
-                  color: Colors.white70,
-                ),
+              child: Column(
+                key: ValueKey(_swap),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Marquee(
+                    text: track?.title ?? '',
+                    style: AppTypography.nowPlayingTitle.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    track?.artist ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.nowPlayingArtist.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
         BlocBuilder<LikesCubit, LikesState>(
