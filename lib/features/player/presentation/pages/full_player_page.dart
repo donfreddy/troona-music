@@ -127,6 +127,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         _stageQueue = const [];
         _stageIndex = 0;
         _requestedStageIndex = null;
+        // The carousel goes away without reporting the end of a drag.
+        _swipeFocus.value = null;
       case PlayerError():
         break;
     }

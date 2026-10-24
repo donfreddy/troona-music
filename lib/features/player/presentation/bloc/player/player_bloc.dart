@@ -456,17 +456,20 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
-  /// Removals that did not happen, so their undo inserts nothing.
-  /// Identity: two removals of the same slot are different edits.
-  final _failedRemovals = Set<TrackRemovedFromQueue>.identity();
+  /// The last removal, when it did not happen: its undo inserts nothing.
+  /// Only the last removal can be undone, so one is enough. Compared by
+  /// identity: two removals of the same slot are different edits.
+  TrackRemovedFromQueue? _failedRemoval;
 
   /// Whether the port's queue (the one edits apply to, and up to date:
-  /// edits run one at a time) still has [trackId] at [index].
+  /// edits run one at a time) still has [trackId] at [index], in up next.
+  /// The player may have reached the track while the edit was queued.
   bool _isAt(int index, String? trackId) {
     if (trackId == null) return true;
-    final tracks = _audioServicePort.currentQueue?.playbackTracks;
-    return tracks != null &&
-        index >= 0 &&
+    final queue = _audioServicePort.currentQueue;
+    if (queue == null) return false;
+    final tracks = queue.playbackTracks;
+    return index > queue.currentIndex &&
         index < tracks.length &&
         tracks[index].id == trackId;
   }
@@ -477,19 +480,18 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     switch (event) {
       case TrackAddedToQueue(:final undoing?)
-          when _failedRemovals.remove(undoing):
+          when identical(undoing, _failedRemoval):
+        _failedRemoval = null;
         return;
       case TrackAddedToQueue(:final track, :final index):
         await _addToQueue(AddToQueueParams(track: track, index: index));
       case TrackRemovedFromQueue(:final index, :final trackId):
-        if (!_isAt(index, trackId)) {
-          _failedRemovals.add(event);
-          return;
-        }
+        _failedRemoval = event;
+        if (!_isAt(index, trackId)) return;
         final result = await _removeFromQueue(
           RemoveFromQueueParams(index: index),
         );
-        if (result.isLeft()) _failedRemovals.add(event);
+        if (result.isRight()) _failedRemoval = null;
       case QueueItemMoved(:final oldIndex, :final newIndex, :final trackId):
         if (!_isAt(oldIndex, trackId)) return;
         await _moveQueueItem(

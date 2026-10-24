@@ -174,6 +174,20 @@ void main() {
       ]);
     });
 
+    test('a removal reached by the player meanwhile is skipped', () async {
+      final previous = port.editGate = Completer<void>();
+      bloc
+        ..add(const TrackRemovedFromQueue(index: 4, trackId: 'z'))
+        ..add(const TrackRemovedFromQueue(index: 1, trackId: 'w'));
+      await pumpEventQueue();
+      // Auto advance onto "w" while the first edit is still pending.
+      port.queue = port.queue!.copyWith(currentIndex: 1);
+      previous.complete();
+      await pumpEventQueue();
+
+      expect(ids(), ['v', 'w', 'x', 'y']);
+    });
+
     test('edits on tracks still in place apply after a rejection', () async {
       port.failNextEdits = 1;
       bloc
