@@ -268,7 +268,8 @@ class Queue {
   // ---------------------------------------------------------------------------
 
   /// Two queues are equal when they have the same [currentIndex],
-  /// [shuffleEnabled], [repeatMode], and **identical** [playbackTracks] lists.
+  /// [shuffleEnabled], [repeatMode], and **identical** [originalTracks] and
+  /// [playbackTracks] lists.
   ///
   /// [listEquals] performs element-wise comparison, ensuring the UI correctly
   /// detects when different tracks occupy the same position.
@@ -279,6 +280,7 @@ class Queue {
           currentIndex == other.currentIndex &&
           shuffleEnabled == other.shuffleEnabled &&
           repeatMode == other.repeatMode &&
+          listEquals(originalTracks, other.originalTracks) &&
           listEquals(playbackTracks, other.playbackTracks);
 
   @override
@@ -286,6 +288,7 @@ class Queue {
     currentIndex,
     shuffleEnabled,
     repeatMode,
+    Object.hashAll(originalTracks),
     Object.hashAll(playbackTracks),
   );
 }

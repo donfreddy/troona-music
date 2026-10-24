@@ -18,17 +18,22 @@ final class PlayerIdle extends PlayerState {
 }
 
 /// Chargement en cours — on connaît déjà le track cible.
-final class PlayerLoading extends PlayerState {
+final class PlayerLoading extends PlayerState with EquatableMixin {
   final Track track;
   const PlayerLoading(this.track);
+
+  @override
+  List<Object?> get props => [track];
 }
 
 /// État principal : une piste est chargée, active ou en pause.
-final class PlayerActive extends PlayerState {
+///
+/// Position and buffering are not part of this state: they live in
+/// [PlayerBloc.progress] so playback ticks never trigger a rebuild.
+/// Value equality lets the bloc drop redundant emissions.
+final class PlayerActive extends PlayerState with EquatableMixin {
   final Track currentTrack;
   final PlaybackStatus status;
-  final Duration position;
-  final Duration buffered;
   final Duration duration;
   final Queue queue;
   final bool shuffleEnabled;
@@ -39,8 +44,6 @@ final class PlayerActive extends PlayerState {
   const PlayerActive({
     required this.currentTrack,
     required this.status, // PlaybackStatus from domain — single source of truth
-    required this.position,
-    required this.buffered,
     required this.duration,
     required this.queue,
     required this.shuffleEnabled,
@@ -55,21 +58,12 @@ final class PlayerActive extends PlayerState {
   bool get isBuffering => status == PlaybackStatus.buffering;
   bool get isPaused => status == PlaybackStatus.paused;
 
-  double get progressRatio {
-    if (duration.inMilliseconds == 0) return 0.0;
-    // Arrondi à 0.5% pour limiter les rebuilds du Slider
-    final raw = position.inMilliseconds / duration.inMilliseconds;
-    return ((raw * 200).round() / 200.0).clamp(0.0, 1.0);
-  }
-
   bool get hasNext => queue.hasNext;
   bool get hasPrevious => queue.hasPrevious;
 
   PlayerActive copyWith({
     Track? currentTrack,
     PlaybackStatus? status,
-    Duration? position,
-    Duration? buffered,
     Duration? duration,
     Queue? queue,
     bool? shuffleEnabled,
@@ -79,8 +73,6 @@ final class PlayerActive extends PlayerState {
   }) => PlayerActive(
     currentTrack: currentTrack ?? this.currentTrack,
     status: status ?? this.status,
-    position: position ?? this.position,
-    buffered: buffered ?? this.buffered,
     duration: duration ?? this.duration,
     queue: queue ?? this.queue,
     shuffleEnabled: shuffleEnabled ?? this.shuffleEnabled,
@@ -88,6 +80,18 @@ final class PlayerActive extends PlayerState {
     volume: volume ?? this.volume,
     speed: speed ?? this.speed,
   );
+
+  @override
+  List<Object?> get props => [
+    currentTrack,
+    status,
+    duration,
+    queue,
+    shuffleEnabled,
+    repeatMode,
+    volume,
+    speed,
+  ];
 }
 
 /// Erreur récupérable — l'utilisateur peut retenter.

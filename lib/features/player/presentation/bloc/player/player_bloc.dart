@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -18,6 +20,8 @@ import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
 part 'player_event.dart';
 
 part 'player_state.dart';
+
+part 'playback_progress.dart';
 
 @injectable
 final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
@@ -52,6 +56,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   PlaybackSessionSnapshot? _restoringSnapshot;
   Timer? _recoveryTimer;
   bool _isManualSeeking = false;
+
+  final ValueNotifier<PlaybackProgress> _progress = ValueNotifier(
+    PlaybackProgress.zero,
+  );
+
+  /// Playback clock (position, buffered, duration), updated at stream rate
+  /// without emitting states. Listen to it from painters or
+  /// [ValueListenableBuilder]s, never from a [BlocBuilder].
+  ValueListenable<PlaybackProgress> get progress => _progress;
 
   PlayerBloc({
     required PlayTrackUseCase playTrack,
@@ -91,11 +104,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        super(const PlayerIdle()) {
     // ── Branchement des streams entrants ──────────────────────────────────
     _positionSub = audioServicePort.positionStream.listen(
-      (pos) => add(_PositionUpdated(pos)),
+      _onPositionTick,
       onError: (e) => add(_AudioErrorOccurred(e.toString())),
     );
     _bufferedSub = audioServicePort.bufferedPositionStream.listen(
-      (buf) => add(_BufferedUpdated(buf)),
+      (buf) => _progress.value = _progress.value.copyWith(buffered: buf),
     );
     _durationSub = audioServicePort.durationStream.listen(
       (dur) => add(_DurationUpdated(dur)),
@@ -139,8 +152,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<QueueItemMoved>(_onQueueItemMoved);
 
     // Streams internes — toujours concurrent
-    on<_PositionUpdated>(_onPositionUpdated, transformer: concurrent());
-    on<_BufferedUpdated>(_onBufferedUpdated, transformer: concurrent());
     on<_DurationUpdated>(_onDurationUpdated, transformer: concurrent());
     on<_StatusChanged>(_onStatusChanged, transformer: concurrent());
     on<_TrackChanged>(_onTrackChanged, transformer: concurrent());
@@ -216,7 +227,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _isManualSeeking = true;
     try {
       // Mise à jour optimiste
-      emit((state as PlayerActive).copyWith(position: event.position));
+      _setPosition(event.position);
       await _seek(SeekParams(position: event.position));
     } finally {
       // Petit délai pour ignorer les derniers évènements de position obsolètes du stream
@@ -241,10 +252,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     unawaited(AppHaptics.mediumImpact());
     final current = state as PlayerActive;
 
-    if (current.position.inSeconds > 3) {
+    // Past 3 s, or on the first track, "previous" restarts the current one.
+    if (_progress.value.position.inSeconds > 3 || !current.hasPrevious) {
       _isManualSeeking = true;
       try {
-        emit(current.copyWith(position: Duration.zero));
+        _setPosition(Duration.zero);
         await _seek(SeekParams(position: Duration.zero));
       } finally {
         await Future.delayed(150.ms);
@@ -425,19 +437,24 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   // HANDLERS — streams entrants
   // ════════════════════════════════════════════════════════════════════════════
 
-  void _onPositionUpdated(_PositionUpdated event, Emitter<PlayerState> emit) {
-    if (state is PlayerActive && !_isManualSeeking) {
-      final next = (state as PlayerActive).copyWith(position: event.position);
-      emit(next);
-      _persistPositionIfNeeded(next);
-    }
+  /// Position ticks bypass the event queue entirely: no event, no emit.
+  ///
+  /// Ticks are only trusted while active: during loading they may still come
+  /// from the outgoing source, and [_onStatusChanged] seeds the position from
+  /// the engine snapshot when the new track becomes active.
+  void _onPositionTick(Duration position) {
+    if (isClosed || _isManualSeeking) return;
+    final current = state;
+    if (current is! PlayerActive) return;
+    _setPosition(position);
+    // Ticks can overtake a queued _TrackChanged: never persist the new
+    // track's position under the previous track's id.
+    if (_audioServicePort.currentTrack?.id != current.currentTrack.id) return;
+    _persistPositionIfNeeded(current);
   }
 
-  void _onBufferedUpdated(_BufferedUpdated event, Emitter<PlayerState> emit) {
-    if (state is PlayerActive) {
-      emit((state as PlayerActive).copyWith(buffered: event.buffered));
-    }
-  }
+  void _setPosition(Duration position) =>
+      _progress.value = _progress.value.copyWith(position: position);
 
   void _onDurationUpdated(_DurationUpdated event, Emitter<PlayerState> emit) {
     if (state is PlayerActive) {
@@ -464,11 +481,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           final restored = _restoringSnapshot;
           final targetVolume = restored?.volume ?? 1.0;
 
+          _setPosition(_audioServicePort.currentPosition);
           final next = PlayerActive(
             currentTrack: track,
             status: event.status,
-            position: _audioServicePort.currentPosition,
-            buffered: Duration.zero,
             duration: _audioServicePort.currentDuration == Duration.zero
                 ? track.durationMs.ms
                 : _audioServicePort.currentDuration,
@@ -491,10 +507,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         if (_shouldClearSessionAfterStop(next)) {
           // Instead of Idle (clearing player), we stay Active but reset position to 0
           // and ensure the status is "paused" for the UI.
-          final resetState = next.copyWith(
-            status: PlaybackStatus.paused,
-            position: Duration.zero,
-          );
+          final resetState = next.copyWith(status: PlaybackStatus.paused);
+          _setPosition(Duration.zero);
           emit(resetState);
           _persistSession(resetState);
 
@@ -519,11 +533,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         final trackIndex = current.queue.playbackTracks.indexWhere(
           (t) => t.id == event.track!.id,
         );
+        if (trackIndex >= 0 && trackIndex != current.queue.currentIndex) {
+          _setPosition(Duration.zero);
+        }
         final next = current.copyWith(
           currentTrack: event.track,
-          position: trackIndex >= 0 && trackIndex != current.queue.currentIndex
-              ? Duration.zero
-              : current.position,
           duration: Duration(milliseconds: event.track!.durationMs),
           queue: trackIndex >= 0
               ? current.queue.copyWith(currentIndex: trackIndex)
@@ -581,7 +595,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _persistPositionIfNeeded(PlayerActive state) {
-    final second = state.position.inSeconds;
+    final second = _progress.value.position.inSeconds;
     if (_lastPersistedPositionSecond == second) return;
     _lastPersistedPositionSecond = second;
     _persistSession(state);
@@ -602,7 +616,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final maxDuration = state.duration.inMilliseconds == 0
         ? state.currentTrack.durationMs
         : state.duration.inMilliseconds;
-    final positionMs = state.position.inMilliseconds.clamp(0, maxDuration);
+    final positionMs = _progress.value.position.inMilliseconds.clamp(
+      0,
+      maxDuration,
+    );
     unawaited(
       _sessionStore.save(
         PlaybackSessionSnapshot(
@@ -635,6 +652,22 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   // LIFECYCLE
   // ════════════════════════════════════════════════════════════════════════════
 
+  /// Keeps the progress clock aligned with the structural state.
+  @override
+  void onChange(Change<PlayerState> change) {
+    super.onChange(change);
+    _progress.value = switch (change.nextState) {
+      PlayerActive(:final duration) => _progress.value.copyWith(
+        duration: duration,
+      ),
+      PlayerLoading(:final track) => PlaybackProgress.zero.copyWith(
+        duration: Duration(milliseconds: track.durationMs),
+      ),
+      PlayerIdle() => PlaybackProgress.zero,
+      PlayerError() => _progress.value,
+    };
+  }
+
   @override
   Future<void> close() async {
     _recoveryTimer?.cancel();
@@ -647,6 +680,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       _queueSub.cancel(),
       _volumeSub.cancel(),
     ]);
-    return super.close();
+    // Events queued before close can still emit (and hit onChange) while
+    // super.close() drains them, so the notifier must outlive it.
+    await super.close();
+    _progress.dispose();
   }
 }

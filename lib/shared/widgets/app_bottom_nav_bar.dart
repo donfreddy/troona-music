@@ -90,7 +90,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   }
 
   /// Only what the bar renders: position and buffering ticks are ignored.
-  /// The progress fill listens on its own through a [BlocSelector].
+  /// The progress fill listens on its own to [PlayerBloc.progress].
   Object? _navKey(PlayerState s) => switch (s) {
     PlayerActive(:final currentTrack, :final isPlaying, :final hasNext) => (
       PlayerActive,
@@ -113,8 +113,6 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       final next = PlayerActive(
         currentTrack: state.track,
         status: PlaybackStatus.paused,
-        position: Duration.zero,
-        buffered: Duration.zero,
         duration: Duration(milliseconds: state.track.durationMs),
         queue: previous?.queue ?? Queue.single(state.track),
         shuffleEnabled: previous?.shuffleEnabled ?? false,
@@ -405,14 +403,11 @@ class _MiniPlayerProgressFill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<PlayerBloc, PlayerState, double>(
-      selector: (state) => switch (state) {
-        PlayerActive(:final progressRatio) => progressRatio.clamp(0.0, 1.0),
-        _ => 0.0,
-      },
-      builder: (context, progress) {
+    return ValueListenableBuilder<PlaybackProgress>(
+      valueListenable: context.read<PlayerBloc>().progress,
+      builder: (context, progress, _) {
         return TweenAnimationBuilder<double>(
-          tween: Tween<double>(end: progress),
+          tween: Tween<double>(end: progress.ratio),
           duration: const Duration(milliseconds: 220),
           curve: Curves.linear,
           builder: (context, animatedProgress, _) {

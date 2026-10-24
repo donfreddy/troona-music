@@ -87,16 +87,6 @@ final class QueueItemMoved extends PlayerEvent {
 
 // ── Streams entrants (internes — jamais émis par l'UI) ────────────────────────
 
-final class _PositionUpdated extends PlayerEvent {
-  final Duration position;
-  const _PositionUpdated(this.position);
-}
-
-final class _BufferedUpdated extends PlayerEvent {
-  final Duration buffered;
-  const _BufferedUpdated(this.buffered);
-}
-
 final class _DurationUpdated extends PlayerEvent {
   final Duration duration;
   const _DurationUpdated(this.duration);

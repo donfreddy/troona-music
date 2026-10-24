@@ -112,8 +112,9 @@ class _SkipPreviousButton extends StatelessWidget {
     );
   }
 
-  bool _hasPrevious(PlayerState s) =>
-      s is PlayerActive && (s.hasPrevious || s.position.inSeconds > 3);
+  // Always available while a track is loaded: on the first track (or past
+  // 3 s) the bloc restarts the current track instead of skipping.
+  bool _hasPrevious(PlayerState s) => s is PlayerActive;
 }
 
 // ── Skip suivant ──────────────────────────────────────────────────────────────
