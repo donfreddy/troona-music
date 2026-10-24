@@ -223,6 +223,32 @@ void main() {
     );
   });
 
+  testWidgets('a letter spacing override is measured too', (tester) async {
+    // 30 characters, 150 px: fits in 200 px, unless each one gets 3 px more.
+    final text = 'x' * 30;
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(letterSpacingOverride: 3),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 200,
+              child: Marquee(
+                text: text,
+                style: const TextStyle(fontSize: 5),
+                pause: _pause,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(scrolling(), findsOneWidget);
+  });
+
   testWidgets('no room at all: static text, nothing ticks', (tester) async {
     await pump(tester, _long, width: 0);
 

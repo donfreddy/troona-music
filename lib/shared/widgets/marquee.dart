@@ -69,7 +69,12 @@ class _MarqueeState extends State<Marquee> with SingleTickerProviderStateMixin {
   @override
   void didUpdateWidget(Marquee old) {
     super.didUpdateWidget(old);
-    if (old.text != widget.text || old.style != widget.style) _restart();
+    if (old.text != widget.text ||
+        old.style != widget.style ||
+        old.velocity != widget.velocity ||
+        old.pause != widget.pause) {
+      _restart();
+    }
   }
 
   @override
@@ -153,6 +158,17 @@ class _MarqueeState extends State<Marquee> with SingleTickerProviderStateMixin {
     var style = defaults.style.merge(widget.style);
     if (MediaQuery.boldTextOf(context)) {
       style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
+    // Accessibility spacing overrides, which [Text] applies as well.
+    final letterSpacing = MediaQuery.maybeLetterSpacingOverrideOf(context);
+    final wordSpacing = MediaQuery.maybeWordSpacingOverrideOf(context);
+    final height = MediaQuery.maybeLineHeightScaleFactorOverrideOf(context);
+    if (letterSpacing != null || wordSpacing != null || height != null) {
+      style = style.copyWith(
+        letterSpacing: letterSpacing,
+        wordSpacing: wordSpacing,
+        height: height,
+      );
     }
     final direction = Directionality.of(context);
     final settings = _TextSettings(
@@ -305,9 +321,9 @@ class _Ramp extends Curve {
 
   const _Ramp(this._ramp) : assert(_ramp > 0 && _ramp <= 0.5);
 
-  /// About 400 ms of ramp, whatever the run lasts.
+  /// About 400 ms of ramp, whatever the run lasts (half of it at most).
   factory _Ramp.over(double seconds) =>
-      _Ramp((0.4 / math.max(seconds, 0.8)).clamp(0.05, 0.5));
+      _Ramp((0.4 / math.max(seconds, 0.8)).clamp(0.001, 0.5));
 
   @override
   bool operator ==(Object other) => other is _Ramp && other._ramp == _ramp;
