@@ -293,6 +293,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
+    // Bottom inset + nav bar (tabs only) + its 0.5 px glass border.
+    final navBarReserve = safeBottom + 12 + AppSpacing.navBarHeight + 1;
     final screenH = MediaQuery.of(context).size.height;
 
     // Fade the page out slightly as the user drags down.
@@ -388,10 +390,16 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                               else if (track != null)
                                 const SizedBox(height: AppSpacing.xl2),
 
-                              // Playback controls
-                              _fadeChrome(const PlayerControls()),
+                              // Playback controls, centred between the ring
+                              // and the nav bar.
+                              Expanded(
+                                child: Center(
+                                  child: _fadeChrome(const PlayerControls()),
+                                ),
+                              ),
 
-                              const SizedBox(height: AppSpacing.xl2),
+                              // Room for the nav bar overlaid below.
+                              SizedBox(height: navBarReserve),
                             ],
                           ),
                         ),
