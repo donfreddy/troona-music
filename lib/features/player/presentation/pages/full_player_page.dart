@@ -13,6 +13,7 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
@@ -281,6 +282,16 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   queue: queue,
                                   currentIndex: index,
                                   onPageChanged: _onCarouselPageChanged,
+                                  ringBuilder: (ring, hole) => ProgressRing(
+                                    diameter: ring,
+                                    holeDiameter: hole,
+                                    progress: context
+                                        .read<PlayerBloc>()
+                                        .progress,
+                                    onSeek: (position) => context
+                                        .read<PlayerBloc>()
+                                        .add(SeekRequested(position)),
+                                  ),
                                 )
                               else if (track != null)
                                 const SizedBox(height: AppSpacing.xl2),

@@ -27,6 +27,10 @@ class GlassLens extends StatelessWidget {
   /// Frosted enough to blur neighbour covers, light enough to stay cheap.
   static const double _maxBlurSigma = 12;
 
+  /// Radius of the thin inner line, as a fraction of the outer radius. The
+  /// progress arc is drawn on it.
+  static const double hairlineFraction = 0.795;
+
   @override
   Widget build(BuildContext context) {
     final holeFraction = holeDiameter / diameter;
@@ -86,9 +90,6 @@ class _LensRimPainter extends CustomPainter {
 
   const _LensRimPainter(this.holeFraction);
 
-  /// Radius of the thin inner line, as a fraction of the outer radius.
-  static const double _hairlineFraction = 0.795;
-
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
@@ -128,7 +129,7 @@ class _LensRimPainter extends CustomPainter {
     // Inner hairline, as in the reference.
     canvas.drawCircle(
       center,
-      radius * _hairlineFraction,
+      radius * GlassLens.hairlineFraction,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1

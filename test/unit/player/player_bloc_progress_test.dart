@@ -144,6 +144,21 @@ void main() {
       },
     );
 
+    test('a second seek while the first settles is still applied', () async {
+      await activate();
+
+      bloc.add(const SeekRequested(Duration(seconds: 30)));
+      await pumpEventQueue();
+      bloc.add(const SeekRequested(Duration(seconds: 60)));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+
+      expect(port.seeks, [
+        const Duration(seconds: 30),
+        const Duration(seconds: 60),
+      ]);
+      expect(bloc.progress.value.position, const Duration(seconds: 60));
+    });
+
     test('ticks are accepted again once the seek window closes', () async {
       await activate();
       bloc.add(const SeekRequested(Duration(seconds: 90)));

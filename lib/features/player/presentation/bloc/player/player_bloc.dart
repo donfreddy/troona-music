@@ -139,7 +139,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<PlayTrackRequested>(_onPlayTrackRequested, transformer: droppable());
     on<PauseRequested>(_onPauseRequested, transformer: droppable());
     on<ResumeRequested>(_onResumeRequested, transformer: droppable());
-    on<SeekRequested>(_onSeekRequested, transformer: droppable());
+    // Sequential, not droppable: a second scrub released while the first
+    // seek settles must still be applied.
+    on<SeekRequested>(_onSeekRequested, transformer: sequential());
     on<SkipNextRequested>(_onSkipNextRequested, transformer: droppable());
     on<SkipPreviousRequested>(
       _onSkipPreviousRequested,

@@ -6,7 +6,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
 
@@ -26,11 +25,17 @@ class ArtworkCarousel extends StatefulWidget {
   /// mid-gesture, never for programmatic scrolls or interrupted animations.
   final ValueChanged<int> onPageChanged;
 
+  /// Optional layer laid over the lens and the gesture layer, sized to the
+  /// ring (the progress ring). It must restrict its own hit testing so
+  /// swipes outside it still reach the carousel.
+  final Widget Function(double ringDiameter, double holeDiameter)? ringBuilder;
+
   const ArtworkCarousel({
     super.key,
     required this.queue,
     required this.currentIndex,
     required this.onPageChanged,
+    this.ringBuilder,
   });
 
   @override
@@ -210,26 +215,6 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
               IgnorePointer(
                 child: GlassLens(diameter: ringSize, holeDiameter: artSize),
               ),
-              if (widget.queue.isNotEmpty)
-                Positioned(
-                  bottom: ringSize * 0.05,
-                  child: IgnorePointer(
-                    child: Text(
-                      Duration(
-                        milliseconds: widget
-                            .queue[widget.currentIndex.clamp(
-                              0,
-                              widget.queue.length - 1,
-                            )]
-                            .durationMs,
-                      ).toMMSS(),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: .7),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ),
               NotificationListener<ScrollNotification>(
                 onNotification: _onScroll,
                 child: PageView.builder(
@@ -238,6 +223,8 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                   itemBuilder: (_, _) => const SizedBox.expand(),
                 ),
               ),
+              if (widget.ringBuilder case final builder?)
+                builder(ringSize, artSize),
             ],
           ),
         );
