@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class PlaylistMosaic extends StatelessWidget {
   final List<String> trackIds;
@@ -35,7 +34,7 @@ class PlaylistMosaic extends StatelessWidget {
                         color: Colors.white.withValues(alpha: .06),
                       );
                     }
-                    return Image.file(File(snap.data!), fit: BoxFit.cover);
+                    return ArtworkImage(snap.data!);
                   },
                 );
               }),

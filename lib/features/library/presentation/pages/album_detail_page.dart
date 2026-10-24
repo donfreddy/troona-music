@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -20,6 +19,7 @@ import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 Widget _animatedAlbumItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
   return EntranceFader.staggered(key: key, index: index, stepMs: stepMs, slideY: slideY, child: child);
@@ -142,7 +142,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                 child: SizedBox.square(
                                   dimension: 180,
                                   child: album.artworkPath != null
-                                      ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
+                                      ? ArtworkImage(album.artworkPath!)
                                       : Container(
                                           color: Colors.white.withValues(alpha: .08),
                                           child: const Icon(LucideIcons.disc, color: Colors.white30, size: 64),

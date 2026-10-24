@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +12,7 @@ import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 Widget _animatedHomeItem(
   Widget child,
@@ -374,11 +373,10 @@ class _RecentlyPlayerCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: track.artworkPath != null
-                        ? Image.file(
-                            File(track.artworkPath!),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
+                        ? ArtworkImage(
+                            track.artworkPath!,
+                            width: 35,
+                            height: 35,
                           )
                         : Container(
                             color: Colors.white.withValues(alpha: .08),

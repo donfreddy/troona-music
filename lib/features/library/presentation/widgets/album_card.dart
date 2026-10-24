@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -7,6 +5,7 @@ import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class AlbumCard extends StatelessWidget {
   final Album album;
@@ -30,7 +29,7 @@ class AlbumCard extends StatelessWidget {
               child: SizedBox.square(
                 dimension: size,
                 child: album.artworkPath != null
-                    ? Image.file(File(album.artworkPath!), fit: BoxFit.cover)
+                    ? ArtworkImage(album.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
                         child: Icon(

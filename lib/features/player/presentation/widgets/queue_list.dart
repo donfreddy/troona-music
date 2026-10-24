@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class QueueList extends StatelessWidget {
   const QueueList({super.key});
@@ -113,10 +114,7 @@ class _QueueTile extends StatelessWidget {
               child: track.artworkPath != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(6),
-                      child: Image.file(
-                        Uri.parse(track.artworkPath!).toFilePath() as dynamic,
-                        fit: BoxFit.cover,
-                      ),
+                      child: ArtworkImage(track.artworkPath!),
                     )
                   : Icon(
                       CupertinoIcons.music_note,

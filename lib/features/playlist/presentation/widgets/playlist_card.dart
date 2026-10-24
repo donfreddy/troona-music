@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/router/app_router.dart';
@@ -7,6 +5,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class PlaylistCard extends StatelessWidget {
   final Playlist playlist;
@@ -31,7 +30,7 @@ class PlaylistCard extends StatelessWidget {
               child: SizedBox.square(
                 dimension: size,
                 child: playlist.artworkPath != null
-                    ? Image.file(File(playlist.artworkPath!), fit: BoxFit.cover)
+                    ? ArtworkImage(playlist.artworkPath!)
                     : PlaylistMosaic(trackIds: playlist.trackIds),
               ),
             ),

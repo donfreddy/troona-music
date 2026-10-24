@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +7,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class TrackListTile extends StatefulWidget {
   final Track track;
@@ -55,11 +54,10 @@ class _TrackListTileState extends State<TrackListTile> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: widget.track.artworkPath != null
-                        ? Image.file(
-                            File(widget.track.artworkPath!),
+                        ? ArtworkImage(
+                            widget.track.artworkPath!,
                             width: 50,
                             height: 50,
-                            fit: BoxFit.cover,
                           )
                         : Container(
                             color: Colors.white.withValues(alpha: .08),

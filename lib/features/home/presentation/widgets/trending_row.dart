@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +5,7 @@ import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class TrendingRow extends StatelessWidget {
   final Track track;
@@ -47,11 +46,10 @@ class TrendingRow extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: track.artworkPath != null
-                        ? Image.file(
-                            File(track.artworkPath!),
+                        ? ArtworkImage(
+                            track.artworkPath!,
                             width: 50,
                             height: 50,
-                            fit: BoxFit.cover,
                           )
                         : Container(
                             color: Colors.white.withValues(alpha: .08),

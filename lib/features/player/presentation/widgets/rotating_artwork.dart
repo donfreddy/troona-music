@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 class RotatingArtwork extends StatefulWidget {
   final Track? track;
@@ -78,9 +77,8 @@ class _RotatingArtworkState extends State<RotatingArtwork>
           ),
           child: ClipOval(
             child: widget.track?.artworkPath != null
-                ? Image.file(
-                    File(widget.track!.artworkPath!),
-                    fit: BoxFit.cover,
+                ? ArtworkImage(
+                    widget.track!.artworkPath!,
                     errorBuilder: (_, _, _) => _placeholder,
                   )
                 : _placeholder,
