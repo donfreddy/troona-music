@@ -5,6 +5,10 @@ import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/database/app_database.dart';
+import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
+import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
+import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
+import 'package:troona/features/history/domain/use_cases/record_play_use_case.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
@@ -50,6 +54,7 @@ import 'package:troona/features/settings/domain/repositories/settings_repository
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
+import 'package:troona/services/history/play_history_recorder.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -78,8 +83,15 @@ Future<void> configureDependencies() async {
 
   // One database for every feature: each data source declares its own
   // collections and shares the open handle.
-  final isar = await AppDatabase.open([...IsarLibraryDataSource.schemas]);
-  getIt.registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar));
+  final isar = await AppDatabase.open([
+    ...IsarLibraryDataSource.schemas,
+    ...IsarPlayHistoryDataSource.schemas,
+  ]);
+  getIt
+    ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
+    ..registerSingleton<IsarPlayHistoryDataSource>(
+      IsarPlayHistoryDataSource(isar),
+    );
 
   getIt.registerLazySingleton<LocalAudioDataSource>(
     () => OnAudioQueryDataSource(query: getIt()),
@@ -122,6 +134,18 @@ Future<void> configureDependencies() async {
   final audioSessionService = AudioSessionService(audioPort, initialSettings);
   await audioSessionService.init();
   getIt.registerSingleton<AudioSessionService>(audioSessionService);
+
+  // Started here, not on first use: plays count from the first track,
+  // including one restored from the last session.
+  final historyRepo = PlayHistoryRepositoryImpl(getIt());
+  getIt
+    ..registerSingleton<PlayHistoryRepository>(historyRepo)
+    ..registerSingleton<PlayHistoryRecorder>(
+      PlayHistoryRecorder(
+        port: audioPort,
+        recordPlay: RecordPlayUseCase(historyRepo),
+      )..start(),
+    );
 
   // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
