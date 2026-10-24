@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -23,6 +24,16 @@ final class _FakeAudioPlayer implements AudioPlayer {
   Object? loadError;
   Object? loopModeError;
   bool playCompletes = true;
+
+  /// Holds the next playlist edit until completed (an error rejects it).
+  Completer<void>? editGate;
+
+  @override
+  Future<void> removeAudioSourceAt(int index) async {
+    final held = editGate;
+    editGate = null;
+    if (held != null) await held.future;
+  }
 
   @override
   Stream<int?> get currentIndexStream => index.stream;
@@ -227,6 +238,65 @@ void main() {
 
     expect(adapter.currentQueue?.currentIndex, 0);
     expect(playing, isEmpty);
+  });
+
+  group('a removal rejected by the player', () {
+    late Completer<void> removal;
+    late Future<void> removed;
+
+    /// Removes "c" from [a, b, c, d] playing "b"; the player holds it.
+    Future<void> startRemoval() async {
+      await setUpAdapter(queue: tracks, start: 1);
+      removal = player.editGate = Completer<void>();
+      removed = adapter.removeFromQueue(2);
+      await pumpEventQueue();
+      expect(adapter.currentQueue?.playbackTracks, [a, b, d]);
+    }
+
+    Future<void> reject() async {
+      removal.completeError(Exception('rejected'));
+      await removed;
+      await pumpEventQueue();
+    }
+
+    test('puts the track back', () async {
+      await startRemoval();
+      await reject();
+
+      expect(adapter.currentQueue?.playbackTracks, tracks);
+      expect(adapter.currentQueue?.currentTrack, b);
+    });
+
+    test('keeps a repeat mode set meanwhile', () async {
+      await startRemoval();
+      await adapter.setRepeatMode(RepeatMode.one);
+      await reject();
+
+      expect(adapter.currentQueue?.playbackTracks, tracks);
+      expect(adapter.currentQueue?.repeatMode, RepeatMode.one);
+    });
+
+    test('keeps the track the player moved to meanwhile', () async {
+      await startRemoval();
+      // Auto advance: the player, which still has "c", moves to index 2.
+      player.indexValue = 2;
+      player.index.add(2);
+      await reject();
+
+      expect(adapter.currentQueue?.playbackTracks, tracks);
+      expect(adapter.currentQueue?.currentTrack, c);
+    });
+
+    test('keeps a queue reloaded meanwhile', () async {
+      await startRemoval();
+      // The shuffled sources are built from the queue without "c".
+      await adapter.setShuffleEnabled(true);
+      final shuffled = adapter.currentQueue!;
+      await reject();
+
+      expect(adapter.currentQueue, shuffled);
+      expect(adapter.currentQueue?.playbackTracks, isNot(contains(c)));
+    });
   });
 
   test('auto-advance moves the current track', () async {

@@ -408,20 +408,42 @@ class JustAudioAdapter implements AudioServicePort {
   /// A move or removal can shift the player's current index, and the index
   /// listener maps it onto [_currentQueue]: updated first, that mapping
   /// always sees the new order instead of reporting a phantom track change.
-  /// The previous queue is restored if the player rejects the edit.
+  /// If the player rejects the edit, see [_rollBackEdit].
   Future<Either<Failure, Unit>> _editQueue(
     Queue Function(Queue queue) edit,
     Future<void> Function() apply,
   ) async {
     final previous = _currentQueue;
+    final generation = _loadGeneration;
     if (previous != null) _updateQueue(edit(previous));
     try {
       await apply();
       return right(unit);
     } catch (e, st) {
-      if (previous != null) _updateQueue(previous);
+      if (previous != null) _rollBackEdit(previous, generation);
       return left(ErrorHandler.handle(e, st));
     }
+  }
+
+  /// Puts back the track order of [previous], the one the player still has,
+  /// keeping what changed while the edit was pending: the repeat mode and
+  /// the current index (read from the player, whose sources match
+  /// [previous] again).
+  ///
+  /// A load since [generation] (shuffle toggled, new queue) rebuilt the
+  /// player's sources from the edited queue: the queue already matches
+  /// them and stays as it is.
+  void _rollBackEdit(Queue previous, int generation) {
+    if (generation != _loadGeneration) return;
+    final index = _player.currentIndex;
+    _updateQueue(
+      previous.copyWith(
+        currentIndex: index != null && index < previous.playbackTracks.length
+            ? index
+            : null,
+        repeatMode: _currentQueue?.repeatMode,
+      ),
+    );
   }
 
   /// Toggles shuffle on or off.
