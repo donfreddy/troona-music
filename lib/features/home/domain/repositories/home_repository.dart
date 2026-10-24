@@ -4,5 +4,9 @@ import 'package:troona/features/home/domain/entities/home_feed.dart';
 
 abstract interface class HomeRepository {
   Future<Either<Failure, HomeFeed>> getFeed();
+
+  /// Fires when the feed is out of date (a play was recorded).
+  Stream<void> get feedChanges;
+
   Future<Either<Failure, int>> getTotalTrackCount();
 }

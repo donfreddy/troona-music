@@ -152,7 +152,7 @@ Future<void> configureDependencies() async {
     () => LibraryRepositoryImpl(cache: getIt(), scanner: getIt()),
   );
   getIt.registerLazySingleton<HomeRepository>(
-    () => HomeRepositoryImpl(db: getIt()),
+    () => HomeRepositoryImpl(db: getIt(), history: getIt()),
   );
   getIt.registerLazySingleton<AlbumDetailRepository>(
     () => AlbumDetailRepositoryImpl(cache: getIt()),

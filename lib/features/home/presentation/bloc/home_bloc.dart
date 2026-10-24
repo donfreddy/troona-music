@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
@@ -9,12 +11,24 @@ part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _repo;
+  late final StreamSubscription<void> _feedChangesSub;
 
   HomeBloc({required HomeRepository repo})
     : _repo = repo,
       super(HomeInitial()) {
     on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
     on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
+    // A recorded play reorders Recently Played. The reload keeps the loaded
+    // feed on screen (no shimmer).
+    _feedChangesSub = _repo.feedChanges.listen(
+      (_) => add(const HomeRefreshRequested()),
+    );
+  }
+
+  @override
+  Future<void> close() async {
+    await _feedChangesSub.cancel();
+    return super.close();
   }
 
   Future<void> _onFeedRequested(
