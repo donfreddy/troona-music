@@ -246,6 +246,55 @@ void main() {
       expect(bloc.progress.value.duration, const Duration(seconds: 100));
     });
 
+    test('a stale engine track does not override a requested track', () async {
+      await activate();
+
+      bloc.add(
+        PlayTrackRequested(
+          other,
+          contextQueue: [track, other],
+          contextIndex: 1,
+        ),
+      );
+      await pumpEventQueue();
+      expect((bloc.state as PlayerLoading).track.id, 'b');
+
+      // While swapping sources the engine re-announces the previous index.
+      port.track.add(track);
+      await pumpEventQueue();
+      expect((bloc.state as PlayerLoading).track.id, 'b');
+
+      // The requested track is confirmed, then playback starts.
+      port.queue = port.queue!.copyWith(currentIndex: 1);
+      port.track.add(other);
+      port.status.add(PlaybackStatus.playing);
+      await pumpEventQueue();
+      final active = bloc.state as PlayerActive;
+      expect(active.currentTrack.id, 'b');
+      expect(active.queue.currentIndex, 1);
+    });
+
+    test('engine track changes are followed again once active', () async {
+      await activate();
+      bloc.add(
+        PlayTrackRequested(
+          other,
+          contextQueue: [track, other],
+          contextIndex: 1,
+        ),
+      );
+      await pumpEventQueue();
+      port.queue = port.queue!.copyWith(currentIndex: 1);
+      port.status.add(PlaybackStatus.playing);
+      await pumpEventQueue();
+
+      // Auto-advance or lock screen skip back to the first track.
+      port.queue = port.queue!.copyWith(currentIndex: 0);
+      port.track.add(track);
+      await pumpEventQueue();
+      expect((bloc.state as PlayerActive).currentTrack.id, 'a');
+    });
+
     test(
       'loading a new track resets progress and ignores stale ticks',
       () async {

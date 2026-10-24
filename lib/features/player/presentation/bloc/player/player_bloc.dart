@@ -57,6 +57,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Timer? _recoveryTimer;
   bool _isManualSeeking = false;
 
+  /// Track explicitly asked for (tap, swipe, queue start) while loading.
+  /// The engine re-announces its previous index while swapping sources;
+  /// those stale announcements must not replace the requested track.
+  String? _requestedTrackId;
+
   final ValueNotifier<PlaybackProgress> _progress = ValueNotifier(
     PlaybackProgress.zero,
   );
@@ -170,6 +175,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     unawaited(AppHaptics.lightImpact());
 
+    _requestedTrackId = event.track.id;
     emit(PlayerLoading(event.track));
 
     if (event.contextQueue != null) {
@@ -410,6 +416,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (event.tracks.isEmpty) return;
 
+    _requestedTrackId = event.tracks[event.startIndex].id;
     emit(PlayerLoading(event.tracks[event.startIndex]));
     await _setQueue(
       SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
@@ -477,7 +484,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       case PlayerLoading(:final track):
         if (event.status == PlaybackStatus.playing ||
             event.status == PlaybackStatus.paused) {
-          final queue = _audioServicePort.currentQueue ?? Queue.single(track);
+          var queue = _audioServicePort.currentQueue ?? Queue.single(track);
+          // The engine queue may still carry a transient index: align it
+          // with the track that is actually loaded.
+          final loadedIndex = queue.playbackTracks.indexWhere(
+            (t) => t.id == track.id,
+          );
+          if (loadedIndex >= 0 && loadedIndex != queue.currentIndex) {
+            queue = queue.copyWith(currentIndex: loadedIndex);
+          }
           final restored = _restoringSnapshot;
           final targetVolume = restored?.volume ?? 1.0;
 
@@ -527,6 +542,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (event.track == null) return;
     switch (state) {
       case PlayerLoading():
+        final requested = _requestedTrackId;
+        if (requested != null && event.track!.id != requested) return;
         emit(PlayerLoading(event.track!));
       case PlayerActive():
         final current = state as PlayerActive;
@@ -652,10 +669,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   // LIFECYCLE
   // ════════════════════════════════════════════════════════════════════════════
 
-  /// Keeps the progress clock aligned with the structural state.
+  /// Keeps the progress clock aligned with the structural state, and drops
+  /// the pending track request once loading is over (success or failure).
   @override
   void onChange(Change<PlayerState> change) {
     super.onChange(change);
+    if (change.nextState is! PlayerLoading) _requestedTrackId = null;
     _progress.value = switch (change.nextState) {
       PlayerActive(:final duration) => _progress.value.copyWith(
         duration: duration,
