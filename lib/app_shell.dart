@@ -69,7 +69,14 @@ class _AppShellState extends State<AppShell> {
   void didUpdateWidget(covariant AppShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.location != oldWidget.location) {
-      _currentLocation = widget.location;
+      // The prop is the shell's base location, without pushed pages: once
+      // the router is known, the delegate's top page wins (a branch can be
+      // restored with a detail page on top).
+      final router = _router;
+      final top = router == null ? null : AppShell.locationOf(router);
+      _currentLocation = top == null || top == FullPlayerPage.routeName
+          ? widget.location
+          : top;
     }
   }
 
