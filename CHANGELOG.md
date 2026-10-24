@@ -18,6 +18,7 @@
 - Artwork is decoded at its displayed size (`ArtworkImage`).
 - Navigation uses a `StatefulShellRoute`; icons moved to Lucide.
 - Now Playing: the title and artist follow the cover being swiped to, instead of changing once the player has switched tracks.
+- Now Playing: the title slides up for a next track and down for a previous one, fading out at the top and bottom edges instead of being cut.
 - Theme tokens aligned with the lilac on black reference design.
 
 ### Fixed

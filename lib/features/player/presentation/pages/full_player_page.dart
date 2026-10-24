@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -18,9 +17,9 @@ import 'package:troona/features/player/presentation/widgets/player_controls.dart
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
+import 'package:troona/features/player/presentation/widgets/track_title_switcher.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
-import 'package:troona/shared/widgets/marquee.dart';
 
 class FullPlayerPage extends StatefulWidget {
   const FullPlayerPage({super.key, this.morphFromMini = true});
@@ -382,13 +381,18 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   // crosses covers.
                                   ValueListenableBuilder<int?>(
                                     valueListenable: _swipeFocus,
-                                    builder: (_, focus, _) => _TrackInfo(
-                                      track:
+                                    builder: (_, focus, _) {
+                                      final focused =
                                           focus != null &&
-                                              focus < _stageQueue.length
-                                          ? _stageQueue[focus]
-                                          : track,
-                                    ),
+                                          focus < _stageQueue.length;
+                                      return _TrackInfo(
+                                        track: focused
+                                            ? _stageQueue[focus]
+                                            : track,
+                                        index: focused ? focus : stage?.$2,
+                                        queueLength: _stageQueue.length,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
@@ -590,89 +594,27 @@ void _leaveFullPlayerTo(BuildContext context, String location) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-const Duration _kTitleSwapDuration = Duration(milliseconds: 280);
-
-class _TrackInfo extends StatefulWidget {
+class _TrackInfo extends StatelessWidget {
   final Track? track;
-  const _TrackInfo({required this.track});
+  final int? index;
+  final int queueLength;
 
-  @override
-  State<_TrackInfo> createState() => _TrackInfoState();
-}
-
-class _TrackInfoState extends State<_TrackInfo> {
-  /// Bumped on every track change. Keying the switcher by track id would
-  /// collide on a fast A, B, A skip while A is still leaving.
-  int _swap = 0;
-
-  @override
-  void didUpdateWidget(_TrackInfo old) {
-    super.didUpdateWidget(old);
-    if (old.track?.id != widget.track?.id) _swap++;
-  }
-
-  /// Static on purpose: a new closure on every build would make
-  /// [AnimatedSwitcher] rebuild all running transitions. Direction comes from
-  /// the animation itself: a reversing child is the one leaving.
-  static Widget _titleTransition(Widget child, Animation<double> animation) {
-    return AnimatedBuilder(
-      animation: animation,
-      child: child,
-      builder: (_, child) {
-        final leaving = animation.status == AnimationStatus.reverse;
-        final t = leaving
-            ? Curves.easeInCubic.transform(animation.value)
-            : const Interval(
-                0.35,
-                1,
-                curve: Curves.easeOutCubic,
-              ).transform(animation.value);
-        return FractionalTranslation(
-          translation: Offset(0, (1 - t) * (leaving ? -0.6 : 0.6)),
-          child: Opacity(opacity: t, child: child),
-        );
-      },
-    );
-  }
+  const _TrackInfo({
+    required this.track,
+    required this.index,
+    required this.queueLength,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final track = widget.track;
+    final track = this.track;
     return Row(
       children: [
         Expanded(
-          // Track change: the old title leaves upwards, the new one rises
-          // from below slightly later, both clipped to this box.
-          child: ClipRect(
-            child: AnimatedSwitcher(
-              duration: _kTitleSwapDuration,
-              transitionBuilder: _titleTransition,
-              layoutBuilder: (current, previous) => Stack(
-                alignment: Alignment.centerLeft,
-                children: [...previous, ?current],
-              ),
-              child: Column(
-                key: ValueKey(_swap),
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Marquee(
-                    text: track?.title ?? '',
-                    style: AppTypography.nowPlayingTitle.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    track?.artist ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.nowPlayingArtist.copyWith(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          child: TrackTitleSwitcher(
+            track: track,
+            index: index,
+            queueLength: queueLength,
           ),
         ),
         BlocBuilder<LikesCubit, LikesState>(
