@@ -177,6 +177,29 @@ class Queue {
     playbackTracks: List.unmodifiable([...playbackTracks, track]),
   );
 
+  /// Returns a new queue with [track] inserted at playback [index].
+  ///
+  /// Without shuffle the original order gets the same slot; shuffled, the
+  /// track is appended to the original order. [currentIndex] keeps pointing
+  /// at the same track.
+  Queue insertAt(int index, Track track) {
+    final at = index.clamp(0, playbackTracks.length);
+    final newPlayback = List<Track>.from(playbackTracks)..insert(at, track);
+    final newOriginal = List<Track>.from(originalTracks);
+    if (!shuffleEnabled && at <= newOriginal.length) {
+      newOriginal.insert(at, track);
+    } else {
+      newOriginal.add(track);
+    }
+    return copyWith(
+      originalTracks: List.unmodifiable(newOriginal),
+      playbackTracks: List.unmodifiable(newPlayback),
+      currentIndex: at <= currentIndex && playbackTracks.isNotEmpty
+          ? currentIndex + 1
+          : currentIndex,
+    );
+  }
+
   /// Returns a new queue with the track at [index] removed.
   ///
   /// [currentIndex] is adjusted so it keeps pointing at the same track.

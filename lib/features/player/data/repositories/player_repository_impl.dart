@@ -79,8 +79,8 @@ class PlayerRepositoryImpl implements PlayerRepository {
   }) => _port.setQueue(tracks, startIndex: startIndex);
 
   @override
-  Future<Either<Failure, Unit>> addToQueue(Track track) =>
-      _port.addToQueue(track);
+  Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>
+      _port.addToQueue(track, index: index);
 
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) =>

@@ -76,17 +76,26 @@ final class QueueSetRequested extends PlayerEvent {
   const QueueSetRequested(this.tracks, {this.startIndex = 0});
 }
 
-final class TrackAddedToQueue extends PlayerEvent {
-  final Track track;
-  const TrackAddedToQueue(this.track);
+/// Queue edits. Handled by a single sequential handler: each edit is
+/// defined against the queue left by the previous one, whatever its type.
+sealed class QueueEditEvent extends PlayerEvent {
+  const QueueEditEvent();
 }
 
-final class TrackRemovedFromQueue extends PlayerEvent {
+final class TrackAddedToQueue extends QueueEditEvent {
+  final Track track;
+
+  /// Playback index to insert at (e.g. undoing a removal); null appends.
+  final int? index;
+  const TrackAddedToQueue(this.track, {this.index});
+}
+
+final class TrackRemovedFromQueue extends QueueEditEvent {
   final int index;
   const TrackRemovedFromQueue({required this.index});
 }
 
-final class QueueItemMoved extends PlayerEvent {
+final class QueueItemMoved extends QueueEditEvent {
   final int oldIndex;
   final int newIndex;
   const QueueItemMoved({required this.oldIndex, required this.newIndex});

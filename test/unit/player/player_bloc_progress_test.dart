@@ -97,6 +97,26 @@ void main() {
     });
   });
 
+  group('PlayerBloc queue edits', () {
+    test('apply one after the other, insert index included', () async {
+      await activate();
+      bloc
+        ..add(const QueueItemMoved(oldIndex: 3, newIndex: 2))
+        ..add(const TrackRemovedFromQueue(index: 4))
+        ..add(TrackAddedToQueue(other, index: 4));
+      await pumpEventQueue();
+
+      expect(port.queueEdits, [
+        'start move 3>2',
+        'end move 3>2',
+        'start remove 4',
+        'end remove 4',
+        'start add b@4',
+        'end add b@4',
+      ]);
+    });
+  });
+
   group('PlayerBloc progress clock', () {
     test('position ticks update progress without emitting states', () async {
       await activate();
@@ -550,6 +570,28 @@ final class _FakeAudioPort implements AudioServicePort {
     return _ok;
   }
 
+  /// Queue edits as `start`/`end` pairs, to observe their ordering.
+  final queueEdits = <String>[];
+
+  Future<Either<Failure, Unit>> _edit(String name) async {
+    queueEdits.add('start $name');
+    await Future<void>.delayed(Duration.zero);
+    queueEdits.add('end $name');
+    return const Right(unit);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>
+      _edit('add ${track.id}@$index');
+
+  @override
+  Future<Either<Failure, Unit>> removeFromQueue(int index) =>
+      _edit('remove $index');
+
+  @override
+  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) =>
+      _edit('move $oldIndex>$newIndex');
+
   @override
   dynamic noSuchMethod(Invocation invocation) => _ok;
 }
@@ -575,6 +617,18 @@ final class _PortRepository implements PlayerRepository {
     List<Track> tracks, {
     int startIndex = 0,
   }) => _port.setQueue(tracks, startIndex: startIndex);
+
+  @override
+  Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>
+      _port.addToQueue(track, index: index);
+
+  @override
+  Future<Either<Failure, Unit>> removeFromQueue(int index) =>
+      _port.removeFromQueue(index);
+
+  @override
+  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) =>
+      _port.moveQueueItem(oldIndex, newIndex);
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

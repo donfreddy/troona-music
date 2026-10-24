@@ -83,8 +83,9 @@ abstract interface class AudioServicePort {
     required double speed,
   });
 
-  /// Appends [track] to the end of the queue.
-  Future<Either<Failure, Unit>> addToQueue(Track track);
+  /// Inserts [track] at playback [index], or appends it when [index] is
+  /// null.
+  Future<Either<Failure, Unit>> addToQueue(Track track, {int? index});
 
   /// Removes the track at [index] from the queue.
   Future<Either<Failure, Unit>> removeFromQueue(int index);

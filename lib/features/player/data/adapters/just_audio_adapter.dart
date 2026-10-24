@@ -315,17 +315,18 @@ class JustAudioAdapter implements AudioServicePort {
     }
   }
 
+  // just_audio 0.10.x: edit the playlist without a full reload.
   @override
-  Future<Either<Failure, Unit>> addToQueue(Track track) async {
-    try {
-      // just_audio 0.10.x: mutate the playlist without a full reload.
-      await _player.addAudioSource(_toAudioSource(track));
-      if (_currentQueue != null) _updateQueue(_currentQueue!.addTrack(track));
-      return right(unit);
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
+  Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>
+      index == null
+      ? _editQueue(
+          (queue) => queue.addTrack(track),
+          () => _player.addAudioSource(_toAudioSource(track)),
+        )
+      : _editQueue(
+          (queue) => queue.insertAt(index, track),
+          () => _player.insertAudioSource(index, _toAudioSource(track)),
+        );
 
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) => _editQueue(

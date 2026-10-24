@@ -158,9 +158,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
     on<QueueSetRequested>(_onQueueSetRequested, transformer: droppable());
     on<QueueIndexRequested>(_onQueueIndexRequested, transformer: droppable());
-    on<TrackAddedToQueue>(_onTrackAddedToQueue);
-    on<TrackRemovedFromQueue>(_onTrackRemovedFromQueue);
-    on<QueueItemMoved>(_onQueueItemMoved);
+    // One handler for every edit type: sequential() only orders events
+    // within a single handler.
+    on<QueueEditEvent>(_onQueueEdit, transformer: sequential());
 
     // Streams internes — toujours concurrent
     on<_DurationUpdated>(_onDurationUpdated, transformer: concurrent());
@@ -456,22 +456,22 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     }
   }
 
-  Future<void> _onTrackAddedToQueue(
-    TrackAddedToQueue event,
+  Future<void> _onQueueEdit(
+    QueueEditEvent event,
     Emitter<PlayerState> emit,
-  ) async => _addToQueue(AddToQueueParams(track: event.track));
-
-  Future<void> _onTrackRemovedFromQueue(
-    TrackRemovedFromQueue event,
-    Emitter<PlayerState> emit,
-  ) async => _removeFromQueue(RemoveFromQueueParams(index: event.index));
-
-  Future<void> _onQueueItemMoved(
-    QueueItemMoved event,
-    Emitter<PlayerState> emit,
-  ) async => _moveQueueItem(
-    MoveQueueItemParams(oldIndex: event.oldIndex, newIndex: event.newIndex),
-  );
+  ) async {
+    await switch (event) {
+      TrackAddedToQueue(:final track, :final index) => _addToQueue(
+        AddToQueueParams(track: track, index: index),
+      ),
+      TrackRemovedFromQueue(:final index) => _removeFromQueue(
+        RemoveFromQueueParams(index: index),
+      ),
+      QueueItemMoved(:final oldIndex, :final newIndex) => _moveQueueItem(
+        MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
+      ),
+    };
+  }
 
   // ════════════════════════════════════════════════════════════════════════════
   // HANDLERS — streams entrants

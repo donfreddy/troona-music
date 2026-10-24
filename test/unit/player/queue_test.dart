@@ -42,6 +42,39 @@ void main() {
     });
   });
 
+  group('insertAt', () {
+    final queue = Queue.fromTracks([a, b, c], startIndex: 1);
+
+    test('before the current track shifts the index forward', () {
+      final next = queue.insertAt(0, d);
+      expect(ids(next.playbackTracks), ['d', 'a', 'b', 'c']);
+      expect(next.currentTrack, b);
+    });
+
+    test('after the current track keeps the index', () {
+      final next = queue.insertAt(2, d);
+      expect(ids(next.playbackTracks), ['a', 'b', 'd', 'c']);
+      expect(ids(next.originalTracks), ['a', 'b', 'd', 'c']);
+      expect(next.currentTrack, b);
+    });
+
+    test('undoes a removal exactly', () {
+      final removed = queue.removeAt(2);
+      final restored = removed.insertAt(2, c);
+      expect(ids(restored.playbackTracks), ids(queue.playbackTracks));
+      expect(ids(restored.originalTracks), ids(queue.originalTracks));
+      expect(restored.currentIndex, queue.currentIndex);
+    });
+
+    test('shuffled, appends to the original order', () {
+      final shuffled = queue.toggleShuffle();
+      final next = shuffled.insertAt(1, d);
+      expect(next.playbackTracks[1], d);
+      expect(next.originalTracks.last, d);
+      expect(next.currentTrack, shuffled.currentTrack);
+    });
+  });
+
   group('moveItem', () {
     final queue = Queue.fromTracks([a, b, c, d], startIndex: 1);
 

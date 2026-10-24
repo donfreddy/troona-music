@@ -86,7 +86,10 @@ class SetQueueUseCase {
 
 class AddToQueueParams {
   final Track track;
-  const AddToQueueParams({required this.track});
+
+  /// Playback index to insert at; null appends.
+  final int? index;
+  const AddToQueueParams({required this.track, this.index});
 }
 
 @lazySingleton
@@ -94,7 +97,7 @@ class AddToQueueUseCase {
   final PlayerRepository _repo;
   const AddToQueueUseCase(this._repo);
   Future<Either<Failure, Unit>> call(AddToQueueParams params) =>
-      _repo.addToQueue(params.track);
+      _repo.addToQueue(params.track, index: params.index);
 }
 
 class RemoveFromQueueParams {
