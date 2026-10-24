@@ -75,6 +75,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
+      buildWhen: (prev, curr) => _navKey(prev) != _navKey(curr),
       builder: (context, playerState) {
         final resolvedPlayerState = _resolvePlayerState(playerState);
         return _NavBarBody(
@@ -88,14 +89,18 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
     );
   }
 
-  // (String?, bool) _navKey(PlayerState s) => switch (s) {
-  //   PlayerActive(:final currentTrack, :final isPlaying) => (
-  //     currentTrack.id,
-  //     isPlaying,
-  //   ),
-  //   PlayerLoading(:final track) => (track.id, true),
-  //   _ => (null, false),
-  // };
+  /// Only what the bar renders: position and buffering ticks are ignored.
+  /// The progress fill listens on its own through a [BlocSelector].
+  Object? _navKey(PlayerState s) => switch (s) {
+    PlayerActive(:final currentTrack, :final isPlaying, :final hasNext) => (
+      PlayerActive,
+      currentTrack.id,
+      isPlaying,
+      hasNext,
+    ),
+    PlayerLoading(:final track) => (PlayerLoading, track.id),
+    _ => s.runtimeType,
+  };
 
   PlayerActive? _resolvePlayerState(PlayerState state) {
     if (state is PlayerActive) {
@@ -490,9 +495,10 @@ class _CenterArtworkSlot extends StatelessWidget {
           //     ),
           //   ),
 
-          // Rotating artwork disc — elevated 12 px above the bar surface.
+          // Static disc: spinning a placeholder kept a ticker alive for
+          // nothing. The reference design uses a static orb here.
           Positioned(
-            child: RotatingArtwork(track: null, isPlaying: isPlaying, size: 56),
+            child: RotatingArtwork(track: null, isPlaying: false, size: 56),
           ),
         ],
       ),

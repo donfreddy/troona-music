@@ -105,10 +105,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
     if (velocity > _kDismissVelocity ||
         _dragOffset > screenH * _kDismissThreshold) {
-      // Reset the manual translate so the Hero widget is back at its natural
-      // screen position before the fade-out route transition starts. Without
-      // this reset, the Hero would fly from the dragged (offset) position
-      // instead of from the centre of the artwork carousel.
+      // Reset the manual translate so the page is back at its natural
+      // position before the fade-out route transition starts.
       setState(() => _dragOffset = 0);
       _dismissFullPlayer(context);
     } else {
@@ -122,6 +120,18 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         ..forward();
     }
   }
+
+  /// Everything the page layout depends on, excluding position and buffering.
+  /// [Queue] equality short-circuits on identity, so this stays cheap on ticks.
+  Object? _structuralKey(PlayerState state) => switch (state) {
+    PlayerActive(:final currentTrack, :final queue) => (
+      PlayerActive,
+      currentTrack.id,
+      queue,
+    ),
+    PlayerLoading(:final track) => (PlayerLoading, track.id),
+    _ => state.runtimeType,
+  };
 
   Track? _resolveTrack(PlayerState state) {
     switch (state) {
@@ -173,92 +183,93 @@ class _FullPlayerPageState extends State<FullPlayerPage>
               child: Scaffold(
                 //backgroundColor: Colors.black,
                 body: BlocBuilder<PlayerBloc, PlayerState>(
+                  // Position ticks must not rebuild the page: only the
+                  // track, the queue or the state kind matter here.
+                  buildWhen: (prev, curr) =>
+                      _structuralKey(prev) != _structuralKey(curr),
                   builder: (context, state) {
                     final track = _resolveTrack(state);
 
-                    return Hero(
-                      tag: 'track_${track?.id}',
-                      child: Stack(
-                        children: [
-                          // Dynamic background
-                          DynamicBackground(
-                            artworkPath: track?.artworkPath,
-                            tone: DynamicBackgroundTone.immersive,
-                            child: const SizedBox.expand(),
-                          ),
+                    return Stack(
+                      children: [
+                        // Dynamic background
+                        DynamicBackground(
+                          artworkPath: track?.artworkPath,
+                          tone: DynamicBackgroundTone.immersive,
+                          child: const SizedBox.expand(),
+                        ),
 
-                          // Scrollable content
-                          SafeArea(
-                            bottom: false,
-                            child: Column(
-                              children: [
-                                // Top bar: dismiss + drag indicator + options
-                                _TopBar(),
+                        // Scrollable content
+                        SafeArea(
+                          bottom: false,
+                          child: Column(
+                            children: [
+                              // Top bar: dismiss + drag indicator + options
+                              _TopBar(),
 
-                                const SizedBox(height: AppSpacing.lg),
+                              const SizedBox(height: AppSpacing.lg),
 
-                                // Track info + like
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.xl2,
-                                  ),
-                                  child: _TrackInfo(track: track),
+                              // Track info + like
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xl2,
                                 ),
+                                child: _TrackInfo(track: track),
+                              ),
 
-                                const SizedBox(height: AppSpacing.lg),
+                              const SizedBox(height: AppSpacing.lg),
 
-                                // Artwork carousel
-                                if (state is PlayerActive)
-                                  ArtworkCarousel(
-                                    queue: state.queue.playbackTracks,
-                                    currentIndex: state.queue.currentIndex,
-                                    onPageChanged: _onCarouselPageChanged,
-                                  )
-                                else if (track != null)
-                                  const SizedBox(height: AppSpacing.xl2),
-
-                                // Playback controls
-                                const PlayerControls(),
-
+                              // Artwork carousel
+                              if (state is PlayerActive)
+                                ArtworkCarousel(
+                                  queue: state.queue.playbackTracks,
+                                  currentIndex: state.queue.currentIndex,
+                                  onPageChanged: _onCarouselPageChanged,
+                                )
+                              else if (track != null)
                                 const SizedBox(height: AppSpacing.xl2),
-                              ],
-                            ),
-                          ),
 
-                          // Nav bar at bottom — mini player hidden
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                12,
-                                0,
-                                12,
-                                safeBottom + 12,
-                              ),
-                              child: AppBottomNavBar(
-                                currentTab: AppTab.player,
-                                showMiniPlayer: false,
-                                onTabChanged: (tab) {
-                                  switch (tab) {
-                                    case AppTab.home:
-                                      _leaveFullPlayerTo(context, '/home');
-                                    case AppTab.library:
-                                      _leaveFullPlayerTo(context, '/library');
-                                    case AppTab.search:
-                                      _leaveFullPlayerTo(context, '/search');
-                                    case AppTab.playlists:
-                                      _leaveFullPlayerTo(context, '/playlists');
-                                    case AppTab.player:
-                                      break;
-                                  }
-                                },
-                              ),
+                              // Playback controls
+                              const PlayerControls(),
+
+                              const SizedBox(height: AppSpacing.xl2),
+                            ],
+                          ),
+                        ),
+
+                        // Nav bar at bottom, mini player hidden
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              12,
+                              0,
+                              12,
+                              safeBottom + 12,
+                            ),
+                            child: AppBottomNavBar(
+                              currentTab: AppTab.player,
+                              showMiniPlayer: false,
+                              onTabChanged: (tab) {
+                                switch (tab) {
+                                  case AppTab.home:
+                                    _leaveFullPlayerTo(context, '/home');
+                                  case AppTab.library:
+                                    _leaveFullPlayerTo(context, '/library');
+                                  case AppTab.search:
+                                    _leaveFullPlayerTo(context, '/search');
+                                  case AppTab.playlists:
+                                    _leaveFullPlayerTo(context, '/playlists');
+                                  case AppTab.player:
+                                    break;
+                                }
+                              },
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -402,7 +413,7 @@ class _TrackInfo extends StatelessWidget {
               padding: EdgeInsets.zero,
               onPressed: () => context.read<LikesCubit>().toggle(track),
               icon: Icon(
-                isLiked ? EvaIcons.heartOutline : EvaIcons.heart,
+                isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
                 color: isLiked ? Colors.redAccent : Colors.white70,
                 size: 26,
               ),
