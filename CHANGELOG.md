@@ -17,12 +17,14 @@
 - The Isar database is opened once in `lib/core/database/` (`AppDatabase`), with each feature declaring its own collections.
 - Artwork is decoded at its displayed size (`ArtworkImage`).
 - Navigation uses a `StatefulShellRoute`; icons moved to Lucide.
+- Now Playing: the title and artist follow the cover being swiped to, instead of changing once the player has switched tracks.
 - Theme tokens aligned with the lilac on black reference design.
 
 ### Fixed
 
 - Shuffle no longer reshuffles the queue on each carousel swipe: the player jumps within the queue.
 - Queue edits stay consistent with the original order and apply one after the other.
+- Queue sheet: after a removal rejected by the player, the next swipes no longer remove a neighbouring track, and an Undo tapped while the removal was pending no longer queues the track twice.
 - A new queue is published before the player loads it, so the lock screen and the player no longer show the previous track after starting another album or toggling shuffle.
 - With a track queued twice, the player follows the entry actually playing instead of the first copy.
 - The tabs come back after leaving a detail page with the system back (Android button, iOS swipe).
