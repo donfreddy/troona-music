@@ -65,6 +65,9 @@ class _AppShellState extends State<AppShell> {
   void _onRouteChanged() {
     if (!mounted) return;
     final newLocation = _router!.routeInformationProvider.value.uri.path;
+    // The full player covers the shell: keep the bar as it was, so the mini
+    // player does not jump down (tabs hidden) under the finger as it morphs.
+    if (newLocation == FullPlayerPage.routeName) return;
     if (newLocation != _currentLocation) {
       setState(() => _currentLocation = newLocation);
     }
@@ -120,7 +123,11 @@ class _AppShellState extends State<AppShell> {
             _didRestoreFullPlayerRoute = true;
             if (GoRouterState.of(context).matchedLocation !=
                 FullPlayerPage.routeName) {
-              context.push(FullPlayerPage.routeName);
+              // The mini player is still expanding from zero height here.
+              context.push(
+                FullPlayerPage.routeName,
+                extra: FullPlayerPage.noMorph,
+              );
             }
           },
         ),

@@ -175,11 +175,16 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       pageBuilder: (context, state) => CustomTransitionPage(
         fullscreenDialog: true,
+        // Room for the ring to mini player morph (reference: about 500 ms).
+        transitionDuration: const Duration(milliseconds: 500),
+        reverseTransitionDuration: const Duration(milliseconds: 450),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
             FadeTransition(opacity: animation, child: child),
         child: BlocProvider<PlayerBloc>.value(
           value: getIt<PlayerBloc>(),
-          child: const FullPlayerPage(),
+          child: FullPlayerPage(
+            morphFromMini: state.extra != FullPlayerPage.noMorph,
+          ),
         ),
       ),
     ),

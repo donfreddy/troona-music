@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 
 /// Now Playing stage: circular covers sliding under a fixed [GlassLens].
 ///
@@ -30,12 +31,24 @@ class ArtworkCarousel extends StatefulWidget {
   /// swipes outside it still reach the carousel.
   final Widget Function(double ringDiameter, double holeDiameter)? ringBuilder;
 
+  /// Tags the ring area and the current cover as [NowPlayingHero] elements,
+  /// so they morph to and from the mini player. Only one stage per route may
+  /// enable it.
+  final bool enableHeroes;
+
+  /// Opacity of the glass lens. With [enableHeroes] the lens itself does not
+  /// fly (the surface hero is an invisible box under the covers), so the
+  /// route fades it while the shuttle morphs over it.
+  final Animation<double>? lensOpacity;
+
   const ArtworkCarousel({
     super.key,
     required this.queue,
     required this.currentIndex,
     required this.onPageChanged,
     this.ringBuilder,
+    this.enableHeroes = false,
+    this.lensOpacity,
   });
 
   @override
@@ -192,12 +205,25 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
           (artSize * MediaQuery.devicePixelRatioOf(context)).round(),
         );
 
+        final lens = GlassLens(diameter: ringSize, holeDiameter: artSize);
+
         return SizedBox(
           width: width,
           height: ringSize + 8,
           child: Stack(
             alignment: Alignment.center,
             children: [
+              // Heroes fly in tree order, later ones on top: the surface must
+              // come before the covers so the morphing disc never hides the
+              // artwork shuttle.
+              HeroMode(
+                enabled: widget.enableHeroes,
+                child: Hero(
+                  tag: NowPlayingHero.surfaceTag,
+                  flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
+                  child: SizedBox.square(dimension: ringSize),
+                ),
+              ),
               // Scroll frames repaint only the covers, not the whole page.
               RepaintBoundary(
                 child: IgnorePointer(
@@ -212,9 +238,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                   ),
                 ),
               ),
-              IgnorePointer(
-                child: GlassLens(diameter: ringSize, holeDiameter: artSize),
-              ),
+              IgnorePointer(child: _fade(widget.lensOpacity, lens)),
               NotificationListener<ScrollNotification>(
                 onNotification: _onScroll,
                 child: PageView.builder(
@@ -264,12 +288,16 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                 track: queue[index],
                 size: artSize,
                 cacheWidth: cacheWidth,
+                isHero: widget.enableHeroes && index == widget.currentIndex,
               ),
             ),
           ),
       ],
     );
   }
+
+  static Widget _fade(Animation<double>? opacity, Widget child) =>
+      opacity == null ? child : FadeTransition(opacity: opacity, child: child);
 
   Widget _positioned({
     required double delta,
@@ -290,27 +318,42 @@ class _Disc extends StatelessWidget {
   final double size;
   final int cacheWidth;
 
+  /// When set, the unclipped image flies as a hero; the circle clip stays
+  /// outside so the shuttle controls the in-flight shape.
+  /// Every disc keeps its [Hero] so toggling the current one does not
+  /// recreate the image element; [HeroMode] picks the one that flies.
+  final bool isHero;
+
   const _Disc({
     required this.track,
     required this.size,
     required this.cacheWidth,
+    this.isHero = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final path = track.artworkPath;
+    final Widget image = path != null
+        ? Image.file(
+            File(path),
+            fit: BoxFit.cover,
+            cacheWidth: cacheWidth,
+            gaplessPlayback: true,
+            errorBuilder: (_, _, _) => const _ArtworkPlaceholder(),
+          )
+        : const _ArtworkPlaceholder();
     return SizedBox.square(
       dimension: size,
       child: ClipOval(
-        child: path != null
-            ? Image.file(
-                File(path),
-                fit: BoxFit.cover,
-                cacheWidth: cacheWidth,
-                gaplessPlayback: true,
-                errorBuilder: (_, _, _) => const _ArtworkPlaceholder(),
-              )
-            : const _ArtworkPlaceholder(),
+        child: HeroMode(
+          enabled: isHero,
+          child: Hero(
+            tag: NowPlayingHero.artworkTag,
+            flightShuttleBuilder: NowPlayingHero.artworkShuttle,
+            child: image,
+          ),
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
@@ -13,6 +14,7 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
@@ -20,9 +22,17 @@ import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 
 class FullPlayerPage extends StatefulWidget {
-  const FullPlayerPage({super.key});
+  const FullPlayerPage({super.key, this.morphFromMini = true});
 
   static const routeName = '/player';
+
+  /// Route `extra` that opens the page without the mini player morph.
+  static const noMorph = 'full-player-no-morph';
+
+  /// False when the mini player is not laid out yet (session restore at
+  /// launch): the morph would start from a clipped, zero-height rect. The
+  /// dismiss morph is enabled once the page is shown.
+  final bool morphFromMini;
 
   @override
   State<FullPlayerPage> createState() => _FullPlayerPageState();
@@ -141,8 +151,86 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     }
   }
 
+  /// Chrome (top bar, title, controls) fades on the last half of the route
+  /// animation: on dismiss it is gone before the ring finishes its morph
+  /// into the mini player, as in the reference.
+  CurvedAnimation? _chrome;
+
+  /// Lens and progress arc: they sit exactly where the surface shuttle
+  /// lands, so they appear only once it has arrived (and go first on
+  /// dismiss); earlier, they would frame the still-small shuttle.
+  CurvedAnimation? _stage;
+
+  /// Route animation curved like the hero flight, published to the mini
+  /// player row through [NowPlayingHero.coverAnimation].
+  CurvedAnimation? _cover;
+
+  late bool _heroes = widget.morphFromMini;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeAnimation = ModalRoute.of(context)?.animation;
+    if (routeAnimation != null && _chrome?.parent != routeAnimation) {
+      _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
+      _chrome?.dispose();
+      _stage?.dispose();
+      _cover?.dispose();
+      _chrome = CurvedAnimation(
+        parent: routeAnimation,
+        curve: const Interval(0.5, 1, curve: Curves.easeOut),
+      );
+      _stage = CurvedAnimation(
+        parent: routeAnimation,
+        curve: const Interval(0.75, 1, curve: Curves.easeOut),
+      );
+      // Created while the route is still moving forward, so its curve
+      // direction follows the flight's, diverted flights included.
+      _cover = NowPlayingHero.curveLikeFlight(routeAnimation);
+      if (!_heroes) {
+        if (routeAnimation.isCompleted) {
+          _heroes = true;
+        } else {
+          routeAnimation.addStatusListener(_enableHeroesOnceShown);
+        }
+      }
+      _publishCover(_cover, replacing: null);
+    }
+  }
+
+  /// Hands the cover animation to the mini player row. Deferred: the row
+  /// lives in another subtree, which must not be marked dirty mid-build or
+  /// while the tree is locked on dispose.
+  static void _publishCover(
+    Animation<double>? animation, {
+    required Animation<double>? replacing,
+  }) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final cover = NowPlayingHero.coverAnimation;
+      if (replacing == null || cover.value == replacing) {
+        cover.value = animation;
+      }
+    });
+  }
+
+  void _enableHeroesOnceShown(AnimationStatus status) {
+    if (!status.isCompleted) return;
+    _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
+    if (mounted) setState(() => _heroes = true);
+  }
+
+  Widget _fadeChrome(Widget child) => _fade(_chrome, child);
+
+  static Widget _fade(Animation<double>? opacity, Widget child) =>
+      opacity == null ? child : FadeTransition(opacity: opacity, child: child);
+
   @override
   void dispose() {
+    _publishCover(null, replacing: _cover);
+    _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
+    _chrome?.dispose();
+    _stage?.dispose();
+    _cover?.dispose();
     _snapBack.dispose();
     super.dispose();
   }
@@ -161,9 +249,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
     if (velocity > _kDismissVelocity ||
         _dragOffset > screenH * _kDismissThreshold) {
-      // Reset the manual translate so the page is back at its natural
-      // position before the fade-out route transition starts.
-      setState(() => _dragOffset = 0);
+      // Keep the dragged offset: the heroes measure their position with
+      // transforms, so the ring morphs from where the finger left it.
       _dismissFullPlayer(context);
     } else {
       // Snap back to fully-open position.
@@ -262,7 +349,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                           child: Column(
                             children: [
                               // Top bar: dismiss + drag indicator + options
-                              _TopBar(),
+                              _fadeChrome(_TopBar()),
 
                               const SizedBox(height: AppSpacing.lg),
 
@@ -271,7 +358,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.xl2,
                                 ),
-                                child: _TrackInfo(track: track),
+                                child: _fadeChrome(_TrackInfo(track: track)),
                               ),
 
                               const SizedBox(height: AppSpacing.lg),
@@ -282,22 +369,27 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   queue: queue,
                                   currentIndex: index,
                                   onPageChanged: _onCarouselPageChanged,
-                                  ringBuilder: (ring, hole) => ProgressRing(
-                                    diameter: ring,
-                                    holeDiameter: hole,
-                                    progress: context
-                                        .read<PlayerBloc>()
-                                        .progress,
-                                    onSeek: (position) => context
-                                        .read<PlayerBloc>()
-                                        .add(SeekRequested(position)),
+                                  enableHeroes: _heroes,
+                                  lensOpacity: _stage,
+                                  ringBuilder: (ring, hole) => _fade(
+                                    _stage,
+                                    ProgressRing(
+                                      diameter: ring,
+                                      holeDiameter: hole,
+                                      progress: context
+                                          .read<PlayerBloc>()
+                                          .progress,
+                                      onSeek: (position) => context
+                                          .read<PlayerBloc>()
+                                          .add(SeekRequested(position)),
+                                    ),
                                   ),
                                 )
                               else if (track != null)
                                 const SizedBox(height: AppSpacing.xl2),
 
                               // Playback controls
-                              const PlayerControls(),
+                              _fadeChrome(const PlayerControls()),
 
                               const SizedBox(height: AppSpacing.xl2),
                             ],

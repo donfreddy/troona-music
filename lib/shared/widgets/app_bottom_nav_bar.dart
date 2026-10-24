@@ -15,6 +15,7 @@ import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 
@@ -283,115 +284,168 @@ class _MiniPlayerRow extends StatelessWidget {
           }
         },
         behavior: HitTestBehavior.opaque,
-        child: Container(
-          height: AppSpacing.miniPlayerHeight,
-          decoration: showTabs
-              ? BoxDecoration(
-                  borderRadius: radius,
-                  border: Border.all(
-                    width: showTabs ? 0 : 1,
-                    color: glass.border,
+        child: _CoveredFade(
+          child: Container(
+            height: AppSpacing.miniPlayerHeight,
+            // Always a decoration, so toggling the tabs keeps the same element
+            // tree and the heroes below survive (an interrupted flight
+            // asserts if its hero is recreated).
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: showTabs
+                  ? Border.all(width: 0, color: glass.border)
+                  : null,
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Landing spot of the Now Playing ring morph (invisible at
+                  // rest: the bar itself draws the glass).
+                  const Hero(
+                    tag: NowPlayingHero.surfaceTag,
+                    flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
+                    child: SizedBox.expand(),
                   ),
-                )
-              : null,
-          child: ClipRRect(
-            borderRadius: radius,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (showTabs)
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                  if (showTabs)
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                        ),
                       ),
                     ),
-                  ),
-                _MiniPlayerProgressFill(progressTint: glass.border),
-                Row(
-                  children: [
-                    const SizedBox(width: 12),
+                  _MiniPlayerProgressFill(progressTint: glass.border),
+                  Row(
+                    children: [
+                      const SizedBox(width: 12),
 
-                    // ── Artwork thumbnail ────────────────────────
-                    SizedBox.square(
-                      dimension: 42,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: state.currentTrack.artworkPath != null
-                            ? Image.file(
-                                File(state.currentTrack.artworkPath!),
-                                fit: BoxFit.cover,
-                              )
-                            : ColoredBox(
-                                color: colors.glassFill,
-                                child: Icon(
-                                  LucideIcons.music,
-                                  color: colors.labelTertiary,
-                                  size: 18,
+                      // ── Artwork thumbnail ────────────────────────
+                      SizedBox.square(
+                        dimension: 42,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            NowPlayingHero.miniArtworkRadius,
+                          ),
+                          child: state.currentTrack.artworkPath != null
+                              ? Hero(
+                                  tag: NowPlayingHero.artworkTag,
+                                  flightShuttleBuilder:
+                                      NowPlayingHero.artworkShuttle,
+                                  // Full-size decode on purpose: this image
+                                  // is also the morph shuttle's content.
+                                  child: Image.file(
+                                    File(state.currentTrack.artworkPath!),
+                                    fit: BoxFit.cover,
+                                    gaplessPlayback: true,
+                                    errorBuilder: (_, _, _) =>
+                                        ColoredBox(color: colors.glassFill),
+                                  ),
+                                )
+                              : ColoredBox(
+                                  color: colors.glassFill,
+                                  child: Icon(
+                                    LucideIcons.music,
+                                    color: colors.labelTertiary,
+                                    size: 18,
+                                  ),
                                 ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // ── Track title and artist ─────────────────────────────
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Marquee(
+                              text: state.currentTrack.title,
+                              style: TextStyle(
+                                color: colors.labelPrimary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
                               ),
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // ── Track title and artist ─────────────────────────────
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Marquee(
-                            text: state.currentTrack.title,
-                            style: TextStyle(
-                              color: colors.labelPrimary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
                             ),
-                          ),
-                          Text(
-                            state.currentTrack.artist,
-                            style: TextStyle(
-                              color: colors.labelSecondary,
-                              fontSize: 11,
+                            Text(
+                              state.currentTrack.artist,
+                              style: TextStyle(
+                                color: colors.labelSecondary,
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
 
-                    // ── Play / Pause ───────────────────────────────────────
-                    IconButton(
-                      onPressed: () => context.read<PlayerBloc>().add(
-                        state.isPlaying
-                            ? const PauseRequested()
-                            : const ResumeRequested(),
+                      // ── Play / Pause ───────────────────────────────────────
+                      IconButton(
+                        onPressed: () => context.read<PlayerBloc>().add(
+                          state.isPlaying
+                              ? const PauseRequested()
+                              : const ResumeRequested(),
+                        ),
+                        icon: Icon(
+                          state.isPlaying
+                              ? LucideIcons.pause
+                              : LucideIcons.play,
+                        ),
                       ),
-                      icon: Icon(
-                        state.isPlaying ? LucideIcons.pause : LucideIcons.play,
-                      ),
-                    ),
 
-                    // ── Skip next ──────────────────────────────────────────
-                    IconButton(
-                      onPressed: state.hasNext
-                          ? () => context.read<PlayerBloc>().add(
-                              const SkipNextRequested(),
-                            )
-                          : null,
-                      icon: Icon(LucideIcons.skipForward),
-                    ),
-                  ],
-                ),
-              ],
+                      // ── Skip next ──────────────────────────────────────────
+                      IconButton(
+                        onPressed: state.hasNext
+                            ? () => context.read<PlayerBloc>().add(
+                                const SkipNextRequested(),
+                              )
+                            : null,
+                        icon: Icon(LucideIcons.skipForward),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Hides the mini player row while the Now Playing route covers the shell,
+/// so the morph lands in an empty glass slot. See
+/// [NowPlayingHero.miniRowOpacity].
+class _CoveredFade extends StatelessWidget {
+  final Widget child;
+
+  const _CoveredFade({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    // One stable structure: the row holds a hero that may be mid-flight
+    // when the cover animation is published.
+    return ValueListenableBuilder<Animation<double>?>(
+      valueListenable: NowPlayingHero.coverAnimation,
+      child: child,
+      builder: (_, covering, child) {
+        final animation = covering ?? kAlwaysDismissedAnimation;
+        return AnimatedBuilder(
+          animation: animation,
+          child: child,
+          builder: (_, child) => Opacity(
+            opacity: NowPlayingHero.miniRowOpacity(animation),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
