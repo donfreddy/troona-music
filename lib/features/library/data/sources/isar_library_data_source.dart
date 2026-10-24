@@ -98,13 +98,31 @@ class IsarLibraryDataSource {
       .findFirst()
       ?.artworkPath;
 
-  /// Returns up to [limit] playlists ordered by Isar insertion ID.
-  Future<List<PlaylistModel>> getPlaylists({int limit = 50}) async =>
-      _isar.playlistModels.where().findAll(limit: limit);
+  /// Returns up to [limit] playlists ordered by Isar insertion ID,
+  /// with the Likes playlist always ensured and pinned to the top.
+  Future<List<PlaylistModel>> getPlaylists({int limit = 50}) async {
+    await ensureLikes();
+    final playlists =
+        _isar.playlistModels.where().findAll(limit: limit);
+    // Pin Likes playlist to index 0
+    playlists.sort((a, b) {
+      if (a.playlistId == likesPlaylistId) return -1;
+      if (b.playlistId == likesPlaylistId) return 1;
+      return 0;
+    });
+    return playlists;
+  }
 
   /// Returns the playlist with [playlistId], or null if it does not exist.
-  Future<PlaylistModel?> getPlaylistById(String playlistId) async =>
-      _isar.playlistModels.where().playlistIdEqualTo(playlistId).findFirst();
+  Future<PlaylistModel?> getPlaylistById(String playlistId) async {
+    if (playlistId == likesPlaylistId) {
+      return ensureLikes();
+    }
+    return _isar.playlistModels
+        .where()
+        .playlistIdEqualTo(playlistId)
+        .findFirst();
+  }
 
   /// Creates a new playlist.
   Future<PlaylistModel> createPlaylist({
@@ -129,12 +147,29 @@ class IsarLibraryDataSource {
   /// Updates an existing playlist.
   Future<void> updatePlaylist(PlaylistModel playlist) async {
     _isar.write((isar) {
-      isar.playlistModels.put(playlist);
+      final existing = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlist.playlistId)
+          .findFirst();
+      if (existing != null) {
+        if (playlist.playlistId != likesPlaylistId) {
+          existing.name = playlist.name;
+        }
+        existing.artworkPath = playlist.artworkPath;
+        existing.trackIds = playlist.trackIds;
+        isar.playlistModels.put(existing);
+      } else {
+        if (playlist.id == 0) {
+          playlist.id = isar.playlistModels.autoIncrement();
+        }
+        isar.playlistModels.put(playlist);
+      }
     });
   }
 
-  /// Deletes a playlist by its internal playlistId.
+  /// Deletes a playlist by its internal playlistId. Likes playlist cannot be deleted.
   Future<void> deletePlaylist(String playlistId) async {
+    if (playlistId == likesPlaylistId) return;
     _isar.write((isar) {
       final playlist = isar.playlistModels
           .where()
@@ -177,12 +212,20 @@ class IsarLibraryDataSource {
     });
   }
 
-  /// Returns the list of tracks by their stable device IDs.
-  Future<List<TrackModel>> getTracksByIds(List<String> ids) async => _isar
-      .trackModels
-      .where()
-      .anyOf(ids, (q, id) => q.deviceIdEqualTo(id))
-      .findAll();
+  /// Returns the list of tracks by their stable device IDs, preserving the
+  /// exact order of [ids]. Returns an empty list if [ids] is empty.
+  Future<List<TrackModel>> getTracksByIds(List<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final tracks = _isar.trackModels
+        .where()
+        .anyOf(ids, (q, id) => q.deviceIdEqualTo(id))
+        .findAll();
+    final map = {for (final t in tracks) t.deviceId: t};
+    return [
+      for (final id in ids)
+        if (map.containsKey(id)) map[id]!,
+    ];
+  }
 
   /// Returns the list of tracks by artist ID.
   Future<List<TrackModel>> getTracksByArtistId(int artistId) async =>
@@ -199,12 +242,24 @@ class IsarLibraryDataSource {
   // ── Likes playlist (Spotify-style) ─────────────────────────────────────────
 
   static const likesPlaylistId = 'likes';
-  static const likesPlaylistName = 'Likes';
+  static const likesPlaylistName = 'Titres likés';
 
   /// Ensures the Likes playlist exists and returns it.
   Future<PlaylistModel> ensureLikes() async {
-    final existing = await getPlaylistById(likesPlaylistId);
-    if (existing != null) return existing;
+    final existing = _isar.playlistModels
+        .where()
+        .playlistIdEqualTo(likesPlaylistId)
+        .findFirst();
+    if (existing != null) {
+      // Normalize name if it was previously 'Likes'
+      if (existing.name != likesPlaylistName) {
+        _isar.write((isar) {
+          existing.name = likesPlaylistName;
+          isar.playlistModels.put(existing);
+        });
+      }
+      return existing;
+    }
 
     final playlist = PlaylistModel()
       ..playlistId = likesPlaylistId
@@ -259,6 +314,12 @@ class IsarLibraryDataSource {
     final playlist = await getPlaylistById(likesPlaylistId);
     if (playlist == null) return false;
     return playlist.trackIds.contains(trackId);
+  }
+
+  /// Returns the set of all track IDs currently in the Likes playlist.
+  Future<Set<String>> getLikedTrackIds() async {
+    final playlist = await getPlaylistById(likesPlaylistId);
+    return playlist?.trackIds.toSet() ?? const <String>{};
   }
 
   /// Returns up to [limit] most-recently-indexed tracks, sorted by

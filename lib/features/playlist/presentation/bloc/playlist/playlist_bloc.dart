@@ -40,10 +40,16 @@ class PlaylistBloc extends Bloc<PlaylistEvent, PlaylistState> {
       description: event.description,
     );
 
-    result.fold((f) => emit(PlaylistError(f.message)), (_) {
-      emit(const PlaylistActionSuccess('Playlist créée avec succès'));
-      add(PlaylistListRequested()); // Rafraîchir la liste
-    });
+    await result.fold(
+      (f) async => emit(PlaylistError(f.message)),
+      (_) async {
+        final listResult = await _repo.getPlaylists();
+        listResult.fold(
+          (f) => emit(PlaylistError(f.message)),
+          (playlists) => emit(PlaylistLoaded(playlists)),
+        );
+      },
+    );
   }
 
   Future<void> _onDeleteRequested(
@@ -52,9 +58,15 @@ class PlaylistBloc extends Bloc<PlaylistEvent, PlaylistState> {
   ) async {
     final result = await _repo.deletePlaylist(event.id);
 
-    result.fold((f) => emit(PlaylistError(f.message)), (_) {
-      emit(const PlaylistActionSuccess('Playlist supprimée'));
-      add(PlaylistListRequested()); // Rafraîchir la liste
-    });
+    await result.fold(
+      (f) async => emit(PlaylistError(f.message)),
+      (_) async {
+        final listResult = await _repo.getPlaylists();
+        listResult.fold(
+          (f) => emit(PlaylistError(f.message)),
+          (playlists) => emit(PlaylistLoaded(playlists)),
+        );
+      },
+    );
   }
 }

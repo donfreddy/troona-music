@@ -71,12 +71,15 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
 
   @override
   Future<Either<Failure, Unit>> updatePlaylist(Playlist playlist) async {
+    if (playlist.id == IsarLibraryDataSource.likesPlaylistId) {
+      return left(
+        const DatabaseFailure('Impossible de modifier la playlist des favoris'),
+      );
+    }
     try {
       final model = PlaylistModel()
-        // ..id = playlist.id
         ..playlistId = playlist.id
         ..name = playlist.name
-        //..description = playlist.description
         ..artworkPath = playlist.artworkPath
         ..trackIds = playlist.trackIds;
 
@@ -89,6 +92,11 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
 
   @override
   Future<Either<Failure, Unit>> deletePlaylist(String id) async {
+    if (id == IsarLibraryDataSource.likesPlaylistId) {
+      return left(
+        const DatabaseFailure('Impossible de supprimer la playlist des favoris'),
+      );
+    }
     try {
       await _cache.deletePlaylist(id);
       return right(unit);
@@ -100,10 +108,10 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   @override
   Future<Either<Failure, Unit>> addTrackToPlaylist(
     String playlistId,
-    int trackId,
+    String trackId,
   ) async {
     try {
-      await _cache.addTrackToPlaylist(playlistId, trackId.toString());
+      await _cache.addTrackToPlaylist(playlistId, trackId);
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -113,10 +121,10 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   @override
   Future<Either<Failure, Unit>> removeTrackFromPlaylist(
     String playlistId,
-    int trackId,
+    String trackId,
   ) async {
     try {
-      await _cache.removeTrackFromPlaylist(playlistId, trackId.toString());
+      await _cache.removeTrackFromPlaylist(playlistId, trackId);
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));

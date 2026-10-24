@@ -22,11 +22,11 @@ abstract interface class PlaylistRepository {
   // Gestion des morceaux
   Future<Either<Failure, Unit>> addTrackToPlaylist(
     String playlistId,
-    int trackId,
+    String trackId,
   );
   Future<Either<Failure, Unit>> removeTrackFromPlaylist(
     String playlistId,
-    int trackId,
+    String trackId,
   );
   Future<Either<Failure, Unit>> reorderTracks(
     String playlistId,

@@ -24,7 +24,7 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.playlist?.name);
-    _descController = TextEditingController(text: widget.playlist?.name);
+    _descController = TextEditingController();
   }
 
   @override

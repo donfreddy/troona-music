@@ -265,7 +265,12 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerSingleton<LikesCubit>(
-    LikesCubit(addTrack: getIt(), removeTrack: getIt(), isTrackLiked: getIt()),
+    LikesCubit(
+      addTrack: getIt(),
+      removeTrack: getIt(),
+      isTrackLiked: getIt(),
+      getLikesPlaylist: getIt(),
+    ),
   );
 
   getIt.registerFactory<HomeBloc>(() => HomeBloc(repo: getIt()));

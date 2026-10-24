@@ -15,7 +15,7 @@ final class PlaylistDetailRequested extends PlaylistDetailEvent {
 
 final class PlaylistAddTrackRequested extends PlaylistDetailEvent {
   final String playlistId;
-  final int trackId;
+  final String trackId;
   const PlaylistAddTrackRequested(this.playlistId, this.trackId);
   @override
   List<Object?> get props => [playlistId, trackId];
@@ -23,7 +23,7 @@ final class PlaylistAddTrackRequested extends PlaylistDetailEvent {
 
 final class PlaylistRemoveTrackRequested extends PlaylistDetailEvent {
   final String playlistId;
-  final int trackId;
+  final String trackId;
   const PlaylistRemoveTrackRequested(this.playlistId, this.trackId);
   @override
   List<Object?> get props => [playlistId, trackId];
