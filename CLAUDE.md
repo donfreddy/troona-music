@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install dependencies
 flutter pub get
 
-# Run code generation (required after adding/changing injectable annotations or Isar schemas)
+# Run code generation (required after changing Isar collections; the .g.dart files are committed)
 dart run build_runner build --delete-conflicting-outputs
 
 # Run the app
@@ -21,8 +21,10 @@ flutter analyze
 flutter test
 
 # Run a single test file
-flutter test test/unit/domain/use_cases/play_track_use_case_test.dart
+flutter test test/unit/player/queue_test.dart
 ```
+
+Tests live in `test/unit/` (pure logic, blocs, repositories) and `test/widget/`. Shared player test doubles (`FakeAudioPort`, `buildTestPlayerBloc`, `testTrack`) are in `test/helpers/fake_player.dart`. The Isar tests run against the real engine, loading the host library shipped by `isar_plus_flutter_libs`.
 
 ## Architecture
 
@@ -30,40 +32,51 @@ flutter test test/unit/domain/use_cases/play_track_use_case_test.dart
 
 ```
 feature/
-├── domain/       # Entities, Repository interfaces, Use Cases — pure Dart, no Flutter
+├── domain/       # Entities, Repository interfaces, Use Cases: pure Dart, no Flutter
 ├── data/         # Models, DataSources, Repository implementations
 └── presentation/ # Pages, Widgets, Bloc/Cubit
 ```
 
+App-wide services that are not a feature live in `lib/services/` (`audio/`, `scanner/`, `history/`).
+
 ### Key architectural rules
-- The **Domain layer** has zero Flutter or third-party imports. It only speaks to interfaces.
+- The **Domain layer** has zero Flutter or third-party imports (`dartz` excepted). It only speaks to interfaces.
 - The **audio engine** is isolated behind `AudioServicePort` (in `lib/features/player/domain/ports/`). The Domain never imports `just_audio` or `audio_service` directly.
   - `JustAudioAdapter` implements `AudioServicePort` (the real playback engine).
-  - `AudioHandlerImpl` bridges `audio_service` (lock-screen/notifications) to `AudioServicePort` — it delegates everything and has no business logic.
-  - Wired together in `AudioServiceInitializer.init()` which must run before DI registration.
+  - `AudioHandlerImpl` bridges `audio_service` (lock screen, notifications) to `AudioServicePort`. It delegates everything and has no business logic.
+  - Wired together in `AudioServiceInitializer.init()`, called from `configureDependencies()` before the player is registered.
 
 ### Dependency Injection
-Uses **get_it** with **manual** registration in `lib/core/di/injection.dart` (`configureDependencies()`). The `injectable` package is listed as a dependency but annotations are not the source of truth — `injection.dart` is. `PlayerBloc` and `LibraryBloc` are registered as `registerFactory` (new instance per use); everything else is `registerLazySingleton`.
+Uses **get_it** with **manual** registration in `lib/core/di/injection.dart` (`configureDependencies()`). The `injectable` package is listed as a dependency but annotations are not the source of truth: `injection.dart` is.
+- Singletons: `PlayerBloc`, `TrackPaletteCubit`, `LikesCubit`, the audio port, the Isar data sources, `PlayHistoryRecorder` (started eagerly).
+- Factories (new instance per mount): `LibraryBloc`, `HomeBloc`, `SearchBloc`, the detail blocs, `SettingsCubit`.
+- Repositories and use cases are lazy singletons.
 
 ### State Management
-`flutter_bloc` throughout. Blocs are provided at the ShellRoute level via `MultiBlocProvider` in `app_router.dart`, making `PlayerBloc` and `LibraryBloc` available to all shell pages. `FullPlayerPage` is outside the shell and receives `PlayerBloc` via `BlocProvider.value`.
+`flutter_bloc` throughout. `PlayerBloc` and `LibraryBloc` are provided at the shell level via `MultiBlocProvider` in `app_router.dart`, making them available to all shell pages. `FullPlayerPage` is outside the shell and receives `PlayerBloc` via `BlocProvider.value`. Queue edits (`QueueEditEvent`) go through a single sequential handler so they apply in order.
 
 ### Navigation
-`go_router` with a `ShellRoute` wrapping all bottom-nav pages (`/home`, `/queue`, `/search`, `/visualizer`). The full player (`/player`) is a `CupertinoPage` fullscreen dialog outside the shell.
+`go_router` with a `StatefulShellRoute.indexedStack` wrapping the bottom-nav branches (`/home`, `/library`, `/search`, `/playlists`). The full player (`/player`) is a fullscreen `CustomTransitionPage` on the root navigator, outside the shell; it morphs from the mini player through Hero flights (`now_playing_hero.dart`). The queue opens as a modal sheet over it (`queue_sheet.dart`).
 
 ### Storage
-`IsarLibraryDataSource` is currently an **in-memory implementation** (despite the name). The Isar DB persistence layer is not yet wired. Artwork files are cached to `Directory.systemTemp/troona_artwork_cache`.
+One Isar database (`isar_plus`), opened by `AppDatabase.open()` in `lib/core/database/`. Each data source declares its collections (`IsarLibraryDataSource.schemas`, `IsarPlayHistoryDataSource.schemas`) and `injection.dart` passes them in, so core never imports a feature. Adding a collection needs no migration.
+- Library: tracks and playlists (`IsarLibraryDataSource`).
+- Play history: `PlayEventModel`, capped at 500 events (`lib/features/history/`). `PlayHistoryRecorder` records a play after 30 s of listening, or half a track shorter than a minute (`PlayCounter`). Home "Recently Played" reads it.
+- Playback session (queue, position) is saved to `SharedPreferences` by `PlaybackSessionStore`.
+- Artwork files are cached in the app cache directory under `troona_artwork_cache`.
 
 ### Design System (Glassmorphism)
 Three-level token hierarchy in `lib/core/theme/`:
-1. **Primitives** — raw colors, sizes, radii
-2. **Semantic** — `bgPrimary`, `glassFill`, `glassBorder`, `accent`
-3. **Components** — `GlassCard` with low/medium/high blur presets
+1. **Primitives**: raw colors, sizes, radii
+2. **Semantic**: `bgPrimary`, `glassFill`, `glassBorder`, `accent`
+3. **Components**: `GlassCard` with low/medium/high blur presets
 
 `BackdropFilter` performance rules (enforced throughout):
 - Always wrap in a `RepaintBoundary`.
 - Never place inside an `AnimatedBuilder` that rebuilds on audio position.
-- Maximum two `BackdropFilter`s on screen at once.
+- Maximum two `BackdropFilter`s on screen at once (the Now Playing page already uses both, so sheets over it are opaque).
+
+Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`).
 
 ### Library Scanning (4-phase)
 `MediaScannerService` orchestrates: (1) query device via `on_audio_query_pluse`, (2) diff against cache to find added/removed tracks, (3) persist to `IsarLibraryDataSource`, (4) extract artwork via `ArtworkExtractor` (semaphore × 4 for concurrency control).
@@ -71,4 +84,4 @@ Three-level token hierarchy in `lib/core/theme/`:
 ### Misc
 - App is **portrait-only** (locked in `main.dart`).
 - Dark theme only (`ThemeMode.dark`).
-- `flutter_screenutil` is used for responsive sizing — initialize before use in widget trees.
+- `flutter_screenutil` is used for responsive sizing: initialize before use in widget trees.
