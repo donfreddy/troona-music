@@ -361,6 +361,9 @@ class JustAudioAdapter implements AudioServicePort {
   /// Loads in progress; the index listener stands down meanwhile.
   int _loadsInFlight = 0;
 
+  /// The player call of the latest load, to wait for it.
+  Future<void>? _latestLoad;
+
   /// Publishes [queue] *before* [load] replaces the player's sources, so
   /// that nothing reads the new player state against the old queue (the
   /// lock screen, the bloc, the play history). The previous queue is
@@ -379,7 +382,7 @@ class JustAudioAdapter implements AudioServicePort {
     if (previous != null) _updateQueue(queue);
     _loadsInFlight++;
     try {
-      await load();
+      await (_latestLoad = load());
     } catch (_) {
       if (generation == _loadGeneration && previous != null) {
         _updateQueue(previous);
@@ -438,24 +441,29 @@ class JustAudioAdapter implements AudioServicePort {
   /// before the platform call and does not undo it when that call fails,
   /// so its sources match neither queue any more.
   ///
-  /// The current index comes from the player, whose platform side still
-  /// has the order of [previous]; unless a load is in flight, as its index
-  /// then belongs to the playlist being replaced. A load since [generation]
-  /// (shuffle toggled, new queue) rebuilt the sources from the edited
-  /// queue: they already match it, and nothing is rolled back.
+  /// The current index is the platform's, which still has the order of
+  /// [previous]. Not [AudioPlayer.currentIndex]: just_audio clamps it to
+  /// its own shortened playlist (a removal while the last track plays).
+  ///
+  /// A load in flight (the edit then applies to its queue) is waited for:
+  /// interrupting it would fail its caller and skip its playback start.
+  /// A load since [generation] (shuffle toggled, new queue) rebuilt the
+  /// sources from the edited queue: they already match it, and nothing is
+  /// rolled back.
   Future<void> _rollBackEdit(Queue previous, int generation) async {
+    while (_loadsInFlight > 0 && generation == _loadGeneration) {
+      await _latestLoad?.then((_) {}, onError: (_) {});
+    }
     if (generation != _loadGeneration) return;
-    final index = _player.currentIndex;
+    final index = _player.playbackEvent.currentIndex;
     final restored = previous.copyWith(
-      currentIndex:
-          _loadsInFlight == 0 &&
-              index != null &&
-              index < previous.playbackTracks.length
+      currentIndex: index != null && index < previous.playbackTracks.length
           ? index
           : null,
       repeatMode: _currentQueue?.repeatMode,
     );
     final position = _player.position;
+    final reload = _loadGeneration + 1;
     try {
       await _loadQueue(
         restored,
@@ -466,6 +474,10 @@ class JustAudioAdapter implements AudioServicePort {
         ),
       );
     } catch (e, st) {
+      // just_audio took the restored sources before failing to load them:
+      // keep the queue that matches them, not the edited one put back by
+      // [_loadQueue].
+      if (reload == _loadGeneration) _updateQueue(restored);
       ErrorHandler.handle(e, st);
     }
   }

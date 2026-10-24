@@ -42,6 +42,12 @@ final class _FakeAudioPlayer implements AudioPlayer {
   Stream<int?> get currentIndexStream => index.stream;
   @override
   int? get currentIndex => indexValue;
+
+  /// The platform's index when it differs from [currentIndex].
+  int? platformIndex;
+  @override
+  PlaybackEvent get playbackEvent =>
+      PlaybackEvent(currentIndex: platformIndex ?? indexValue);
   @override
   double get volume => 1;
   @override
@@ -279,7 +285,25 @@ void main() {
       ]);
     });
 
-    test('ignores the stale index of a load in flight', () async {
+    test(
+      'keeps the platform index, not the one clamped by the player',
+      () async {
+        await setUpAdapter(queue: [a, b, c], start: 2);
+        removal = player.editGate = Completer<void>();
+        removed = adapter.removeFromQueue(0);
+        await pumpEventQueue();
+        // just_audio clamps its index to its shortened playlist.
+        player
+          ..platformIndex = 2
+          ..indexValue = 1;
+        await reject();
+
+        expect(adapter.currentQueue?.playbackTracks, [a, b, c]);
+        expect(adapter.currentQueue?.currentTrack, c);
+      },
+    );
+
+    test('lets a load in flight finish, then rolls back', () async {
       await setUpAdapter(queue: tracks);
       final load = player.gate = Completer<void>();
       final loading = adapter.setQueue([d, c, b, a], startIndex: 1);
@@ -288,14 +312,26 @@ void main() {
       removed = adapter.removeFromQueue(3);
       await pumpEventQueue();
 
-      // The player still reports index 0 of the replaced playlist.
-      await reject();
-      load.complete();
-      await loading;
+      // Rejected while the player still reports index 0 of the replaced
+      // playlist.
+      removal.completeError(Exception('rejected'));
       await pumpEventQueue();
+      load.complete();
 
+      expect((await loading).isRight(), isTrue, reason: 'not interrupted');
+      await removed;
+      await pumpEventQueue();
       expect(adapter.currentQueue?.playbackTracks, [d, c, b, a]);
       expect(adapter.currentQueue?.currentTrack, c);
+      expect(player.loads.last, ['d', 'c', 'b', 'a']);
+    });
+
+    test('a failed reload keeps the queue the player took', () async {
+      await startRemoval();
+      player.loadError = Exception('reload failed');
+      await reject();
+
+      expect(adapter.currentQueue?.playbackTracks, tracks);
     });
 
     test('keeps a repeat mode set meanwhile', () async {
