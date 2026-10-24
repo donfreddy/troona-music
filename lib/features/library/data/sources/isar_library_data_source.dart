@@ -1,5 +1,4 @@
 import 'package:isar_plus/isar_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
@@ -15,10 +14,8 @@ import 'package:troona/features/library/data/models/track_model.dart';
 ///   interface contract used by higher layers and by the [MediaScannerService]
 ///   which runs on the main isolate.
 ///
-/// **Lifecycle**: call [IsarLibraryDataSource.open] once during app
-/// initialisation and register the returned instance as a singleton in your DI
-/// container. Call [close] when the app terminates (optional on mobile — the
-/// OS reclaims resources on process exit).
+/// **Lifecycle**: built on the shared database opened by `AppDatabase`, and
+/// registered once as a singleton in the DI container.
 ///
 /// **Code generation**: collection extension methods and schema objects are
 /// generated from [TrackModel] and [PlaylistModel]. After any model change run:
@@ -28,30 +25,10 @@ import 'package:troona/features/library/data/models/track_model.dart';
 class IsarLibraryDataSource {
   final Isar _isar;
 
-  IsarLibraryDataSource._(this._isar);
+  IsarLibraryDataSource(this._isar);
 
-  // ---------------------------------------------------------------------------
-  // Lifecycle
-  // ---------------------------------------------------------------------------
-
-  /// Opens (or re-uses) the Isar database in the app's documents directory.
-  ///
-  /// Safe to call multiple times — Isar returns the existing instance when the
-  /// same [name] is already open in the current isolate.
-  static Future<IsarLibraryDataSource> open() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final isar = await Isar.openAsync(
-      schemas: [TrackModelSchema, PlaylistModelSchema],
-      directory: dir.path,
-      name: 'troona',
-    );
-    return IsarLibraryDataSource._(isar);
-  }
-
-  /// Releases the Isar instance.
-  ///
-  /// Returns `true` if this was the last reference and the database was closed.
-  bool close() => _isar.close();
+  /// The collections this data source reads and writes.
+  static final schemas = [TrackModelSchema, PlaylistModelSchema];
 
   // ---------------------------------------------------------------------------
   // Read operations  (synchronous Isar 4 queries, exposed as Future for callers)

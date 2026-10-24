@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/core/database/app_database.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
@@ -75,11 +76,10 @@ Future<void> configureDependencies() async {
 
   // ── Data sources ──────────────────────────────────────────────────────────
 
-  // IsarLibraryDataSource opens the database asynchronously; register the
-  // resolved instance as an eager singleton so every consumer shares the
-  // same open handle.
-  final isarDb = await IsarLibraryDataSource.open();
-  getIt.registerSingleton<IsarLibraryDataSource>(isarDb);
+  // One database for every feature: each data source declares its own
+  // collections and shares the open handle.
+  final isar = await AppDatabase.open([...IsarLibraryDataSource.schemas]);
+  getIt.registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar));
 
   getIt.registerLazySingleton<LocalAudioDataSource>(
     () => OnAudioQueryDataSource(query: getIt()),
