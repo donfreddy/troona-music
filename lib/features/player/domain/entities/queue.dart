@@ -184,8 +184,15 @@ class Queue {
     if (index < 0 || index >= playbackTracks.length) return this;
     final removed = playbackTracks[index];
     final newPlayback = List<Track>.from(playbackTracks)..removeAt(index);
-    final newOriginal = List<Track>.from(originalTracks)
-      ..removeWhere((t) => t.id == removed.id);
+    final newOriginal = List<Track>.from(originalTracks);
+    if (!shuffleEnabled && index < newOriginal.length) {
+      // Same order as playback: drop the very same slot.
+      newOriginal.removeAt(index);
+    } else {
+      // Shuffled: drop a single occurrence, the track may be queued twice.
+      final original = newOriginal.indexWhere((t) => t.id == removed.id);
+      if (original != -1) newOriginal.removeAt(original);
+    }
 
     var newIndex = currentIndex;
     if (index < currentIndex) newIndex--;
@@ -203,6 +210,9 @@ class Queue {
   }
 
   /// Returns a new queue with the item at [oldIndex] moved to [newIndex].
+  ///
+  /// Without shuffle the move is also the new original order, so it survives
+  /// toggling shuffle on and off.
   Queue moveItem(int oldIndex, int newIndex) {
     if (oldIndex == newIndex) return this;
     final newPlayback = List<Track>.from(playbackTracks);
@@ -219,6 +229,7 @@ class Queue {
     }
 
     return copyWith(
+      originalTracks: shuffleEnabled ? null : List.unmodifiable(newPlayback),
       playbackTracks: List.unmodifiable(newPlayback),
       currentIndex: newCurrent,
     );
