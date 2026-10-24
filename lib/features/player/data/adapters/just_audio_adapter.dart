@@ -415,35 +415,59 @@ class JustAudioAdapter implements AudioServicePort {
   ) async {
     final previous = _currentQueue;
     final generation = _loadGeneration;
-    if (previous != null) _updateQueue(edit(previous));
+    var edited = false;
     try {
+      if (previous != null) {
+        _updateQueue(edit(previous));
+        edited = true;
+      }
       await apply();
       return right(unit);
     } catch (e, st) {
-      if (previous != null) _rollBackEdit(previous, generation);
-      return left(ErrorHandler.handle(e, st));
+      final failure = ErrorHandler.handle(e, st);
+      if (edited) await _rollBackEdit(previous!, generation);
+      return left(failure);
     }
   }
 
-  /// Puts back the track order of [previous], the one the player still has,
-  /// keeping what changed while the edit was pending: the repeat mode and
-  /// the current index (read from the player, whose sources match
-  /// [previous] again).
+  /// Reloads the player with the track order of [previous], keeping what
+  /// changed while the edit was pending: the repeat mode, the current track
+  /// and its position.
   ///
-  /// A load since [generation] (shuffle toggled, new queue) rebuilt the
-  /// player's sources from the edited queue: the queue already matches
-  /// them and stays as it is.
-  void _rollBackEdit(Queue previous, int generation) {
+  /// A reload, not just a queue update: just_audio edits its own playlist
+  /// before the platform call and does not undo it when that call fails,
+  /// so its sources match neither queue any more.
+  ///
+  /// The current index comes from the player, whose platform side still
+  /// has the order of [previous]; unless a load is in flight, as its index
+  /// then belongs to the playlist being replaced. A load since [generation]
+  /// (shuffle toggled, new queue) rebuilt the sources from the edited
+  /// queue: they already match it, and nothing is rolled back.
+  Future<void> _rollBackEdit(Queue previous, int generation) async {
     if (generation != _loadGeneration) return;
     final index = _player.currentIndex;
-    _updateQueue(
-      previous.copyWith(
-        currentIndex: index != null && index < previous.playbackTracks.length
-            ? index
-            : null,
-        repeatMode: _currentQueue?.repeatMode,
-      ),
+    final restored = previous.copyWith(
+      currentIndex:
+          _loadsInFlight == 0 &&
+              index != null &&
+              index < previous.playbackTracks.length
+          ? index
+          : null,
+      repeatMode: _currentQueue?.repeatMode,
     );
+    final position = _player.position;
+    try {
+      await _loadQueue(
+        restored,
+        () => _player.setAudioSources(
+          restored.playbackTracks.map(_toAudioSource).toList(),
+          initialIndex: restored.currentIndex,
+          initialPosition: position,
+        ),
+      );
+    } catch (e, st) {
+      ErrorHandler.handle(e, st);
+    }
   }
 
   /// Toggles shuffle on or off.

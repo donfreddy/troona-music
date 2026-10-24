@@ -16,6 +16,9 @@ final class _FakeAudioPlayer implements AudioPlayer {
   final index = StreamController<int?>.broadcast(sync: true);
   int? indexValue;
 
+  /// Track ids of each load, in order.
+  final loads = <List<String>>[];
+
   /// Runs at the start of each load, before the stale index.
   void Function(int? initialIndex)? onLoad;
 
@@ -52,6 +55,9 @@ final class _FakeAudioPlayer implements AudioPlayer {
     Duration? initialPosition,
     ShuffleOrder? shuffleOrder,
   }) async {
+    loads.add([
+      for (final s in audioSources) ((s as IndexedAudioSource).tag as Track).id,
+    ]);
     onLoad?.call(initialIndex);
     index.add(indexValue);
     final held = gate;
@@ -259,12 +265,37 @@ void main() {
       await pumpEventQueue();
     }
 
-    test('puts the track back', () async {
+    test('puts the track back, in the queue and the player', () async {
       await startRemoval();
+      player.loads.clear();
       await reject();
 
       expect(adapter.currentQueue?.playbackTracks, tracks);
       expect(adapter.currentQueue?.currentTrack, b);
+      // just_audio keeps its own edit after a failure: only a reload
+      // realigns its sources.
+      expect(player.loads, [
+        ['a', 'b', 'c', 'd'],
+      ]);
+    });
+
+    test('ignores the stale index of a load in flight', () async {
+      await setUpAdapter(queue: tracks);
+      final load = player.gate = Completer<void>();
+      final loading = adapter.setQueue([d, c, b, a], startIndex: 1);
+      await pumpEventQueue();
+      removal = player.editGate = Completer<void>();
+      removed = adapter.removeFromQueue(3);
+      await pumpEventQueue();
+
+      // The player still reports index 0 of the replaced playlist.
+      await reject();
+      load.complete();
+      await loading;
+      await pumpEventQueue();
+
+      expect(adapter.currentQueue?.playbackTracks, [d, c, b, a]);
+      expect(adapter.currentQueue?.currentTrack, c);
     });
 
     test('keeps a repeat mode set meanwhile', () async {
@@ -296,6 +327,7 @@ void main() {
 
       expect(adapter.currentQueue, shuffled);
       expect(adapter.currentQueue?.playbackTracks, isNot(contains(c)));
+      expect(player.loads.last, isNot(contains('c')));
     });
   });
 
