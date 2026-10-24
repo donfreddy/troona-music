@@ -27,6 +27,14 @@ class AppShell extends StatefulWidget {
     required this.location,
   });
 
+  /// Location of the page on top, pushed routes included (the
+  /// configuration's uri does not change on push).
+  static String? locationOf(GoRouter router) {
+    final delegate = router.routerDelegate;
+    if (delegate.currentConfiguration.isEmpty) return null;
+    return delegate.state.matchedLocation;
+  }
+
   @override
   State<AppShell> createState() => _AppShellState();
 }
@@ -44,7 +52,10 @@ class _AppShellState extends State<AppShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _router = GoRouter.of(context);
-      _router!.routeInformationProvider.addListener(_onRouteChanged);
+      // The delegate, not routeInformationProvider: a system back (Android
+      // button, iOS swipe) pops through the delegate without notifying the
+      // provider, and the tabs stayed hidden after leaving a detail page.
+      _router!.routerDelegate.addListener(_onRouteChanged);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
@@ -64,7 +75,8 @@ class _AppShellState extends State<AppShell> {
 
   void _onRouteChanged() {
     if (!mounted) return;
-    final newLocation = _router!.routeInformationProvider.value.uri.path;
+    final newLocation = AppShell.locationOf(_router!);
+    if (newLocation == null) return;
     // The full player covers the shell: keep the bar as it was, so the mini
     // player does not jump down (tabs hidden) under the finger as it morphs.
     if (newLocation == FullPlayerPage.routeName) return;
@@ -75,7 +87,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
-    _router?.routeInformationProvider.removeListener(_onRouteChanged);
+    _router?.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
   }
 
@@ -154,9 +166,8 @@ class _AppShellState extends State<AppShell> {
 
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
 
-          // Use the live _currentLocation which is updated via both
-          // the widget prop and the GoRouter listener, ensuring we
-          // always know the actual route — even after popping.
+          // _currentLocation follows both the widget prop and the router
+          // delegate, so it is right after any pop, system back included.
           final isRootPage = [
             AppRoute.home,
             AppRoute.library,
