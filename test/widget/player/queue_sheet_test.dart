@@ -119,6 +119,42 @@ void main() {
     expect(find.text('HISTORY'), findsOneWidget);
   });
 
+  group('history button', () {
+    Future<void> tapHistory(WidgetTester tester, String tooltip) async {
+      await tester.tap(find.byTooltip(tooltip));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    testWidgets('reveals the latest plays, then goes back', (tester) async {
+      await pumpSheet(tester);
+      expect(find.text('Title b').hitTestable(), findsNothing);
+
+      await tapHistory(tester, 'History');
+      expect(find.text('Title b').hitTestable(), findsOneWidget);
+      expect(find.text('Title a').hitTestable(), findsOneWidget);
+      expect(find.text('NOW PLAYING').hitTestable(), findsOneWidget);
+
+      await tapHistory(tester, 'Back to now playing');
+      expect(find.text('Title b').hitTestable(), findsNothing);
+      expect(find.byTooltip('History'), findsOneWidget);
+    });
+
+    testWidgets('follows a manual scroll into the history', (tester) async {
+      await pumpSheet(tester);
+
+      await revealHistory(tester);
+
+      expect(find.byTooltip('Back to now playing'), findsOneWidget);
+    });
+
+    testWidgets('is hidden with no history', (tester) async {
+      await pumpSheet(tester, current: 0);
+
+      expect(find.byTooltip('History'), findsNothing);
+    });
+  });
+
   testWidgets('tapping a row jumps to its queue index', (tester) async {
     await pumpSheet(tester);
 

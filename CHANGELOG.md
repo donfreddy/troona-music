@@ -4,7 +4,7 @@
 
 ### Added
 
-- Queue sheet over the Now Playing page: session history, now playing and up next in one list. Tap to jump, drag the handle to reorder, swipe to remove with a 4 s undo. Opens from the top bar button or a flick up.
+- Queue sheet over the Now Playing page: session history, now playing and up next in one list. It opens on now playing; the history is above, reached by scrolling up or with the history button. Tap to jump, drag the handle to reorder, swipe to remove with a 4 s undo. Opens from the top bar button or a flick up.
 - Insert a track at a given queue position (`addToQueue(track, index:)`).
 - Persistent play history (`lib/features/history/`): a play counts after 30 s of listening, or half a track shorter than a minute; seeks do not count. Up to 500 events in Isar.
 - Home "Recently Played" now lists the last played tracks, topped up with the newest ones until four have been played, and refreshes when a play is recorded.

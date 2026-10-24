@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart' hide RepeatMode;
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -62,15 +63,43 @@ class _QueueSheetState extends State<QueueSheet> {
 
   static const _undoWindow = Duration(seconds: 4);
 
+  /// The list opens on now playing: offsets below 0 are the history.
+  final _scroll = ScrollController();
+
+  /// Whether the history is scrolled into view, for the header button.
+  /// Notifies only when that flips, not on every offset.
+  final _historyInView = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
     _shown = _queueOf(context.read<PlayerBloc>().state);
+    _scroll.addListener(
+      () => _historyInView.value = _scroll.offset < -_kHistoryThreshold,
+    );
+  }
+
+  static const double _kHistoryThreshold = 1;
+
+  /// Reveals the latest plays above now playing, or goes back to it.
+  void _toggleHistory() {
+    if (!_scroll.hasClients) return;
+    final position = _scroll.position;
+    final target = _historyInView.value
+        ? 0.0
+        : math.max(position.minScrollExtent, -position.viewportDimension / 2);
+    _scroll.animateTo(
+      target,
+      duration: const Duration(milliseconds: 380),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   void dispose() {
     _removalTimer?.cancel();
+    _scroll.dispose();
+    _historyInView.dispose();
     super.dispose();
   }
 
@@ -183,7 +212,13 @@ class _QueueSheetState extends State<QueueSheet> {
         ),
         child: Column(
           children: [
-            _Header(queue: _shown),
+            _Header(
+              queue: _shown,
+              historyInView: _historyInView,
+              onHistory: (_shown?.currentIndex ?? 0) > 0
+                  ? _toggleHistory
+                  : null,
+            ),
             Expanded(
               child: Stack(
                 children: [
@@ -221,6 +256,7 @@ class _QueueSheetState extends State<QueueSheet> {
     final upNextCount = math.max(0, tracks.length - current - 1);
 
     return CustomScrollView(
+      controller: _scroll,
       // Slivers before [center] grow upwards: the sheet opens with the
       // current track at the top and the history above it, off screen
       // until the user scrolls up, without measuring anything.
@@ -329,7 +365,16 @@ final class _Removal {
 
 class _Header extends StatelessWidget {
   final Queue? queue;
-  const _Header({required this.queue});
+  final ValueListenable<bool> historyInView;
+
+  /// Null when there is no history: the button is hidden.
+  final VoidCallback? onHistory;
+
+  const _Header({
+    required this.queue,
+    required this.historyInView,
+    required this.onHistory,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +413,21 @@ class _Header extends StatelessWidget {
                   color: colors.labelSecondary,
                 ),
               ),
+              // The history sits above now playing, out of view when the
+              // sheet opens: this is the way to it, and back.
+              if (onHistory case final onHistory?)
+                ValueListenableBuilder<bool>(
+                  valueListenable: historyInView,
+                  builder: (_, inView, _) => IconButton(
+                    onPressed: onHistory,
+                    tooltip: inView ? 'Back to now playing' : 'History',
+                    icon: Icon(
+                      LucideIcons.history,
+                      size: 20,
+                      color: inView ? colors.accent : colors.labelSecondary,
+                    ),
+                  ),
+                ),
             ],
           ),
         ],
