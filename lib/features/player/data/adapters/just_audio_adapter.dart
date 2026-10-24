@@ -328,28 +328,35 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<Either<Failure, Unit>> removeFromQueue(int index) async {
-    try {
-      await _player.removeAudioSourceAt(index);
-      if (_currentQueue != null) _updateQueue(_currentQueue!.removeAt(index));
-      return right(unit);
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
+  Future<Either<Failure, Unit>> removeFromQueue(int index) => _editQueue(
+    (queue) => queue.removeAt(index),
+    () => _player.removeAudioSourceAt(index),
+  );
 
   @override
-  Future<Either<Failure, Unit>> moveQueueItem(
-    int oldIndex,
-    int newIndex,
+  Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) =>
+      _editQueue(
+        (queue) => queue.moveItem(oldIndex, newIndex),
+        () => _player.moveAudioSource(oldIndex, newIndex),
+      );
+
+  /// Applies [edit] to the domain queue *before* mutating the player.
+  ///
+  /// A move or removal can shift the player's current index, and the index
+  /// listener maps it onto [_currentQueue]: updated first, that mapping
+  /// always sees the new order instead of reporting a phantom track change.
+  /// The previous queue is restored if the player rejects the edit.
+  Future<Either<Failure, Unit>> _editQueue(
+    Queue Function(Queue queue) edit,
+    Future<void> Function() apply,
   ) async {
+    final previous = _currentQueue;
+    if (previous != null) _updateQueue(edit(previous));
     try {
-      await _player.moveAudioSource(oldIndex, newIndex);
-      if (_currentQueue != null) {
-        _updateQueue(_currentQueue!.moveItem(oldIndex, newIndex));
-      }
+      await apply();
       return right(unit);
     } catch (e, st) {
+      if (previous != null) _updateQueue(previous);
       return left(ErrorHandler.handle(e, st));
     }
   }
