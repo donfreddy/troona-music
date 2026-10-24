@@ -53,12 +53,18 @@ class _MarqueeState extends State<Marquee> with SingleTickerProviderStateMixin {
     ..addStatusListener(_onStatus);
   Timer? _pauseTimer;
 
-  /// Laid out once per text, style, scale and direction: not per frame.
+  /// Laid out once per text and text settings: not per frame.
   TextPainter? _painter;
-  (String, TextStyle, TextScaler, TextDirection)? _painterKey;
+  _TextSettings? _painterSettings;
 
-  /// Whether the loop should run, as of the last layout.
+  /// Whether the loop runs, and over which period.
   bool _scrolling = false;
+  double _period = 0;
+
+  /// What the last layout asked for, applied after the frame.
+  bool _wantScroll = false;
+  double _wantPeriod = 0;
+  bool _syncScheduled = false;
 
   @override
   void didUpdateWidget(Marquee old) {
@@ -97,51 +103,81 @@ class _MarqueeState extends State<Marquee> with SingleTickerProviderStateMixin {
     _scrolling = false;
   }
 
-  /// Starts or stops the loop after layout found the text (not) fitting.
-  /// Deferred: layout is no place to touch the controller.
+  /// Starts, stops or restarts the loop after layout found the text (not)
+  /// fitting, or its length changed. Deferred: layout is no place to touch
+  /// the controller. A frame may lay out more than once: the callback
+  /// applies the last request.
   void _sync(bool overflows, double period) {
-    if (overflows == _scrolling) return;
+    _wantScroll = overflows;
+    _wantPeriod = period;
+    final changed = overflows != _scrolling || (overflows && period != _period);
+    if (!changed || _syncScheduled) return;
+    _syncScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || overflows == _scrolling) return;
-      _scrolling = overflows;
-      if (overflows) {
-        _controller.duration = Duration(
-          microseconds: (period / widget.velocity * 1e6).round(),
-        );
-        _schedule();
-      } else {
-        _restart();
+      _syncScheduled = false;
+      if (!mounted) return;
+      if (_wantScroll == _scrolling &&
+          (!_wantScroll || _wantPeriod == _period)) {
+        return;
       }
+      // A new period would make the text jump mid-run: rest first.
+      _restart();
+      if (!_wantScroll) return;
+      _scrolling = true;
+      _period = _wantPeriod;
+      _controller.duration = Duration(
+        microseconds: (_period / widget.velocity * 1e6).round(),
+      );
+      _schedule();
     });
   }
 
-  TextPainter _layoutText(TextStyle style, TextScaler scaler, TextDirection d) {
-    final key = (widget.text, style, scaler, d);
-    if (key == _painterKey) return _painter!;
+  TextPainter _layoutText(_TextSettings settings) {
+    if (settings == _painterSettings) return _painter!;
     _painter?.dispose();
-    _painterKey = key;
+    _painterSettings = settings;
     return _painter = TextPainter(
-      text: TextSpan(text: widget.text, style: style),
-      textDirection: d,
-      textScaler: scaler,
+      text: TextSpan(text: settings.text, style: settings.style),
+      textDirection: settings.direction,
+      textScaler: settings.scaler,
+      locale: settings.locale,
+      textHeightBehavior: settings.heightBehavior,
       maxLines: 1,
     )..layout();
   }
 
   @override
   Widget build(BuildContext context) {
-    final style = DefaultTextStyle.of(context).style.merge(widget.style);
-    final scaler = MediaQuery.textScalerOf(context);
+    // Resolved like [Text] does, so both measure the same.
+    final defaults = DefaultTextStyle.of(context);
+    var style = defaults.style.merge(widget.style);
+    if (MediaQuery.boldTextOf(context)) {
+      style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
     final direction = Directionality.of(context);
+    final settings = _TextSettings(
+      text: widget.text,
+      style: style,
+      scaler: MediaQuery.textScalerOf(context),
+      direction: direction,
+      locale: Localizations.maybeLocaleOf(context),
+      heightBehavior:
+          defaults.textHeightBehavior ??
+          DefaultTextHeightBehavior.maybeOf(context),
+    );
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final painter = _layoutText(style, scaler, direction);
+        final painter = _layoutText(settings);
         final width = constraints.maxWidth;
-        // Half a pixel of slack: rounding alone must not start a loop.
+        // Same test as [Text]: any overflow would be ellipsized. Below a
+        // pixel (mid transition) there is nothing to scroll in.
         final overflows =
-            !reduceMotion && width.isFinite && painter.width > width + 0.5;
+            !reduceMotion &&
+            width.isFinite &&
+            width >= 1 &&
+            painter.width > width;
         final period = painter.width + widget.gap;
         _sync(overflows, period);
 
@@ -149,6 +185,8 @@ class _MarqueeState extends State<Marquee> with SingleTickerProviderStateMixin {
           final text = Text(
             widget.text,
             style: style,
+            locale: settings.locale,
+            textHeightBehavior: settings.heightBehavior,
             maxLines: 1,
             softWrap: false,
             overflow: TextOverflow.ellipsis,
@@ -209,7 +247,14 @@ class _MarqueePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final shift = curve.transform(progress.value) * period;
-    final bounds = Offset.zero & size;
+    // Taller than the line: stacked diacritics and italic overhang draw
+    // outside it, as they would with [Text]. Only the sides clip.
+    final bounds = Rect.fromLTRB(
+      0,
+      -size.height / 2,
+      size.width,
+      size.height * 1.5,
+    );
     final y = (size.height - text.height) / 2;
 
     canvas
@@ -222,7 +267,7 @@ class _MarqueePainter extends CustomPainter {
     // The trailing edge always fades: more text follows. The leading one
     // fades in as the text leaves, and out as the copy comes to rest.
     final leading = math.min(math.min(shift, period - shift), fadeWidth);
-    final leadingAlpha = 1 - leading / fadeWidth;
+    final leadingAlpha = fadeWidth > 0 ? 1 - leading / fadeWidth : 1.0;
     final edge = fadeWidth / size.width;
     final colors = [
       Colors.black.withValues(alpha: leadingAlpha),
@@ -265,6 +310,12 @@ class _Ramp extends Curve {
       _Ramp((0.4 / math.max(seconds, 0.8)).clamp(0.05, 0.5));
 
   @override
+  bool operator ==(Object other) => other is _Ramp && other._ramp == _ramp;
+
+  @override
+  int get hashCode => _ramp.hashCode;
+
+  @override
   double transformInternal(double t) {
     final r = _ramp;
     // Trapezoidal speed: peak 1 / (1 - r), reached after r.
@@ -273,4 +324,38 @@ class _Ramp extends Curve {
     if (t > 1 - r) return 1 - peak * (1 - t) * (1 - t) / (2 * r);
     return peak * (t - r / 2);
   }
+}
+
+/// Everything the measured width depends on.
+@immutable
+class _TextSettings {
+  final String text;
+  final TextStyle style;
+  final TextScaler scaler;
+  final TextDirection direction;
+  final Locale? locale;
+  final TextHeightBehavior? heightBehavior;
+
+  const _TextSettings({
+    required this.text,
+    required this.style,
+    required this.scaler,
+    required this.direction,
+    required this.locale,
+    required this.heightBehavior,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is _TextSettings &&
+      other.text == text &&
+      other.style == style &&
+      other.scaler == scaler &&
+      other.direction == direction &&
+      other.locale == locale &&
+      other.heightBehavior == heightBehavior;
+
+  @override
+  int get hashCode =>
+      Object.hash(text, style, scaler, direction, locale, heightBehavior);
 }
