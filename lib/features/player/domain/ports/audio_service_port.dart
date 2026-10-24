@@ -64,6 +64,10 @@ abstract interface class AudioServicePort {
   /// Returns to the previous track.
   Future<Either<Failure, Unit>> skipToPrevious();
 
+  /// Jumps to [index] in the current queue without rebuilding it (shuffle
+  /// order and original order are preserved), then plays.
+  Future<Either<Failure, Unit>> skipToIndex(int index);
+
   /// Replaces the queue with [tracks] and starts playback from [startIndex].
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {

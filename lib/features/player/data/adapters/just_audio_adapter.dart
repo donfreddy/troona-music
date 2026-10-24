@@ -214,6 +214,23 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
+  Future<Either<Failure, Unit>> skipToIndex(int index) async {
+    try {
+      final queue = _currentQueue;
+      if (queue == null || index < 0 || index >= queue.length) {
+        return left(const PlaybackFailure('Queue index out of range'));
+      }
+      await _player.seek(Duration.zero, index: index);
+      // Not awaited: play() only completes once playback pauses or ends,
+      // which would block the caller for the whole track.
+      unawaited(_player.play());
+      return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> skipToPrevious() async {
     try {
       if (_player.hasPrevious) {

@@ -40,6 +40,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final SetRepeatModeUseCase _setRepeatMode;
   final SetVolumeUseCase _setVolume;
   final SetSpeedUseCase _setSpeed;
+  final SkipToIndexUseCase _skipToIndex;
   final AudioServicePort _audioServicePort;
   final PlaybackSessionStore _sessionStore;
   final IsarLibraryDataSource _libraryCache;
@@ -86,6 +87,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required SetRepeatModeUseCase setRepeatMode,
     required SetVolumeUseCase setVolume,
     required SetSpeedUseCase setSpeed,
+    required SkipToIndexUseCase skipToIndex,
     required AudioServicePort audioServicePort,
     required PlaybackSessionStore sessionStore,
     required IsarLibraryDataSource libraryCache,
@@ -103,6 +105,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        _setRepeatMode = setRepeatMode,
        _setVolume = setVolume,
        _setSpeed = setSpeed,
+       _skipToIndex = skipToIndex,
        _audioServicePort = audioServicePort,
        _sessionStore = sessionStore,
        _libraryCache = libraryCache,
@@ -152,6 +155,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       transformer: droppable(),
     );
     on<QueueSetRequested>(_onQueueSetRequested, transformer: droppable());
+    on<QueueIndexRequested>(_onQueueIndexRequested, transformer: droppable());
     on<TrackAddedToQueue>(_onTrackAddedToQueue);
     on<TrackRemovedFromQueue>(_onTrackRemovedFromQueue);
     on<QueueItemMoved>(_onQueueItemMoved);
@@ -421,6 +425,33 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _setQueue(
       SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
     );
+  }
+
+  Future<void> _onQueueIndexRequested(
+    QueueIndexRequested event,
+    Emitter<PlayerState> emit,
+  ) async {
+    final current = state;
+    if (current is! PlayerActive) return;
+    final queue = current.queue;
+    if (event.index < 0 ||
+        event.index >= queue.length ||
+        event.index == queue.currentIndex) {
+      return;
+    }
+    unawaited(AppHaptics.lightImpact());
+    // No Loading state: the engine keeps the same sources, and _TrackChanged
+    // moves the active state to the new index.
+    final result = await _skipToIndex(SkipToIndexParams(index: event.index));
+    if (result.isLeft()) {
+      emit(
+        PlayerError(
+          message: result.fold((f) => f.message, (_) => ''),
+          lastTrack: current.currentTrack,
+          lastQueue: queue,
+        ),
+      );
+    }
   }
 
   Future<void> _onTrackAddedToQueue(

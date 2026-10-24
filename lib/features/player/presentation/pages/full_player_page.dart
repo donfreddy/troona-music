@@ -1,5 +1,6 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -59,8 +60,17 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
     if (index == _stageIndex || index >= _stageQueue.length) return;
+    final bloc = context.read<PlayerBloc>();
+    final state = bloc.state;
+    // Swiping within the playing queue: jump to the index so the queue is
+    // kept as is (rebuilding it would reshuffle in shuffle mode).
+    if (state is PlayerActive &&
+        listEquals(state.queue.playbackTracks, _stageQueue)) {
+      bloc.add(QueueIndexRequested(index));
+      return;
+    }
     _requestedStageIndex = index;
-    context.read<PlayerBloc>().add(
+    bloc.add(
       PlayTrackRequested(
         _stageQueue[index],
         contextQueue: _stageQueue,

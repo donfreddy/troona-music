@@ -63,6 +63,13 @@ final class RestorePlaybackSessionRequested extends PlayerEvent {
 
 // ── Queue management ──────────────────────────────────────────────────────────
 
+/// Plays the track at [index] of the current queue, keeping the queue
+/// (order and shuffle) as it is. Used by carousel swipes.
+final class QueueIndexRequested extends PlayerEvent {
+  final int index;
+  const QueueIndexRequested(this.index);
+}
+
 final class QueueSetRequested extends PlayerEvent {
   final List<Track> tracks;
   final int startIndex;

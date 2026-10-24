@@ -69,6 +69,10 @@ class PlayerRepositoryImpl implements PlayerRepository {
   Future<Either<Failure, Unit>> skipToPrevious() => _port.skipToPrevious();
 
   @override
+  Future<Either<Failure, Unit>> skipToIndex(int index) =>
+      _port.skipToIndex(index);
+
+  @override
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,

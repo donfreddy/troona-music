@@ -198,7 +198,10 @@ Future<void> configureDependencies() async {
       () => SetRepeatModeUseCase(getIt()),
     )
     ..registerLazySingleton<SetVolumeUseCase>(() => SetVolumeUseCase(getIt()))
-    ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()));
+    ..registerLazySingleton<SetSpeedUseCase>(() => SetSpeedUseCase(getIt()))
+    ..registerLazySingleton<SkipToIndexUseCase>(
+      () => SkipToIndexUseCase(getIt()),
+    );
 
   // ── Presentation layer ────────────────────────────────────────────────────
   // AudioSessionService is injected so runtime setting changes (call handling,
@@ -230,6 +233,7 @@ Future<void> configureDependencies() async {
       setRepeatMode: getIt(),
       setVolume: getIt(),
       setSpeed: getIt(),
+      skipToIndex: getIt(),
       audioServicePort: getIt(),
       sessionStore: getIt(),
       libraryCache: getIt(),

@@ -20,6 +20,7 @@ abstract interface class PlayerRepository {
   Future<Either<Failure, Unit>> seekTo(Duration position);
   Future<Either<Failure, Unit>> skipToNext();
   Future<Either<Failure, Unit>> skipToPrevious();
+  Future<Either<Failure, Unit>> skipToIndex(int index);
   Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex});
   Future<Either<Failure, Unit>> addToQueue(Track track);
   Future<Either<Failure, Unit>> removeFromQueue(int index);

@@ -77,9 +77,8 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToQueueItem(int index) async {
-    final q = _port.currentQueue;
-    if (q == null || index < 0 || index >= q.length) return;
-    await _port.playTrack(q.playbackTracks[index]);
+    // Jump within the queue: playTrack would rebuild it (and reshuffle).
+    await _port.skipToIndex(index);
   }
 
   @override

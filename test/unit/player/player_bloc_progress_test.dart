@@ -47,17 +47,18 @@ void main() {
   Future<void> activate({
     int index = 0,
     RepeatMode repeatMode = RepeatMode.off,
+    bool shuffled = false,
   }) async {
     final tracks = [track, other];
     port.queue = Queue(
       originalTracks: tracks,
-      playbackTracks: tracks,
+      playbackTracks: shuffled ? tracks.reversed.toList() : tracks,
       currentIndex: index,
-      shuffleEnabled: false,
+      shuffleEnabled: shuffled,
       repeatMode: repeatMode,
     );
     port.duration = Duration(milliseconds: tracks[index].durationMs);
-    bloc.add(QueueSetRequested(tracks, startIndex: index));
+    bloc.add(QueueSetRequested(port.queue!.playbackTracks, startIndex: index));
     await pumpEventQueue();
     port.status.add(PlaybackStatus.playing);
     await pumpEventQueue();
@@ -274,6 +275,42 @@ void main() {
       expect(active.queue.currentIndex, 1);
     });
 
+    test('a queue index request keeps the shuffled queue intact', () async {
+      await activate(shuffled: true);
+      final before = (bloc.state as PlayerActive).queue;
+      port.setQueueCalls = 0;
+
+      bloc.add(const QueueIndexRequested(1));
+      await pumpEventQueue();
+      expect(port.indexJumps, [1]);
+      expect(port.setQueueCalls, 0);
+
+      // The engine moves to index 1 of the same (shuffled) sources.
+      port.queue = port.queue!.copyWith(currentIndex: 1);
+      port.track.add(before.playbackTracks[1]);
+      await pumpEventQueue();
+
+      final after = (bloc.state as PlayerActive).queue;
+      expect(after.currentIndex, 1);
+      expect(after.shuffleEnabled, isTrue);
+      expect(after.playbackTracks, before.playbackTracks);
+      expect(after.originalTracks, before.originalTracks);
+    });
+
+    test(
+      'a queue index request ignores the current or invalid index',
+      () async {
+        await activate();
+
+        bloc.add(const QueueIndexRequested(0));
+        await pumpEventQueue();
+        bloc.add(const QueueIndexRequested(7));
+        await pumpEventQueue();
+
+        expect(port.indexJumps, isEmpty);
+      },
+    );
+
     test('engine track changes are followed again once active', () async {
       await activate();
       bloc.add(
@@ -408,6 +445,7 @@ PlayerBloc _buildBloc(AudioServicePort port, PlaybackSessionStore store) {
     setRepeatMode: SetRepeatModeUseCase(repo),
     setVolume: SetVolumeUseCase(repo),
     setSpeed: SetSpeedUseCase(repo),
+    skipToIndex: SkipToIndexUseCase(repo),
     audioServicePort: port,
     sessionStore: store,
     libraryCache: _UnusedLibraryCache(),
@@ -426,7 +464,9 @@ final class _FakeAudioPort implements AudioServicePort {
   Queue? queue;
   Duration duration = Duration.zero;
   final seeks = <Duration>[];
+  final indexJumps = <int>[];
   int skipPreviousCalls = 0;
+  int setQueueCalls = 0;
 
   static Future<Either<Failure, Unit>> get _ok async => const Right(unit);
 
@@ -481,10 +521,19 @@ final class _FakeAudioPort implements AudioServicePort {
   }
 
   @override
+  Future<Either<Failure, Unit>> skipToIndex(int index) {
+    indexJumps.add(index);
+    return _ok;
+  }
+
+  @override
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
-  }) => _ok;
+  }) {
+    setQueueCalls++;
+    return _ok;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => _ok;
@@ -501,6 +550,10 @@ final class _PortRepository implements PlayerRepository {
 
   @override
   Future<Either<Failure, Unit>> skipToPrevious() => _port.skipToPrevious();
+
+  @override
+  Future<Either<Failure, Unit>> skipToIndex(int index) =>
+      _port.skipToIndex(index);
 
   @override
   Future<Either<Failure, Unit>> setQueue(

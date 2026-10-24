@@ -54,6 +54,20 @@ class SkipPreviousUseCase {
   Future<Either<Failure, Unit>> call() => _repo.skipToPrevious();
 }
 
+class SkipToIndexParams {
+  final int index;
+  const SkipToIndexParams({required this.index});
+}
+
+/// Jumps within the current queue, keeping its order (and shuffle) intact.
+@lazySingleton
+class SkipToIndexUseCase {
+  final PlayerRepository _repo;
+  const SkipToIndexUseCase(this._repo);
+  Future<Either<Failure, Unit>> call(SkipToIndexParams params) =>
+      _repo.skipToIndex(params.index);
+}
+
 // ── Queue ────────────────────────────────────────────────────────────────────
 
 class SetQueueParams {
