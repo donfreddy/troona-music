@@ -12,6 +12,7 @@ void main() {
     int currentIndex = 1,
     List<int>? changes,
     List<Track>? queue,
+    List<int?>? focus,
   }) async {
     changes ??= <int>[];
     await tester.pumpWidget(
@@ -24,6 +25,7 @@ void main() {
                 queue: queue ?? tracks,
                 currentIndex: currentIndex,
                 onPageChanged: changes.add,
+                onFocusChanged: focus?.add,
               ),
             ),
           ),
@@ -56,6 +58,69 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(changes, [2]);
+  });
+
+  testWidgets('a swipe reports its target as soon as it is the nearest', (
+    tester,
+  ) async {
+    final focus = <int?>[];
+    final changes = await pumpCarousel(tester, focus: focus);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    await gesture.moveBy(const Offset(-40, 0));
+    await tester.pump();
+    expect(focus, isEmpty, reason: 'still nearest to the playing page');
+
+    await gesture.moveBy(const Offset(-110, 0));
+    await tester.pump();
+    expect(focus, [2], reason: 'during the swipe, before it settles');
+    expect(changes, isEmpty);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(focus, [2], reason: 'kept until the bloc confirms');
+
+    // The bloc confirms: the title follows the bloc again.
+    await pumpCarousel(tester, currentIndex: 2, changes: changes, focus: focus);
+    expect(focus, [2, null]);
+  });
+
+  testWidgets('a swipe the bloc ignores clears its focus', (tester) async {
+    final focus = <int?>[];
+    await pumpCarousel(tester, focus: focus);
+
+    await tester.drag(find.byType(PageView), const Offset(-150, 0));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1)); // confirm timeout
+    await tester.pumpAndSettle();
+
+    expect(focus, [2, null]);
+  });
+
+  testWidgets('a drag released on the playing page reports no focus', (
+    tester,
+  ) async {
+    final focus = <int?>[];
+    await pumpCarousel(tester, focus: focus);
+
+    await tester.drag(find.byType(PageView), const Offset(-30, 0));
+    await tester.pumpAndSettle();
+
+    expect(focus, isEmpty);
+  });
+
+  testWidgets('a bloc skip sweeping through pages reports no focus', (
+    tester,
+  ) async {
+    final focus = <int?>[];
+    final changes = await pumpCarousel(tester, focus: focus);
+
+    await pumpCarousel(tester, currentIndex: 4, changes: changes, focus: focus);
+    await tester.pumpAndSettle();
+
+    expect(focus, isEmpty);
   });
 
   testWidgets('a bloc-driven index change animates without echoing back', (

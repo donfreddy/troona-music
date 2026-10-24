@@ -72,6 +72,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   /// the requested track loads.
   int? _requestedStageIndex;
 
+  /// Stage page a swipe is heading to: the title shows its track during
+  /// the swipe instead of waiting for the bloc. Null otherwise.
+  final _swipeFocus = ValueNotifier<int?>(null);
+
   // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
     if (index == _stageIndex || index >= _stageQueue.length) return;
@@ -236,6 +240,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     _stage?.dispose();
     _cover?.dispose();
     _snapBack.dispose();
+    _swipeFocus.dispose();
     super.dispose();
   }
 
@@ -370,7 +375,20 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.xl2,
                                 ),
-                                child: _fadeChrome(_TrackInfo(track: track)),
+                                child: _fadeChrome(
+                                  // Only the title rebuilds as a swipe
+                                  // crosses covers.
+                                  ValueListenableBuilder<int?>(
+                                    valueListenable: _swipeFocus,
+                                    builder: (_, focus, _) => _TrackInfo(
+                                      track:
+                                          focus != null &&
+                                              focus < _stageQueue.length
+                                          ? _stageQueue[focus]
+                                          : track,
+                                    ),
+                                  ),
+                                ),
                               ),
 
                               const SizedBox(height: AppSpacing.lg),
@@ -381,6 +399,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   queue: queue,
                                   currentIndex: index,
                                   onPageChanged: _onCarouselPageChanged,
+                                  onFocusChanged: (page) =>
+                                      _swipeFocus.value = page,
                                   enableHeroes: _heroes,
                                   lensOpacity: _stage,
                                   ringBuilder: (ring, hole) => _fade(

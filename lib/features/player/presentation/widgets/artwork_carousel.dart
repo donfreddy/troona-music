@@ -26,6 +26,12 @@ class ArtworkCarousel extends StatefulWidget {
   /// mid-gesture, never for programmatic scrolls or interrupted animations.
   final ValueChanged<int> onPageChanged;
 
+  /// The page a user swipe is heading to, as soon as it is the nearest to
+  /// the centre (so the title can change during the swipe, not after it);
+  /// null once the carousel follows the playing track again. Called only
+  /// when the value changes.
+  final ValueChanged<int?>? onFocusChanged;
+
   /// Optional layer laid over the lens and the gesture layer, sized to the
   /// ring (the progress ring). It must restrict its own hit testing so
   /// swipes outside it still reach the carousel.
@@ -46,6 +52,7 @@ class ArtworkCarousel extends StatefulWidget {
     required this.queue,
     required this.currentIndex,
     required this.onPageChanged,
+    this.onFocusChanged,
     this.ringBuilder,
     this.enableHeroes = false,
     this.lensOpacity,
@@ -84,13 +91,35 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
   /// it, and must jump (not sweep) to the bloc index instead.
   bool _queueChangedDuringScroll = false;
 
+  /// Last value sent to [ArtworkCarousel.onFocusChanged].
+  int? _focus;
+
   @override
   void initState() {
     super.initState();
     _pageCtrl = PageController(
       initialPage: widget.currentIndex,
       viewportFraction: _kSpacingFraction,
+    )..addListener(_trackFocus);
+  }
+
+  /// Only user swipes (drag and the settle after it) report a focus:
+  /// programmatic sweeps pass through tracks that are not being chosen.
+  void _trackFocus() {
+    if (_dragStartPage == null || _queueChangedDuringScroll) return;
+    final page = _pageCtrl.page;
+    if (page == null) return;
+    final nearest = page.round();
+    if (nearest < 0 || nearest >= widget.queue.length) return;
+    _setFocus(
+      nearest == widget.currentIndex && _focus == null ? null : nearest,
     );
+  }
+
+  void _setFocus(int? page) {
+    if (page == _focus) return;
+    _focus = page;
+    widget.onFocusChanged?.call(page);
   }
 
   @override
@@ -102,6 +131,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
     // tracks, so sweeping through them would show unrelated covers. Jump,
     // once the PageView has been rebuilt with the new item count.
     if (!listEquals(old.queue, widget.queue)) {
+      _setFocus(null);
       if (_dragStartPage != null) {
         _queueChangedDuringScroll = true;
       } else {
@@ -109,7 +139,12 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
       }
       return;
     }
-    if (old.currentIndex != widget.currentIndex) _syncToBloc();
+    if (old.currentIndex != widget.currentIndex) {
+      // The bloc moved (swipe confirmed, or anything else): its track is
+      // the title again.
+      if (_dragStartPage == null) _setFocus(null);
+      _syncToBloc();
+    }
   }
 
   @override
@@ -133,6 +168,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
   /// the scroll end handler reconciles.
   void _syncToBloc() {
     if (!mounted || !_pageCtrl.hasClients || _dragStartPage != null) return;
+    _setFocus(null);
     if (_pageCtrl.page?.round() == widget.currentIndex) return;
     _pageCtrl.animateToPage(
       widget.currentIndex,
@@ -164,7 +200,10 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
       if (settled != widget.currentIndex) _scheduleJump();
       return false;
     }
-    if (settled == widget.currentIndex) return false;
+    if (settled == widget.currentIndex) {
+      _setFocus(null);
+      return false;
+    }
 
     if (startPage != null && settled != startPage) {
       widget.onPageChanged(settled);
