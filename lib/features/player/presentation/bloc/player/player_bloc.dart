@@ -162,7 +162,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // within a single handler.
     on<QueueEditEvent>(_onQueueEdit, transformer: sequential());
 
-    // Streams internes — toujours concurrent
+    // Streams internes: toujours concurrent
     on<_DurationUpdated>(_onDurationUpdated, transformer: concurrent());
     on<_StatusChanged>(_onStatusChanged, transformer: concurrent());
     on<_TrackChanged>(_onTrackChanged, transformer: concurrent());
@@ -172,7 +172,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // HANDLERS — commandes utilisateur
+  // HANDLERS: commandes utilisateur
   // ════════════════════════════════════════════════════════════════════════════
 
   Future<void> _onPlayTrackRequested(
@@ -474,7 +474,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // HANDLERS — streams entrants
+  // HANDLERS: streams entrants
   // ════════════════════════════════════════════════════════════════════════════
 
   /// Position ticks bypass the event queue entirely: no event, no emit.
@@ -580,18 +580,18 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         emit(PlayerLoading(event.track!));
       case PlayerActive():
         final current = state as PlayerActive;
-        final trackIndex = current.queue.playbackTracks.indexWhere(
-          (t) => t.id == event.track!.id,
-        );
-        if (trackIndex >= 0 && trackIndex != current.queue.currentIndex) {
+        // The port's queue says which entry plays. Looking the track up by
+        // id would pick the first copy of a track queued more than once.
+        // Track and queue are read together: the event may be a step behind.
+        final queue = _audioServicePort.currentQueue ?? current.queue;
+        final track = queue.currentTrack ?? event.track!;
+        if (track.id != current.currentTrack.id) {
           _setPosition(Duration.zero);
         }
         final next = current.copyWith(
-          currentTrack: event.track,
-          duration: Duration(milliseconds: event.track!.durationMs),
-          queue: trackIndex >= 0
-              ? current.queue.copyWith(currentIndex: trackIndex)
-              : current.queue,
+          currentTrack: track,
+          duration: Duration(milliseconds: track.durationMs),
+          queue: queue,
         );
         emit(next);
         _persistSession(next);

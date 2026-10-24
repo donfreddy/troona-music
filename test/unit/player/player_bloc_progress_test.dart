@@ -113,6 +113,38 @@ void main() {
     });
   });
 
+  group('PlayerBloc track changes', () {
+    test('follow the playing entry when a track is queued twice', () async {
+      // [a, b, a]: the second "a" starts after "b".
+      port.queue = Queue.fromTracks([track, other, track], startIndex: 1);
+      bloc.add(QueueSetRequested(port.queue!.playbackTracks, startIndex: 1));
+      await pumpEventQueue();
+      port.status.add(PlaybackStatus.playing);
+      port.track.add(other);
+      await pumpEventQueue();
+
+      port.queue = port.queue!.copyWith(currentIndex: 2);
+      port.track.add(track);
+      await pumpEventQueue();
+
+      final state = bloc.state as PlayerActive;
+      expect(state.queue.currentIndex, 2);
+      expect(state.currentTrack.id, 'a');
+    });
+
+    test('take the track from the port queue when the event lags', () async {
+      await activate();
+      // The port already moved on to "b" when the event for "a" arrives.
+      port.queue = port.queue!.copyWith(currentIndex: 1);
+      port.track.add(track);
+      await pumpEventQueue();
+
+      final state = bloc.state as PlayerActive;
+      expect(state.currentTrack.id, 'b');
+      expect(state.queue.currentIndex, 1);
+    });
+  });
+
   group('PlayerBloc progress clock', () {
     test('position ticks update progress without emitting states', () async {
       await activate();
