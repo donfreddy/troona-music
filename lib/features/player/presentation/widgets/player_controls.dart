@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/repeat_shuffle_buttons.dart';
 
-// Les 5 boutons : Shuffle · Prev · Play/Pause · Next · Repeat
+// Les 5 boutons : Shuffle • Prev • Play/Pause • Next • Repeat
 // buildWhen granulaire : chaque bouton ne rebuild que si sa donnée change.
 
 class PlayerControls extends StatelessWidget {

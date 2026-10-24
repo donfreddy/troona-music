@@ -118,7 +118,7 @@ lib/
     │   ├── glass_bottom_sheet.dart
     │   ├── dynamic_background.dart  # Animated gradient from artwork (palette_generator)
     │   ├── rotating_artwork.dart    # Rotating artwork (RotationTransition) at NavBar and MiniPlayer
-    │   ├── app_bottom_nav_bar.dart  # NavBar with five tabs: Home · Queue · Artwork · Search · Now
+    │   ├── app_bottom_nav_bar.dart  # NavBar with five tabs: Home • Queue • Artwork • Search • Now
     │   ├── mini_player.dart         # Glass card above the NavBar
     │   ├── animated_artwork.dart
     │   ├── custom_sliver_header.dart # iOS style collapsing header with dynamic blur
