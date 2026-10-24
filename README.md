@@ -52,7 +52,8 @@ lib/
 ├── app.dart                         # MaterialApp, GoRouter, global theme
 │
 ├── core/
-│   ├── di/                          # get_it and injectable (injection.dart, modules/)
+│   ├── di/                          # get_it, manual registration (injection.dart)
+│   ├── database/                    # AppDatabase: opens the single Isar database
 │   ├── router/                      # GoRouter, ShellRoute, permission guards
 │   ├── theme/                       # Glassmorphism design system
 │   │   ├── app_colors.dart          # Tokens: primitive to semantic to components
@@ -92,9 +93,13 @@ lib/
 │   │       │                        # PlayerProgressBar, VolumeSlider
 │   │       └── bloc/                # PlayerBloc with Idle, Loading, Active, Error states
 │   │
-│   ├── home/                        # Local feed: Popular Playlists and Trending Now
+│   ├── history/                     # Play history: what counts as a play, persisted events
+│   │   ├── domain/                  # PlayEvent, PlayCounter (30 s or half the track), RecordPlayUseCase
+│   │   └── data/                    # PlayEventModel (@collection Isar, capped at 500), repository
+│   │
+│   ├── home/                        # Local feed: Recently Played, Your Artists, New Albums, Your Playlists
 │   │   ├── domain/                  # HomeFeed, HomeRepository, GetHomeFeedUseCase
-│   │   ├── data/                    # HomeRepositoryImpl (Isar source)
+│   │   ├── data/                    # HomeRepositoryImpl (library and play history)
 │   │   └── presentation/
 │   │       ├── pages/               # HomePage (CustomScrollView plus DynamicBackground)
 │   │       ├── widgets/             # PlaylistCard, TrendingRow, PlaylistMosaic, SectionHeader
@@ -110,6 +115,7 @@ lib/
 │   ├── audio/                       # AudioServiceInitializer, EqualizerService, WaveformService
 │   ├── scanner/                     # MediaScannerService (four phases), ArtworkExtractor (semaphore x4),
 │   │                                # MetadataParser
+│   ├── history/                     # PlayHistoryRecorder: records plays from the audio port
 │   └── cache/                       # IsarService, ArtworkCacheService
 │
 └── shared/
@@ -144,16 +150,15 @@ BackdropFilter guidance for performance:
 
 ## 📱 Implemented Screens
 
-* LibraryPage — complete: iOS style sliver layout, scan banner, album and artist grids, search.
-* FullPlayerPage — complete: vinyl style carousel, hero animation, dynamic background.
-* HomePage — complete: Popular Playlists horizontal scroll and Trending Now.
-* AppBottomNavBar — complete: five tabs with rotating artwork at the center.
-* MiniPlayer — complete: standalone glass card with shared hero artwork.
-* LyricsView — in progress: auto scroll with highlighted active line.
-* QueueSheet — in progress: reorderable bottom sheet.
-* AlbumDetailPage — planned.
-* ArtistDetailPage — planned.
-* EqualizerPage — planned.
+* LibraryPage, complete: iOS style sliver layout, scan banner, album and artist grids, search.
+* FullPlayerPage, complete: glass lens over a cover carousel, circular seek on the ring, morph from the mini player, dynamic background.
+* QueueSheet, complete: history, now playing and up next in one list; tap to jump, drag to reorder, swipe to remove with undo.
+* HomePage, complete: Recently Played (from the play history), Your Artists, New Albums, Your Playlists.
+* AlbumDetailPage and ArtistDetailPage, implemented.
+* SearchPage and PlaylistPage, implemented.
+* AppBottomNavBar, complete: tabs with rotating artwork at the center, mini player row above.
+* LyricsView, in progress: auto scroll with highlighted active line.
+* EqualizerPage, planned.
 
 ## ⚙️ Getting Started
 
@@ -198,15 +203,15 @@ flutter run
 
 ```
 test/
+├── helpers/                   # FakeAudioPort, buildTestPlayerBloc, testTrack
 ├── unit/
-│   ├── domain/use_cases/      # Use case tests (pure Dart, no Flutter)
-│   ├── player/queue_manager/  # Fisher Yates shuffle, RepeatMode, skipPrevious
-│   └── library/scanner/       # Incremental diff, duration filters
-├── widget/
-│   ├── player/                # PlayerBloc plus widgets (buildWhen optimizations)
-│   └── library/               # LibraryBloc, search, filter, sort
-└── integration/
-    └── scan_and_play/         # Scan to index to playback end to end
+│   ├── player/                # Queue, PlayerBloc (progress clock, queue edits), JustAudioAdapter
+│   ├── history/               # PlayCounter, PlayHistoryRecorder, Isar data source (real engine)
+│   └── home/                  # Recently Played from the play history
+└── widget/
+    ├── player/                # Queue sheet, hero morph, artwork carousel, progress ring
+    ├── shared/                # ArtworkImage
+    └── app_shell_location_test.dart
 ```
 
 ## 📄 License
