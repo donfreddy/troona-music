@@ -21,8 +21,20 @@ import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
-Widget _animatedArtistItem(Widget child, int index, {Key? key, double slideY = 0.15, int stepMs = 22}) {
-  return EntranceFader.staggered(key: key, index: index, stepMs: stepMs, slideY: slideY, child: child);
+Widget _animatedArtistItem(
+  Widget child,
+  int index, {
+  Key? key,
+  double slideY = 0.15,
+  int stepMs = 22,
+}) {
+  return EntranceFader.staggered(
+    key: key,
+    index: index,
+    stepMs: stepMs,
+    slideY: slideY,
+    child: child,
+  );
 }
 
 class ArtistDetailPage extends StatelessWidget {
@@ -45,13 +57,19 @@ class ArtistDetailPage extends StatelessWidget {
             artworkPath: artworkPath,
             tone: DynamicBackgroundTone.immersive,
             child: switch (state) {
-              ArtistDetailInitial() || ArtistDetailLoading() => const Center(child: CircularProgressIndicator()),
+              ArtistDetailInitial() || ArtistDetailLoading() => const Center(
+                child: CircularProgressIndicator(),
+              ),
               ArtistDetailError(:final message) => ErrorView(
                 message: message,
-                onRetry: () => context.read<ArtistDetailBloc>().add(ArtistDetailRequested(int.parse(id))),
+                onRetry: () => context.read<ArtistDetailBloc>().add(
+                  ArtistDetailRequested(int.parse(id)),
+                ),
               ),
               ArtistDetailLoaded(:final data) => CustomScrollView(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 slivers: [
                   SliverPersistentHeader(
                     pinned: true,
@@ -61,11 +79,16 @@ class ArtistDetailPage extends StatelessWidget {
                       topPadding: MediaQuery.of(context).padding.top,
                     ),
                   ),
-                  if (data.albums.isNotEmpty) _ArtistAlbumsGrid(albums: data.albums),
-                  if (data.topTracks.isNotEmpty) _ArtistTopTracksList(tracks: data.topTracks),
+                  if (data.albums.isNotEmpty)
+                    _ArtistAlbumsGrid(albums: data.albums),
+                  if (data.topTracks.isNotEmpty)
+                    _ArtistTopTracksList(tracks: data.topTracks),
                   SliverPadding(
                     padding: EdgeInsets.only(
-                      bottom: AppSpacing.miniPlayerHeight + MediaQuery.of(context).padding.bottom + AppSpacing.md,
+                      bottom:
+                          AppSpacing.miniPlayerHeight +
+                          MediaQuery.of(context).padding.bottom +
+                          AppSpacing.md,
                     ),
                   ),
                 ],
@@ -83,7 +106,11 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   final List<Track> tracks;
   final double topPadding;
 
-  const _ArtistHeroDelegate({required this.artist, required this.tracks, required this.topPadding});
+  const _ArtistHeroDelegate({
+    required this.artist,
+    required this.tracks,
+    required this.topPadding,
+  });
 
   static const double _navBarHeight = 44.0;
   static const double _actionsBarHeight = 64.0;
@@ -93,28 +120,44 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
 
   @override
-  double get maxExtent => topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+  double get maxExtent =>
+      topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
 
   @override
   bool shouldRebuild(_ArtistHeroDelegate old) =>
-      old.artist != artist || old.tracks != tracks || old.topPadding != topPadding;
+      old.artist != artist ||
+      old.tracks != tracks ||
+      old.topPadding != topPadding;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
     final bottomScrimOpacity = (1 - shrinkOffset / 24).clamp(0.0, 1.0);
-    final currentHeight = (maxExtent - shrinkOffset).clamp(minExtent, maxExtent);
+    final currentHeight = (maxExtent - shrinkOffset).clamp(
+      minExtent,
+      maxExtent,
+    );
     final colors = context.colors;
 
     return RepaintBoundary(
       child: ClipRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: collapse * 20, sigmaY: collapse * 20),
+          filter: ImageFilter.blur(
+            sigmaX: collapse * 20,
+            sigmaY: collapse * 20,
+          ),
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
               border: Border(
-                bottom: BorderSide(color: colors.separator.withValues(alpha: collapse), width: 0.5),
+                bottom: BorderSide(
+                  color: colors.separator.withValues(alpha: collapse),
+                  width: 0.5,
+                ),
               ),
             ),
             child: SizedBox(
@@ -137,7 +180,11 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                               ? ArtworkImage(artist.artworkPath!)
                               : Container(
                                   color: Colors.white.withValues(alpha: .08),
-                                  child: const Icon(LucideIcons.user, color: Colors.white30, size: 80),
+                                  child: const Icon(
+                                    LucideIcons.user,
+                                    color: Colors.white30,
+                                    size: 80,
+                                  ),
                                 ),
                           Container(
                             decoration: BoxDecoration(
@@ -145,9 +192,15 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  Colors.black.withValues(alpha: .3 * bottomScrimOpacity),
-                                  Colors.black.withValues(alpha: .6 * bottomScrimOpacity),
-                                  Colors.black.withValues(alpha: .85 * bottomScrimOpacity),
+                                  Colors.black.withValues(
+                                    alpha: .3 * bottomScrimOpacity,
+                                  ),
+                                  Colors.black.withValues(
+                                    alpha: .6 * bottomScrimOpacity,
+                                  ),
+                                  Colors.black.withValues(
+                                    alpha: .85 * bottomScrimOpacity,
+                                  ),
                                 ],
                               ),
                             ),
@@ -188,7 +241,10 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             _animatedArtistItem(
                               Text(
                                 '${artist.trackCount} songs • ${artist.albumCount} albums',
-                                style: TextStyle(color: Colors.white.withValues(alpha: .7), fontSize: 15),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: .7),
+                                  fontSize: 15,
+                                ),
                               ),
                               1,
                             ),
@@ -205,7 +261,9 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                     right: 0,
                     height: _navBarHeight,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                      ),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -213,17 +271,27 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             opacity: collapse,
                             child: Text(
                               artist.name,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Positioned(
                             left: 0,
-                            child: GlassIconButton(icon: LucideIcons.arrowLeft, onTap: () => context.pop()),
+                            child: GlassIconButton(
+                              icon: LucideIcons.arrowLeft,
+                              onTap: () => context.pop(),
+                            ),
                           ),
                           Positioned(
                             right: 0,
-                            child: GlassIconButton(icon: LucideIcons.ellipsisVertical, onTap: () {}),
+                            child: GlassIconButton(
+                              icon: LucideIcons.ellipsisVertical,
+                              onTap: () {},
+                            ),
                           ),
                         ],
                       ),
@@ -237,7 +305,10 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                     bottom: 0,
                     height: _actionsBarHeight,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.sm,
+                      ),
                       child: Row(
                         children: [
                           Flexible(
@@ -247,14 +318,21 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                               onTap: () {
                                 if (tracks.isNotEmpty) {
                                   context.read<PlayerBloc>().add(
-                                    PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+                                    PlayTrackRequested(
+                                      tracks[0],
+                                      contextQueue: tracks,
+                                      contextIndex: 0,
+                                    ),
                                   );
                                 }
                               },
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
-                          GlassIconButton(icon: LucideIcons.shuffle, onTap: () {}),
+                          GlassIconButton(
+                            icon: LucideIcons.shuffle,
+                            onTap: () {},
+                          ),
                         ],
                       ),
                     ),
@@ -297,7 +375,10 @@ class _ArtistAlbumsGrid extends StatelessWidget {
             ),
             itemCount: albums.length,
             itemBuilder: (context, i) => _animatedArtistItem(
-              AlbumCard(key: ValueKey('artist-album-${albums[i].id}'), album: albums[i]),
+              AlbumCard(
+                key: ValueKey('artist-album-${albums[i].id}'),
+                album: albums[i],
+              ),
               i + 5,
               slideY: 0.04,
             ),
@@ -319,17 +400,30 @@ class _ArtistTopTracksList extends StatelessWidget {
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
-          child: Column(children: [_animatedArtistItem(const SectionHeader(title: 'Popular Songs'), 5)]),
+          child: Column(
+            children: [
+              _animatedArtistItem(
+                const SectionHeader(title: 'Popular Songs'),
+                5,
+              ),
+            ],
+          ),
         ),
         SliverList.separated(
           itemCount: tracks.length,
-          separatorBuilder: (_, _) => Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          separatorBuilder: (_, _) =>
+              Divider(height: 0.5, indent: 72, color: context.colors.separator),
           itemBuilder: (context, i) => _animatedArtistItem(
             TrackListTile(
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
-              onTap: () =>
-                  context.read<PlayerBloc>().add(PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i)),
+              onTap: () => context.read<PlayerBloc>().add(
+                PlayTrackRequested(
+                  tracks[i],
+                  contextQueue: tracks,
+                  contextIndex: i,
+                ),
+              ),
             ),
             i + 6,
           ),
