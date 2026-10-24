@@ -132,6 +132,17 @@ void main() {
       expect(state.currentTrack.id, 'a');
     });
 
+    test('start on the requested copy of a track queued twice', () async {
+      port.queue = Queue.fromTracks([track, other, track], startIndex: 2);
+      bloc.add(QueueSetRequested(port.queue!.playbackTracks, startIndex: 2));
+      await pumpEventQueue();
+      port.track.add(track);
+      port.status.add(PlaybackStatus.playing);
+      await pumpEventQueue();
+
+      expect((bloc.state as PlayerActive).queue.currentIndex, 2);
+    });
+
     test('take the track from the port queue when the event lags', () async {
       await activate();
       // The port already moved on to "b" when the event for "a" arrives.

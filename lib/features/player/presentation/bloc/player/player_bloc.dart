@@ -518,13 +518,16 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         if (event.status == PlaybackStatus.playing ||
             event.status == PlaybackStatus.paused) {
           var queue = _audioServicePort.currentQueue ?? Queue.single(track);
-          // The engine queue may still carry a transient index: align it
-          // with the track that is actually loaded.
-          final loadedIndex = queue.playbackTracks.indexWhere(
-            (t) => t.id == track.id,
-          );
-          if (loadedIndex >= 0 && loadedIndex != queue.currentIndex) {
-            queue = queue.copyWith(currentIndex: loadedIndex);
+          // Only realign when the queue names another track: looking the
+          // loaded track up by id would pick the first copy of a track
+          // queued more than once.
+          if (queue.currentTrack?.id != track.id) {
+            final loadedIndex = queue.playbackTracks.indexWhere(
+              (t) => t.id == track.id,
+            );
+            if (loadedIndex >= 0) {
+              queue = queue.copyWith(currentIndex: loadedIndex);
+            }
           }
           final restored = _restoringSnapshot;
           final targetVolume = restored?.volume ?? 1.0;

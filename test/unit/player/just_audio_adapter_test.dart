@@ -8,15 +8,26 @@ import 'package:troona/features/player/domain/entities/queue.dart';
 
 import '../../helpers/fake_player.dart';
 
-/// Scriptable stand-in for just_audio's player: [onLoad] runs inside
-/// `setAudioSources`, where the real player emits indexes while loading.
+/// Stand-in for just_audio's player, with its loading order: the previous
+/// index is re-emitted against the new sources first, then the platform
+/// reports the initial index once prepared.
 final class _FakeAudioPlayer implements AudioPlayer {
   final index = StreamController<int?>.broadcast(sync: true);
-  void Function(List<AudioSource> sources, int? initialIndex)? onLoad;
+  int? indexValue;
+
+  /// Runs at the start of each load, before the stale index.
+  void Function(int? initialIndex)? onLoad;
+
+  /// Holds the next load until completed (an error fails it).
+  Completer<void>? gate;
   Object? loadError;
+  Object? loopModeError;
+  bool playCompletes = true;
 
   @override
   Stream<int?> get currentIndexStream => index.stream;
+  @override
+  int? get currentIndex => indexValue;
   @override
   double get volume => 1;
   @override
@@ -30,13 +41,33 @@ final class _FakeAudioPlayer implements AudioPlayer {
     Duration? initialPosition,
     ShuffleOrder? shuffleOrder,
   }) async {
-    onLoad?.call(audioSources, initialIndex);
+    onLoad?.call(initialIndex);
+    index.add(indexValue);
+    final held = gate;
+    gate = null;
+    if (held != null) await held.future;
+    await Future<void>.delayed(Duration.zero);
     if (loadError case final error?) throw error;
+    indexValue = initialIndex ?? 0;
+    index.add(indexValue);
     return null;
   }
 
   @override
-  Future<void> play() async {}
+  Future<void> play() =>
+      playCompletes ? Future.value() : Completer<void>().future;
+
+  @override
+  Future<void> setLoopMode(LoopMode mode) async {
+    if (loopModeError case final error?) throw error;
+  }
+
+  @override
+  Future<void> setVolume(double volume) async {}
+  @override
+  Future<void> setSpeed(double speed) async {}
+  @override
+  Future<void> dispose() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -52,99 +83,157 @@ void main() {
   late JustAudioAdapter adapter;
   late List<String?> playing;
 
-  setUp(() async {
+  /// A fresh adapter, playing [queue] from [start] when given.
+  Future<void> setUpAdapter({List<Track>? queue, int start = 0}) async {
     player = _FakeAudioPlayer();
     adapter = JustAudioAdapter(player: player);
+    addTearDown(adapter.dispose);
     playing = [];
     adapter.currentTrackStream.listen((t) => playing.add(t?.id));
-    await adapter.setQueue([a, b], startIndex: 1);
-    player.index.add(1);
-    await pumpEventQueue();
-    playing.clear();
-  });
+    if (queue != null) {
+      await adapter.setQueue(queue, startIndex: start);
+      await pumpEventQueue();
+      playing.clear();
+    }
+  }
 
   test('the new queue is in place before the player loads it', () async {
+    await setUpAdapter(queue: [a, b], start: 1);
     Queue? seen;
-    player.onLoad = (_, _) => seen = adapter.currentQueue;
+    player.onLoad = (_) => seen = adapter.currentQueue;
 
     await adapter.setQueue([c, d]);
 
     expect(seen?.playbackTracks, [c, d]);
   });
 
-  test('indexes emitted while loading map onto the new queue', () async {
-    player.onLoad = (_, initialIndex) => player.index.add(initialIndex);
+  test('the stale index re-emitted while loading names no track', () async {
+    await setUpAdapter(queue: [a, b], start: 1);
 
+    // Index 1 is re-emitted first: against [c, d] it would mean "d".
     await adapter.setQueue([c, d]);
-
     await pumpEventQueue();
 
     expect(playing, ['c']);
   });
 
-  test(
-    'a new queue starting at the same index still changes the track',
-    () async {
-      // The player index stays 1: just_audio emits nothing.
-      await adapter.setQueue([c, d], startIndex: 1);
+  test('a new queue starting at the same index changes the track', () async {
+    await setUpAdapter(queue: [a, b], start: 1);
 
-      await pumpEventQueue();
+    await adapter.setQueue([c, d], startIndex: 1);
+    await pumpEventQueue();
 
-      expect(playing, ['d']);
-    },
-  );
+    expect(playing, ['d']);
+  });
+
+  test('shuffling keeps the current track, even for a moment', () async {
+    await setUpAdapter(queue: tracks, start: 2);
+
+    await adapter.setShuffleEnabled(true);
+    await pumpEventQueue();
+
+    expect(adapter.currentQueue?.currentTrack, c);
+    expect(playing.toSet().difference({'c'}), isEmpty);
+  });
 
   test('a failed load restores the previous queue', () async {
+    await setUpAdapter(queue: [a, b], start: 1);
     player.loadError = Exception('unsupported format');
 
     final result = await adapter.setQueue([c, d]);
+    await pumpEventQueue();
 
     expect(result.isLeft(), isTrue);
     expect(adapter.currentQueue?.playbackTracks, [a, b]);
     expect(adapter.currentQueue?.currentTrack, b);
-    await pumpEventQueue();
     expect(playing.last, 'b');
   });
 
+  test('a failed first load leaves no queue', () async {
+    await setUpAdapter();
+    player.loadError = Exception('file deleted');
+
+    final result = await adapter.setQueue([a, b]);
+    await pumpEventQueue();
+
+    expect(result.isLeft(), isTrue);
+    expect(adapter.currentQueue, isNull);
+    expect(playing.whereType<String>(), isEmpty);
+  });
+
+  test('an interrupted load does not roll back the newer one', () async {
+    await setUpAdapter(queue: [a, b]);
+    final firstLoad = player.gate = Completer<void>();
+    final first = adapter.setQueue([c]);
+    await pumpEventQueue();
+
+    await adapter.setQueue([d]);
+    firstLoad.completeError(Exception('interrupted'));
+    expect((await first).isLeft(), isTrue);
+
+    expect(adapter.currentQueue?.playbackTracks, [d]);
+  });
+
+  test(
+    'a restore keeps its queue when a setting fails after loading',
+    () async {
+      await setUpAdapter(queue: [a, b]);
+      player.loopModeError = Exception('loop mode');
+
+      final result = await adapter.restoreQueue(
+        Queue.fromTracks([c, d], startIndex: 1),
+        position: Duration.zero,
+        play: false,
+        volume: 1,
+        speed: 1,
+      );
+
+      expect(result.isLeft(), isTrue);
+      expect(adapter.currentQueue?.currentTrack, d);
+    },
+  );
+
+  test('starting a queue does not wait for playback to end', () async {
+    await setUpAdapter();
+    player.playCompletes = false;
+
+    final result = await adapter
+        .setQueue([a, b])
+        .timeout(const Duration(seconds: 1));
+
+    expect(result.isRight(), isTrue);
+  });
+
   test('a single track replaces the queue before loading', () async {
+    await setUpAdapter(queue: [a, b], start: 1);
     Queue? seen;
-    player.onLoad = (_, _) => seen = adapter.currentQueue;
+    player.onLoad = (_) => seen = adapter.currentQueue;
 
     await adapter.playTrack(c);
+    await pumpEventQueue();
 
     expect(seen?.playbackTracks, [c]);
-    await pumpEventQueue();
     expect(playing, ['c']);
   });
 
-  test('shuffling keeps the current track', () async {
-    await adapter.setShuffleEnabled(true);
-
-    expect(adapter.currentQueue?.currentTrack, b);
-    await pumpEventQueue();
-    expect(playing.toSet(), {'b'});
-  });
-
   test('a late index from the replaced playlist is ignored', () async {
+    await setUpAdapter(queue: tracks, start: 3);
     await adapter.setQueue([c]);
     await pumpEventQueue();
     playing.clear();
 
     player.index.add(3);
+    await pumpEventQueue();
 
     expect(adapter.currentQueue?.currentIndex, 0);
-    await pumpEventQueue();
     expect(playing, isEmpty);
   });
 
   test('auto-advance moves the current track', () async {
-    await adapter.setQueue(<Track>[a, b, c]);
-    await pumpEventQueue();
-    playing.clear();
+    await setUpAdapter(queue: [a, b, c]);
 
     player.index.add(1);
     player.index.add(2);
-
     await pumpEventQueue();
 
     expect(playing, ['b', 'c']);

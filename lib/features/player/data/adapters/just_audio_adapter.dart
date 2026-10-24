@@ -79,6 +79,10 @@ class JustAudioAdapter implements AudioServicePort {
     // Mirror the player's current index into the domain queue so that
     // auto-advance (gapless playback) keeps _currentQueue in sync.
     _player.currentIndexStream.listen((index) {
+      // While sources load, just_audio first re-emits the *previous* index
+      // against the new sequence: mapped onto the new queue it would name a
+      // track that is not playing. The loaded queue already has its index.
+      if (_loadsInFlight > 0) return;
       final queue = _currentQueue;
       // Out of range: a late index of the playlist being replaced.
       if (queue == null || index == null) return;
@@ -301,17 +305,22 @@ class JustAudioAdapter implements AudioServicePort {
       final nextVolume = volume.clamp(0.0, 1.0);
       final nextSpeed = speed.clamp(0.5, 2.0);
 
-      return await _loadQueue(queue, () async {
-        await _player.setAudioSources(
+      final loaded = await _loadQueue(
+        queue,
+        () => _player.setAudioSources(
           queue.playbackTracks.map(_toAudioSource).toList(),
           initialIndex: queue.currentIndex,
           initialPosition: position,
-        );
-        await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
-        await _player.setVolume(nextVolume);
-        await _player.setSpeed(nextSpeed);
-        _volumeSubject.add(nextVolume);
-      }, play: play);
+        ),
+      );
+      // After the load, not inside it: the sources are in, so a failure
+      // here must not roll the queue back.
+      await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
+      await _player.setVolume(nextVolume);
+      await _player.setSpeed(nextSpeed);
+      _volumeSubject.add(nextVolume);
+      if (play) _playInBackground();
+      return loaded;
     } on PlayerException catch (e) {
       return left(PlaybackFailure(e.message ?? 'Audio source error'));
     } catch (e, st) {
@@ -345,26 +354,54 @@ class JustAudioAdapter implements AudioServicePort {
         () => _player.moveAudioSource(oldIndex, newIndex),
       );
 
-  /// Publishes [queue] *before* [load] replaces the player's sources, for
-  /// the same reason as [_editQueue]: the indexes the player emits while
-  /// loading are mapped onto the new queue, never the old one. The previous
-  /// queue is restored if loading fails; errors go to the caller's handler.
+  /// Bumped by every load: a load that a newer one interrupted must not
+  /// touch the queue any more.
+  int _loadGeneration = 0;
+
+  /// Loads in progress; the index listener stands down meanwhile.
+  int _loadsInFlight = 0;
+
+  /// Publishes [queue] *before* [load] replaces the player's sources, so
+  /// that nothing reads the new player state against the old queue (the
+  /// lock screen, the bloc, the play history). The previous queue is
+  /// restored if loading fails; errors go to the caller's handler.
+  ///
+  /// With no previous queue (cold start) there is nothing stale to guard
+  /// against: the queue is published once loaded, so a failed first load
+  /// leaves no queue behind.
   Future<Either<Failure, Unit>> _loadQueue(
     Queue queue,
     Future<void> Function() load, {
     bool play = false,
   }) async {
+    final generation = ++_loadGeneration;
     final previous = _currentQueue;
-    _updateQueue(queue);
+    if (previous != null) _updateQueue(queue);
+    _loadsInFlight++;
     try {
       await load();
     } catch (_) {
-      if (previous != null) _updateQueue(previous);
+      if (generation == _loadGeneration && previous != null) {
+        _updateQueue(previous);
+      }
       rethrow;
+    } finally {
+      _loadsInFlight--;
     }
-    if (play) await _player.play();
+    if (generation != _loadGeneration) return right(unit);
+    if (previous == null) _updateQueue(queue);
+    if (play) _playInBackground();
     return right(unit);
   }
+
+  /// play() only completes once playback pauses or ends: awaiting it would
+  /// keep the caller (and the bloc's droppable handlers) busy for the whole
+  /// track. Its errors also reach the playback event stream.
+  void _playInBackground() => unawaited(
+    _player.play().catchError((Object e, StackTrace st) {
+      ErrorHandler.handle(e, st);
+    }),
+  );
 
   /// Applies [edit] to the domain queue *before* mutating the player.
   ///
