@@ -108,7 +108,7 @@ class _PlaylistTile extends StatelessWidget {
       context: context,
       builder: (ctx) => CupertinoAlertDialog(
         title: const Text('Supprimer la playlist'),
-        message: Text(
+        content: Text(
           'Voulez-vous vraiment supprimer "${playlist.name}" ? Cette action est irréversible.',
         ),
         actions: [
