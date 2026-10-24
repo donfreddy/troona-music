@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
@@ -80,6 +81,12 @@ void main() {
     return shown..sort((a, b) => y(a).compareTo(y(b)));
   }
 
+  /// Scrolls the history into view.
+  Future<void> revealHistory(WidgetTester tester) async {
+    await tester.drag(find.text('Title c'), const Offset(0, 300));
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
   /// Slide out, then onDismissed: each animation needs its own frames.
   Future<void> dismissFrames(WidgetTester tester) async {
     for (var i = 0; i < 8; i++) {
@@ -96,8 +103,11 @@ void main() {
     expect(find.text('Title c'), findsOneWidget);
     expect(find.text('UP NEXT • 3'), findsOneWidget);
     expect(tester.getTopLeft(find.text('Title d')).dy, greaterThan(now));
-    // The most recent play peeks in right above the current track.
-    expect(tester.getTopLeft(find.text('Title b')).dy, lessThan(now));
+    // Now playing opens at the top of the list: no history in sight.
+    final listTop = tester.getTopLeft(find.byType(CustomScrollView)).dy;
+    expect(now - listTop, lessThan(AppSpacing.trackRowHeight / 2));
+    expect(find.text('Title b').hitTestable(), findsNothing);
+    expect(find.text('HISTORY').hitTestable(), findsNothing);
 
     // Older plays are further up.
     await tester.drag(find.text('Title c'), const Offset(0, 200));
@@ -113,6 +123,7 @@ void main() {
     await pumpSheet(tester);
 
     await tester.tap(find.text('Title e'));
+    await revealHistory(tester);
     await tester.tap(find.text('Title b'));
     await tester.pump();
     expect(port.indexJumps, [4, 1]);
@@ -330,6 +341,7 @@ void main() {
 
   testWidgets('history rows are not removable', (tester) async {
     await pumpSheet(tester);
+    await revealHistory(tester);
 
     await tester.drag(find.text('Title b'), const Offset(-500, 0));
     await dismissFrames(tester);

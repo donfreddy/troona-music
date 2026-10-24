@@ -220,91 +220,81 @@ class _QueueSheetState extends State<QueueSheet> {
     final current = queue.currentIndex;
     final upNextCount = math.max(0, tracks.length - current - 1);
 
-    return LayoutBuilder(
-      builder: (context, constraints) => CustomScrollView(
-        // Slivers before [center] grow upwards: the sheet opens on the
-        // current track and the history sits above it, without measuring
-        // anything. The anchor lets the last plays peek in, so the history
-        // is discoverable.
-        center: _centerKey,
-        anchor: current == 0
-            ? 0
-            : (_historyPeek / constraints.maxHeight).clamp(0.0, 0.4),
-        slivers: [
-          if (current > 0) const _SectionHeader('History'),
-          SliverFixedExtentList(
-            itemExtent: AppSpacing.trackRowHeight,
-            delegate: SliverChildBuilderDelegate(
-              // Index 0 is next to the current track: the most recent play.
-              (_, i) => _QueueRow(
-                track: tracks[current - 1 - i],
-                dimmed: true,
-                onTap: () => _jumpTo(current - 1 - i),
-              ),
-              childCount: current,
+    return CustomScrollView(
+      // Slivers before [center] grow upwards: the sheet opens with the
+      // current track at the top and the history above it, off screen
+      // until the user scrolls up, without measuring anything.
+      center: _centerKey,
+      slivers: [
+        if (current > 0) const _SectionHeader('History'),
+        SliverFixedExtentList(
+          itemExtent: AppSpacing.trackRowHeight,
+          delegate: SliverChildBuilderDelegate(
+            // Index 0 is next to the current track: the most recent play.
+            (_, i) => _QueueRow(
+              track: tracks[current - 1 - i],
+              dimmed: true,
+              onTap: () => _jumpTo(current - 1 - i),
             ),
+            childCount: current,
           ),
-          SliverToBoxAdapter(
-            key: _centerKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const _SectionHeaderBox('Now playing'),
-                if (queue.currentTrack case final track?)
-                  _QueueRow(track: track, trailing: const _PlayingBars()),
-              ],
-            ),
+        ),
+        SliverToBoxAdapter(
+          key: _centerKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _SectionHeaderBox('Now playing'),
+              if (queue.currentTrack case final track?)
+                _QueueRow(track: track, trailing: const _PlayingBars()),
+            ],
           ),
-          _SectionHeader(switch ((upNextCount, queue.repeatMode)) {
-            (0, RepeatMode.one) => 'Repeating this track',
-            (0, RepeatMode.all) => 'Then back to the start',
-            (0, RepeatMode.off) => 'Nothing up next',
-            _ => 'Up next • $upNextCount',
-          }),
-          SliverReorderableList(
-            itemExtent: AppSpacing.trackRowHeight,
-            itemCount: upNextCount,
-            onReorderItem: (from, to) =>
-                _move(current + 1 + from, current + 1 + to),
-            proxyDecorator: (child, _, _) => Material(
-              color: context.colors.bgTertiary,
-              elevation: 8,
-              child: child,
-            ),
-            itemBuilder: (context, i) {
-              final index = current + 1 + i;
-              final track = tracks[index];
-              final key = _rowKey(tracks, index);
-              return Dismissible(
-                key: key,
-                direction: DismissDirection.endToStart,
-                background: const _RemoveBackground(),
-                // Rows have a fixed extent, so a collapse would only show
-                // the background at full height before snapping away.
-                resizeDuration: null,
-                onDismissed: (_) => _remove(index, track),
-                child: _QueueRow(
-                  track: track,
-                  onTap: () => _jumpTo(index),
-                  trailing: ReorderableDragStartListener(
-                    index: i,
-                    child: const _DragHandle(),
-                  ),
+        ),
+        _SectionHeader(switch ((upNextCount, queue.repeatMode)) {
+          (0, RepeatMode.one) => 'Repeating this track',
+          (0, RepeatMode.all) => 'Then back to the start',
+          (0, RepeatMode.off) => 'Nothing up next',
+          _ => 'Up next • $upNextCount',
+        }),
+        SliverReorderableList(
+          itemExtent: AppSpacing.trackRowHeight,
+          itemCount: upNextCount,
+          onReorderItem: (from, to) =>
+              _move(current + 1 + from, current + 1 + to),
+          proxyDecorator: (child, _, _) => Material(
+            color: context.colors.bgTertiary,
+            elevation: 8,
+            child: child,
+          ),
+          itemBuilder: (context, i) {
+            final index = current + 1 + i;
+            final track = tracks[index];
+            final key = _rowKey(tracks, index);
+            return Dismissible(
+              key: key,
+              direction: DismissDirection.endToStart,
+              background: const _RemoveBackground(),
+              // Rows have a fixed extent, so a collapse would only show
+              // the background at full height before snapping away.
+              resizeDuration: null,
+              onDismissed: (_) => _remove(index, track),
+              child: _QueueRow(
+                track: track,
+                onTap: () => _jumpTo(index),
+                trailing: ReorderableDragStartListener(
+                  index: i,
+                  child: const _DragHandle(),
                 ),
-              );
-            },
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 96),
-          ),
-        ],
-      ),
+              ),
+            );
+          },
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 96),
+        ),
+      ],
     );
   }
-
-  /// History height shown above the current track when the sheet opens:
-  /// one and a half rows.
-  static const double _historyPeek = AppSpacing.trackRowHeight * 1.5;
 
   /// Stable across moves even when a track is queued twice: the n-th
   /// occurrence of an id keeps the same key until one of them is dismissed.
