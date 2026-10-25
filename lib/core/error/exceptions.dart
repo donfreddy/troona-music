@@ -9,6 +9,11 @@ class PermissionException implements Exception {
   String toString() => 'PermissionException: $message';
 }
 
+class PermissionPermanentlyDeniedException extends PermissionException {
+  const PermissionPermanentlyDeniedException()
+      : super('Audio permission permanently denied.');
+}
+
 class ScanException implements Exception {
   final String message;
   final Object? cause;

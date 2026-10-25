@@ -45,8 +45,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
       const d = AppSettings(); // valeurs par défaut
       final settings = AppSettings(
         // Appearance
-        themeMode: AppThemeMode
-            .values[_prefs.getInt(_K.themeMode) ?? d.themeMode.index],
+        themeMode: AppThemeMode.values.firstWhere(
+          (e) => e.name == _prefs.getString(_K.themeMode),
+          orElse: () => d.themeMode,
+        ),
         useDynamicColor:
             _prefs.getBool(_K.useDynamicColor) ?? d.useDynamicColor,
         // Playback
@@ -56,8 +58,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _prefs.getBool(_K.crossfadeEnabled) ?? d.crossfadeEnabled,
         crossfadeDurationMs:
             _prefs.getInt(_K.crossfadeDurationMs) ?? d.crossfadeDurationMs,
-        crossfadeStyle: CrossfadeStyle
-            .values[_prefs.getInt(_K.crossfadeStyle) ?? d.crossfadeStyle.index],
+        crossfadeStyle: CrossfadeStyle.values.firstWhere(
+          (e) => e.name == _prefs.getString(_K.crossfadeStyle),
+          orElse: () => d.crossfadeStyle,
+        ),
         stopOnCallEnabled:
             _prefs.getBool(_K.stopOnCallEnabled) ?? d.stopOnCallEnabled,
         resumeAfterCallEnabled:
@@ -76,8 +80,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
             d.showAlbumArtInNotification,
         hapticFeedbackEnabled:
             _prefs.getBool(_K.hapticFeedbackEnabled) ?? d.hapticFeedbackEnabled,
-        glassQuality: GlassQuality
-            .values[_prefs.getInt(_K.glassQuality) ?? d.glassQuality.index],
+        glassQuality: GlassQuality.values.firstWhere(
+          (e) => e.name == _prefs.getString(_K.glassQuality),
+          orElse: () => d.glassQuality,
+        ),
         // Sleep timer
         sleepTimerEnabled:
             _prefs.getBool(_K.sleepTimerEnabled) ?? d.sleepTimerEnabled,
@@ -95,12 +101,12 @@ class SettingsRepositoryImpl implements SettingsRepository {
     try {
       await Future.wait([
         // Appearance
-        _prefs.setInt(_K.themeMode, s.themeMode.index),
+        _prefs.setString(_K.themeMode, s.themeMode.name),
         _prefs.setBool(_K.useDynamicColor, s.useDynamicColor),
         _prefs.setBool(_K.gaplessPlayback, s.gaplessPlayback),
         _prefs.setBool(_K.crossfadeEnabled, s.crossfadeEnabled),
         _prefs.setInt(_K.crossfadeDurationMs, s.crossfadeDurationMs),
-        _prefs.setInt(_K.crossfadeStyle, s.crossfadeStyle.index),
+        _prefs.setString(_K.crossfadeStyle, s.crossfadeStyle.name),
         _prefs.setBool(_K.stopOnCallEnabled, s.stopOnCallEnabled),
         _prefs.setBool(_K.resumeAfterCallEnabled, s.resumeAfterCallEnabled),
         _prefs.setBool(_K.duckAudioOnNotification, s.duckAudioOnNotification),
@@ -111,7 +117,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
           s.showAlbumArtInNotification,
         ),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
-        _prefs.setInt(_K.glassQuality, s.glassQuality.index),
+        _prefs.setString(_K.glassQuality, s.glassQuality.name),
         _prefs.setBool(_K.sleepTimerEnabled, s.sleepTimerEnabled),
         _prefs.setInt(_K.sleepTimerMinutes, s.sleepTimerMinutes),
       ]);

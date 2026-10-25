@@ -13,6 +13,12 @@ abstract final class AppPermissionHandler {
 
   static final OnAudioQuery _audioQuery = OnAudioQuery();
 
+  static bool? _cachedPermission;
+
+  /// Invalidates the cached permission result so the next [hasAudioPermission]
+  /// call re-queries the OS. Call on AppLifecycleState.resumed.
+  static void invalidateCache() => _cachedPermission = null;
+
   /// Resolves the correct [Permission] for the running platform/SDK.
   /// Async because Android SDK version requires a device info call.
   static Future<Permission> _resolvePermission() async {
@@ -49,7 +55,7 @@ abstract final class AppPermissionHandler {
 
       case PermissionStatus.permanentlyDenied:
         await openAppSettings();
-        throw const PermissionException('Audio permission permanently denied.');
+        throw const PermissionPermanentlyDeniedException();
 
       case PermissionStatus.denied:
       default:
@@ -60,18 +66,25 @@ abstract final class AppPermissionHandler {
   }
 
   /// Non-throwing check — `true` if permission is already granted.
+  ///
+  /// Result is cached in memory; call [invalidateCache] (e.g. on
+  /// AppLifecycleState.resumed) to force a fresh OS query.
   static Future<bool> hasAudioPermission() async {
+    if (_cachedPermission != null) return _cachedPermission!;
+
     final permission = await _resolvePermission();
     final status = await permission.status;
     final granted =
         status == PermissionStatus.granted ||
         status == PermissionStatus.limited;
-    if (!granted) return false;
-
-    if (Platform.isAndroid) {
-      return _audioQuery.permissionsStatus();
+    if (!granted) {
+      _cachedPermission = false;
+      return false;
     }
 
-    return true;
+    final result =
+        Platform.isAndroid ? await _audioQuery.permissionsStatus() : true;
+    _cachedPermission = result;
+    return result;
   }
 }
