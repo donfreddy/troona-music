@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,6 +46,7 @@ class _AppShellState extends State<AppShell> {
   bool _didRestoreFullPlayerRoute = false;
   String _currentLocation = '';
   GoRouter? _router;
+  StreamSubscription<String>? _noticesSub;
 
   @override
   void initState() {
@@ -62,6 +65,26 @@ class _AppShellState extends State<AppShell> {
       final hasPermission = await AppPermissionHandler.hasAudioPermission();
       if (!mounted || !hasPermission) return;
       context.read<LibraryBloc>().add(const LibraryBootstrapRequested());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _noticesSub = context.read<PlayerBloc>().notices.listen((message) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(
+              bottom: AppSpacing.bottomBlockHeight +
+                  MediaQuery.of(context).padding.bottom +
+                  8,
+              left: 12,
+              right: 12,
+            ),
+          ),
+        );
+      });
     });
   }
 
@@ -94,6 +117,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _noticesSub?.cancel();
     _router?.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
   }
