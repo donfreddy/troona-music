@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:injectable/injectable.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -53,9 +54,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   late final StreamSubscription<dynamic> _trackSub;
   late final StreamSubscription<Queue> _queueSub;
   late final StreamSubscription<double> _volumeSub;
+  late final StreamSubscription<Failure> _errorSub;
+  final StreamController<String> _noticesController = StreamController<String>.broadcast();
+
+  /// One-shot error notices (e.g. unplayable track). Listen in the shell
+  /// to show a toast. Does not affect player state.
+  Stream<String> get notices => _noticesController.stream;
+
   int? _lastPersistedPositionSecond;
   PlaybackSessionSnapshot? _restoringSnapshot;
-  Timer? _recoveryTimer;
   bool _isManualSeeking = false;
 
   /// Track explicitly asked for (tap, swipe, queue start) while loading.
@@ -133,6 +140,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
     _volumeSub = audioServicePort.volumeStream.listen(
       (vol) => add(_VolumeUpdated(vol)),
+    );
+    _errorSub = audioServicePort.errorStream.listen(
+      (f) => add(_AudioErrorOccurred(f.message)),
     );
 
     // ── Enregistrement des handlers ───────────────────────────────────────
@@ -497,6 +507,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         await _moveQueueItem(
           MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
         );
+      case TrackQueuedNext(:final track):
+        final queue = _audioServicePort.currentQueue;
+        if (queue == null) {
+          add(PlayTrackRequested(track));
+          return;
+        }
+        await _addToQueue(
+          AddToQueueParams(track: track, index: queue.currentIndex + 1),
+        );
     }
   }
 
@@ -652,26 +671,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _onAudioError(_AudioErrorOccurred event, Emitter<PlayerState> emit) {
-    final currentState = state;
-    emit(
-      PlayerError(
-        message: event.message,
-        lastTrack: switch (currentState) {
-          PlayerActive(:final currentTrack) => currentTrack,
-          PlayerLoading(:final track) => track,
-          _ => null,
-        },
-        lastQueue: currentState is PlayerActive ? currentState.queue : null,
-      ),
-    );
-
-    // Smart Recovery: if we were playing or trying to play, try to skip to next
-    if (currentState is PlayerActive && currentState.queue.hasNext) {
-      _recoveryTimer?.cancel();
-      _recoveryTimer = Timer(2.seconds, () {
-        if (!isClosed) add(const SkipNextRequested());
-      });
+    if (!_noticesController.isClosed) {
+      _noticesController.add(event.message);
     }
+    // just_audio's maxSkipsOnError handles recovery: no timer, no state replace.
   }
 
   void _persistPositionIfNeeded(PlayerActive state) {
@@ -752,7 +755,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   @override
   Future<void> close() async {
-    _recoveryTimer?.cancel();
     await Future.wait([
       _positionSub.cancel(),
       _bufferedSub.cancel(),
@@ -761,7 +763,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       _trackSub.cancel(),
       _queueSub.cancel(),
       _volumeSub.cancel(),
+      _errorSub.cancel(),
     ]);
+    await _noticesController.close();
     // Events queued before close can still emit (and hit onChange) while
     // super.close() drains them, so the notifier must outlive it.
     await super.close();

@@ -22,12 +22,16 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   AudioHandlerImpl(this._port) {
     // Forward playback status to the audio_service playback state stream.
+    // Position is snapshotted here (not per tick) so the OS extrapolates.
     _port.statusStream.listen((status) {
+      final playing = status.name == 'playing';
       playbackState.add(
         playbackState.value.copyWith(
-          playing: status.name == 'playing',
+          playing: playing,
           processingState: _mapStatus(status.name),
-          controls: _buildControls(),
+          updatePosition: _port.currentPosition,
+          controls: _buildControls(playing),
+          androidCompactActionIndices: const [0, 1, 2],
           systemActions: const {
             MediaAction.seek,
             MediaAction.seekForward,
@@ -40,11 +44,6 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
     // Forward the current track to the OS media-item metadata stream.
     _port.currentTrackStream.listen((track) {
       if (track != null) mediaItem.add(_trackToMediaItem(track));
-    });
-
-    // Forward position so the lock-screen scrubber stays in sync.
-    _port.positionStream.listen((pos) {
-      playbackState.add(playbackState.value.copyWith(updatePosition: pos));
     });
 
     // Forward the queue so the OS notification can show track count.
@@ -64,10 +63,22 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> pause() => _port.pause();
 
   @override
-  Future<void> stop() => _port.stop();
+  Future<void> stop() async {
+    await _port.stop();
+    playbackState.add(
+      playbackState.value.copyWith(
+        processingState: AudioProcessingState.idle,
+      ),
+    );
+  }
 
   @override
-  Future<void> seek(Duration position) => _port.seekTo(position);
+  Future<void> seek(Duration position) async {
+    await _port.seekTo(position);
+    playbackState.add(
+      playbackState.value.copyWith(updatePosition: position),
+    );
+  }
 
   @override
   Future<void> skipToNext() => _port.skipToNext();
@@ -121,10 +132,9 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   };
 
   /// Returns the media controls shown in the OS notification.
-  List<MediaControl> _buildControls() => const [
+  List<MediaControl> _buildControls(bool playing) => [
     MediaControl.skipToPrevious,
-    MediaControl.pause,
-    MediaControl.play,
+    if (playing) MediaControl.pause else MediaControl.play,
     MediaControl.skipToNext,
   ];
 }

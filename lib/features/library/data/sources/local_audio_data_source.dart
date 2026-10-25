@@ -45,7 +45,6 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     'wav',
     'ogg',
     'opus',
-    'wma',
   };
   static const _blockedPathFragments = {
     '/alarms/',

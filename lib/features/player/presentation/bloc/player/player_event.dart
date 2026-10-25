@@ -153,3 +153,8 @@ final class _AudioErrorOccurred extends PlayerEvent {
   final String message;
   const _AudioErrorOccurred(this.message);
 }
+
+final class TrackQueuedNext extends QueueEditEvent {
+  final Track track;
+  const TrackQueuedNext(this.track);
+}

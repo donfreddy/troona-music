@@ -36,6 +36,9 @@ abstract interface class AudioServicePort {
   /// Current volume (0.0 – 1.0).
   Stream<double> get volumeStream;
 
+  /// Errors raised while playing, after the load call returned.
+  Stream<Failure> get errorStream;
+
   // ── Synchronous snapshots ────────────────────────────────────────────────────
 
   PlaybackStatus get currentStatus;
