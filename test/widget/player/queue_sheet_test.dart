@@ -293,12 +293,11 @@ void main() {
     port.status.addError('decoder failure');
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(bloc.state, isA<PlayerError>());
+    // Errors are now surfaced as notices, not as a PlayerError state:
+    // the queue sheet stays visible and the state remains PlayerActive.
+    expect(bloc.state, isA<PlayerActive>());
     expect(find.text('Title e'), findsOneWidget);
     expect(find.text('UP NEXT • 3'), findsOneWidget);
-
-    // Let the bloc's recovery skip run.
-    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('the empty up next header follows the repeat mode', (
