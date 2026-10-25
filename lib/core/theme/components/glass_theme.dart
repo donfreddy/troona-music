@@ -94,28 +94,29 @@ typedef GlassQuality = troona_settings.GlassQuality;
 /// Blur sigmas are in logical pixels; multiply by [devicePixelRatio] for the
 /// equivalent UIKit blur radius.
 abstract final class GlassTheme {
-  /// Global quality override set by [overrideQuality].
+  /// Quality override set by [overrideQuality] (from user settings).
   static GlassQuality? _override;
+
+  /// Tier detected at startup by [GlassTier.detect].
+  static GlassQuality _detectedTier = GlassQuality.high;
+
+  /// Called once from [configureDependencies] with the hardware-detected tier.
+  static void setDetectedTier(GlassQuality tier) => _detectedTier = tier;
 
   /// Overrides the auto-detected quality for all surfaces.
   ///
-  /// Pass `null` to re-enable auto-detection.
+  /// Pass `null` to re-enable auto-detection (i.e. user chose [GlassQuality.auto]).
   /// Typically called from [SettingsCubit.setGlassQuality].
   static void overrideQuality(GlassQuality? quality) => _override = quality;
 
   /// Resolves the effective [GlassQuality] for [ctx].
   ///
-  /// Priority: explicit [q] argument > [_override] > auto-detection heuristic.
+  /// Priority: explicit [q] argument > [_override] > [_detectedTier].
+  /// [GlassQuality.auto] is never returned; it always falls through to detection.
   static GlassQuality _resolveQuality(BuildContext ctx, [GlassQuality? q]) {
-    if (q != null) return q;
-    if (_override != null) return _override!;
-
-    final mq = MediaQuery.of(ctx);
-    final shortest = mq.size.shortestSide;
-    // Low-tier heuristic: covers most Android entry-level devices and older
-    // iPhones (SE 1st gen has shortestSide = 320).
-    final lowTier = mq.devicePixelRatio < 2.0 || shortest < 360;
-    return lowTier ? GlassQuality.low : GlassQuality.high;
+    if (q != null && q != GlassQuality.auto) return q;
+    if (_override != null && _override != GlassQuality.auto) return _override!;
+    return _detectedTier;
   }
 
   // ── Public surface accessors ─────────────────────────────────────────────
@@ -128,8 +129,8 @@ abstract final class GlassTheme {
       (_, GlassQuality.off) => isDark ? _cardOffDark : _cardOffLight,
       (true, GlassQuality.low) => _cardLowDark,
       (false, GlassQuality.low) => _cardLowLight,
-      (true, GlassQuality.high) => _cardDark,
-      (false, GlassQuality.high) => _cardLight,
+      (true, _) => _cardDark,
+      (false, _) => _cardLight,
     };
   }
 
@@ -144,8 +145,8 @@ abstract final class GlassTheme {
       (_, GlassQuality.off) => isDark ? _cardOffDark : _cardOffLight,
       (true, GlassQuality.low) => _miniPlayerLowDark,
       (false, GlassQuality.low) => _miniPlayerLowLight,
-      (true, GlassQuality.high) => _miniPlayerDark,
-      (false, GlassQuality.high) => _miniPlayerLight,
+      (true, _) => _miniPlayerDark,
+      (false, _) => _miniPlayerLight,
     };
   }
 
@@ -160,8 +161,8 @@ abstract final class GlassTheme {
       (_, GlassQuality.off) => isDark ? _cardOffDark : _cardOffLight,
       (true, GlassQuality.low) => _nowPlayingLowDark,
       (false, GlassQuality.low) => _nowPlayingLowLight,
-      (true, GlassQuality.high) => _nowPlayingDark,
-      (false, GlassQuality.high) => _nowPlayingLight,
+      (true, _) => _nowPlayingDark,
+      (false, _) => _nowPlayingLight,
     };
   }
 
@@ -176,8 +177,8 @@ abstract final class GlassTheme {
       (_, GlassQuality.off) => isDark ? _sheetOffDark : _sheetOffLight,
       (true, GlassQuality.low) => _sheetLowDark,
       (false, GlassQuality.low) => _sheetLowLight,
-      (true, GlassQuality.high) => _sheetDark,
-      (false, GlassQuality.high) => _sheetLight,
+      (true, _) => _sheetDark,
+      (false, _) => _sheetLight,
     };
   }
 

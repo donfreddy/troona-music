@@ -5,7 +5,7 @@ enum AppThemeMode { system, light, dark, amoled }
 enum CrossfadeStyle { linear, equalPower, dip }
 
 /// Global glass quality to balance fidelity vs performance.
-enum GlassQuality { high, low, off }
+enum GlassQuality { auto, high, low, off }
 
 /// Minimal, user-facing settings for v1.0.
 class AppSettings extends Equatable {
@@ -53,7 +53,7 @@ class AppSettings extends Equatable {
     // UI
     this.showAlbumArtInNotification = true,
     this.hapticFeedbackEnabled = true,
-    this.glassQuality = GlassQuality.high,
+    this.glassQuality = GlassQuality.auto,
     // Sleep timer
     this.sleepTimerEnabled = false,
     this.sleepTimerMinutes = 30,

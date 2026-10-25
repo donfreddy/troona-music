@@ -12,6 +12,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/error_view.dart';
@@ -48,52 +49,50 @@ class ArtistDetailPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: BlocBuilder<ArtistDetailBloc, ArtistDetailState>(
         builder: (context, state) {
-          final artworkPath = switch (state) {
-            ArtistDetailLoaded(:final data) => data.artist.artworkPath,
-            _ => null,
-          };
-
-          return DynamicBackground(
-            artworkPath: artworkPath,
-            tone: DynamicBackgroundTone.immersive,
-            child: switch (state) {
-              ArtistDetailInitial() || ArtistDetailLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              ArtistDetailError(:final message) => ErrorView(
-                message: message,
-                onRetry: () => context.read<ArtistDetailBloc>().add(
-                  ArtistDetailRequested(int.parse(id)),
+          return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+            builder: (_, palette) => DynamicBackground(
+              colorA: palette.backgroundColorA,
+              colorB: palette.backgroundColorB,
+              tone: DynamicBackgroundTone.immersive,
+              child: switch (state) {
+                ArtistDetailInitial() || ArtistDetailLoading() => const Center(
+                  child: CircularProgressIndicator(),
                 ),
-              ),
-              ArtistDetailLoaded(:final data) => CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
+                ArtistDetailError(:final message) => ErrorView(
+                  message: message,
+                  onRetry: () => context.read<ArtistDetailBloc>().add(
+                    ArtistDetailRequested(int.parse(id)),
+                  ),
                 ),
-                slivers: [
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _ArtistHeroDelegate(
-                      artist: data.artist,
-                      tracks: data.topTracks,
-                      topPadding: MediaQuery.of(context).padding.top,
-                    ),
+                ArtistDetailLoaded(:final data) => CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  if (data.albums.isNotEmpty)
-                    _ArtistAlbumsGrid(albums: data.albums),
-                  if (data.topTracks.isNotEmpty)
-                    _ArtistTopTracksList(tracks: data.topTracks),
-                  SliverPadding(
-                    padding: EdgeInsets.only(
-                      bottom:
-                          AppSpacing.miniPlayerHeight +
-                          MediaQuery.of(context).padding.bottom +
-                          AppSpacing.md,
+                  slivers: [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _ArtistHeroDelegate(
+                        artist: data.artist,
+                        tracks: data.topTracks,
+                        topPadding: MediaQuery.of(context).padding.top,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            },
+                    if (data.albums.isNotEmpty)
+                      _ArtistAlbumsGrid(albums: data.albums),
+                    if (data.topTracks.isNotEmpty)
+                      _ArtistTopTracksList(tracks: data.topTracks),
+                    SliverPadding(
+                      padding: EdgeInsets.only(
+                        bottom:
+                            AppSpacing.miniPlayerHeight +
+                            MediaQuery.of(context).padding.bottom +
+                            AppSpacing.md,
+                      ),
+                    ),
+                  ],
+                ),
+              },
+            ),
           );
         },
       ),

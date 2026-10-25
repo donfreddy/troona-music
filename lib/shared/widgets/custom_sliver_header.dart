@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 
@@ -90,103 +91,104 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
     final theme = Theme.of(context);
     final largeTitleBottom = bottomHeight + AppSpacing.sm;
 
-    return RepaintBoundary(
-      child: ClipRect(
-        child: BackdropFilter(
-          // Le blur s'intensifie au fil du collapse
-          filter: ImageFilter.blur(
-            sigmaX: collapse * 20,
-            sigmaY: collapse * 20,
+    final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+
+    final content = DecoratedBox(
+      decoration: BoxDecoration(
+        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator.withValues(alpha: collapse),
+            width: 0.5,
           ),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              // Fond transparent quand déplié, glassmorphism quand replié
-              color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
-              border: Border(
-                bottom: BorderSide(
-                  color: colors.separator.withValues(alpha: collapse),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SizedBox(
-              height: currentHeight,
+        ),
+      ),
+      child: SizedBox(
+        height: currentHeight,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // ── Compact nav bar (toujours présente) ──────────
+            Positioned(
+              top: topPadding,
+              left: 0,
+              right: 0,
+              height: _navBarHeight,
               child: Stack(
-                clipBehavior: Clip.hardEdge,
+                alignment: Alignment.center,
                 children: [
-                  // ── Compact nav bar (toujours présente) ──────────
-                  Positioned(
-                    top: topPadding,
-                    left: 0,
-                    right: 0,
-                    height: _navBarHeight,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Titre compact — apparaît en fadant au collapse
-                        Opacity(
-                          opacity: collapse,
-                          child: Text(
-                            title,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: colors.labelPrimary,
-                            ),
-                          ),
-                        ),
-
-                        // Actions à droite
-                        if (actions.isNotEmpty)
-                          Positioned(
-                            right: AppSpacing.lg,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: actions,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // ── Large title — disparaît en fadant au collapse ──
-                  Positioned(
-                    left: AppSpacing.lg,
-                    right: AppSpacing.lg,
-                    bottom: largeTitleBottom,
-                    child: Opacity(
-                      opacity: (1 - collapse * 2).clamp(0.0, 1.0),
-                      child: Transform.translate(
-                        // Glisse vers le haut en se repliant
-                        offset: Offset(0, -shrinkOffset * 0.3),
-                        child: Text(
-                          title,
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            color: colors.labelPrimary,
-                          ),
-                        ),
+                  // Titre compact — apparaît en fadant au collapse
+                  Opacity(
+                    opacity: collapse,
+                    child: Text(
+                      title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: colors.labelPrimary,
                       ),
                     ),
                   ),
 
-                  // ── Bottom (search bar, segment control) ─────────
-                  if (bottom != null)
+                  // Actions à droite
+                  if (actions.isNotEmpty)
                     Positioned(
-                      left: AppSpacing.lg,
                       right: AppSpacing.lg,
-                      bottom: 0,
-                      height: bottomHeight,
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: bottom!,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: actions,
                       ),
                     ),
                 ],
               ),
             ),
-          ),
+
+            // ── Large title — disparaît en fadant au collapse ──
+            Positioned(
+              left: AppSpacing.lg,
+              right: AppSpacing.lg,
+              bottom: largeTitleBottom,
+              child: Opacity(
+                opacity: (1 - collapse * 2).clamp(0.0, 1.0),
+                child: Transform.translate(
+                  // Glisse vers le haut en se repliant
+                  offset: Offset(0, -shrinkOffset * 0.3),
+                  child: Text(
+                    title,
+                    style: theme.textTheme.displayLarge?.copyWith(
+                      color: colors.labelPrimary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Bottom (search bar, segment control) ─────────
+            if (bottom != null)
+              Positioned(
+                left: AppSpacing.lg,
+                right: AppSpacing.lg,
+                bottom: 0,
+                height: bottomHeight,
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: bottom!,
+                  ),
+                ),
+              ),
+          ],
         ),
+      ),
+    );
+
+    return RepaintBoundary(
+      child: ClipRect(
+        child: blurSigma > 0
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                child: content,
+              )
+            : content,
       ),
     );
   }

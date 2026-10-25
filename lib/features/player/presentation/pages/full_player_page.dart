@@ -11,6 +11,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
@@ -356,10 +357,13 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                     return Stack(
                       children: [
                         // Dynamic background
-                        DynamicBackground(
-                          artworkPath: track?.artworkPath,
-                          tone: DynamicBackgroundTone.immersive,
-                          child: const SizedBox.expand(),
+                        BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+                          builder: (_, palette) => DynamicBackground(
+                            colorA: palette.backgroundColorA,
+                            colorB: palette.backgroundColorB,
+                            tone: DynamicBackgroundTone.immersive,
+                            child: const SizedBox.expand(),
+                          ),
                         ),
 
                         // Scrollable content

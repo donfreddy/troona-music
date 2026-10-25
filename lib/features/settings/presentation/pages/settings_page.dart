@@ -76,7 +76,7 @@ class _SettingsView extends StatelessWidget {
               SegmentedRow<GlassQuality>(
                 label: 'Glass quality',
                 values: GlassQuality.values,
-                labels: const ['High', 'Low', 'Off'],
+                labels: const ['Auto', 'High', 'Low', 'Off'],
                 selected: settings.glassQuality,
                 onChanged: cubit.setGlassQuality,
               ),

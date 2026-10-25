@@ -37,7 +37,7 @@ class LibrarySegmentControl extends StatelessWidget {
       padding: const EdgeInsets.only(top: AppSpacing.sm),
       child: GlassCard(
         config: GlassConfig(
-          blurSigma: baseConfig.blurSigma,
+          blurSigma: 0,
           fill: baseConfig.fill,
           border: baseConfig.border,
           highlight: baseConfig.highlight,

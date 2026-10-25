@@ -678,9 +678,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _persistPositionIfNeeded(PlayerActive state) {
-    final second = _progress.value.position.inSeconds;
-    if (_lastPersistedPositionSecond == second) return;
-    _lastPersistedPositionSecond = second;
+    final bucket = _progress.value.position.inSeconds ~/ 5;
+    if (_lastPersistedPositionSecond == bucket) return;
+    _lastPersistedPositionSecond = bucket;
     _persistSession(state);
   }
 

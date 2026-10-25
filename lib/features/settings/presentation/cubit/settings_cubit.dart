@@ -91,7 +91,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       _update((s) => s.copyWith(hapticFeedbackEnabled: value));
 
   Future<void> setGlassQuality(GlassQuality quality) {
-    glass.GlassTheme.overrideQuality(glass.GlassQuality.values[quality.index]);
+    glass.GlassTheme.overrideQuality(
+      quality == glass.GlassQuality.auto ? null : quality,
+    );
     return _update((s) => s.copyWith(glassQuality: quality));
   }
 

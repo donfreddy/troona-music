@@ -1,24 +1,25 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:palette_generator_master/palette_generator_master.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 
 enum DynamicBackgroundTone { ambient, immersive }
 
-/// Extracts the dominant color from the current artwork and paints a static
-/// glow derived from the cover, cross-fading only when the artwork changes.
+/// Paints a two-color glow background, cross-fading when [colorA]/[colorB]
+/// change. Colors are computed externally (e.g. by [TrackPaletteCubit]) so
+/// this widget does no palette extraction and never touches the UI isolate.
 ///
-/// The glow is deliberately static: a continuously animated background forces
-/// every [BackdropFilter] above it to re-blur on each frame.
+/// The glow is deliberately static between track changes: a continuously
+/// animated background forces every [BackdropFilter] above it to re-blur
+/// on each frame.
 class DynamicBackground extends StatefulWidget {
-  final String? artworkPath;
+  final Color? colorA;
+  final Color? colorB;
   final Widget child;
   final DynamicBackgroundTone tone;
 
   const DynamicBackground({
     super.key,
-    required this.artworkPath,
+    required this.colorA,
+    required this.colorB,
     required this.child,
     this.tone = DynamicBackgroundTone.ambient,
   });
@@ -31,145 +32,70 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     with SingleTickerProviderStateMixin {
   static const _defaultColorA = ColorPrimitives.ambientTop;
   static const _defaultColorB = ColorPrimitives.ambientEdge;
-  static const _maxPaletteCacheEntries = 48;
-  static final Map<String, _CachedPalette> _paletteCache = {};
 
-  late AnimationController _paletteCtrl;
-  Color _fromColorA = _defaultColorA;
-  Color _fromColorB = _defaultColorB;
-  Color _toColorA = _defaultColorA;
-  Color _toColorB = _defaultColorB;
-  int _paletteRequestId = 0;
+  late AnimationController _ctrl;
+  Color _fromA = _defaultColorA;
+  Color _fromB = _defaultColorB;
+  Color _toA = _defaultColorA;
+  Color _toB = _defaultColorB;
 
   @override
   void initState() {
     super.initState();
-    // Matches the 300 to 400 ms tint cross-fade of the reference.
-    _paletteCtrl = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 380),
     )..value = 1;
-    if (widget.artworkPath == null) {
-      _setPaletteImmediately(_defaultColorA, _defaultColorB);
-    } else {
-      _hydrateOrExtract(widget.artworkPath!);
-    }
+    final a = widget.colorA ?? _defaultColorA;
+    final b = widget.colorB ?? _defaultColorB;
+    _fromA = a;
+    _fromB = b;
+    _toA = a;
+    _toB = b;
   }
 
   @override
   void didUpdateWidget(DynamicBackground old) {
     super.didUpdateWidget(old);
-    if (old.artworkPath != widget.artworkPath) {
-      if (widget.artworkPath == null) {
-        _paletteRequestId++;
-        _animatePaletteTo(_defaultColorA, _defaultColorB);
-        return;
-      }
-      _hydrateOrExtract(widget.artworkPath!);
+    final newA = widget.colorA ?? _defaultColorA;
+    final newB = widget.colorB ?? _defaultColorB;
+    final oldA = old.colorA ?? _defaultColorA;
+    final oldB = old.colorB ?? _defaultColorB;
+    if (newA != oldA || newB != oldB) {
+      _animateTo(newA, newB);
     }
   }
 
-  void _hydrateOrExtract(String path) {
-    final cached = _paletteCache[_cacheKey(path)];
-    if (cached != null) {
-      _setPaletteImmediately(cached.colorA, cached.colorB);
-      return;
-    }
-    _extractColor(path);
-  }
-
-  Future<void> _extractColor(String path) async {
-    final requestId = ++_paletteRequestId;
-    try {
-      final palette = await PaletteGeneratorMaster.fromImageProvider(
-        FileImage(File(path)),
-        size: const Size(64, 64), // Smaller = faster and more "averaged"
-      );
-
-      // Strategy: Look for the most representative color
-      // but saturated enough not to be grey.
-      final primaryColor =
-          palette.vibrantColor?.color ??
-          palette.dominantColor?.color ??
-          const Color(0xFF1A0533);
-
-      final secondaryColor =
-          palette.darkVibrantColor?.color ??
-          palette.mutedColor?.color ??
-          primaryColor;
-
-      // Function to harmonize the color without denaturing it
-      Color adapt(Color c, {required bool isTop}) {
-        final hsl = HSLColor.fromColor(c);
-        // Keep the Hue intact!
-        // Just adjust saturation to make it "pop"
-        // and lightness to keep the background dark (readability)
-        return hsl
-            .withSaturation((hsl.saturation * 1.1).clamp(0.4, 0.9))
-            .withLightness(isTop ? 0.25 : 0.15)
-            .toColor();
-      }
-
-      final top1 = adapt(primaryColor, isTop: true);
-      final top2 = adapt(secondaryColor, isTop: false);
-
-      if (!mounted || requestId != _paletteRequestId) return;
-      _rememberPalette(path, top1, top2);
-      _animatePaletteTo(top1, top2);
-    } catch (_) {
-      /* inaccessible file or empty palette */
-    }
-  }
-
-  void _setPaletteImmediately(Color colorA, Color colorB) {
-    _fromColorA = colorA;
-    _fromColorB = colorB;
-    _toColorA = colorA;
-    _toColorB = colorB;
-    _paletteCtrl.value = 1;
-  }
-
-  void _rememberPalette(String path, Color colorA, Color colorB) {
-    final key = _cacheKey(path);
-    _paletteCache[key] = _CachedPalette(colorA: colorA, colorB: colorB);
-    if (_paletteCache.length > _maxPaletteCacheEntries) {
-      _paletteCache.remove(_paletteCache.keys.first);
-    }
-  }
-
-  String _cacheKey(String path) => '${widget.tone.name}|$path';
-
-  void _animatePaletteTo(Color nextA, Color nextB) {
-    // Take a snapshot of the current animated colors to use as a starting point for the next transition.
-    // This prevents "jumps" if a new artwork is loaded before the previous animation finished.
-    final currentA = Color.lerp(_fromColorA, _toColorA, _paletteCtrl.value)!;
-    final currentB = Color.lerp(_fromColorB, _toColorB, _paletteCtrl.value)!;
+  void _animateTo(Color nextA, Color nextB) {
+    final t = Curves.easeInOutCubic.transform(_ctrl.value);
+    final currentA = Color.lerp(_fromA, _toA, t)!;
+    final currentB = Color.lerp(_fromB, _toB, t)!;
     setState(() {
-      _fromColorA = currentA;
-      _fromColorB = currentB;
-      _toColorA = nextA;
-      _toColorB = nextB;
+      _fromA = currentA;
+      _fromB = currentB;
+      _toA = nextA;
+      _toB = nextB;
     });
-    _paletteCtrl
+    _ctrl
       ..reset()
       ..forward();
   }
 
   @override
   void dispose() {
-    _paletteCtrl.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _paletteCtrl,
+      animation: _ctrl,
       builder: (_, child) {
         final immersive = widget.tone == DynamicBackgroundTone.immersive;
-        final paletteT = Curves.easeInOutCubic.transform(_paletteCtrl.value);
-        final colorA = Color.lerp(_fromColorA, _toColorA, paletteT)!;
-        final colorB = Color.lerp(_fromColorB, _toColorB, paletteT)!;
+        final t = Curves.easeInOutCubic.transform(_ctrl.value);
+        final colorA = Color.lerp(_fromA, _toA, t)!;
+        final colorB = Color.lerp(_fromB, _toB, t)!;
         const leftCenter = Alignment(-1.1, -1.02);
         const rightCenter = Alignment(1.08, -0.98);
         const bridgeCenter = Alignment(0, -1.14);
@@ -250,11 +176,4 @@ class _DynamicBackgroundState extends State<DynamicBackground>
       child: widget.child,
     );
   }
-}
-
-final class _CachedPalette {
-  final Color colorA;
-  final Color colorB;
-
-  const _CachedPalette({required this.colorA, required this.colorB});
 }

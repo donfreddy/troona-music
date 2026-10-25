@@ -220,15 +220,10 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             body: Stack(
               children: [
                 Positioned.fill(
-                  child: BlocSelector<PlayerBloc, PlayerState, String?>(
-                    selector: (s) => switch (s) {
-                      PlayerActive(:final currentTrack) =>
-                        currentTrack.artworkPath,
-                      PlayerLoading(:final track) => track.artworkPath,
-                      _ => null,
-                    },
-                    builder: (_, artworkPath) => DynamicBackground(
-                      artworkPath: artworkPath,
+                  child: BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+                    builder: (_, palette) => DynamicBackground(
+                      colorA: palette.backgroundColorA,
+                      colorB: palette.backgroundColorB,
                       tone: DynamicBackgroundTone.ambient,
                       child: const SizedBox.expand(),
                     ),

@@ -457,50 +457,37 @@ class _MiniPlayerProgressFill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<PlaybackProgress>(
-      valueListenable: context.read<PlayerBloc>().progress,
-      builder: (context, progress, _) {
-        return TweenAnimationBuilder<double>(
-          tween: Tween<double>(end: progress.ratio),
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.linear,
-          builder: (context, animatedProgress, _) {
-            if (animatedProgress <= 0) return const SizedBox.shrink();
-
-            return Align(
-              alignment: Alignment.centerLeft,
-              child: FractionallySizedBox(
-                widthFactor: animatedProgress <= 0 ? 0.02 : animatedProgress,
-                heightFactor: 1,
-                child: ColoredBox(
-                  color: progressTint,
-                  // decoration: BoxDecoration(
-                  //   gradient: LinearGradient(
-                  //     begin: Alignment.centerLeft,
-                  //     end: Alignment.centerRight,
-                  //     colors: [
-                  //       // progressTint.withValues(alpha: .42),
-                  //       // progressTint.withValues(alpha: .28),
-                  //       progressTint.withValues(alpha: .14),
-                  //     ],
-                  //   ),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: progressTint.withValues(alpha: .18),
-                  //     blurRadius: 18,
-                  //     spreadRadius: 2,
-                  //   ),
-                  // ],
-                  //),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            );
-          },
-        );
-      },
+    return RepaintBoundary(
+      child: ValueListenableBuilder<PlaybackProgress>(
+        valueListenable: context.read<PlayerBloc>().progress,
+        builder: (_, p, _) => CustomPaint(
+          painter: _FillPainter(
+            ratio: (p.ratio * 200).round() / 200,
+            tint: progressTint,
+          ),
+        ),
+      ),
     );
   }
+}
+
+class _FillPainter extends CustomPainter {
+  final double ratio;
+  final Color tint;
+
+  const _FillPainter({required this.ratio, required this.tint});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (ratio <= 0) return;
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width * ratio, size.height),
+      Paint()..color = tint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_FillPainter old) => old.ratio != ratio || old.tint != tint;
 }
 
 void _openFullPlayer(BuildContext context) {
