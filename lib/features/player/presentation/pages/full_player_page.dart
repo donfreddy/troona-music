@@ -567,21 +567,19 @@ class _TopBar extends StatelessWidget {
               Navigator.pop(context);
               context.read<LikesCubit>().toggle(state.currentTrack);
             },
-            child: Text(
-              isLiked ? 'Retirer des Titres likés' : 'Ajouter aux Titres likés',
-            ),
+            child: Text(isLiked ? 'Unlike' : 'Like'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               showAddToPlaylistSheet(context, state.currentTrack);
             },
-            child: const Text('Ajouter à une playlist…'),
+            child: const Text('Add to Playlist...'),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Annuler'),
+          child: const Text('Cancel'),
         ),
       ),
     );

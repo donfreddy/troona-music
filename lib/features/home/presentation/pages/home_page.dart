@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -10,6 +12,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -240,22 +243,33 @@ class _HomeHeader extends StatelessWidget {
                   AppSpacing.lg,
                   AppSpacing.xl,
                 ),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _greeting,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _greeting,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Welcome back to your music',
+                            style: TextStyle(
+                              color: context.colors.labelSecondary,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      'Welcome back to your music',
-                      style: TextStyle(
-                        color: context.colors.labelSecondary,
-                        fontSize: 18,
-                      ),
+                    GlassIconButton(
+                      icon: LucideIcons.settings,
+                      onTap: () => context.pushNamed(AppRoute.settings),
                     ),
                   ],
                 ),

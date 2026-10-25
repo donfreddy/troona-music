@@ -4,7 +4,6 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section_header.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
-import 'package:troona/features/settings/presentation/widgets/slider_tile.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -49,45 +48,8 @@ class _SettingsView extends StatelessWidget {
           ),
           SliverList(
             delegate: SliverChildListDelegate([
-              // Appearance
-              SettingsSectionHeader('Appearance'),
-              SegmentedRow<AppThemeMode>(
-                label: 'Theme',
-                values: AppThemeMode.values,
-                labels: const ['System', 'Light', 'Dark', 'AMOLED'],
-                selected: settings.themeMode,
-                onChanged: cubit.setThemeMode,
-              ),
-              SwitchListTile(
-                title: const Text('Dynamic color (Material You)'),
-                value: settings.useDynamicColor,
-                onChanged: cubit.setUseDynamicColor,
-              ),
-
               // Playback
               SettingsSectionHeader('Playback'),
-              SwitchListTile(
-                title: const Text('Gapless playback'),
-                value: settings.gaplessPlayback,
-                onChanged: cubit.setGaplessPlayback,
-              ),
-              SwitchListTile(
-                title: const Text('Crossfade'),
-                subtitle: Text('${settings.crossfadeDurationMs ~/ 1000} s'),
-                value: settings.crossfadeEnabled,
-                onChanged: (v) => cubit.setCrossfade(enabled: v),
-              ),
-              if (settings.crossfadeEnabled)
-                SliderTile(
-                  label: 'Crossfade duration',
-                  value: settings.crossfadeDurationMs.toDouble(),
-                  min: 1000,
-                  max: 12000,
-                  divisions: 11,
-                  format: (v) => '${(v / 1000).round()} s',
-                  onChanged: (v) =>
-                      cubit.setCrossfade(enabled: true, durationMs: v.round()),
-                ),
               SwitchListTile(
                 title: const Text('Pause on incoming call'),
                 value: settings.stopOnCallEnabled,
@@ -104,30 +66,12 @@ class _SettingsView extends StatelessWidget {
                 onChanged: cubit.setDuckAudioOnNotification,
               ),
 
-              // Library
-              SettingsSectionHeader('Library'),
-              SwitchListTile(
-                title: const Text('Scan on startup'),
-                value: settings.scanOnStartup,
-                onChanged: cubit.setScanOnStartup,
-              ),
-              SwitchListTile(
-                title: const Text('Watch folder changes'),
-                value: settings.watchFolderChanges,
-                onChanged: cubit.setWatchFolderChanges,
-              ),
-
-              // UI
+              // Interface
               SettingsSectionHeader('Interface'),
               SwitchListTile(
                 title: const Text('Haptic feedback'),
                 value: settings.hapticFeedbackEnabled,
                 onChanged: cubit.setHapticFeedback,
-              ),
-              SwitchListTile(
-                title: const Text('Show album art in notification'),
-                value: settings.showAlbumArtInNotification,
-                onChanged: cubit.setShowAlbumArtInNotification,
               ),
               SegmentedRow<GlassQuality>(
                 label: 'Glass quality',
@@ -136,26 +80,6 @@ class _SettingsView extends StatelessWidget {
                 selected: settings.glassQuality,
                 onChanged: cubit.setGlassQuality,
               ),
-
-              // Sleep Timer
-              SettingsSectionHeader('Sleep Timer'),
-              SwitchListTile(
-                title: const Text('Sleep timer'),
-                subtitle: Text('${settings.sleepTimerMinutes} min'),
-                value: settings.sleepTimerEnabled,
-                onChanged: (v) => cubit.setSleepTimer(enabled: v),
-              ),
-              if (settings.sleepTimerEnabled)
-                SliderTile(
-                  label: 'Duration',
-                  value: settings.sleepTimerMinutes.toDouble(),
-                  min: 5,
-                  max: 120,
-                  divisions: 23,
-                  format: (v) => '${v.round()} min',
-                  onChanged: (v) =>
-                      cubit.setSleepTimer(enabled: true, minutes: v.round()),
-                ),
 
               // Reset
               SettingsSectionHeader('Reset'),
@@ -220,7 +144,7 @@ class _SettingsView extends StatelessWidget {
                 },
               ),
 
-              const SizedBox(height: 80), // padding for mini player
+              const SizedBox(height: 80),
             ]),
           ),
         ],

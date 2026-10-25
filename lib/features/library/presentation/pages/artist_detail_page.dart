@@ -290,7 +290,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             right: 0,
                             child: GlassIconButton(
                               icon: LucideIcons.ellipsisVertical,
-                              onTap: () {},
+                              onTap: null,
                             ),
                           ),
                         ],
@@ -331,7 +331,19 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                           const SizedBox(width: AppSpacing.md),
                           GlassIconButton(
                             icon: LucideIcons.shuffle,
-                            onTap: () {},
+                            onTap: tracks.isEmpty
+                                ? null
+                                : () {
+                                    context.read<PlayerBloc>().add(
+                                      QueueSetRequested(
+                                        tracks,
+                                        startIndex: 0,
+                                      ),
+                                    );
+                                    context.read<PlayerBloc>().add(
+                                      const ShuffleToggleRequested(),
+                                    );
+                                  },
                           ),
                         ],
                       ),

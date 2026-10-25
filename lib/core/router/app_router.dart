@@ -33,7 +33,7 @@ abstract class AppRoute {
   static const playlists = '/playlists';
   static const player = '/player';
   static const permission = '/permission';
-  static const settings = '/settings';
+  static const settings = 'settings';
 
   static const albumDetail = 'album_detail';
   static const artistDetail = 'artist_detail';
@@ -74,6 +74,16 @@ final appRouter = GoRouter(
                 create: (_) => getIt<HomeBloc>()..add(HomeRefreshRequested()),
                 child: const HomePage(),
               ),
+              routes: [
+                GoRoute(
+                  path: AppRoute.settings,
+                  name: AppRoute.settings,
+                  builder: (context, _) => BlocProvider(
+                    create: (_) => getIt<SettingsCubit>()..load(),
+                    child: const SettingsPage(),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -158,14 +168,6 @@ final appRouter = GoRouter(
     ),
 
     // ── Utility Routes ──────────────────────────────────────────────────────
-    GoRoute(
-      path: AppRoute.settings,
-      parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, _) => BlocProvider(
-        create: (_) => getIt<SettingsCubit>()..load(),
-        child: const SettingsPage(),
-      ),
-    ),
     GoRoute(
       path: AppRoute.permission,
       builder: (_, _) => const PermissionPage(),
