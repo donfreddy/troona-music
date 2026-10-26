@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/metadata/presentation/widgets/album_wiki_section.dart';
@@ -386,7 +387,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                               InkWell(
                                 onTap: () {
                                   AppHaptics.lightImpact();
-                                  context.push('/library/artists/${album.artistId}');
+                                  context.pushArtist('${album.artistId}');
                                 },
                                 borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                                 child: Padding(

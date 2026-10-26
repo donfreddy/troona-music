@@ -73,10 +73,7 @@ class AlbumCard extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: () => context.pushNamed(
-        AppRoute.albumDetail,
-        pathParameters: {'id': album.id},
-      ),
+      onTap: () => context.pushAlbum(album.id),
       child: size != null
           ? SizedBox(width: size, child: cardContent)
           : cardContent,

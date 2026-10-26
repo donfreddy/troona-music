@@ -86,10 +86,7 @@ class SearchTopResult extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       child: GlassCard(
-        onTap: () => context.pushNamed(
-          AppRoute.artistDetail,
-          pathParameters: {'id': artist.id},
-        ),
+        onTap: () => context.pushArtist(artist.id),
         child: Row(
           children: [
             ClipOval(
@@ -156,10 +153,7 @@ class SearchTopResult extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       child: GlassCard(
-        onTap: () => context.pushNamed(
-          AppRoute.albumDetail,
-          pathParameters: {'id': album.id},
-        ),
+        onTap: () => context.pushAlbum(album.id),
         child: Row(
           children: [
             ClipRRect(

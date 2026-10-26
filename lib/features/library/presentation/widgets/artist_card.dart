@@ -59,10 +59,7 @@ class ArtistCard extends StatelessWidget {
     );
 
     return GestureDetector(
-      onTap: () => context.pushNamed(
-        AppRoute.artistDetail,
-        pathParameters: {'id': artist.id},
-      ),
+      onTap: () => context.pushArtist(artist.id),
       child: size != null
           ? SizedBox(width: size, child: cardContent)
           : cardContent,

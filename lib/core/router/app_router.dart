@@ -40,6 +40,32 @@ abstract class AppRoute {
   static const playlistDetail = 'playlist_detail';
 }
 
+GoRoute _buildAlbumDetailRoute({String? name}) => GoRoute(
+  path: 'albums/:id',
+  name: name,
+  builder: (context, state) {
+    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+    return BlocProvider(
+      create: (_) =>
+          getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
+      child: AlbumDetailPage(id: id.toString()),
+    );
+  },
+);
+
+GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
+  path: 'artists/:id',
+  name: name,
+  builder: (context, state) {
+    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+    return BlocProvider(
+      create: (_) =>
+          getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+      child: ArtistDetailPage(id: id.toString()),
+    );
+  },
+);
+
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoute.home,
@@ -84,6 +110,8 @@ final appRouter = GoRouter(
                     child: const SettingsPage(),
                   ),
                 ),
+                _buildAlbumDetailRoute(),
+                _buildArtistDetailRoute(),
               ],
             ),
           ],
@@ -96,36 +124,8 @@ final appRouter = GoRouter(
               name: AppRoute.library,
               builder: (_, _) => const LibraryPage(),
               routes: [
-                GoRoute(
-                  path: 'albums/:id',
-                  name: AppRoute.albumDetail,
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    final id =
-                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-                    return BlocProvider(
-                      create: (_) =>
-                          getIt<AlbumDetailBloc>()
-                            ..add(AlbumDetailRequested(id)),
-                      child: AlbumDetailPage(id: id.toString()),
-                    );
-                  },
-                ),
-                GoRoute(
-                  path: 'artists/:id',
-                  name: AppRoute.artistDetail,
-                  parentNavigatorKey: _rootNavigatorKey,
-                  builder: (context, state) {
-                    final id =
-                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-                    return BlocProvider(
-                      create: (_) =>
-                          getIt<ArtistDetailBloc>()
-                            ..add(ArtistDetailRequested(id)),
-                      child: ArtistDetailPage(id: id.toString()),
-                    );
-                  },
-                ),
+                _buildAlbumDetailRoute(name: AppRoute.albumDetail),
+                _buildArtistDetailRoute(name: AppRoute.artistDetail),
               ],
             ),
           ],
@@ -140,6 +140,10 @@ final appRouter = GoRouter(
                 create: (_) => getIt<SearchBloc>(),
                 child: const SearchPage(),
               ),
+              routes: [
+                _buildAlbumDetailRoute(),
+                _buildArtistDetailRoute(),
+              ],
             ),
           ],
         ),
@@ -158,7 +162,6 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
-                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     return BlocProvider(
@@ -169,6 +172,8 @@ final appRouter = GoRouter(
                     );
                   },
                 ),
+                _buildAlbumDetailRoute(),
+                _buildArtistDetailRoute(),
               ],
             ),
           ],
@@ -201,3 +206,32 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+extension NavigationContextExt on BuildContext {
+  void pushAlbum(String albumId) {
+    final location = GoRouterState.of(this).matchedLocation;
+    if (location.startsWith(AppRoute.home)) {
+      push('${AppRoute.home}/albums/$albumId');
+    } else if (location.startsWith(AppRoute.search)) {
+      push('${AppRoute.search}/albums/$albumId');
+    } else if (location.startsWith(AppRoute.playlists)) {
+      push('${AppRoute.playlists}/albums/$albumId');
+    } else {
+      push('${AppRoute.library}/albums/$albumId');
+    }
+  }
+
+  void pushArtist(String artistId) {
+    final location = GoRouterState.of(this).matchedLocation;
+    if (location.startsWith(AppRoute.home)) {
+      push('${AppRoute.home}/artists/$artistId');
+    } else if (location.startsWith(AppRoute.search)) {
+      push('${AppRoute.search}/artists/$artistId');
+    } else if (location.startsWith(AppRoute.playlists)) {
+      push('${AppRoute.playlists}/artists/$artistId');
+    } else {
+      push('${AppRoute.library}/artists/$artistId');
+    }
+  }
+}
+
