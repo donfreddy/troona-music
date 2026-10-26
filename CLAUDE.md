@@ -72,7 +72,7 @@ One Isar database (`isar_plus`), opened by `AppDatabase.open()` in `lib/core/dat
 Three-level token hierarchy in `lib/core/theme/`:
 1. **Primitives**: raw colors, sizes, radii
 2. **Semantic**: `bgPrimary`, `glassFill`, `glassBorder`, `accent`
-3. **Components**: `GlassCard` with low/medium/high blur presets
+3. **Components**: `GlassConfig` presets per surface and quality tier (high, low, off). `GlassCard` is flat by default: blur is for chrome (tab bar, header, sheets, Now Playing), never for cards in scrolling content.
 
 `BackdropFilter` performance rules (enforced throughout):
 - Always wrap in a `RepaintBoundary`.

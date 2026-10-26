@@ -3,11 +3,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 
-/// A glass-styled content card that adapts blur, fill, and border to the
-/// current [GlassQuality] preset and device brightness.
+/// A glass-styled card that adapts fill and border to the current
+/// [GlassQuality] preset and device brightness.
 ///
-/// Pass a custom [config] to override the default [GlassTheme.card] preset
-/// (e.g. use [GlassTheme.miniPlayer] for the mini-player surface).
+/// Flat by default: cards sit in scrolling content, and blur is kept for
+/// chrome (bars, headers, sheets), as on iOS. Pass a [config] with a blur to
+/// opt in (e.g. [GlassTheme.miniPlayer] for the mini-player surface).
 ///
 /// **Rendering contract**:
 /// - [BackdropFilter] is only created when [GlassConfig.blurSigma] > 0.
@@ -18,7 +19,7 @@ class GlassCard extends StatelessWidget {
   final Widget child;
 
   /// Optional override for the resolved [GlassConfig].
-  /// Defaults to [GlassTheme.card] when null.
+  /// Defaults to [GlassTheme.card] without blur when null.
   final GlassConfig? config;
 
   /// Optional tap callback.  When non-null the card wraps itself in a
@@ -29,7 +30,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cfg = config ?? GlassTheme.card(context);
+    final cfg = config ?? GlassTheme.card(context).copyWith(blurSigma: 0);
 
     final content = _GlassDecoration(
       config: cfg,
