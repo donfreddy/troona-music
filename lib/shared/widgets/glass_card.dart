@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// A glass-styled card that adapts fill and border to the current
 /// [GlassQuality] preset and device brightness.
@@ -48,11 +47,7 @@ class GlassCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: cfg.borderRadius,
           child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: cfg.blurSigma,
-              sigmaY: cfg.blurSigma,
-              tileMode: TileMode.clamp,
-            ),
+            filter: GlassFilter.of(cfg.blurSigma),
             child: content,
           ),
         ),

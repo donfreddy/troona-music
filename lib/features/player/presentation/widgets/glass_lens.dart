@@ -1,8 +1,7 @@
 import 'dart:math' as math;
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// Fixed frosted-glass ring of the Now Playing stage.
 ///
@@ -53,10 +52,7 @@ class GlassLens extends StatelessWidget {
               clipper: clipper,
               child: sigma == 0
                   ? fill
-                  : BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-                      child: fill,
-                    ),
+                  : BackdropFilter(filter: GlassFilter.of(sigma), child: fill),
             ),
             CustomPaint(painter: _LensRimPainter(holeFraction)),
           ],

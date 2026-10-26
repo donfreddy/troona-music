@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// iOS-style large title: a big title at the top that shrinks
 /// into a compact navigation bar on scroll, with a glass blur.
@@ -184,10 +183,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
     return RepaintBoundary(
       child: ClipRect(
         child: blurSigma > 0
-            ? BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-                child: content,
-              )
+            ? BackdropFilter(filter: GlassFilter.of(blurSigma), child: content)
             : content,
       ),
     );

@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +19,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 import '../../features/player/domain/entities/repeat_mode.dart';
 
@@ -247,11 +246,7 @@ class _NavBarBody extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: glass.blurSigma,
-            sigmaY: glass.blurSigma,
-            tileMode: TileMode.clamp,
-          ),
+          filter: GlassFilter.of(glass.blurSigma),
           child: body,
         ),
       ),

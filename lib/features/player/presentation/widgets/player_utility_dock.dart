@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -11,6 +9,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// Secondary playback tools under the Now Playing controls: queue, sleep
 /// timer and playback speed, each with a 44 px touch target.
@@ -77,10 +76,7 @@ class PlayerUtilityDock extends StatelessWidget {
       child: sigma == 0
           ? body
           : RepaintBoundary(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-                child: body,
-              ),
+              child: BackdropFilter(filter: GlassFilter.of(sigma), child: body),
             ),
     );
   }

@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// Shows a glass-styled modal bottom sheet.
 ///
@@ -95,11 +94,7 @@ class GlassBottomSheet extends StatelessWidget {
       child: ClipRRect(
         borderRadius: cfg.borderRadius,
         child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: cfg.blurSigma,
-            sigmaY: cfg.blurSigma,
-            tileMode: TileMode.clamp,
-          ),
+          filter: GlassFilter.of(cfg.blurSigma),
           child: content,
         ),
       ),

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,6 +29,7 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -666,10 +665,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     return RepaintBoundary(
       child: ClipRect(
         child: blurSigma > 0
-            ? BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-                child: content,
-              )
+            ? BackdropFilter(filter: GlassFilter.of(blurSigma), child: content)
             : content,
       ),
     );
