@@ -7,8 +7,8 @@ import 'package:path_provider/path_provider.dart';
 /// problem report.
 ///
 /// Writes are asynchronous and queued, so a burst of warnings never blocks
-/// the UI; the file is trimmed back to [_maxLines] once that many lines have
-/// been appended, not on every write. Stays silent on all write failures so
+/// the UI; the file is trimmed back to [_maxLines] when it is opened and
+/// then once that many lines have been appended, not on every write. Stays silent on all write failures so
 /// it never causes a secondary crash.
 final class CrashLog {
   CrashLog._();
@@ -25,6 +25,7 @@ final class CrashLog {
       if (!_logFile!.existsSync()) {
         await _logFile!.create(recursive: true);
       }
+      _queueTrim(_logFile!);
     } catch (_) {
       _logFile = null;
     }
@@ -69,7 +70,18 @@ final class CrashLog {
     await file.writeAsString(entry, mode: FileMode.append);
     _appendedSinceTrim += '\n'.allMatches(entry).length;
     if (_appendedSinceTrim < _maxLines) return;
+    await _trim(file);
+  }
+
+  // The append counter starts at zero in every process, so a short session
+  // would never reach it: the file left by earlier runs is trimmed on open.
+  static void _queueTrim(File file) {
+    _pending = _pending.then((_) => _trim(file)).catchError((_) {});
+  }
+
+  static Future<void> _trim(File file) async {
     _appendedSinceTrim = 0;
+    if (!await file.exists()) return;
     final lines = (await file.readAsString()).split('\n');
     if (lines.length > _maxLines) {
       await file.writeAsString(
@@ -78,12 +90,14 @@ final class CrashLog {
     }
   }
 
-  /// Points the log at [file] and resets its state.
+  /// Points the log at [file] as a fresh process would: counter reset and
+  /// the existing file trimmed.
   @visibleForTesting
   static void useFile(File? file) {
     _logFile = file;
     _pending = Future.value();
     _appendedSinceTrim = 0;
+    if (file != null) _queueTrim(file);
   }
 
   /// Completes once every queued write has landed.

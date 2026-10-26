@@ -47,6 +47,24 @@ void main() {
     expect(lines.where((l) => l.endsWith('warning 1199')), hasLength(1));
   });
 
+  test('short sessions do not add up past the cap', () async {
+    for (var session = 0; session < 5; session++) {
+      CrashLog.useFile(file); // A new process: the counter starts at zero.
+      for (var i = 0; i < 100; i++) {
+        CrashLog.record('session $session warning $i', null);
+      }
+      await CrashLog.flush();
+    }
+    CrashLog.useFile(file);
+    await CrashLog.flush();
+    final lines = (await file.readAsString()).split('\n');
+    expect(lines.length, lessThanOrEqualTo(500));
+    expect(
+      lines.where((l) => l.endsWith('session 4 warning 99')),
+      hasLength(1),
+    );
+  });
+
   test('a missing file never throws', () async {
     CrashLog.useFile(File('${dir.path}/missing/dir/log.txt'));
     CrashLog.record('lost', null);
