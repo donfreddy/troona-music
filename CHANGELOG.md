@@ -10,7 +10,7 @@
 - "Lossless" only when every song of an album is FLAC or WAV.
 - Android: audio-only permissions (vendored `on_audio_query_plus_android` patched), `INTERNET` for the online extras, release signing from `key.properties`, backup off, label "Troona", dark launch window.
 - Library: pure, accent-aware filter and sort; albums grouped by id; one read per load; short songs kept; no playlist cap; artwork checked once, written in batches, with live progress; silent rescans with a toast when songs were added or removed; a restarted or failed scan keeps the library on screen.
-- Player: every Shuffle button turns shuffle mode on and keeps the source order; lock screen position and queue index stay right after auto-advance and in-app seeks; labelled controls keep their tap action for screen readers.
+- Player: every Shuffle button turns shuffle mode on and keeps the source order; lock screen position, queue index and playback speed stay right after auto-advance, in-app seeks and speed changes; labelled controls keep their tap action for screen readers.
 - Persistence: the session queue is written only when it changes; the crash log writes asynchronously; downloaded pictures are written atomically.
 - Settings: one shared settings state, maintenance actions (clear covers, clear online info, report a problem) that finish even if the page is left.
 
@@ -23,7 +23,7 @@
 - "Your week in music" on Home: last week's listening time and top artist; the page adds the top song, first listens and a calendar of this month's listening days. No streak, no badge, no notification.
 - Monthly "Replay" playlist: on the first run of a month, last month's 25 most played songs are saved as a normal playlist (skipped below five songs, made once per month even if deleted).
 - Smooth transitions: play and resume fade in over 300 ms, pause fades out before pausing, and a skip or a new queue fades out over 120 ms, then in. Quick play and pause taps reverse the fade. Auto-advance stays gapless.
-- "What's new" sheet: opens once on the first launch after an update that has notes (never on a fresh install), grouped as New, Improved and Fixed, and reopens from Settings. Notes live in `lib/features/whats_new/presentation/release_notes.dart`.
+- "What's new" sheet: opens once on the first launch after an update that has notes (never on a fresh install), grouped as New, Improved and Fixed, and reopens from Settings, above the mini player. Notes live in `lib/features/whats_new/presentation/release_notes.dart`.
 - Home "Recently Played" now lists the last played tracks, topped up with the newest ones until four have been played, and refreshes when a play is recorded.
 - Now Playing: fixed glass lens over a cover carousel, elapsed-time arc with circular seek on the ring, and a morph between the glass ring and the mini player.
 - Global search for tracks, artists and albums; playlist management; album and artist detail pages.
