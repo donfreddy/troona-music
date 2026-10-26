@@ -95,7 +95,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, glass.fill, collapse),
+        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
         border: Border(
           bottom: BorderSide(
             color: colors.separator.withValues(alpha: collapse),

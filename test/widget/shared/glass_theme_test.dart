@@ -4,9 +4,7 @@ import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 
 void main() {
-  testWidgets('surfaces carrying text are thick and never boost colours', (
-    tester,
-  ) async {
+  testWidgets('surfaces carrying text never boost colours', (tester) async {
     final configs = <String, GlassConfig>{};
     await tester.pumpWidget(
       MaterialApp(
@@ -32,7 +30,6 @@ void main() {
 
     for (final name in ['bar high', 'bar low', 'sheet high', 'sheet low']) {
       expect(configs[name]!.saturation, 1, reason: name);
-      expect(configs[name]!.fill.a, greaterThanOrEqualTo(.65), reason: name);
     }
     // Decorative glass over the artwork keeps its colour.
     expect(configs['now playing']!.saturation, greaterThan(1));

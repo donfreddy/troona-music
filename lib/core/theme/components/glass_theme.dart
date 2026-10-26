@@ -51,9 +51,9 @@ final class GlassConfig {
   final BorderRadius borderRadius;
   final EdgeInsets padding;
 
-  /// Saturation boost behind the glass ([GlassFilter]). Thin chrome lets
-  /// colours through; text-heavy surfaces (sheets) use 1, so small coloured
-  /// shapes behind them do not show as stains.
+  /// Saturation boost behind the glass ([GlassFilter]). Surfaces that carry
+  /// text (bars, header, sheets) use 1, so covers and icons behind them do
+  /// not show as stains; decorative glass over artwork keeps the boost.
   final double saturation;
 
   const GlassConfig({
@@ -176,8 +176,8 @@ abstract final class GlassTheme {
   }
 
   /// Config for chrome that carries text and controls: the tab bar and the
-  /// collapsed page header. Thicker than [card] and without saturation
-  /// boost, so covers scrolling behind do not show as coloured stains.
+  /// collapsed page header. The thin [card] glass without saturation boost,
+  /// so covers scrolling behind do not show as coloured stains.
   static GlassConfig bar(BuildContext ctx, {GlassQuality? quality}) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
     final q = _resolveQuality(ctx, quality);
@@ -313,9 +313,10 @@ abstract final class GlassTheme {
     padding: EdgeInsets.zero,
   );
 
+  // Same glass as [_cardDark] and [_cardLowDark], without the boost.
   static const _barDark = GlassConfig(
-    blurSigma: 30,
-    fill: Color(0xA60C0E14), // 65 % tertiary background
+    blurSigma: 20,
+    fill: Color(0x0AFFFFFF), // 4 %
     border: Color(0x22FFFFFF), // 13 %
     highlight: Color(0x0DFFFFFF), // 5 %
     borderRadius: BorderRadius.all(Radius.circular(24)),
@@ -323,20 +324,19 @@ abstract final class GlassTheme {
   );
 
   static const _barLowDark = GlassConfig(
-    blurSigma: 20,
-    fill: Color(0xC70C0E14), // 78 %: less blur, more cover
+    blurSigma: 8,
+    fill: Color(0x1EFFFFFF), // 12 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
     saturation: 1,
   );
 
-  // Thick material: sheets carry text, so the page behind only shows as a
-  // dark, diffuse hint. A wide blur spreads small shapes (icons) into a
-  // wash, and no saturation boost keeps them from showing as stains.
+  // Thin glass; sheets carry text, so no saturation boost: small coloured
+  // shapes behind (icons) would show as stains.
   static const _sheetDark = GlassConfig(
-    blurSigma: 40,
-    fill: Color(0xB31C1C1E), // 70 % secondarySystemBackground dark
+    blurSigma: 24,
+    fill: Color(0x19FFFFFF), // 10 %
     border: Color(0x16FFFFFF), // 9 %
     highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -412,8 +412,8 @@ abstract final class GlassTheme {
   );
 
   static const _sheetLowDark = GlassConfig(
-    blurSigma: 20,
-    fill: Color(0xC71C1C1E), // 78 %: less blur, more cover
+    blurSigma: 14,
+    fill: Color(0x21FFFFFF), // 13 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

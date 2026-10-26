@@ -141,21 +141,23 @@ void main() {
       expect(await openSheet(tester), findsOneWidget);
     });
 
-    testWidgets('sheets are thick: no saturation boost, mostly covered', (
+    testWidgets('sheets never boost colours, unlike Now Playing', (
       tester,
     ) async {
       late GlassConfig sheet;
-      late GlassConfig bar;
+      late GlassConfig nowPlaying;
       await tester.pumpWidget(
         _app((context) {
           sheet = GlassTheme.sheet(context, quality: GlassQuality.high);
-          bar = GlassTheme.miniPlayer(context, quality: GlassQuality.high);
+          nowPlaying = GlassTheme.nowPlaying(
+            context,
+            quality: GlassQuality.high,
+          );
           return const SizedBox();
         }),
       );
       expect(sheet.saturation, 1);
-      expect(sheet.fill.a, greaterThanOrEqualTo(.7));
-      expect(bar.saturation, greaterThan(1));
+      expect(nowPlaying.saturation, greaterThan(1));
     });
 
     testWidgets('is opaque on a low-tier device', (tester) async {
