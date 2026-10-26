@@ -86,16 +86,17 @@ class HomePage extends StatelessWidget {
   static Object? _subtitleKey(HomeState state) => switch (state) {
     HomeLoaded(:final feed, :final totalTracks) => (
       feed.isColdStart,
-      totalTracks,
+      totalTracks == 0,
     ),
     _ => null,
   };
 
+  // Empty or cold start: the hero card already says what to do next, so
+  // the header stays a plain greeting.
   static String? _subtitleOf(BuildContext context, HomeState state) {
-    if (state is! HomeLoaded || state.totalTracks == 0) return null;
-    return state.feed.isColdStart
-        ? context.l10n.homeSongsReady(state.totalTracks)
-        : context.l10n.homeSubtitleWarm;
+    if (state is! HomeLoaded) return null;
+    if (state.totalTracks == 0 || state.feed.isColdStart) return null;
+    return context.l10n.homeSubtitleWarm;
   }
 }
 
