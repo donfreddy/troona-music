@@ -94,7 +94,7 @@ class GlassBottomSheet extends StatelessWidget {
       child: ClipRRect(
         borderRadius: cfg.borderRadius,
         child: BackdropFilter(
-          filter: GlassFilter.of(cfg.blurSigma),
+          filter: GlassFilter.of(cfg.blurSigma, saturation: cfg.saturation),
           child: content,
         ),
       ),

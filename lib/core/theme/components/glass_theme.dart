@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart'
     as troona_settings;
 
@@ -50,6 +51,11 @@ final class GlassConfig {
   final BorderRadius borderRadius;
   final EdgeInsets padding;
 
+  /// Saturation boost behind the glass ([GlassFilter]). Thin chrome lets
+  /// colours through; text-heavy surfaces (sheets) use 1, so small coloured
+  /// shapes behind them do not show as stains.
+  final double saturation;
+
   const GlassConfig({
     required this.blurSigma,
     required this.fill,
@@ -58,6 +64,7 @@ final class GlassConfig {
     this.borderWidth = 0.5,
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.padding = const EdgeInsets.all(16),
+    this.saturation = GlassFilter.saturation,
   });
 
   GlassConfig copyWith({
@@ -68,6 +75,7 @@ final class GlassConfig {
     double? borderWidth,
     BorderRadius? borderRadius,
     EdgeInsets? padding,
+    double? saturation,
   }) {
     return GlassConfig(
       blurSigma: blurSigma ?? this.blurSigma,
@@ -77,6 +85,7 @@ final class GlassConfig {
       borderWidth: borderWidth ?? this.borderWidth,
       borderRadius: borderRadius ?? this.borderRadius,
       padding: padding ?? this.padding,
+      saturation: saturation ?? this.saturation,
     );
   }
 }
@@ -289,13 +298,17 @@ abstract final class GlassTheme {
     padding: EdgeInsets.zero,
   );
 
+  // Thick material: sheets carry text, so the page behind only shows as a
+  // dark, diffuse hint. A wide blur spreads small shapes (icons) into a
+  // wash, and no saturation boost keeps them from showing as stains.
   static const _sheetDark = GlassConfig(
-    blurSigma: 24,
-    fill: Color(0x19FFFFFF), // 10 %
+    blurSigma: 40,
+    fill: Color(0xB31C1C1E), // 70 % secondarySystemBackground dark
     border: Color(0x16FFFFFF), // 9 %
     highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
+    saturation: 1,
   );
 
   // ── Low quality: Light theme ────────────────────────────────────────────
@@ -366,12 +379,13 @@ abstract final class GlassTheme {
   );
 
   static const _sheetLowDark = GlassConfig(
-    blurSigma: 14,
-    fill: Color(0x21FFFFFF), // 13 %
+    blurSigma: 20,
+    fill: Color(0xC71C1C1E), // 78 %: less blur, more cover
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
+    saturation: 1,
   );
 
   // ── Off: flat tint, no BackdropFilter ───────────────────────────────────

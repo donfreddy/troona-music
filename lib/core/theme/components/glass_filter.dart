@@ -9,7 +9,12 @@ abstract final class GlassFilter {
   /// Saturation applied behind the glass; 1 leaves colours as they are.
   static const saturation = 1.6;
 
-  static ImageFilter of(double sigma) => ImageFilter.compose(
+  /// Blur of [sigma]; [saturation] defaults to the chrome boost, and 1
+  /// keeps colours as they are.
+  static ImageFilter of(
+    double sigma, {
+    double saturation = GlassFilter.saturation,
+  }) => ImageFilter.compose(
     outer: ImageFilter.blur(
       sigmaX: sigma,
       sigmaY: sigma,
