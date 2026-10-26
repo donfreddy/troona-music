@@ -168,7 +168,7 @@ class LastFmArtistData {
     if (tagField is List) {
       for (final item in tagField) {
         if (item is Map) {
-          final name = item['name']?.toString()?.trim();
+          final name = item['name']?.toString().trim();
           if (name != null && name.isNotEmpty) {
             result.add(name);
           }
@@ -177,7 +177,7 @@ class LastFmArtistData {
         }
       }
     } else if (tagField is Map) {
-      final name = tagField['name']?.toString()?.trim();
+      final name = tagField['name']?.toString().trim();
       if (name != null && name.isNotEmpty) {
         result.add(name);
       }

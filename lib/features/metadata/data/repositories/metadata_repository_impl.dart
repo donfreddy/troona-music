@@ -140,7 +140,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
 
   @override
   Future<String?> downloadAndCacheAlbumArtwork({
-    required int albumId,
+    required String albumId,
     required String imageUrl,
   }) async {
     try {
@@ -155,7 +155,8 @@ class MetadataRepositoryImpl implements MetadataRepository {
       final albumDir = Directory('${_artworkCacheDir.path}/albums');
       await albumDir.create(recursive: true);
 
-      final targetFile = File('${albumDir.path}/album_$albumId.jpg');
+      final safeId = albumId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final targetFile = File('${albumDir.path}/album_$safeId.jpg');
 
       if (await targetFile.exists() && (await targetFile.length()) > 0) {
         return targetFile.path;

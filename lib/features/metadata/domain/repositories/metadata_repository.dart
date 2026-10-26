@@ -19,7 +19,7 @@ abstract interface class MetadataRepository {
   });
 
   Future<String?> downloadAndCacheAlbumArtwork({
-    required int albumId,
+    required String albumId,
     required String imageUrl,
   });
 
