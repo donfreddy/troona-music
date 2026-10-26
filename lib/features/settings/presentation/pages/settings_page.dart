@@ -260,12 +260,16 @@ class _SettingsList extends StatelessWidget {
       destructive: true,
     );
     if (!confirmed || !context.mounted) return;
+    // Captured up front: the rescan and the toast must happen even if the
+    // user leaves Settings while the files are being deleted.
+    final library = context.read<LibraryBloc>();
+    final overlay = Overlay.of(context, rootOverlay: true);
     final ok = await context.read<MaintenanceCubit>().clearCovers();
-    if (!context.mounted) return;
-    if (ok) {
-      context.read<LibraryBloc>().add(const LibraryRefreshRequested());
-    }
-    AppToast.show(context, ok ? l10n.settingsCoversCleared : l10n.errorGeneric);
+    library.add(const LibraryRefreshRequested());
+    AppToast.showOn(
+      overlay,
+      ok ? l10n.settingsCoversCleared : l10n.errorGeneric,
+    );
   }
 
   Future<void> _clearOnlineInfo(BuildContext context) async {
@@ -278,9 +282,12 @@ class _SettingsList extends StatelessWidget {
       destructive: true,
     );
     if (!confirmed || !context.mounted) return;
+    final overlay = Overlay.of(context, rootOverlay: true);
     final ok = await context.read<MaintenanceCubit>().clearOnlineInfo();
-    if (!context.mounted) return;
-    AppToast.show(context, ok ? l10n.settingsOnlineCleared : l10n.errorGeneric);
+    AppToast.showOn(
+      overlay,
+      ok ? l10n.settingsOnlineCleared : l10n.errorGeneric,
+    );
   }
 
   Future<void> _shareReport(BuildContext context) async {

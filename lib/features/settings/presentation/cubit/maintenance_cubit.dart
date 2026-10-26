@@ -15,10 +15,11 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
       await _repo.appVersion(),
       await _repo.cacheSizes(),
     );
-    emit(state.copyWith(version: version, sizes: sizes));
+    _emitIfOpen(state.copyWith(version: version, sizes: sizes));
   }
 
-  /// True when the covers were cleared. The caller starts a rescan.
+  /// True when the covers were cleared. The caller starts a rescan either
+  /// way: even a partial failure may have reset artwork paths.
   Future<bool> clearCovers() async {
     emit(state.copyWith(busy: true));
     final result = await _repo.clearCovers();
@@ -26,15 +27,20 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-    emit(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
     return result.isRight();
   }
 
   Future<bool> clearOnlineInfo() async {
     emit(state.copyWith(busy: true));
     final result = await _repo.clearOnlineInfo();
-    emit(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
     return result.isRight();
+  }
+
+  // The page may close while an action runs; the action still completes.
+  void _emitIfOpen(MaintenanceState next) {
+    if (!isClosed) emit(next);
   }
 
   Future<String> problemReport({required int trackCount}) =>
