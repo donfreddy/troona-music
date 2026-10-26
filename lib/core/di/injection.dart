@@ -289,8 +289,8 @@ Future<void> configureDependencies() async {
   // ── Presentation layer ────────────────────────────────────────────────────
   // AudioSessionService is injected so runtime setting changes (call handling,
   // ducking) are propagated immediately without an app restart.
-  getIt.registerFactory<SettingsCubit>(
-    () => SettingsCubit(getIt(), getIt<AudioSessionService>()),
+  getIt.registerLazySingleton<SettingsCubit>(
+    () => SettingsCubit(getIt(), getIt<AudioSessionService>())..load(),
   );
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
 

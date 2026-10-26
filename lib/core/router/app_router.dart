@@ -108,9 +108,7 @@ final appRouter = GoRouter(
                   name: AppRoute.settings,
                   builder: (context, _) => MultiBlocProvider(
                     providers: [
-                      BlocProvider(
-                        create: (_) => getIt<SettingsCubit>()..load(),
-                      ),
+                      BlocProvider.value(value: getIt<SettingsCubit>()),
                       BlocProvider(
                         create: (_) => getIt<MaintenanceCubit>()..load(),
                       ),

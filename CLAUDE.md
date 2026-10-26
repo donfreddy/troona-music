@@ -48,8 +48,8 @@ App-wide services that are not a feature live in `lib/services/` (`audio/`, `sca
 
 ### Dependency Injection
 Uses **get_it** with **manual** registration in `lib/core/di/injection.dart` (`configureDependencies()`). The `injectable` package is listed as a dependency but annotations are not the source of truth: `injection.dart` is.
-- Singletons: `PlayerBloc`, `TrackPaletteCubit`, `LikesCubit`, the audio port, the Isar data sources, `PlayHistoryRecorder` (started eagerly).
-- Factories (new instance per mount): `LibraryBloc`, `HomeBloc`, `SearchBloc`, the detail blocs, `SettingsCubit`.
+- Singletons: `PlayerBloc`, `TrackPaletteCubit`, `LikesCubit`, `SleepTimerCubit`, `SettingsCubit` (shared by Settings and Home's offer card, provided with `BlocProvider.value`), the audio port, the Isar data sources, `PlayHistoryRecorder` (started eagerly).
+- Factories (new instance per mount): `LibraryBloc`, `HomeBloc`, `SearchBloc`, the detail blocs, `MaintenanceCubit`.
 - Repositories and use cases are lazy singletons.
 
 ### State Management

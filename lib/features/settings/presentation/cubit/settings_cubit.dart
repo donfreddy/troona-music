@@ -8,10 +8,13 @@ import 'package:troona/services/audio/audio_session_service.dart';
 
 part 'settings_state.dart';
 
+/// App-wide singleton: Home's offer card and the Settings page share one
+/// state. A per-screen instance saved a stale copy of every setting over
+/// changes made elsewhere.
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repo;
 
-  /// Optional — propagates runtime setting changes to the audio session
+  /// Optional: propagates runtime setting changes to the audio session
   /// (call ducking, headphone unplug behaviour, etc.) without an app restart.
   final AudioSessionService? _audioSession;
 
@@ -27,6 +30,17 @@ class SettingsCubit extends Cubit<SettingsState> {
       AppHaptics.enabled = settings.hapticFeedbackEnabled;
       emit(SettingsState.loaded(settings));
     });
+  }
+
+  /// Pushes [settings] to the services that cache them.
+  void _applyRuntime(AppSettings settings) {
+    AppHaptics.enabled = settings.hapticFeedbackEnabled;
+    glass.GlassTheme.overrideQuality(
+      settings.glassQuality == glass.GlassQuality.auto
+          ? null
+          : settings.glassQuality,
+    );
+    _audioSession?.updateSettings(settings);
   }
 
   AppSettings? get _current => state.mapOrNull(loaded: (s) => s.settings);
@@ -57,11 +71,14 @@ class SettingsCubit extends Cubit<SettingsState> {
       _update((s) => s.copyWith(duckAudioOnNotification: value));
 
   // Online Metadata & Artwork
-  Future<void> setFetchOnlineMetadata(bool value) =>
-      _update((s) => s.copyWith(fetchOnlineMetadata: value));
+  // Either switch answers Home's one-time offer.
+  Future<void> setFetchOnlineMetadata(bool value) => _update(
+    (s) => s.copyWith(fetchOnlineMetadata: value, onlineExtrasOffered: true),
+  );
 
-  Future<void> setFetchArtistArtwork(bool value) =>
-      _update((s) => s.copyWith(fetchArtistArtwork: value));
+  Future<void> setFetchArtistArtwork(bool value) => _update(
+    (s) => s.copyWith(fetchArtistArtwork: value, onlineExtrasOffered: true),
+  );
 
   /// Turns both online extras on or off at once (Home offer card).
   Future<void> setOnlineExtras(bool enabled) => _update(
@@ -93,5 +110,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> resetToDefaults() async {
     await _repo.resetSettings();
     await load();
+    if (_current case final settings?) _applyRuntime(settings);
   }
 }

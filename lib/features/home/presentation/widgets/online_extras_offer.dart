@@ -16,8 +16,8 @@ class OnlineExtrasOffer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<SettingsCubit>()..load(),
+    return BlocProvider.value(
+      value: getIt<SettingsCubit>(),
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           final offered = switch (state) {
