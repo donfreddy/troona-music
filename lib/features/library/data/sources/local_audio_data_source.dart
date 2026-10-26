@@ -66,7 +66,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   @override
   Stream<List<TrackModel>> scanTracks() async* {
     // Permission flow is centralized in AppPermissionHandler / router guard.
-    // Rely on its platform-aware check only — the plugin's own
+    // Rely on its platform-aware check only: the plugin's own
     // permissionsStatus() uses READ_EXTERNAL_STORAGE internally, which is
     // deprecated and always returns false on API 33+.
     final hasPermission = await AppPermissionHandler.hasAudioPermission();

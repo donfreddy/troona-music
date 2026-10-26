@@ -9,7 +9,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
-/// Horizontal scrollable row of "Hidden Gems" — liked tracks the user
+/// Horizontal scrollable row of "Hidden Gems": liked tracks the user
 /// hasn't listened to recently.
 ///
 /// Visual accent: a subtle gem icon overlay and softer card tint.

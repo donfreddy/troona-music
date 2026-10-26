@@ -1,5 +1,5 @@
 abstract final class AppSpacing {
-  // Grille de base 4pt — identique à iOS HIG
+  // Grille de base 4pt: identique à iOS HIG
   static const double xs = 4.0; // séparateurs internes
   static const double sm = 8.0; // gap entre icône et texte
   static const double md = 12.0; // padding interne compact

@@ -10,7 +10,7 @@ import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 /// Holds both the **original** track order (album / playlist order) and the
 /// **playback** order (shuffle-aware), so toggling shuffle never loses context.
 ///
-/// All mutation methods return a new [Queue] instance — the original is never
+/// All mutation methods return a new [Queue] instance: the original is never
 /// modified.
 @immutable
 class Queue {
@@ -107,7 +107,7 @@ class Queue {
   bool get isEmpty => playbackTracks.isEmpty;
 
   // ---------------------------------------------------------------------------
-  // Mutation helpers — all return new Queue instances
+  // Mutation helpers: all return new Queue instances
   // ---------------------------------------------------------------------------
 
   /// Advances to the next track.
@@ -145,7 +145,7 @@ class Queue {
   /// Toggles shuffle on/off, preserving the current track position.
   Queue toggleShuffle() {
     if (shuffleEnabled) {
-      // Restore original order — find the current track's original index.
+      // Restore original order: find the current track's original index.
       final current = currentTrack;
       final newIndex = current != null ? originalTracks.indexOf(current) : 0;
       return copyWith(
@@ -264,7 +264,7 @@ class Queue {
 
   /// Fisher-Yates shuffle that places the track at [startIndex] first.
   ///
-  /// Uses [Random] from `dart:math` for a proper uniform distribution —
+  /// Uses [Random] from `dart:math` for a proper uniform distribution:
   /// replaces the previous LCG-based pseudo-shuffle.
   static List<Track> _buildShuffled(List<Track> tracks, int startIndex) {
     final list = List<Track>.from(tracks);
@@ -298,7 +298,7 @@ class Queue {
   );
 
   // ---------------------------------------------------------------------------
-  // Equality — BUG FIX: deep list comparison instead of length-only check
+  // Equality: BUG FIX: deep list comparison instead of length-only check
   // ---------------------------------------------------------------------------
 
   /// Two queues are equal when they have the same [currentIndex],

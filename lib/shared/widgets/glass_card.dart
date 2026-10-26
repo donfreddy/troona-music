@@ -13,7 +13,7 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 /// - [BackdropFilter] is only created when [GlassConfig.blurSigma] > 0.
 /// - Always wrapped in [RepaintBoundary] to isolate the compositing layer.
 /// - Never place inside an [AnimatedBuilder] driven by the audio position
-///   stream — that would trigger a full blur redraw at 60 fps.
+///   stream: that would trigger a full blur redraw at 60 fps.
 class GlassCard extends StatelessWidget {
   final Widget child;
 
@@ -39,7 +39,7 @@ class GlassCard extends StatelessWidget {
     Widget card;
 
     if (cfg.blurSigma == 0) {
-      // Fast path: skip BackdropFilter entirely — no compositing layer cost.
+      // Fast path: skip BackdropFilter entirely: no compositing layer cost.
       // _GlassDecoration already draws the fill and border; just clip.
       card = ClipRRect(borderRadius: cfg.borderRadius, child: content);
     } else {

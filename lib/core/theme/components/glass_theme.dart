@@ -89,7 +89,7 @@ typedef GlassQuality = troona_settings.GlassQuality;
 /// and [GlassQuality] preset.
 ///
 /// Call the named constructors ([card], [miniPlayer], [nowPlaying], [sheet])
-/// inside a [BuildContext] — they read [MediaQuery] and [Theme] automatically.
+/// inside a [BuildContext]: they read [MediaQuery] and [Theme] automatically.
 ///
 /// ---
 /// ### Quality tiers
@@ -176,8 +176,8 @@ abstract final class GlassTheme {
 
   /// Config for the full-screen now-playing overlay.
   ///
-  /// [borderRadius] is [BorderRadius.zero] — the overlay spans edge-to-edge.
-  /// [padding] is [EdgeInsets.zero] — the page handles its own safe-area insets.
+  /// [borderRadius] is [BorderRadius.zero]: the overlay spans edge-to-edge.
+  /// [padding] is [EdgeInsets.zero]: the page handles its own safe-area insets.
   static GlassConfig nowPlaying(BuildContext ctx, {GlassQuality? quality}) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
     final q = _resolveQuality(ctx, quality);
@@ -206,7 +206,7 @@ abstract final class GlassTheme {
     };
   }
 
-  // ── High quality — Light theme ───────────────────────────────────────────
+  // ── High quality: Light theme ───────────────────────────────────────────
   //
   // Targets iOS 17/18 `.thinMaterial` in light mode:
   //   fill   ~55 % white  (0x8C = 140/255 ≈ 55 %)
@@ -215,15 +215,15 @@ abstract final class GlassTheme {
 
   static const _cardLight = GlassConfig(
     blurSigma: 14,
-    fill: Color(0x8CFFFFFF), // 55 % — iOS thinMaterial light
-    border: Color(0x16FFFFFF), // 9 %  — top-edge luminosity highlight
-    highlight: Color(0x0DFFFFFF), // 5 %  — diagonal sheen
+    fill: Color(0x8CFFFFFF), // 55 %: iOS thinMaterial light
+    border: Color(0x16FFFFFF), // 9 %: top-edge luminosity highlight
+    highlight: Color(0x0DFFFFFF), // 5 %: diagonal sheen
     borderRadius: BorderRadius.all(Radius.circular(20)),
   );
 
   static const _miniPlayerLight = GlassConfig(
-    blurSigma: 24, // heavier blur — matches iOS "Now Playing" bar
-    fill: Color(0xA6FFFFFF), // 65 % — regularMaterial light
+    blurSigma: 24, // heavier blur: matches iOS "Now Playing" bar
+    fill: Color(0xA6FFFFFF), // 65 %: regularMaterial light
     border: Color(0x21FFFFFF), // 13 %
     highlight: Color(0x0FFFFFFF), // 6 %
     borderRadius: BorderRadius.all(Radius.circular(16)),
@@ -232,10 +232,10 @@ abstract final class GlassTheme {
 
   static const _nowPlayingLight = GlassConfig(
     blurSigma: 26,
-    fill: Color(0x73FFFFFF), // 45 % — slightly transparent for artwork to show
+    fill: Color(0x73FFFFFF), // 45 %: slightly transparent for artwork to show
     border: Color(0x21FFFFFF), // 13 %
     highlight: Color(0x0DFFFFFF), // 5 %
-    borderRadius: BorderRadius.zero, // full-screen — no rounded corners
+    borderRadius: BorderRadius.zero, // full-screen: no rounded corners
     padding: EdgeInsets.zero,
   );
 
@@ -248,7 +248,7 @@ abstract final class GlassTheme {
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0), // 8 px drag-handle clearance
   );
 
-  // ── High quality — Dark theme ────────────────────────────────────────────
+  // ── High quality: Dark theme ────────────────────────────────────────────
   //
   // Targets iOS 17/18 `.ultraThinMaterial` in dark mode:
   //   fill   ~8 % white   (0x14 = 20/255 ≈ 8 %)
@@ -257,8 +257,8 @@ abstract final class GlassTheme {
 
   static const _cardDark = GlassConfig(
     blurSigma: 20,
-    fill: Color(0x0AFFFFFF), // 4 % — Much darker for "Deep Glass" look
-    border: Color(0x22FFFFFF), // 13 % — Sharper edge highlight
+    fill: Color(0x0AFFFFFF), // 4 %: Much darker for "Deep Glass" look
+    border: Color(0x22FFFFFF), // 13 %: Sharper edge highlight
     highlight: Color(0x0DFFFFFF), // 5 %
     borderRadius: BorderRadius.all(Radius.circular(24)),
   );
@@ -266,7 +266,7 @@ abstract final class GlassTheme {
   static const _miniPlayerDark = GlassConfig(
     blurSigma: 28, // Heavy blur for the pill
     fill: Color(0x08FFFFFF), // 3 %
-    border: Color(0x28FFFFFF), // 16 % — Brighter edge to define the pill
+    border: Color(0x28FFFFFF), // 16 %: Brighter edge to define the pill
     highlight: Color(0x0FFFFFFF), // 6 %
     borderRadius: BorderRadius.all(Radius.circular(40)), // Pill shape
     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -274,10 +274,10 @@ abstract final class GlassTheme {
 
   static const _nowPlayingDark = GlassConfig(
     blurSigma: 26,
-    fill: Color(0x10FFFFFF), // 6 %  — very thin to let artwork breathe
+    fill: Color(0x10FFFFFF), // 6 %: very thin to let artwork breathe
     border: Color(0x16FFFFFF), // 9 %
     highlight: Color(0x0AFFFFFF), // 4 %
-    borderRadius: BorderRadius.zero, // full-screen — no rounded corners
+    borderRadius: BorderRadius.zero, // full-screen: no rounded corners
     padding: EdgeInsets.zero,
   );
 
@@ -290,13 +290,13 @@ abstract final class GlassTheme {
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
   );
 
-  // ── Low quality — Light theme ────────────────────────────────────────────
+  // ── Low quality: Light theme ────────────────────────────────────────────
   //
   // Blur halved vs. high; fill boosted to compensate for reduced translucency.
 
   static const _cardLowLight = GlassConfig(
     blurSigma: 8,
-    fill: Color(0xA0FFFFFF), // 63 % — boosted to compensate for less blur
+    fill: Color(0xA0FFFFFF), // 63 %: boosted to compensate for less blur
     border: Color(0x11FFFFFF), // 7 %
     highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -329,11 +329,11 @@ abstract final class GlassTheme {
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
   );
 
-  // ── Low quality — Dark theme ─────────────────────────────────────────────
+  // ── Low quality: Dark theme ─────────────────────────────────────────────
 
   static const _cardLowDark = GlassConfig(
     blurSigma: 8,
-    fill: Color(0x1EFFFFFF), // 12 % — boosted vs. high-quality 8 %
+    fill: Color(0x1EFFFFFF), // 12 %: boosted vs. high-quality 8 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -366,7 +366,7 @@ abstract final class GlassTheme {
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
   );
 
-  // ── Off — flat tint, no BackdropFilter ───────────────────────────────────
+  // ── Off: flat tint, no BackdropFilter ───────────────────────────────────
   //
   // [blurSigma] == 0 triggers the fast path in GlassCard (no compositing layer).
   // Fill colours match iOS system background tokens:

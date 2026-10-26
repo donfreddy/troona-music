@@ -28,7 +28,7 @@ abstract interface class LibraryRepository {
   /// Recherche les tracks correspondant à [query].
   Future<Either<Failure, List<Track>>> searchTracks(String query);
 
-  /// Playlist "Likes" (façon Spotify) — créée si absente.
+  /// Playlist "Likes" (façon Spotify): créée si absente.
   Future<Either<Failure, Playlist>> getLikesPlaylist();
 
   /// Ajoute un track à la playlist Likes (idempotent).

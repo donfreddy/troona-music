@@ -73,13 +73,13 @@ final class HomeRepositoryImpl implements HomeRepository {
           .map((p) => p.toEntity())
           .toList();
 
-      // ── Phase 2: top weekly — needs track resolution ──────────────────
+      // ── Phase 2: top weekly: needs track resolution ──────────────────
       final topIdsResult = results[4] as Either;
       final topCounts =
           topIdsResult.getOrElse(() => <String, int>{}) as Map<String, int>;
       final topWeekly = await _resolveTopWeekly(topCounts);
 
-      // ── Phase 3: hidden gems — needs liked IDs + history ──────────────
+      // ── Phase 3: hidden gems: needs liked IDs + history ──────────────
       final likedIds = results[5] as Set<String>;
       final hiddenGems = await _resolveHiddenGems(likedIds);
 

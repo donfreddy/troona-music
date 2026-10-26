@@ -3,7 +3,7 @@ import 'package:meta/meta.dart';
 
 enum PlaybackStatus { playing, paused, buffering, stopped }
 
-/// Snapshot de l'état de lecture — exposé par l'AudioServicePort.
+/// Snapshot de l'état de lecture: exposé par l'AudioServicePort.
 /// Distinct du PlayerState du Bloc : c'est la couche Domain pure.
 @immutable
 class PlaybackState extends Equatable {

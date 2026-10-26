@@ -376,7 +376,7 @@ class IsarLibraryDataSource {
 
   /// Removes all tracks whose [TrackModel.deviceId] is in [deviceIds].
   ///
-  /// Resolves Isar integer IDs first, then performs a single bulk delete —
+  /// Resolves Isar integer IDs first, then performs a single bulk delete:
   /// all within one atomic transaction.
   Future<void> deleteByDeviceIds(List<String> deviceIds) async =>
       _isar.write((isar) {

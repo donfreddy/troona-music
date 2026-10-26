@@ -99,7 +99,7 @@ final class AudioSessionService {
           }
           break;
         case AudioInterruptionType.unknown:
-          // Do nothing — explicit user action will restart playback.
+          // Do nothing: explicit user action will restart playback.
           break;
       }
     }
@@ -123,7 +123,7 @@ final class AudioSessionService {
       final value = e.shouldResume;
       if (value is bool) return value;
     } catch (_) {
-      // Field absent or inaccessible — fall back to resume.
+      // Field absent or inaccessible: fall back to resume.
     }
     return true;
   }

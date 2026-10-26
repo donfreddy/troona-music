@@ -31,7 +31,7 @@ abstract final class AppTypography {
       height: 1.21,
     ),
 
-    // Title 1 — titres de section
+    // Title 1: titres de section
     displayMedium: TextStyle(
       fontSize: 28,
       fontWeight: FontWeight.w700,
@@ -63,7 +63,7 @@ abstract final class AppTypography {
       height: 1.29,
     ),
 
-    // Body — texte principal
+    // Body: texte principal
     bodyLarge: TextStyle(
       fontSize: 17,
       fontWeight: FontWeight.w400,

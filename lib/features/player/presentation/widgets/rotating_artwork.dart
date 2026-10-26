@@ -38,14 +38,14 @@ class _RotatingArtworkState extends State<RotatingArtwork>
     super.didUpdateWidget(old);
 
     if (widget.isPlaying && !old.isPlaying) {
-      // Reprend depuis l'angle courant — pas de saut
+      // Reprend depuis l'angle courant: pas de saut
       _ctrl.repeat();
     } else if (!widget.isPlaying && old.isPlaying) {
       // Ralentit et s'arrête proprement
       _ctrl.stop();
     }
 
-    // Nouveau track → repart à 0 (optionnel — tu peux garder l'angle)
+    // Nouveau track → repart à 0 (optionnel: tu peux garder l'angle)
     if (widget.track?.id != old.track?.id) {
       _ctrl.reset();
       if (widget.isPlaying) _ctrl.repeat();

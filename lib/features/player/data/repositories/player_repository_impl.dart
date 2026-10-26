@@ -12,7 +12,7 @@ import 'package:troona/features/player/domain/repositories/player_repository.dar
 ///
 /// Acts as a thin pass-through layer between the domain use-cases and the
 /// platform audio adapter ([JustAudioAdapter]). All business logic lives in the
-/// use-cases; all platform concerns live in the adapter — this class merely
+/// use-cases; all platform concerns live in the adapter: this class merely
 /// wires them together so the domain layer never depends on a concrete adapter.
 class PlayerRepositoryImpl implements PlayerRepository {
   final AudioServicePort _port;
@@ -20,7 +20,7 @@ class PlayerRepositoryImpl implements PlayerRepository {
   const PlayerRepositoryImpl(this._port);
 
   // ---------------------------------------------------------------------------
-  // PlayerRepository — Streams
+  // PlayerRepository: Streams
   // ---------------------------------------------------------------------------
 
   @override
@@ -45,7 +45,7 @@ class PlayerRepositoryImpl implements PlayerRepository {
   Stream<double> get volumeStream => _port.volumeStream;
 
   // ---------------------------------------------------------------------------
-  // PlayerRepository — Commands
+  // PlayerRepository: Commands
   // ---------------------------------------------------------------------------
 
   @override

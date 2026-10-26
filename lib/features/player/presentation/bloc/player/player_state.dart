@@ -12,12 +12,12 @@ sealed class PlayerState {
   const PlayerState();
 }
 
-/// Aucune piste n'a encore été jouée — état initial.
+/// Aucune piste n'a encore été jouée: état initial.
 final class PlayerIdle extends PlayerState {
   const PlayerIdle();
 }
 
-/// Chargement en cours — on connaît déjà le track cible.
+/// Chargement en cours: on connaît déjà le track cible.
 final class PlayerLoading extends PlayerState with EquatableMixin {
   final Track track;
   const PlayerLoading(this.track);
@@ -43,7 +43,7 @@ final class PlayerActive extends PlayerState with EquatableMixin {
 
   const PlayerActive({
     required this.currentTrack,
-    required this.status, // PlaybackStatus from domain — single source of truth
+    required this.status, // PlaybackStatus from domain: single source of truth
     required this.duration,
     required this.queue,
     required this.shuffleEnabled,
@@ -52,7 +52,7 @@ final class PlayerActive extends PlayerState with EquatableMixin {
     this.speed = 1.0,
   });
 
-  // ── Helpers dérivés — jamais calculés dans les widgets ──────────────────
+  // ── Helpers dérivés: jamais calculés dans les widgets ──────────────────
 
   bool get isPlaying => status == PlaybackStatus.playing;
   bool get isBuffering => status == PlaybackStatus.buffering;
@@ -94,7 +94,7 @@ final class PlayerActive extends PlayerState with EquatableMixin {
   ];
 }
 
-/// Erreur récupérable — l'utilisateur peut retenter.
+/// Erreur récupérable: l'utilisateur peut retenter.
 final class PlayerError extends PlayerState {
   final String message;
   final Track? lastTrack;

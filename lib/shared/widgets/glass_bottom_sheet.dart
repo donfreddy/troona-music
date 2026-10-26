@@ -38,8 +38,8 @@ Future<T?> showGlassBottomSheet<T>({
 
 /// A glass-styled bottom sheet surface.
 ///
-/// Renders [GlassTheme.sheet] fill, border, and — when [GlassConfig.blurSigma]
-/// is non-zero — a [BackdropFilter] wrapped in [RepaintBoundary].
+/// Renders [GlassTheme.sheet] fill, border, and, when [GlassConfig.blurSigma]
+/// is non-zero, a [BackdropFilter] wrapped in [RepaintBoundary].
 ///
 /// The sheet expands to its child's intrinsic height plus [MediaQueryData.padding]
 /// bottom inset (home-indicator clearance).  For scrollable content combine with
@@ -123,7 +123,7 @@ class _SheetContent extends StatelessWidget {
       decoration: BoxDecoration(
         color: config.fill,
         borderRadius: config.borderRadius,
-        // Top-edge luminosity highlight only — bottom edge bleeds to screen.
+        // Top-edge luminosity highlight only: bottom edge bleeds to screen.
         border: Border(
           top: BorderSide(color: config.border, width: config.borderWidth),
           left: BorderSide(color: config.highlight, width: config.borderWidth),
@@ -173,7 +173,7 @@ class _DragHandle extends StatelessWidget {
         width: 36,
         height: 4,
         decoration: BoxDecoration(
-          // ~30 % white — visible on both dark glass and light glass surfaces.
+          // ~30 % white: visible on both dark glass and light glass surfaces.
           color: Colors.white.withValues(alpha: .30),
           borderRadius: BorderRadius.circular(2),
         ),

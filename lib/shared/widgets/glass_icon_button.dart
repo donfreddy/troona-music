@@ -4,7 +4,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 
 /// A circular icon button with a flat glass fill.
 ///
-/// **No [BackdropFilter]** — icon buttons are small surfaces scattered across
+/// **No [BackdropFilter]**: icon buttons are small surfaces scattered across
 /// the player screen.  Using blur on each one would exceed the two-filter
 /// budget and cause GPU pressure.  A flat fill drawn from [GlassTheme.card]
 /// is visually sufficient and consistent with Apple Music's player controls.
@@ -19,20 +19,20 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 ///
 /// ### Variants
 ///
-/// - Default — glass fill from [GlassTheme.card]; secondary controls.
-/// - **[GlassIconButton.accent]** — solid accent fill; primary play/pause button.
+/// - Default: glass fill from [GlassTheme.card]; secondary controls.
+/// - **[GlassIconButton.accent]**: solid accent fill; primary play/pause button.
 ///
 /// Both variants animate to 90 % scale on press (iOS haptic-style feedback).
 ///
 /// ```dart
-/// // Play/pause — primary, large
+/// // Play/pause: primary, large
 /// GlassIconButton.accent(
 ///   icon: isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
 ///   size: GlassIconButtonSize.lg,
 ///   onTap: _togglePlayPause,
 /// )
 ///
-/// // Skip — secondary, medium
+/// // Skip: secondary, medium
 /// GlassIconButton(
 ///   icon: CupertinoIcons.forward_fill,
 ///   size: GlassIconButtonSize.md,
@@ -53,7 +53,7 @@ class GlassIconButton extends StatefulWidget {
 
   final _GlassIconVariant _variant;
 
-  /// Glass-fill variant — secondary controls.
+  /// Glass-fill variant: secondary controls.
   const GlassIconButton({
     super.key,
     required this.icon,
@@ -63,7 +63,7 @@ class GlassIconButton extends StatefulWidget {
     this.tooltip,
   }) : _variant = _GlassIconVariant.glass;
 
-  /// Accent-fill variant — primary action (play/pause).
+  /// Accent-fill variant: primary action (play/pause).
   const GlassIconButton.accent({
     super.key,
     required this.icon,

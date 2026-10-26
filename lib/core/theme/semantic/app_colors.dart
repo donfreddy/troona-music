@@ -191,7 +191,7 @@ final class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-// Extension de contexte — accès propre dans les widgets
+// Extension de contexte: accès propre dans les widgets
 extension AppColorsX on BuildContext {
   AppColors get colors => Theme.of(this).extension<AppColors>()!;
 }

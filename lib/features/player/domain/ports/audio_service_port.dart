@@ -114,6 +114,6 @@ abstract interface class AudioServicePort {
   /// Stops playback and releases audio resources (does not stop the service).
   Future<void> stop();
 
-  /// Full teardown — call only when the app is closing.
+  /// Full teardown: call only when the app is closing.
   Future<void> dispose();
 }

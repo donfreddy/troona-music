@@ -7,8 +7,8 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 ///
 /// Two variants are available:
 ///
-/// - **[GlassButton]** (default) — translucent glass fill; secondary actions.
-/// - **[GlassButton.filled]** — solid accent fill; primary / destructive actions.
+/// - **[GlassButton]** (default): translucent glass fill; secondary actions.
+/// - **[GlassButton.filled]**: solid accent fill; primary / destructive actions.
 ///
 /// Both variants scale to 95 % on press (iOS squeeze feedback) and restore on
 /// release or cancel.  Pass `onTap: null` to disable the button; it renders at
@@ -34,11 +34,11 @@ class GlassButton extends StatefulWidget {
 
   final _GlassButtonVariant _variant;
 
-  /// Glass-fill variant — for secondary actions.
+  /// Glass-fill variant: for secondary actions.
   const GlassButton({super.key, required this.label, this.onTap, this.leading})
     : _variant = _GlassButtonVariant.glass;
 
-  /// Accent-fill variant — for primary actions.
+  /// Accent-fill variant: for primary actions.
   const GlassButton.filled({
     super.key,
     required this.label,

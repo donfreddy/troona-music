@@ -15,7 +15,7 @@ final class HomeFeed {
   /// Top played tracks this week, ordered by play count descending.
   final List<TrackPlayCount> topWeekly;
 
-  /// Liked tracks the user hasn't listened to in a while — "redécouvrez".
+  /// Liked tracks the user hasn't listened to in a while: "redécouvrez".
   final List<Track> hiddenGems;
 
   /// Number of liked tracks (badge on the Quick Access chip).
@@ -35,7 +35,7 @@ final class HomeFeed {
     this.weeklyPlayCount = 0,
   });
 
-  /// True when the user has never listened to anything — triggers Cold Start.
+  /// True when the user has never listened to anything: triggers Cold Start.
   bool get isColdStart =>
       recentlyPlayed.isEmpty && topWeekly.isEmpty && weeklyPlayCount == 0;
 }

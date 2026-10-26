@@ -3,7 +3,7 @@ import 'package:logger/logger.dart';
 
 /// Application-wide structured logger, configured per build flavor.
 ///
-/// **Usage** — import once, call anywhere:
+/// **Usage**: import once, call anywhere:
 /// ```dart
 /// import 'package:troona/core/utils/app_logger.dart';
 ///
@@ -18,12 +18,12 @@ import 'package:logger/logger.dart';
 /// |----------|---------------|---------------------------|
 /// | Debug    | trace         | PrettyPrinter (coloured)  |
 /// | Profile  | warning       | SimplePrinter (no colour) |
-/// | Release  | off           | silent — zero overhead    |
+/// | Release  | off           | silent: zero overhead    |
 ///
 /// **Adding crash reporting**: in release mode, replace `Logger(level: off)`
 /// with a `Logger(output: CrashlyticsOutput())` that forwards warning/error
 /// events to Firebase Crashlytics or Sentry. The `LogOutput` interface takes
-/// a single `output(LogEvent)` method — no other changes required.
+/// a single `output(LogEvent)` method: no other changes required.
 import 'package:troona/core/utils/crash_log.dart';
 
 final Logger appLogger = _buildLogger();

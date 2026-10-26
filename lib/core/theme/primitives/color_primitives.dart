@@ -5,7 +5,7 @@ abstract final class ColorPrimitives {
   static const black = Color(0xFF000000);
   static const white = Color(0xFFFFFFFF);
 
-  // systemGray scale — identiques à iOS
+  // systemGray scale: identiques à iOS
   static const gray1 = Color(0xFF8E8E93);
   static const gray2 = Color(0xFFAEAEB2);
   static const gray3 = Color(0xFFC7C7CC);
@@ -63,7 +63,7 @@ abstract final class ColorPrimitives {
   static const glassBorderLight = Color(0x99FFFFFF); // 60%
   static const glassHighlightLight = Color(0x33FFFFFF); // 20%
 
-  // Dark : "Deep Glass" — beaucoup plus sombre et transparent
+  // Dark : "Deep Glass": beaucoup plus sombre et transparent
   static const glassFillDark = Color(
     0x08FFFFFF,
   ); // 3% - Ultra thin for deep look

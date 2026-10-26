@@ -65,7 +65,7 @@ final class IsarPlayHistoryDataSource {
   /// Returns track IDs from [likedIds] that have not been played in the
   /// last [staleDays] days, limited to [limit].
   ///
-  /// Used by the "Hidden Gems" home section — tracks the user liked but
+  /// Used by the "Hidden Gems" home section: tracks the user liked but
   /// hasn't listened to recently.
   List<String> forgottenTrackIds(
     Set<String> likedIds, {

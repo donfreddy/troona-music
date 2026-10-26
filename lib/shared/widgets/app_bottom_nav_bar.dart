@@ -30,13 +30,13 @@ import '../../features/player/domain/entities/repeat_mode.dart';
 /// Both sections share one [BackdropFilter] / [RepaintBoundary], keeping the
 /// screen within the two-filter budget.
 ///
-/// **Rebuild strategy**: [BlocBuilder] is gated by [_navKey] — only the track
+/// **Rebuild strategy**: [BlocBuilder] is gated by [_navKey]: only the track
 /// ID and play/pause flag trigger a rebuild. Position / progress events from
 /// the audio stream are ignored.
 enum AppTab {
   home,
   library,
-  player, // centre artwork slot — opens FullPlayer, not a real tab
+  player, // centre artwork slot: opens FullPlayer, not a real tab
   search,
   playlists,
 }
@@ -185,7 +185,7 @@ class _NavBarBody extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Mini player section — slides in/out smoothly ─────────────────
+          // ── Mini player section: slides in/out smoothly ─────────────────
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic,
@@ -198,7 +198,7 @@ class _NavBarBody extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
 
-          // ── Nav tabs row — visible only on root pages ────────────────────
+          // ── Nav tabs row: visible only on root pages ────────────────────
           if (showTabs)
             SizedBox(
               height: AppSpacing.navBarHeight,

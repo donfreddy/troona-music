@@ -117,7 +117,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Titre compact — apparaît en fadant au collapse
+                  // Titre compact: apparaît en fadant au collapse
                   Opacity(
                     opacity: collapse,
                     child: Text(
@@ -141,7 +141,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Large title — disparaît en fadant au collapse ──
+            // ── Large title: disparaît en fadant au collapse ──
             Positioned(
               left: AppSpacing.lg,
               right: AppSpacing.lg,
