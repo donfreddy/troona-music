@@ -17,7 +17,7 @@ void main() {
       expect(result.isRight(), isTrue);
       result.fold((_) => fail('Expected right'), (settings) {
         expect(settings.glassQuality, equals(GlassQuality.auto));
-        expect(settings.themeMode, equals(AppThemeMode.dark));
+        expect(settings.themeMode, equals(AppThemeMode.system));
         expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
       });
     });
@@ -36,7 +36,7 @@ void main() {
       expect(result.isRight(), isTrue);
       result.fold((_) => fail('Expected right'), (settings) {
         expect(settings.glassQuality, equals(GlassQuality.auto));
-        expect(settings.themeMode, equals(AppThemeMode.dark));
+        expect(settings.themeMode, equals(AppThemeMode.system));
         expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
       });
     });
@@ -44,11 +44,11 @@ void main() {
     test('migrates legacy integer enum index', () async {
       // themeMode: [system, light, dark] -> index 2 is dark
       // GlassQuality: [auto, high, low, off] -> index 1 is high
-      // CrossfadeStyle: [equalPower, linear] -> index 1 is linear
+      // CrossfadeStyle: [linear, equalPower, dip] -> index 0 is linear
       SharedPreferences.setMockInitialValues({
         'theme_mode': 2,
         'glass_quality': 1,
-        'crossfade_style': 1,
+        'crossfade_style': 0,
       });
       final prefs = await SharedPreferences.getInstance();
       final repo = SettingsRepositoryImpl(prefs);

@@ -105,11 +105,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1B122E),
-              Color(0xFF100B1D),
-              Color(0xFF07050D),
-            ],
+            colors: [Color(0xFF1B122E), Color(0xFF100B1D), Color(0xFF07050D)],
           ),
           border: Border.all(
             color: const Color(0xFFB79CFF).withValues(alpha: 0.28),
@@ -326,11 +322,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  _DeckCover(
-                    path: list[0],
-                    size: cardSize,
-                    hasGlow: true,
-                  ),
+                  _DeckCover(path: list[0], size: cardSize, hasGlow: true),
                   Positioned(
                     right: -4,
                     bottom: -4,

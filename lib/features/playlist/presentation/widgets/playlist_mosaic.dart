@@ -121,8 +121,8 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
                   child: _artworks.length > 3
                       ? ArtworkImage(_artworks[3])
                       : (_artworks.length > 1
-                          ? ArtworkImage(_artworks[1])
-                          : Container(color: colors.glassFill)),
+                            ? ArtworkImage(_artworks[1])
+                            : Container(color: colors.glassFill)),
                 ),
               ],
             ),

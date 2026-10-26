@@ -67,7 +67,9 @@ class PlaylistCard extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
+                          color: const Color(
+                            0xFFB79CFF,
+                          ).withValues(alpha: 0.35),
                           width: 1,
                         ),
                         boxShadow: [
@@ -160,9 +162,7 @@ class PlaylistCard extends StatelessWidget {
         Text(
           isLikes ? 'Coups de cœur' : 'Playlist',
           style: TextStyle(
-            color: isLikes
-                ? const Color(0xFFD4C4FF)
-                : colors.labelSecondary,
+            color: isLikes ? const Color(0xFFD4C4FF) : colors.labelSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w500,
           ),

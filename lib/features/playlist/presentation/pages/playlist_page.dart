@@ -78,7 +78,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 }
 
                 // Apply filter
-                final showHero = likesPlaylist != null &&
+                final showHero =
+                    likesPlaylist != null &&
                     _filter != _PlaylistFilter.customOnly;
                 final showCustom = _filter != _PlaylistFilter.likesOnly;
 
@@ -195,9 +196,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             _FilterChip(
                               label: 'Toutes',
                               isSelected: _filter == _PlaylistFilter.all,
-                              onTap: () => setState(
-                                () => _filter = _PlaylistFilter.all,
-                              ),
+                              onTap: () =>
+                                  setState(() => _filter = _PlaylistFilter.all),
                             ),
                             const SizedBox(width: 8),
                             _FilterChip(
@@ -212,8 +212,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             _FilterChip(
                               label: 'Mes playlists',
                               icon: LucideIcons.listMusic,
-                              isSelected:
-                                  _filter == _PlaylistFilter.customOnly,
+                              isSelected: _filter == _PlaylistFilter.customOnly,
                               onTap: () => setState(
                                 () => _filter = _PlaylistFilter.customOnly,
                               ),
@@ -299,11 +298,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
                           sliver: SliverGrid(
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 14,
-                              mainAxisSpacing: 18,
-                              childAspectRatio: 0.77,
-                            ),
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 14,
+                                  mainAxisSpacing: 18,
+                                  childAspectRatio: 0.77,
+                                ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) => PlaylistCard(
                                 playlist: customPlaylists[index],
@@ -322,16 +321,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             itemCount: customPlaylists.length,
                             separatorBuilder: (_, _) =>
                                 const SizedBox(height: AppSpacing.sm),
-                            itemBuilder: (context, index) => _PlaylistTile(
-                              playlist: customPlaylists[index],
-                            ),
+                            itemBuilder: (context, index) =>
+                                _PlaylistTile(playlist: customPlaylists[index]),
                           ),
                         ),
 
                     // Bottom padding for mini-player
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: 120),
-                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
                   ],
                 );
               }
@@ -465,10 +461,7 @@ class _EmptyPlaylistsView extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             'Rassemblez vos morceaux favoris selon vos envies et ambiances.',
-            style: TextStyle(
-              fontSize: 13,
-              color: colors.labelSecondary,
-            ),
+            style: TextStyle(fontSize: 13, color: colors.labelSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -557,10 +550,7 @@ class _PlaylistTile extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF382366),
-                              Color(0xFF1B1133),
-                            ],
+                            colors: [Color(0xFF382366), Color(0xFF1B1133)],
                           ),
                         ),
                         child: const Icon(
@@ -570,16 +560,9 @@ class _PlaylistTile extends StatelessWidget {
                         ),
                       )
                     : playlist.artworkPath != null
-                    ? ArtworkImage(
-                        playlist.artworkPath!,
-                        width: 58,
-                        height: 58,
-                      )
+                    ? ArtworkImage(playlist.artworkPath!, width: 58, height: 58)
                     : playlist.trackIds.isNotEmpty
-                    ? PlaylistMosaic(
-                        trackIds: playlist.trackIds,
-                        size: 58,
-                      )
+                    ? PlaylistMosaic(trackIds: playlist.trackIds, size: 58)
                     : Container(
                         color: Colors.white10,
                         child: const Icon(
