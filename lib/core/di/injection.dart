@@ -56,6 +56,7 @@ import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 import 'package:troona/features/settings/data/repositories/settings_repository_impl.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
@@ -283,6 +284,9 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerSingleton<TrackPaletteCubit>(TrackPaletteCubit());
+
+  // Singleton: the timer keeps running when Now Playing closes.
+  getIt.registerSingleton<SleepTimerCubit>(SleepTimerCubit(port: getIt()));
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
   // subscriptions to AudioServicePort. A factory would re-subscribe on every

@@ -12,6 +12,7 @@ import 'package:troona/core/utils/crash_log.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,7 @@ class TroonaApp extends StatelessWidget {
         BlocProvider.value(value: getIt<PlayerBloc>()),
         BlocProvider.value(value: getIt<TrackPaletteCubit>()),
         BlocProvider.value(value: getIt<LikesCubit>()),
+        BlocProvider.value(value: getIt<SleepTimerCubit>()),
       ],
       child: ScreenUtilInit(
         // Design canvas size used in Figma / design tool.
