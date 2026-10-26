@@ -11,6 +11,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -105,17 +106,7 @@ class _SliverHeader extends StatelessWidget {
 
   void _onShuffle(BuildContext context) {
     if (tracks.isEmpty) return;
-    final bloc = context.read<PlayerBloc>();
-    final alreadyShuffled = switch (bloc.state) {
-      PlayerActive(:final shuffleEnabled) => shuffleEnabled,
-      _ => false,
-    };
-    final shuffled = List<Track>.from(tracks)..shuffle();
-    bloc.add(
-      PlayTrackRequested(shuffled[0], contextQueue: shuffled, contextIndex: 0),
-    );
-    // A toggle: sending it while shuffle is on would turn it off.
-    if (!alreadyShuffled) bloc.add(const ShuffleToggleRequested());
+    playShuffled(context.read<PlayerBloc>(), tracks);
   }
 
   @override

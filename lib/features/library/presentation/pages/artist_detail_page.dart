@@ -21,6 +21,7 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -558,11 +559,9 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                               ? null
                               : () {
                                   AppHaptics.mediumImpact();
-                                  context.read<PlayerBloc>().add(
-                                    QueueSetRequested(tracks, startIndex: 0),
-                                  );
-                                  context.read<PlayerBloc>().add(
-                                    const ShuffleToggleRequested(),
+                                  playShuffled(
+                                    context.read<PlayerBloc>(),
+                                    tracks,
                                   );
                                 },
                           icon: Icon(

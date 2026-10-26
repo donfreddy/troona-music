@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
 class ShuffleBanner extends StatelessWidget {
@@ -17,21 +18,7 @@ class ShuffleBanner extends StatelessWidget {
     if (tracks.isEmpty) return;
     AppHaptics.mediumImpact();
 
-    final bloc = context.read<PlayerBloc>();
-    final alreadyShuffled = switch (bloc.state) {
-      PlayerActive(:final shuffleEnabled) => shuffleEnabled,
-      _ => false,
-    };
-    final shuffled = List<Track>.from(tracks)..shuffle();
-    bloc.add(
-      PlayTrackRequested(
-        shuffled.first,
-        contextQueue: shuffled,
-        contextIndex: 0,
-      ),
-    );
-    // A toggle: sending it while shuffle is on would turn it off.
-    if (!alreadyShuffled) bloc.add(const ShuffleToggleRequested());
+    playShuffled(context.read<PlayerBloc>(), tracks);
   }
 
   @override

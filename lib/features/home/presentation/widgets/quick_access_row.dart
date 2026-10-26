@@ -8,18 +8,15 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
-import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 
 /// Plays the whole library in a random order.
 void shuffleWholeLibrary(BuildContext context) {
   final libraryState = context.read<LibraryBloc>().state;
   if (libraryState is! LibraryLoaded || libraryState.allTracks.isEmpty) return;
-  final tracks = List<Track>.of(libraryState.allTracks)..shuffle();
-  context.read<PlayerBloc>().add(
-    PlayTrackRequested(tracks.first, contextQueue: tracks, contextIndex: 0),
-  );
+  playShuffled(context.read<PlayerBloc>(), libraryState.allTracks);
 }
 
 /// A row of quick-access chips.
