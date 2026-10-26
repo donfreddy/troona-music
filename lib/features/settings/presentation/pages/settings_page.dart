@@ -24,7 +24,6 @@ import 'package:troona/features/settings/presentation/widgets/segmented_row.dart
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
-import 'package:troona/shared/widgets/glass_card.dart';
 
 /// Full-featured Apple Settings / Apple Music inspired Settings Screen for Troona.
 class SettingsPage extends StatelessWidget {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
@@ -81,6 +80,7 @@ class SearchTopResult extends StatelessWidget {
     BuildContext context,
     Artist artist,
     AppColors colors,
+  ) {
     final cachedArtwork = getIt<MetadataRepository>()
         .getCachedArtistArtworkPath(artist.id);
     final artwork = cachedArtwork ?? artist.artworkPath;
