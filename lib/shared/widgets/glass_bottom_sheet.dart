@@ -119,19 +119,14 @@ class _SheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // One colour on every drawn side: Flutter cannot paint a rounded border
+    // whose sides differ in colour. The bottom edge bleeds to the screen.
+    final side = BorderSide(color: config.border, width: config.borderWidth);
     return DecoratedBox(
       decoration: BoxDecoration(
         color: config.fill,
         borderRadius: config.borderRadius,
-        // Top-edge luminosity highlight only: bottom edge bleeds to screen.
-        border: Border(
-          top: BorderSide(color: config.border, width: config.borderWidth),
-          left: BorderSide(color: config.highlight, width: config.borderWidth),
-          right: BorderSide(
-            color: config.highlight.withValues(alpha: .05),
-            width: 0.5,
-          ),
-        ),
+        border: Border(top: side, left: side, right: side),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
