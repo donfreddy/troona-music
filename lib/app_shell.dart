@@ -4,12 +4,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/permission_handler.dart';
+import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
@@ -81,6 +84,29 @@ class _AppShellState extends State<AppShell> {
         AppToast.show(context, message);
       });
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());
+  }
+
+  /// Last month's Replay playlist, made once on the first run of a month.
+  Future<void> _createMonthlyReplay() async {
+    if (!mounted) return;
+    final l10n = context.l10n;
+    final monthName = DateFormat.yMMMM(
+      Localizations.localeOf(context).toString(),
+    );
+    final result = await getIt<CreateMonthlyReplayUseCase>()(
+      now: DateTime.now(),
+      name: (month) => l10n.replayName(monthName.format(month)),
+    );
+    if (!mounted) return;
+    result.fold(
+      (failure) => appLogger.w('Monthly Replay not created: $failure'),
+      (playlist) {
+        if (playlist != null) {
+          AppToast.show(context, l10n.replayReady(playlist.name));
+        }
+      },
+    );
   }
 
   @override

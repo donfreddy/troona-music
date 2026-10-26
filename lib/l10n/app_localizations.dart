@@ -1634,6 +1634,18 @@ abstract class AppLocalizations {
   /// **'{date}, music played'**
   String recapCalendarDay(String date);
 
+  /// No description provided for @replayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay {month}'**
+  String replayName(String month);
+
+  /// No description provided for @replayReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is in your playlists: last month\'s most played songs.'**
+  String replayReady(String name);
+
   /// No description provided for @recapCalendarQuietDay.
   ///
   /// In en, this message translates to:

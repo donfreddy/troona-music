@@ -517,6 +517,22 @@
       }
     }
   },
+  "replayName": "Replay {month}",
+  "@replayName": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "replayReady": "{name} is in your playlists: last month's most played songs.",
+  "@replayReady": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recapCalendarQuietDay": "{date}, no music",
   "@recapCalendarQuietDay": {
     "placeholders": {

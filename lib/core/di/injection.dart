@@ -17,6 +17,8 @@ import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubi
 import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
+import 'package:troona/features/history/data/sources/shared_prefs_monthly_replay_log.dart';
+import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/record_listening_use_case.dart';
@@ -227,6 +229,14 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),
+  );
+  getIt.registerLazySingleton<CreateMonthlyReplayUseCase>(
+    () => CreateMonthlyReplayUseCase(
+      history: getIt(),
+      getTracksByIds: getIt(),
+      playlists: getIt(),
+      log: SharedPrefsMonthlyReplayLog(getIt()),
+    ),
   );
   getIt.registerLazySingleton<SearchRepository>(
     () => SearchRepositoryImpl(db: getIt()),

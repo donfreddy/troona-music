@@ -256,6 +256,8 @@
   "recapEmpty": "Rien n'a été écouté la semaine dernière.",
   "recapCalendarCaption": "Un point plein marque un jour avec de la musique.",
   "recapCalendarDay": "{date}, musique écoutée",
+  "replayName": "Replay {month}",
+  "replayReady": "{name} est dans vos playlists : vos morceaux les plus écoutés le mois dernier.",
   "recapCalendarQuietDay": "{date}, pas de musique",
   "queueTitle": "File d'attente",
   "queueHistory": "Historique",

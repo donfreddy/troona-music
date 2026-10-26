@@ -986,6 +986,16 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String replayName(String month) {
+    return 'Replay $month';
+  }
+
+  @override
+  String replayReady(String name) {
+    return '$name est dans vos playlists : vos morceaux les plus écoutés le mois dernier.';
+  }
+
+  @override
   String recapCalendarQuietDay(String date) {
     return '$date, pas de musique';
   }
