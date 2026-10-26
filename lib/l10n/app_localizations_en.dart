@@ -609,6 +609,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get artistLoadError => 'We couldn\'t open this artist.';
 
   @override
+  String metaListeners(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString listeners',
+      one: '1 listener',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String metaPlays(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString plays',
+      one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get searchHint => 'Songs, artists, albums';
 
   @override

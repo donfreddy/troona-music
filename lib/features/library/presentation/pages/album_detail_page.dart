@@ -631,8 +631,8 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                             size: 18,
                             color: colors.accent,
                           ),
-                          label: const Text(
-                            'Aléatoire',
+                          label: Text(
+                            context.l10n.actionShuffle,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,

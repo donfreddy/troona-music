@@ -32,8 +32,8 @@ void main() {
         equals('Daft Punk was a French electronic music duo.'),
       );
       expect(domain.imageUrl, equals('https://example.com/mega.png'));
-      expect(domain.formattedListeners, equals('4.5 M auditeurs'));
-      expect(domain.formattedPlayCount, equals('180 M écoutes'));
+      expect(domain.listeners, equals('4500000'));
+      expect(domain.playCount, equals('180000000'));
     });
 
     test(
@@ -92,8 +92,8 @@ void main() {
         expect(domain.tags, containsAll(['Hip-Hop', 'Rap', 'Trap', 'Atlanta']));
         expect(domain.similarArtists.length, equals(3));
         expect(domain.similarArtists.first.name, equals('Young Thug'));
-        expect(domain.formattedListeners, equals('3.4 M auditeurs'));
-        expect(domain.formattedPlayCount, equals('490.6 M écoutes'));
+        expect(domain.listeners, equals('3381004'));
+        expect(domain.playCount, equals('490550591'));
       },
     );
 
@@ -121,7 +121,7 @@ void main() {
           equals('https://www.last.fm/music/Future+&+Zaytoven'),
         );
 
-        // Case 2: summary only has the link "<a href="...">Read more on Last.fm</a>"
+        // Case 2: only the link: no text to show, the link is kept.
         final jsonOnlyLink = {
           'artist': {
             'name': 'Future & Zaytoven',
@@ -133,10 +133,7 @@ void main() {
           },
         };
         final dto2 = LastFmArtistDto.fromJson(jsonOnlyLink);
-        expect(
-          dto2.toDomain().bio,
-          equals('Consulter la page complète sur Last.fm.'),
-        );
+        expect(dto2.toDomain().bio, isNull);
         expect(
           dto2.toDomain().lastFmUrl,
           equals('https://www.last.fm/music/Future+&+Zaytoven'),
@@ -197,8 +194,8 @@ void main() {
           'Discovery is the second studio album by French house duo Daft Punk.',
         ),
       );
-      expect(domain.formattedListeners, equals('950 k auditeurs'));
-      expect(domain.formattedPlayCount, equals('25 M écoutes'));
+      expect(domain.listeners, equals('950000'));
+      expect(domain.playCount, equals('25000000'));
       expect(domain.tags, containsAll(['Electronic', 'French House']));
     });
   });

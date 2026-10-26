@@ -32,9 +32,9 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
     if (language != null && language.isNotEmpty) return language;
     try {
       final locale = Platform.localeName.split('_').first.toLowerCase();
-      return locale.isNotEmpty ? locale : 'fr';
+      return locale.isNotEmpty ? locale : 'en';
     } catch (_) {
-      return 'fr';
+      return 'en';
     }
   }
 

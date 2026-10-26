@@ -376,7 +376,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count morceaux trouvés',
-      one: '1 morceau trouvé',
+      one: '$count morceau trouvé',
     );
     return '$_temp0';
   }
@@ -392,7 +392,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count nouveaux morceaux ajoutés',
-      one: '1 nouveau morceau ajouté',
+      one: '$count nouveau morceau ajouté',
     );
     return '$_temp0';
   }
@@ -403,7 +403,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count morceaux ne sont plus sur votre téléphone',
-      one: '1 morceau n\'est plus sur votre téléphone',
+      one: '$count morceau n\'est plus sur votre téléphone',
     );
     return '$_temp0';
   }
@@ -614,6 +614,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get artistLoadError => 'Impossible d\'ouvrir cet artiste.';
 
   @override
+  String metaListeners(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString auditeurs',
+      one: '$countString auditeur',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String metaPlays(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString écoutes',
+      one: '$countString écoute',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get searchHint => 'Morceaux, artistes, albums';
 
   @override
@@ -811,7 +843,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count morceaux, prêts quand vous l\'êtes.',
-      one: '1 morceau, prêt quand vous l\'êtes.',
+      one: '$count morceau, prêt quand vous l\'êtes.',
     );
     return '$_temp0';
   }

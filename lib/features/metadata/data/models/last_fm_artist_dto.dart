@@ -376,7 +376,8 @@ class LastFmBioDto {
               link.toLowerCase().contains('unknown'))) {
         return null;
       }
-      return 'Consulter la page complète sur Last.fm.';
+      // Only a link to Last.fm: nothing worth showing as text.
+      return null;
     }
 
     return null;

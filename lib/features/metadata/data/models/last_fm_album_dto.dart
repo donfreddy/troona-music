@@ -227,7 +227,8 @@ class LastFmWikiDto {
         (summary != null && summary!.contains('<a href')) ||
         (content != null && content!.contains('<a href'));
     if (hasLink) {
-      return 'Consulter la page complète sur Last.fm.';
+      // Only a link to Last.fm: nothing worth showing as text.
+      return null;
     }
 
     return null;

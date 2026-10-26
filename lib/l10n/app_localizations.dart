@@ -1064,6 +1064,18 @@ abstract class AppLocalizations {
   /// **'We couldn\'t open this artist.'**
   String get artistLoadError;
 
+  /// No description provided for @metaListeners.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 listener} other{{count} listeners}}'**
+  String metaListeners(int count);
+
+  /// No description provided for @metaPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 play} other{{count} plays}}'**
+  String metaPlays(int count);
+
   /// No description provided for @searchHint.
   ///
   /// In en, this message translates to:

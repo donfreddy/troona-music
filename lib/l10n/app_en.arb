@@ -309,6 +309,24 @@
   "formatLossless": "Lossless",
   "albumLoadError": "We couldn't open this album.",
   "artistLoadError": "We couldn't open this artist.",
+  "metaListeners": "{count, plural, =1{1 listener} other{{count} listeners}}",
+  "@metaListeners": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact"
+      }
+    }
+  },
+  "metaPlays": "{count, plural, =1{1 play} other{{count} plays}}",
+  "@metaPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact"
+      }
+    }
+  },
   "searchHint": "Songs, artists, albums",
   "searchClear": "Clear search",
   "searchIdleTitle": "Search your library",

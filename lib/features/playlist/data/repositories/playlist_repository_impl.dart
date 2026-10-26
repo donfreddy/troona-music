@@ -95,7 +95,7 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
     if (id == IsarLibraryDataSource.likesPlaylistId) {
       return left(
         const DatabaseFailure(
-          'Impossible de supprimer la playlist des favoris',
+          'The liked songs playlist cannot be deleted',
         ),
       );
     }

@@ -23,8 +23,8 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
     final colors = context.colors;
     final wiki = widget.info.wiki;
     final published = widget.info.published;
-    final listeners = widget.info.formattedListeners;
-    final playCount = widget.info.formattedPlayCount;
+    final listeners = _count(widget.info.listeners, context.l10n.metaListeners);
+    final playCount = _count(widget.info.playCount, context.l10n.metaPlays);
     final tags = widget.info.tags;
 
     return Padding(
@@ -232,4 +232,10 @@ class _StatBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Last.fm sends counts as strings; unparsable ones are not shown.
+String? _count(String? raw, String Function(int) label) {
+  final count = int.tryParse(raw ?? '');
+  return count == null ? null : label(count);
 }
