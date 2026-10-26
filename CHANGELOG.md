@@ -22,7 +22,8 @@
 - Daily listening totals (plays, listening time, first plays), never pruned and built once from the stored events.
 - "Your week in music" on Home: last week's listening time and top artist; the page adds the top song, first listens and a calendar of this month's listening days. No streak, no badge, no notification.
 - Monthly "Replay" playlist: on the first run of a month, last month's 25 most played songs are saved as a normal playlist (skipped below five songs, made once per month even if deleted).
-- Smooth transitions: play and resume fade in over 300 ms, pause fades out before pausing, and a skip or a new queue fades out over 120 ms, then in. Quick play and pause taps reverse the fade. Unplugged headphones and calls pause at once, without a fade. Auto-advance stays gapless.
+- Smooth transitions: play and resume fade in over 300 ms, pause fades out before pausing, and a skip or a new queue fades out over 120 ms, then in. Quick play and pause taps reverse the fade. Unplugged headphones and calls pause at once, without a fade.
+- Sleep timer: a 30 s fade run by the player (the volume setting is never touched; playing again during the fade takes it back), and "end of song" fades out to finish just before the song ends, so the next one is never heard. It follows a skip to the new song. Auto-advance stays gapless.
 - "What's new" sheet: opens once on the first launch after an update that has notes (never on a fresh install), grouped as New, Improved and Fixed, and reopens from Settings, above the mini player. Notes live in `lib/features/whats_new/presentation/release_notes.dart`.
 - Home "Recently Played" now lists the last played tracks, topped up with the newest ones until four have been played, and refreshes when a play is recorded.
 - Now Playing: fixed glass lens over a cover carousel, elapsed-time arc with circular seek on the ring, and a morph between the glass ring and the mini player.
