@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # --- CORE ARCHITECTURE ---
   get_it: ^9.2.1
@@ -44,6 +46,9 @@ dependencies:
   flutter_screenutil: ^5.9.3
   palette_generator_master: ^1.0.1
   flutter_animate: ^4.5.2
+  intl: any
+  package_info_plus: ^9.0.1
+  share_plus: ^12.0.2
 
 dependency_overrides:
   # Audio-only permissions, see third_party/on_audio_query_plus_android/TROONA_PATCH.md.
@@ -62,3 +67,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

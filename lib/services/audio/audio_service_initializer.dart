@@ -23,13 +23,13 @@ final class AudioServiceInitializer {
   /// OS media controls, and returns the underlying [JustAudioAdapter] as the
   /// app's [AudioServicePort].
   static Future<AudioServicePort> init(AppSettings settings) async {
-    final adapter = JustAudioAdapter()..applySettings(settings);
+    final adapter = JustAudioAdapter();
 
     await AudioService.init(
       builder: () => AudioHandlerImpl(adapter),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
-        androidNotificationChannelName: 'Troona Music',
+        androidNotificationChannelName: 'Playback controls',
         androidNotificationOngoing: true,
         androidShowNotificationBadge: true,
         androidStopForegroundOnPause: true,

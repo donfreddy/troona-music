@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:troona/l10n/app_localizations.dart';
 
 extension ContextExt on BuildContext {
+  /// UI strings for the current locale.
+  AppLocalizations get l10n => AppLocalizations.of(this);
+
   // ── Theme shortcuts ────────────────────────────────────────────────────────
 
   ThemeData get theme => Theme.of(this);

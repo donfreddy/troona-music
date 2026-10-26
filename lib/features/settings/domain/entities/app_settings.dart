@@ -1,138 +1,72 @@
 import 'package:equatable/equatable.dart';
 
-enum AppThemeMode { system, light, dark, amoled }
-
-enum CrossfadeStyle { linear, equalPower, dip }
-
 /// Global glass quality to balance fidelity vs performance.
 enum GlassQuality { auto, high, low, off }
 
-/// Minimal, user-facing settings for v1.0.
+/// User preferences. Every field here is read somewhere: a setting that
+/// does nothing is a bug report waiting to happen.
 class AppSettings extends Equatable {
-  // Appearance
-  final AppThemeMode themeMode;
-  final bool useDynamicColor; // Material You / artwork palette
-
-  // Playback (MVP)
-  final bool gaplessPlayback; // seamless transitions, no gaps
-  final bool crossfadeEnabled; // overlap blend between tracks
-  final int crossfadeDurationMs; // 1 000–12 000 ms
-  final CrossfadeStyle crossfadeStyle;
+  // Playback
   final bool stopOnCallEnabled;
   final bool resumeAfterCallEnabled;
   final bool duckAudioOnNotification;
 
-  // Library
-  final bool scanOnStartup;
-  final bool watchFolderChanges;
-
-  // UI
-  final bool showAlbumArtInNotification;
-  final bool hapticFeedbackEnabled;
-  final GlassQuality glassQuality; // Reduce effects / blur quality
-
-  // Online Metadata & Artwork
+  // Online extras: opt-in, they send artist and album names to Last.fm and
+  // Deezer.
   final bool fetchOnlineMetadata;
   final bool fetchArtistArtwork;
-  final bool metadataWifiOnly;
 
-  // Sleep timer
-  final bool sleepTimerEnabled;
-  final int sleepTimerMinutes; // 5–120
+  /// Whether the Home card offering online extras was answered or closed.
+  final bool onlineExtrasOffered;
+
+  // UI
+  final bool hapticFeedbackEnabled;
+  final GlassQuality glassQuality;
 
   const AppSettings({
-    // Appearance
-    this.themeMode = AppThemeMode.system,
-    this.useDynamicColor = true,
-    // Playback
-    this.gaplessPlayback = true,
-    this.crossfadeEnabled = false,
-    this.crossfadeDurationMs = 3000,
-    this.crossfadeStyle = CrossfadeStyle.equalPower,
     this.stopOnCallEnabled = true,
     this.resumeAfterCallEnabled = true,
     this.duckAudioOnNotification = true,
-    // Library
-    this.scanOnStartup = true,
-    this.watchFolderChanges = false,
-    // Online Metadata & Artwork
-    this.fetchOnlineMetadata = true,
-    this.fetchArtistArtwork = true,
-    this.metadataWifiOnly = false,
-    // UI
-    this.showAlbumArtInNotification = true,
+    this.fetchOnlineMetadata = false,
+    this.fetchArtistArtwork = false,
+    this.onlineExtrasOffered = false,
     this.hapticFeedbackEnabled = true,
     this.glassQuality = GlassQuality.auto,
-    // Sleep timer
-    this.sleepTimerEnabled = false,
-    this.sleepTimerMinutes = 30,
   });
 
+  bool get onlineExtrasEnabled => fetchOnlineMetadata || fetchArtistArtwork;
+
   AppSettings copyWith({
-    AppThemeMode? themeMode,
-    bool? useDynamicColor,
-    bool? gaplessPlayback,
-    bool? crossfadeEnabled,
-    int? crossfadeDurationMs,
-    CrossfadeStyle? crossfadeStyle,
     bool? stopOnCallEnabled,
     bool? resumeAfterCallEnabled,
     bool? duckAudioOnNotification,
-    bool? scanOnStartup,
-    bool? watchFolderChanges,
     bool? fetchOnlineMetadata,
     bool? fetchArtistArtwork,
-    bool? metadataWifiOnly,
-    bool? showAlbumArtInNotification,
+    bool? onlineExtrasOffered,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
-    bool? sleepTimerEnabled,
-    int? sleepTimerMinutes,
   }) => AppSettings(
-    themeMode: themeMode ?? this.themeMode,
-    useDynamicColor: useDynamicColor ?? this.useDynamicColor,
-    gaplessPlayback: gaplessPlayback ?? this.gaplessPlayback,
-    crossfadeEnabled: crossfadeEnabled ?? this.crossfadeEnabled,
-    crossfadeDurationMs: crossfadeDurationMs ?? this.crossfadeDurationMs,
-    crossfadeStyle: crossfadeStyle ?? this.crossfadeStyle,
     stopOnCallEnabled: stopOnCallEnabled ?? this.stopOnCallEnabled,
     resumeAfterCallEnabled:
         resumeAfterCallEnabled ?? this.resumeAfterCallEnabled,
     duckAudioOnNotification:
         duckAudioOnNotification ?? this.duckAudioOnNotification,
-    scanOnStartup: scanOnStartup ?? this.scanOnStartup,
-    watchFolderChanges: watchFolderChanges ?? this.watchFolderChanges,
     fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
     fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
-    metadataWifiOnly: metadataWifiOnly ?? this.metadataWifiOnly,
-    showAlbumArtInNotification:
-        showAlbumArtInNotification ?? this.showAlbumArtInNotification,
+    onlineExtrasOffered: onlineExtrasOffered ?? this.onlineExtrasOffered,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
     glassQuality: glassQuality ?? this.glassQuality,
-    sleepTimerEnabled: sleepTimerEnabled ?? this.sleepTimerEnabled,
-    sleepTimerMinutes: sleepTimerMinutes ?? this.sleepTimerMinutes,
   );
 
   @override
   List<Object?> get props => [
-    themeMode,
-    useDynamicColor,
-    gaplessPlayback,
-    crossfadeEnabled,
-    crossfadeDurationMs,
-    crossfadeStyle,
     stopOnCallEnabled,
     resumeAfterCallEnabled,
     duckAudioOnNotification,
-    scanOnStartup,
-    watchFolderChanges,
     fetchOnlineMetadata,
     fetchArtistArtwork,
-    metadataWifiOnly,
-    showAlbumArtInNotification,
+    onlineExtrasOffered,
     hapticFeedbackEnabled,
     glassQuality,
-    sleepTimerEnabled,
-    sleepTimerMinutes,
   ];
 }

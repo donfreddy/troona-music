@@ -1,0 +1,123 @@
+{
+  "@@locale": "en",
+  "appName": "Troona",
+  "actionCancel": "Cancel",
+  "actionClear": "Clear",
+  "actionClose": "Close",
+  "actionDelete": "Delete",
+  "actionDone": "Done",
+  "actionReset": "Reset",
+  "actionRetry": "Try again",
+  "actionSave": "Save",
+  "actionSeeAll": "See all",
+  "actionUndo": "Undo",
+  "actionPlay": "Play",
+  "actionShuffle": "Shuffle",
+  "errorGeneric": "Something went wrong. Try again.",
+  "songCount": "{count, plural, =0{No songs} =1{1 song} other{{count} songs}}",
+  "@songCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "albumCount": "{count, plural, =0{No albums} =1{1 album} other{{count} albums}}",
+  "@albumCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "artistCount": "{count, plural, =0{No artists} =1{1 artist} other{{count} artists}}",
+  "@artistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unknownArtist": "Unknown artist",
+  "unknownAlbum": "Unknown album",
+  "likedSongs": "Liked songs",
+  "sizeMegabytes": "{size} MB",
+  "@sizeMegabytes": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "navHome": "Home",
+  "navLibrary": "Library",
+  "navSearch": "Search",
+  "navPlaylists": "Playlists",
+  "settingsTitle": "Settings",
+  "settingsPlayback": "Playback",
+  "settingsDuck": "Lower volume for notifications",
+  "settingsPauseOnCall": "Pause during calls",
+  "settingsResumeAfterCall": "Resume after calls",
+  "settingsLibrary": "Library",
+  "settingsRescan": "Rescan library",
+  "settingsRescanSubtitle": "Find songs added since the last scan",
+  "settingsRescanning": "Updating your library…",
+  "settingsCoversClear": "Clear cover cache",
+  "settingsCoversClearSubtitle": "Covers are rebuilt automatically.",
+  "settingsCoversConfirmTitle": "Clear cover cache?",
+  "settingsCoversConfirmBody": "Covers reload in the background. Your music, likes and playlists aren't affected.",
+  "settingsCoversCleared": "Cover cache cleared",
+  "settingsOnline": "Online extras",
+  "settingsOnlineFooter": "Optional. When on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. Your music files never leave this device.",
+  "settingsOnlineBios": "Artist bios and album notes",
+  "settingsOnlinePhotos": "Artist photos",
+  "settingsOnlineClear": "Clear downloaded info",
+  "settingsOnlineConfirmTitle": "Clear downloaded info?",
+  "settingsOnlineConfirmBody": "Bios and album notes will download again when you open an artist or an album.",
+  "settingsOnlineCleared": "Downloaded info cleared",
+  "settingsAppearance": "Appearance",
+  "settingsGlass": "Glass effects",
+  "settingsGlassAuto": "Auto",
+  "settingsGlassFull": "Full",
+  "settingsGlassLight": "Light",
+  "settingsGlassOff": "Off",
+  "settingsGlassFooter": "Auto adapts to your phone. Choose Light or Off for smoother scrolling on older devices.",
+  "settingsHaptics": "Haptics",
+  "settingsSupport": "Help and feedback",
+  "settingsReport": "Report a problem",
+  "settingsReportSubtitle": "Shares device info and recent errors. You can read it before sending.",
+  "settingsReportSubject": "Troona problem report",
+  "settingsPrivacy": "Privacy policy",
+  "settingsLicenses": "Open-source licenses",
+  "settingsReset": "Reset",
+  "settingsForgetQueue": "Clear queue and position",
+  "settingsForgetQueueConfirmTitle": "Clear queue and position?",
+  "settingsForgetQueueConfirmBody": "Playback stops and Troona forgets where you were.",
+  "settingsForgetQueueDone": "Queue cleared",
+  "settingsResetSettings": "Reset settings",
+  "settingsResetConfirmTitle": "Reset settings?",
+  "settingsResetConfirmBody": "All preferences go back to their defaults. Your library, likes and playlists stay as they are.",
+  "settingsVersion": "Troona {version} ({build})",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsTagline": "Made for the music you own.",
+  "settingsLoadError": "We couldn't load your settings.",
+  "privacyTitle": "Privacy",
+  "privacyIntro": "Troona plays the music stored on your phone. It has no account, no ads and no analytics.",
+  "privacyLocalTitle": "On this device",
+  "privacyLocalBody": "Your library, likes, playlists and listening history are stored only on this phone. Troona reads your audio files and never your photos, videos or documents.",
+  "privacyOnlineTitle": "Online extras (off by default)",
+  "privacyOnlineBody": "If you turn them on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn them off at any time in Settings.",
+  "privacyReportsTitle": "Problem reports",
+  "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
+  "privacyDeleteTitle": "Deleting your data",
+  "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files are never touched."
+}

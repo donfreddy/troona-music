@@ -22,6 +22,8 @@ import 'package:troona/features/permissions/presentation/pages/permission_page.d
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
+import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -34,6 +36,7 @@ abstract class AppRoute {
   static const player = '/player';
   static const permission = '/permission';
   static const settings = 'settings';
+  static const privacy = 'privacy';
 
   static const albumDetail = 'album_detail';
   static const artistDetail = 'artist_detail';
@@ -103,10 +106,24 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: AppRoute.settings,
                   name: AppRoute.settings,
-                  builder: (context, _) => BlocProvider(
-                    create: (_) => getIt<SettingsCubit>()..load(),
+                  builder: (context, _) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                        create: (_) => getIt<SettingsCubit>()..load(),
+                      ),
+                      BlocProvider(
+                        create: (_) => getIt<MaintenanceCubit>()..load(),
+                      ),
+                    ],
                     child: const SettingsPage(),
                   ),
+                  routes: [
+                    GoRoute(
+                      path: AppRoute.privacy,
+                      name: AppRoute.privacy,
+                      builder: (_, _) => const PrivacyPage(),
+                    ),
+                  ],
                 ),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),

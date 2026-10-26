@@ -58,7 +58,10 @@ import 'package:troona/features/player/presentation/bloc/palette/track_palette_c
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 import 'package:troona/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:troona/features/settings/data/repositories/maintenance_repository_impl.dart';
+import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
+import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
@@ -218,6 +221,13 @@ Future<void> configureDependencies() async {
       artworkCacheDir: artworkCache,
     ),
   );
+  getIt.registerLazySingleton<MaintenanceRepository>(
+    () => MaintenanceRepositoryImpl(
+      library: getIt(),
+      metadata: getIt(),
+      coverDir: artworkCache,
+    ),
+  );
   getIt.registerLazySingleton<ArtistArtworkPrefetchService>(
     () => ArtistArtworkPrefetchService(repo: getIt()),
   );
@@ -280,8 +290,9 @@ Future<void> configureDependencies() async {
   // AudioSessionService is injected so runtime setting changes (call handling,
   // ducking) are propagated immediately without an app restart.
   getIt.registerFactory<SettingsCubit>(
-    () => SettingsCubit(getIt(), getIt<AudioSessionService>(), getIt()),
+    () => SettingsCubit(getIt(), getIt<AudioSessionService>()),
   );
+  getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
 
   getIt.registerSingleton<TrackPaletteCubit>(TrackPaletteCubit());
 

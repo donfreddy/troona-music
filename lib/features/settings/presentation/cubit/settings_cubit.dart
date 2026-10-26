@@ -1,25 +1,21 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:injectable/injectable.dart';
 import 'package:troona/core/theme/components/glass_theme.dart' as glass;
 import 'package:troona/core/utils/haptics_helper.dart';
-import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 
 part 'settings_state.dart';
 
-@injectable
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repo;
-  final PlaybackSessionStore? _playbackSessionStore;
 
   /// Optional — propagates runtime setting changes to the audio session
   /// (call ducking, headphone unplug behaviour, etc.) without an app restart.
   final AudioSessionService? _audioSession;
 
-  SettingsCubit(this._repo, [this._audioSession, this._playbackSessionStore])
+  SettingsCubit(this._repo, [this._audioSession])
     : super(const SettingsState.loading());
 
   // Init
@@ -50,29 +46,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     );
   }
 
-  // Appearance
-  Future<void> setThemeMode(AppThemeMode mode) =>
-      _update((s) => s.copyWith(themeMode: mode));
-
-  Future<void> setUseDynamicColor(bool value) =>
-      _update((s) => s.copyWith(useDynamicColor: value));
-
   // Playback
-  Future<void> setGaplessPlayback(bool value) =>
-      _update((s) => s.copyWith(gaplessPlayback: value));
-
-  Future<void> setCrossfade({
-    required bool enabled,
-    int? durationMs,
-    CrossfadeStyle? style,
-  }) => _update(
-    (s) => s.copyWith(
-      crossfadeEnabled: enabled,
-      crossfadeDurationMs: durationMs,
-      crossfadeStyle: style,
-    ),
-  );
-
   Future<void> setStopOnCall(bool value) =>
       _update((s) => s.copyWith(stopOnCallEnabled: value));
 
@@ -82,13 +56,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setDuckAudioOnNotification(bool value) =>
       _update((s) => s.copyWith(duckAudioOnNotification: value));
 
-  // Library
-  Future<void> setScanOnStartup(bool value) =>
-      _update((s) => s.copyWith(scanOnStartup: value));
-
-  Future<void> setWatchFolderChanges(bool value) =>
-      _update((s) => s.copyWith(watchFolderChanges: value));
-
   // Online Metadata & Artwork
   Future<void> setFetchOnlineMetadata(bool value) =>
       _update((s) => s.copyWith(fetchOnlineMetadata: value));
@@ -96,12 +63,19 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setFetchArtistArtwork(bool value) =>
       _update((s) => s.copyWith(fetchArtistArtwork: value));
 
-  Future<void> setMetadataWifiOnly(bool value) =>
-      _update((s) => s.copyWith(metadataWifiOnly: value));
+  /// Turns both online extras on or off at once (Home offer card).
+  Future<void> setOnlineExtras(bool enabled) => _update(
+    (s) => s.copyWith(
+      fetchOnlineMetadata: enabled,
+      fetchArtistArtwork: enabled,
+      onlineExtrasOffered: true,
+    ),
+  );
+
+  Future<void> dismissOnlineExtrasOffer() =>
+      _update((s) => s.copyWith(onlineExtrasOffered: true));
 
   // UI
-  Future<void> setShowAlbumArtInNotification(bool value) =>
-      _update((s) => s.copyWith(showAlbumArtInNotification: value));
 
   Future<void> setHapticFeedback(bool value) {
     AppHaptics.enabled = value;
@@ -115,18 +89,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     return _update((s) => s.copyWith(glassQuality: quality));
   }
 
-  // Sleep timer
-  Future<void> setSleepTimer({required bool enabled, int? minutes}) => _update(
-    (s) => s.copyWith(sleepTimerEnabled: enabled, sleepTimerMinutes: minutes),
-  );
-
   // Reset
   Future<void> resetToDefaults() async {
     await _repo.resetSettings();
     await load();
-  }
-
-  Future<void> clearPlaybackSession() async {
-    await _playbackSessionStore?.clear();
   }
 }

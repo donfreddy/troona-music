@@ -9,6 +9,7 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/utils/crash_log.dart';
+import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -68,7 +69,9 @@ class TroonaApp extends StatelessWidget {
         minTextAdapt: true,
         splitScreenMode: true,
         builder: (_, child) => MaterialApp.router(
-          title: 'Troona',
+          onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: appRouter,
           themeMode: ThemeMode.dark,
           theme: AppTheme.dark,

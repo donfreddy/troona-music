@@ -6,88 +6,77 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('SettingsRepositoryImpl', () {
-    test('loads default settings when preferences are empty', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final repo = SettingsRepositoryImpl(prefs);
+  Future<SettingsRepositoryImpl> repoWith(Map<String, Object> values) async {
+    SharedPreferences.setMockInitialValues(values);
+    return SettingsRepositoryImpl(await SharedPreferences.getInstance());
+  }
 
-      final result = await repo.loadSettings();
+  test('defaults: online extras off, glass auto', () async {
+    final repo = await repoWith({});
+    final settings = (await repo.loadSettings()).getOrElse(
+      () => throw 'no settings',
+    );
+    expect(settings, const AppSettings());
+    expect(settings.fetchOnlineMetadata, isFalse);
+    expect(settings.fetchArtistArtwork, isFalse);
+    expect(settings.glassQuality, GlassQuality.auto);
+  });
 
-      expect(result.isRight(), isTrue);
-      result.fold((_) => fail('Expected right'), (settings) {
-        expect(settings.glassQuality, equals(GlassQuality.auto));
-        expect(settings.themeMode, equals(AppThemeMode.system));
-        expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
-      });
+  test('ignores the online extras keys of older builds', () async {
+    final repo = await repoWith({
+      'fetch_online_metadata': true,
+      'fetch_artist_artwork': true,
     });
+    final settings = (await repo.loadSettings()).getOrElse(
+      () => throw 'no settings',
+    );
+    expect(settings.onlineExtrasEnabled, isFalse);
+  });
 
-    test('falls back to default on unknown enum name', () async {
-      SharedPreferences.setMockInitialValues({
-        'glass_quality': 'superUltraGlass',
-        'theme_mode': 'neonMode',
-        'crossfade_style': 'unknownCrossfade',
-      });
-      final prefs = await SharedPreferences.getInstance();
-      final repo = SettingsRepositoryImpl(prefs);
-
-      final result = await repo.loadSettings();
-
-      expect(result.isRight(), isTrue);
-      result.fold((_) => fail('Expected right'), (settings) {
-        expect(settings.glassQuality, equals(GlassQuality.auto));
-        expect(settings.themeMode, equals(AppThemeMode.system));
-        expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
-      });
+  test('unknown enum name and wrong types fall back to defaults', () async {
+    final repo = await repoWith({
+      'glass_quality': 'superUltraGlass',
+      'haptic_feedback_enabled': 'yes',
     });
+    final settings = (await repo.loadSettings()).getOrElse(
+      () => throw 'no settings',
+    );
+    expect(settings.glassQuality, GlassQuality.auto);
+    expect(settings.hapticFeedbackEnabled, isTrue);
+  });
 
-    test('migrates legacy integer enum index', () async {
-      // themeMode: [system, light, dark] -> index 2 is dark
-      // GlassQuality: [auto, high, low, off] -> index 1 is high
-      // CrossfadeStyle: [linear, equalPower, dip] -> index 0 is linear
-      SharedPreferences.setMockInitialValues({
-        'theme_mode': 2,
-        'glass_quality': 1,
-        'crossfade_style': 0,
-      });
-      final prefs = await SharedPreferences.getInstance();
-      final repo = SettingsRepositoryImpl(prefs);
+  test('migrates a legacy integer enum index', () async {
+    final repo = await repoWith({'glass_quality': 1});
+    final settings = (await repo.loadSettings()).getOrElse(
+      () => throw 'no settings',
+    );
+    expect(settings.glassQuality, GlassQuality.high);
+  });
 
-      final result = await repo.loadSettings();
+  test('saves and loads every field', () async {
+    final repo = await repoWith({});
+    const target = AppSettings(
+      stopOnCallEnabled: false,
+      resumeAfterCallEnabled: false,
+      duckAudioOnNotification: false,
+      fetchOnlineMetadata: true,
+      fetchArtistArtwork: true,
+      onlineExtrasOffered: true,
+      hapticFeedbackEnabled: false,
+      glassQuality: GlassQuality.off,
+    );
+    expect((await repo.saveSettings(target)).isRight(), isTrue);
+    expect((await repo.loadSettings()).getOrElse(() => throw 'none'), target);
+  });
 
-      expect(result.isRight(), isTrue);
-      result.fold((_) => fail('Expected right'), (settings) {
-        expect(settings.themeMode, equals(AppThemeMode.dark));
-        expect(settings.glassQuality, equals(GlassQuality.high));
-        expect(settings.crossfadeStyle, equals(CrossfadeStyle.linear));
-      });
+  test('reset keeps preferences that are not settings', () async {
+    final repo = await repoWith({
+      'glass_quality': 'off',
+      'playback_session_v1': '{"session":1}',
     });
-
-    test('saves and loads enum values by string name', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final repo = SettingsRepositoryImpl(prefs);
-
-      const target = AppSettings(
-        glassQuality: GlassQuality.off,
-        crossfadeStyle: CrossfadeStyle.linear,
-        hapticFeedbackEnabled: false,
-      );
-
-      final saveResult = await repo.saveSettings(target);
-      expect(saveResult.isRight(), isTrue);
-
-      expect(prefs.getString('glass_quality'), equals('off'));
-      expect(prefs.getString('crossfade_style'), equals('linear'));
-      expect(prefs.getBool('haptic_feedback_enabled'), isFalse);
-
-      final loadResult = await repo.loadSettings();
-      expect(loadResult.isRight(), isTrue);
-      loadResult.fold((_) => fail('Expected right'), (loaded) {
-        expect(loaded.glassQuality, equals(GlassQuality.off));
-        expect(loaded.crossfadeStyle, equals(CrossfadeStyle.linear));
-        expect(loaded.hapticFeedbackEnabled, isFalse);
-      });
-    });
+    await repo.resetSettings();
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('playback_session_v1'), '{"session":1}');
+    expect(prefs.get('glass_quality'), isNull);
   });
 }
