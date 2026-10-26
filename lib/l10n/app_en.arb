@@ -455,6 +455,76 @@
   "homeExtrasAccept": "Turn on",
   "homeExtrasDecline": "Not now",
   "homeExtrasDeclined": "You can turn them on anytime in Settings.",
+  "recapTitle": "Your week in music",
+  "recapRange": "{start} to {end}",
+  "@recapRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "recapOpen": "Open your week in music",
+  "recapListened": "listened",
+  "recapTopArtist": "Top artist",
+  "recapTopSong": "Top song",
+  "recapDiscoveries": "First listens",
+  "recapDiscoveriesValue": "{count, plural, =0{No new songs this week} =1{1 song heard for the first time} other{{count} songs heard for the first time}}",
+  "@recapDiscoveriesValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapPlays": "{count, plural, =1{1 play} other{{count} plays}}",
+  "@recapPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapHoursMinutes": "{hours} h {minutes} min",
+  "@recapHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "recapMinutes": "{minutes} min",
+  "@recapMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "recapEmpty": "Nothing was played last week.",
+  "recapCalendarCaption": "A filled dot is a day with music.",
+  "recapCalendarDay": "{date}, music played",
+  "@recapCalendarDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "recapCalendarQuietDay": "{date}, no music",
+  "@recapCalendarQuietDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "queueTitle": "Queue",
   "queueHistory": "History",
   "queueBackToNow": "Back to now playing",

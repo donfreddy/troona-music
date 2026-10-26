@@ -6,6 +6,7 @@ import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
+import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -14,6 +15,7 @@ import '../../helpers/fake_player.dart';
 
 final class _History implements PlayHistoryRepository {
   ListeningStats stats = ListeningStats.empty;
+  bool fail = false;
   Set<int> active = const {};
   (int, int)? asked;
 
@@ -23,6 +25,7 @@ final class _History implements PlayHistoryRepository {
     required int lastDay,
   }) async {
     asked = (firstDay, lastDay);
+    if (fail) return left(const DatabaseFailure());
     return right(stats);
   }
 
@@ -165,5 +168,51 @@ void main() {
     final days = await GetListeningCalendarUseCase(history)(DateTime(2026, 10));
 
     expect(days.getOrElse(() => {}), {1, 31});
+  });
+
+  group('WeeklyRecapCubit', () {
+    final now = DateTime(2026, 10, 28, 10);
+    final a1 = _track('a1', 'Daft Punk');
+
+    WeeklyRecapCubit cubitOn(_History history) => WeeklyRecapCubit(
+      recap: GetWeeklyRecapUseCase(
+        history,
+        GetTracksByIdsUseCase(_Library([a1])),
+      ),
+      calendar: GetListeningCalendarUseCase(history),
+      now: () => now,
+    );
+
+    test('loads last week and this month', () async {
+      final history = _History()
+        ..stats = const ListeningStats(
+          plays: 3,
+          listened: Duration(minutes: 9),
+          trackPlays: {'a1': 3},
+          discoveries: 1,
+          historyStart: null,
+        )
+        ..active = {ListeningDay.of(DateTime(2026, 10, 27))};
+      final cubit = cubitOn(history);
+      addTearDown(cubit.close);
+
+      expect(cubit.state.loading, isTrue);
+      await cubit.load();
+
+      expect(cubit.state.loading, isFalse);
+      expect(cubit.state.month, DateTime(2026, 10));
+      expect(cubit.state.recap?.topTrack, a1);
+      expect(cubit.state.activeDays, {27});
+    });
+
+    test('a failed read shows no recap, not an error', () async {
+      final cubit = cubitOn(_History()..fail = true);
+      addTearDown(cubit.close);
+
+      await cubit.load();
+
+      expect(cubit.state.loading, isFalse);
+      expect(cubit.state.recap, isNull);
+    });
   });
 }

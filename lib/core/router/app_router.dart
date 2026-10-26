@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/app_shell.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/utils/permission_handler.dart';
+import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
+import 'package:troona/features/history/presentation/pages/weekly_recap_page.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
@@ -37,6 +39,7 @@ abstract class AppRoute {
   static const permission = '/permission';
   static const settings = 'settings';
   static const privacy = 'privacy';
+  static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
   static const artistDetail = 'artist_detail';
@@ -98,11 +101,27 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoute.home,
               name: AppRoute.home,
-              builder: (context, _) => BlocProvider(
-                create: (_) => getIt<HomeBloc>()..add(HomeRefreshRequested()),
+              builder: (context, _) => MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (_) =>
+                        getIt<HomeBloc>()..add(HomeRefreshRequested()),
+                  ),
+                  BlocProvider(
+                    create: (_) => getIt<WeeklyRecapCubit>()..load(),
+                  ),
+                ],
                 child: const HomePage(),
               ),
               routes: [
+                GoRoute(
+                  path: AppRoute.weeklyRecap,
+                  name: AppRoute.weeklyRecap,
+                  builder: (_, _) => BlocProvider(
+                    create: (_) => getIt<WeeklyRecapCubit>()..load(),
+                    child: const WeeklyRecapPage(),
+                  ),
+                ),
                 GoRoute(
                   path: AppRoute.settings,
                   name: AppRoute.settings,

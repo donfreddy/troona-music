@@ -918,6 +918,79 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous pourrez les activer à tout moment dans les Réglages.';
 
   @override
+  String get recapTitle => 'Votre semaine en musique';
+
+  @override
+  String recapRange(String start, String end) {
+    return 'Du $start au $end';
+  }
+
+  @override
+  String get recapOpen => 'Ouvrir votre semaine en musique';
+
+  @override
+  String get recapListened => 'd\'écoute';
+
+  @override
+  String get recapTopArtist => 'Artiste phare';
+
+  @override
+  String get recapTopSong => 'Morceau phare';
+
+  @override
+  String get recapDiscoveries => 'Premières écoutes';
+
+  @override
+  String recapDiscoveriesValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count morceaux écoutés pour la première fois',
+      one: '$count morceau écouté pour la première fois',
+      zero: 'Aucun nouveau morceau cette semaine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapPlays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count écoutes',
+      one: '$count écoute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String recapMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get recapEmpty => 'Rien n\'a été écouté la semaine dernière.';
+
+  @override
+  String get recapCalendarCaption =>
+      'Un point plein marque un jour avec de la musique.';
+
+  @override
+  String recapCalendarDay(String date) {
+    return '$date, musique écoutée';
+  }
+
+  @override
+  String recapCalendarQuietDay(String date) {
+    return '$date, pas de musique';
+  }
+
+  @override
   String get queueTitle => 'File d\'attente';
 
   @override

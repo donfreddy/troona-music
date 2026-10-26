@@ -909,6 +909,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeExtrasDeclined => 'You can turn them on anytime in Settings.';
 
   @override
+  String get recapTitle => 'Your week in music';
+
+  @override
+  String recapRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get recapOpen => 'Open your week in music';
+
+  @override
+  String get recapListened => 'listened';
+
+  @override
+  String get recapTopArtist => 'Top artist';
+
+  @override
+  String get recapTopSong => 'Top song';
+
+  @override
+  String get recapDiscoveries => 'First listens';
+
+  @override
+  String recapDiscoveriesValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs heard for the first time',
+      one: '1 song heard for the first time',
+      zero: 'No new songs this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapPlays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String recapHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String recapMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get recapEmpty => 'Nothing was played last week.';
+
+  @override
+  String get recapCalendarCaption => 'A filled dot is a day with music.';
+
+  @override
+  String recapCalendarDay(String date) {
+    return '$date, music played';
+  }
+
+  @override
+  String recapCalendarQuietDay(String date) {
+    return '$date, no music';
+  }
+
+  @override
   String get queueTitle => 'Queue';
 
   @override

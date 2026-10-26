@@ -7,6 +7,8 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
+import 'package:troona/features/history/presentation/widgets/weekly_recap_card.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
 import 'package:troona/features/home/presentation/widgets/home_hero_banner.dart';
@@ -40,8 +42,10 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
-        onRefresh: () async =>
-            context.read<HomeBloc>().add(HomeRefreshRequested()),
+        onRefresh: () async {
+          context.read<HomeBloc>().add(HomeRefreshRequested());
+          await context.read<WeeklyRecapCubit>().load();
+        },
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -154,12 +158,8 @@ class _HomeBody extends StatelessWidget {
         ),
         const _SectionGap(),
 
-        // ── Weekly Stats Banner (only when warm) ─────────────────────────
-        if (!isColdStart && feed.weeklyPlayCount > 0)
-          SliverToBoxAdapter(
-            child: _WeeklyStatsBanner(playCount: feed.weeklyPlayCount),
-          ),
-        if (!isColdStart && feed.weeklyPlayCount > 0) const _SectionGap(),
+        // ── Last week's recap, else this week's plays (only when warm) ──
+        _WeeklySection(playCount: isColdStart ? 0 : feed.weeklyPlayCount),
 
         // ── Recently Played ──────────────────────────────────────────────
         if (feed.recentlyPlayed.length >= 2) ...[
@@ -398,6 +398,47 @@ class _HomeHeader extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // Weekly stats banner: compact card with the play count
 // ─────────────────────────────────────────────────────────────────────────────
+
+class _WeeklySection extends StatelessWidget {
+  final int playCount;
+
+  const _WeeklySection({required this.playCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WeeklyRecapCubit, WeeklyRecapState>(
+      builder: (context, state) {
+        final recap = state.recap;
+        final Widget? content = recap != null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: EntranceFader.staggered(
+                  index: 0,
+                  slideY: 0.04,
+                  child: WeeklyRecapCard(
+                    recap: recap,
+                    onTap: () => context.push(
+                      '${AppRoute.home}/${AppRoute.weeklyRecap}',
+                    ),
+                  ),
+                ),
+              )
+            : playCount > 0
+            ? _WeeklyStatsBanner(playCount: playCount)
+            : null;
+        if (content == null) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+        return SliverMainAxisGroup(
+          slivers: [
+            SliverToBoxAdapter(child: content),
+            const _SectionGap(),
+          ],
+        );
+      },
+    );
+  }
+}
 
 class _WeeklyStatsBanner extends StatelessWidget {
   final int playCount;
