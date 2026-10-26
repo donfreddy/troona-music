@@ -19,6 +19,8 @@
 - Queue sheet over the Now Playing page: session history, now playing and up next in one list. It opens on now playing; the history is above, reached by scrolling up or with the history button. Tap to jump, drag the handle to reorder, swipe to remove with a 4 s undo. Opens from the top bar button or a flick up.
 - Insert a track at a given queue position (`addToQueue(track, index:)`).
 - Persistent play history (`lib/features/history/`): a play counts after 30 s of listening, or half a track shorter than a minute; seeks do not count. Up to 500 events in Isar.
+- Daily listening totals (plays, listening time, first plays), never pruned and built once from the stored events.
+- "Your week in music" on Home: last week's listening time and top artist; the page adds the top song, first listens and a calendar of this month's listening days. No streak, no badge, no notification.
 - Home "Recently Played" now lists the last played tracks, topped up with the newest ones until four have been played, and refreshes when a play is recorded.
 - Now Playing: fixed glass lens over a cover carousel, elapsed-time arc with circular seek on the ring, and a morph between the glass ring and the mini player.
 - Global search for tracks, artists and albums; playlist management; album and artist detail pages.
