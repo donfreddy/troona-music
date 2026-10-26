@@ -138,10 +138,14 @@ final class FakeAudioPort implements AudioServicePort {
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
+    bool? shuffle,
   }) {
     setQueueCalls++;
+    lastSetQueue = (tracks: tracks, startIndex: startIndex, shuffle: shuffle);
     return _ok;
   }
+
+  ({List<Track> tracks, int startIndex, bool? shuffle})? lastSetQueue;
 
   /// Queue edits as `start`/`end` pairs, to observe their ordering.
   final queueEdits = <String>[];
@@ -223,7 +227,8 @@ final class PortRepository implements PlayerRepository {
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
-  }) => _port.setQueue(tracks, startIndex: startIndex);
+    bool? shuffle,
+  }) => _port.setQueue(tracks, startIndex: startIndex, shuffle: shuffle);
 
   @override
   Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>

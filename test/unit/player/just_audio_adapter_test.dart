@@ -120,6 +120,31 @@ void main() {
     }
   }
 
+  test('setQueue can turn shuffle on in the same load', () async {
+    await setUpAdapter();
+
+    await adapter.setQueue(tracks, startIndex: 2, shuffle: true);
+    await pumpEventQueue();
+
+    final queue = adapter.currentQueue!;
+    expect(queue.shuffleEnabled, isTrue);
+    expect(queue.originalTracks, tracks);
+    expect(queue.playbackTracks.first, c);
+    expect(queue.playbackTracks, unorderedEquals(tracks));
+    expect(player.loads, hasLength(1));
+    expect(playing, ['c']);
+  });
+
+  test('setQueue without shuffle keeps the current mode', () async {
+    await setUpAdapter();
+    await adapter.setQueue(tracks, shuffle: true);
+    await adapter.setQueue([a, b]);
+    expect(adapter.currentQueue!.shuffleEnabled, isTrue);
+
+    await adapter.setQueue([a, b], shuffle: false);
+    expect(adapter.currentQueue!.playbackTracks, [a, b]);
+  });
+
   test('the new queue is in place before the player loads it', () async {
     await setUpAdapter(queue: [a, b], start: 1);
     Queue? seen;

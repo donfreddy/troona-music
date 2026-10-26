@@ -73,15 +73,25 @@ class SkipToIndexUseCase {
 class SetQueueParams {
   final List<Track> tracks;
   final int startIndex;
-  const SetQueueParams({required this.tracks, this.startIndex = 0});
+
+  /// Null keeps the current shuffle mode.
+  final bool? shuffle;
+  const SetQueueParams({
+    required this.tracks,
+    this.startIndex = 0,
+    this.shuffle,
+  });
 }
 
 @lazySingleton
 class SetQueueUseCase {
   final PlayerRepository _repo;
   const SetQueueUseCase(this._repo);
-  Future<Either<Failure, Unit>> call(SetQueueParams params) =>
-      _repo.setQueue(params.tracks, startIndex: params.startIndex);
+  Future<Either<Failure, Unit>> call(SetQueueParams params) => _repo.setQueue(
+    params.tracks,
+    startIndex: params.startIndex,
+    shuffle: params.shuffle,
+  );
 }
 
 class AddToQueueParams {

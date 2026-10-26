@@ -21,7 +21,11 @@ abstract interface class PlayerRepository {
   Future<Either<Failure, Unit>> skipToNext();
   Future<Either<Failure, Unit>> skipToPrevious();
   Future<Either<Failure, Unit>> skipToIndex(int index);
-  Future<Either<Failure, Unit>> setQueue(List<Track> tracks, {int startIndex});
+  Future<Either<Failure, Unit>> setQueue(
+    List<Track> tracks, {
+    int startIndex,
+    bool? shuffle,
+  });
   Future<Either<Failure, Unit>> addToQueue(Track track, {int? index});
   Future<Either<Failure, Unit>> removeFromQueue(int index);
   Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex);

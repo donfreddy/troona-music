@@ -250,6 +250,7 @@ class JustAudioAdapter implements AudioServicePort {
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
+    bool? shuffle,
   }) async {
     try {
       if (tracks.isEmpty) return left(const PlaybackFailure('Queue is empty'));
@@ -257,7 +258,7 @@ class JustAudioAdapter implements AudioServicePort {
       final newQueue = Queue.fromTracks(
         tracks,
         startIndex: startIndex,
-        shuffleEnabled: _currentQueue?.shuffleEnabled ?? false,
+        shuffleEnabled: shuffle ?? _currentQueue?.shuffleEnabled ?? false,
         repeatMode: _currentQueue?.repeatMode ?? RepeatMode.off,
       );
 

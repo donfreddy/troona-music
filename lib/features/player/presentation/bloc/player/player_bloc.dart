@@ -203,6 +203,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         SetQueueParams(
           tracks: event.contextQueue!,
           startIndex: event.contextIndex ?? 0,
+          shuffle: event.shuffle ? true : null,
         ),
       );
       if (result.isLeft()) {

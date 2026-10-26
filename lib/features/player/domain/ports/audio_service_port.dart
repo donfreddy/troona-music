@@ -72,9 +72,12 @@ abstract interface class AudioServicePort {
   Future<Either<Failure, Unit>> skipToIndex(int index);
 
   /// Replaces the queue with [tracks] and starts playback from [startIndex].
+  /// [shuffle] sets the shuffle mode in the same step (the start track plays
+  /// first, the rest in random order); null keeps the current mode.
   Future<Either<Failure, Unit>> setQueue(
     List<Track> tracks, {
     int startIndex = 0,
+    bool? shuffle,
   });
 
   /// Restores an exact queue snapshot, including playback order and position.

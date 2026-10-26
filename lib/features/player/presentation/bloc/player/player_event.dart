@@ -8,9 +8,18 @@ sealed class PlayerEvent {
 
 final class PlayTrackRequested extends PlayerEvent {
   final Track track;
-  final List<Track>? contextQueue; // liste source complète (album, playlist…)
+  final List<Track>? contextQueue; // full source list (album, playlist...)
   final int? contextIndex;
-  const PlayTrackRequested(this.track, {this.contextQueue, this.contextIndex});
+
+  /// With [contextQueue]: turn shuffle mode on in the same step. False keeps
+  /// the current mode.
+  final bool shuffle;
+  const PlayTrackRequested(
+    this.track, {
+    this.contextQueue,
+    this.contextIndex,
+    this.shuffle = false,
+  });
 }
 
 final class PauseRequested extends PlayerEvent {
