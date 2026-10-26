@@ -90,11 +90,12 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
     final theme = Theme.of(context);
     final largeTitleBottom = bottomHeight + AppSpacing.sm;
 
-    final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+    final glass = GlassTheme.bar(context);
+    final blurSigma = glass.blurSigma * collapse;
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        color: Color.lerp(Colors.transparent, glass.fill, collapse),
         border: Border(
           bottom: BorderSide(
             color: colors.separator.withValues(alpha: collapse),
@@ -183,7 +184,10 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
     return RepaintBoundary(
       child: ClipRect(
         child: blurSigma > 0
-            ? BackdropFilter(filter: GlassFilter.of(blurSigma), child: content)
+            ? BackdropFilter(
+                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
+                child: content,
+              )
             : content,
       ),
     );

@@ -175,6 +175,21 @@ abstract final class GlassTheme {
     };
   }
 
+  /// Config for chrome that carries text and controls: the tab bar and the
+  /// collapsed page header. Thicker than [card] and without saturation
+  /// boost, so covers scrolling behind do not show as coloured stains.
+  static GlassConfig bar(BuildContext ctx, {GlassQuality? quality}) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final q = _resolveQuality(ctx, quality);
+    return switch ((isDark, q)) {
+      (_, GlassQuality.off) => isDark ? _cardOffDark : _cardOffLight,
+      (true, GlassQuality.low) => _barLowDark,
+      (false, GlassQuality.low) => _cardLowLight,
+      (true, _) => _barDark,
+      (false, _) => _cardLight,
+    };
+  }
+
   /// Config for the persistent mini-player bar (bottom of the shell).
   ///
   /// Uses heavier blur than [card] to match the iOS "Now Playing" bar
@@ -296,6 +311,24 @@ abstract final class GlassTheme {
     highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.zero, // full-screen: no rounded corners
     padding: EdgeInsets.zero,
+  );
+
+  static const _barDark = GlassConfig(
+    blurSigma: 30,
+    fill: Color(0xA60C0E14), // 65 % tertiary background
+    border: Color(0x22FFFFFF), // 13 %
+    highlight: Color(0x0DFFFFFF), // 5 %
+    borderRadius: BorderRadius.all(Radius.circular(24)),
+    saturation: 1,
+  );
+
+  static const _barLowDark = GlassConfig(
+    blurSigma: 20,
+    fill: Color(0xC70C0E14), // 78 %: less blur, more cover
+    border: Color(0x12FFFFFF), // 7 %
+    highlight: Color(0x08FFFFFF), // 3 %
+    borderRadius: BorderRadius.all(Radius.circular(20)),
+    saturation: 1,
   );
 
   // Thick material: sheets carry text, so the page behind only shows as a

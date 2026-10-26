@@ -173,7 +173,7 @@ class _NavBarBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.bar(context);
     final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
     final isMiniPlayerVisible = showMiniPlayer && playerState != null;
 
@@ -246,7 +246,7 @@ class _NavBarBody extends StatelessWidget {
       child: ClipRRect(
         borderRadius: radius,
         child: BackdropFilter(
-          filter: GlassFilter.of(glass.blurSigma),
+          filter: GlassFilter.of(glass.blurSigma, saturation: glass.saturation),
           child: body,
         ),
       ),
