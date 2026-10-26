@@ -50,10 +50,9 @@ class SettingsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: GlassCard(
-            config: GlassTheme.card(context).copyWith(
-              blurSigma: 0,
-              padding: EdgeInsets.zero,
-            ),
+            config: GlassTheme.card(
+              context,
+            ).copyWith(blurSigma: 0, padding: EdgeInsets.zero),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               child: Column(
@@ -63,7 +62,8 @@ class SettingsSection extends StatelessWidget {
                       Divider(
                         height: 1,
                         thickness: 0.5,
-                        indent: 58, // Align with text after the 32px badge + padding
+                        indent:
+                            58, // Align with text after the 32px badge + padding
                         endIndent: 16,
                         color: Colors.white.withValues(alpha: 0.08),
                       ),

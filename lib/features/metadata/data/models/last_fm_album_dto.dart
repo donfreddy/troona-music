@@ -75,7 +75,9 @@ class LastFmAlbumData {
       name: json['name'] as String?,
       listeners: json['listeners']?.toString(),
       playCount: json['playcount']?.toString(),
-      wiki: rawWiki is Map<String, dynamic> ? LastFmWikiDto.fromJson(rawWiki) : null,
+      wiki: rawWiki is Map<String, dynamic>
+          ? LastFmWikiDto.fromJson(rawWiki)
+          : null,
       images: imagesList,
       tags: parsedTags,
       customImageUrl: customImg,
@@ -108,7 +110,10 @@ class LastFmAlbumData {
     if (playCount != null) 'playcount': playCount,
     if (wiki != null) 'wiki': wiki!.toJson(),
     'image': images.map((i) => i.toJson()).toList(),
-    if (tags.isNotEmpty) 'tags': {'tag': tags.map((t) => {'name': t}).toList()},
+    if (tags.isNotEmpty)
+      'tags': {
+        'tag': tags.map((t) => {'name': t}).toList(),
+      },
     if (customImageUrl != null) 'customImageUrl': customImageUrl,
   };
 
@@ -119,7 +124,8 @@ class LastFmAlbumData {
     if (images.isEmpty) return null;
     for (final size in ['mega', 'extralarge', 'large', 'medium', 'small']) {
       final match = images.firstWhere(
-        (img) => img.size == size && !LastFmArtistData.isPlaceholderUrl(img.url),
+        (img) =>
+            img.size == size && !LastFmArtistData.isPlaceholderUrl(img.url),
         orElse: () => const LastFmImageDto(),
       );
       if (match.url != null && !LastFmArtistData.isPlaceholderUrl(match.url)) {
@@ -130,7 +136,9 @@ class LastFmAlbumData {
       (img) => !LastFmArtistData.isPlaceholderUrl(img.url),
       orElse: () => const LastFmImageDto(),
     );
-    return LastFmArtistData.isPlaceholderUrl(firstValid.url) ? null : firstValid.url;
+    return LastFmArtistData.isPlaceholderUrl(firstValid.url)
+        ? null
+        : firstValid.url;
   }
 }
 
@@ -139,11 +147,7 @@ class LastFmWikiDto {
   final String? summary;
   final String? published;
 
-  const LastFmWikiDto({
-    this.content,
-    this.summary,
-    this.published,
-  });
+  const LastFmWikiDto({this.content, this.summary, this.published});
 
   factory LastFmWikiDto.fromJson(Map<String, dynamic> json) {
     return LastFmWikiDto(
@@ -162,7 +166,10 @@ class LastFmWikiDto {
   /// Extracts the URL inside href="..." if present.
   static String? extractLink(String? raw) {
     if (raw == null) return null;
-    final match = RegExp(r'href="([^"]+)"', caseSensitive: false).firstMatch(raw);
+    final match = RegExp(
+      r'href="([^"]+)"',
+      caseSensitive: false,
+    ).firstMatch(raw);
     return match?.group(1);
   }
 
@@ -187,7 +194,10 @@ class LastFmWikiDto {
     );
     text = text.trim();
     // If only punctuation, dots, or symbols remain, treat as empty
-    final alphanumeric = text.replaceAll(RegExp(r'[\s\.\,\;\:\-\–\—\(\)\[\]\/\\]'), '');
+    final alphanumeric = text.replaceAll(
+      RegExp(r'[\s\.\,\;\:\-\–\—\(\)\[\]\/\\]'),
+      '',
+    );
     if (alphanumeric.isEmpty) {
       return null;
     }
@@ -212,7 +222,8 @@ class LastFmWikiDto {
       return cleanSummaryText;
     }
 
-    final hasLink = (summary != null && summary!.contains('<a href')) ||
+    final hasLink =
+        (summary != null && summary!.contains('<a href')) ||
         (content != null && content!.contains('<a href'));
     if (hasLink) {
       return 'Consulter la page complète sur Last.fm.';

@@ -161,9 +161,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     emit(loaded);
     if (loaded.allArtists.isNotEmpty) {
       unawaited(
-        _prefetchService?.prefetchArtists(
-          loaded.allArtists.take(40).toList(),
-        ),
+        _prefetchService?.prefetchArtists(loaded.allArtists.take(40).toList()),
       );
     }
   }
@@ -244,9 +242,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
     if (event.artists.isNotEmpty) {
       unawaited(
-        _prefetchService?.prefetchArtists(
-          event.artists.take(40).toList(),
-        ),
+        _prefetchService?.prefetchArtists(event.artists.take(40).toList()),
       );
     }
   }

@@ -31,7 +31,6 @@ class _PlayerUtilityDockState extends State<PlayerUtilityDock> {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: ClipRRect(
@@ -106,7 +105,8 @@ class _PlayerUtilityDockState extends State<PlayerUtilityDock> {
                 // 5. Vitesse de lecture (Speed)
                 _DockItem(
                   icon: LucideIcons.gauge,
-                  label: "Vitesse (${_currentSpeed == 1.0 ? '1.0x' : '${_currentSpeed}x'})",
+                  label:
+                      "Vitesse (${_currentSpeed == 1.0 ? '1.0x' : '${_currentSpeed}x'})",
                   isActive: _currentSpeed != 1.0,
                   badgeText: _currentSpeed != 1.0 ? '${_currentSpeed}x' : null,
                   onTap: () {
@@ -171,7 +171,14 @@ class _PlayerUtilityDockState extends State<PlayerUtilityDock> {
 
   // ── Sheet: Égaliseur ───────────────────────────────────────────────────────
   void _showEqualizerSheet(BuildContext context) {
-    final presets = ['Plat', 'Bass Boost', 'Acoustique', 'Voix claires', 'Électro', 'Rock'];
+    final presets = [
+      'Plat',
+      'Bass Boost',
+      'Acoustique',
+      'Voix claires',
+      'Électro',
+      'Rock',
+    ];
 
     _showGlassModal(
       context: context,
@@ -281,8 +288,13 @@ class _PlayerUtilityDockState extends State<PlayerUtilityDock> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 color: colors.bgSecondary.withValues(alpha: 0.92),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 0.8),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 0.8,
+                ),
               ),
               child: SafeArea(
                 top: false,
@@ -319,7 +331,10 @@ class _PlayerUtilityDockState extends State<PlayerUtilityDock> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
+                    Divider(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      height: 1,
+                    ),
                     const SizedBox(height: 12),
                     child,
                     const SizedBox(height: 12),
@@ -382,7 +397,10 @@ class _DockItem extends StatelessWidget {
                     right: 8,
                     child: badgeText != null
                         ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 3,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: colors.accent,
                               borderRadius: BorderRadius.circular(6),

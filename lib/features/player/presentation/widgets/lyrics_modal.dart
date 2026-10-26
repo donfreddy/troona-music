@@ -206,7 +206,9 @@ class _LyricsModalState extends State<LyricsModal> {
                               AppHaptics.lightImpact();
                               Navigator.pop(context);
                             },
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusFull,
+                            ),
                             child: Container(
                               width: 36,
                               height: 36,
@@ -260,7 +262,10 @@ class _LyricsModalState extends State<LyricsModal> {
                                   IconButton(
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
                                     onPressed: _lyricSizeIndex > 0
                                         ? () {
                                             AppHaptics.selectionClick();
@@ -293,8 +298,12 @@ class _LyricsModalState extends State<LyricsModal> {
                                   IconButton(
                                     visualDensity: VisualDensity.compact,
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                    onPressed: _lyricSizeIndex < _fontSizes.length - 1
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    onPressed:
+                                        _lyricSizeIndex < _fontSizes.length - 1
                                         ? () {
                                             AppHaptics.selectionClick();
                                             setState(() => _lyricSizeIndex++);
@@ -303,7 +312,9 @@ class _LyricsModalState extends State<LyricsModal> {
                                     icon: Text(
                                       'A+',
                                       style: TextStyle(
-                                        color: _lyricSizeIndex < _fontSizes.length - 1
+                                        color:
+                                            _lyricSizeIndex <
+                                                _fontSizes.length - 1
                                             ? Colors.white
                                             : Colors.white30,
                                         fontSize: 16,
@@ -320,9 +331,13 @@ class _LyricsModalState extends State<LyricsModal> {
                                 child: InkWell(
                                   onTap: () {
                                     AppHaptics.selectionClick();
-                                    setState(() => _highContrast = !_highContrast);
+                                    setState(
+                                      () => _highContrast = !_highContrast,
+                                    );
                                   },
-                                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusFull,
+                                  ),
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(
@@ -332,12 +347,18 @@ class _LyricsModalState extends State<LyricsModal> {
                                     decoration: BoxDecoration(
                                       color: _highContrast
                                           ? colors.accent
-                                          : Colors.white.withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                                          : Colors.white.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                      borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull,
+                                      ),
                                       border: Border.all(
                                         color: _highContrast
                                             ? colors.accent
-                                            : Colors.white.withValues(alpha: 0.15),
+                                            : Colors.white.withValues(
+                                                alpha: 0.15,
+                                              ),
                                         width: 0.8,
                                       ),
                                     ),
@@ -384,9 +405,12 @@ class _LyricsModalState extends State<LyricsModal> {
                           _userIsScrolling = true;
                         } else if (notification is ScrollEndNotification) {
                           // Allow auto-scroll to resume after 2.5 seconds of inactivity
-                          Future.delayed(const Duration(milliseconds: 2500), () {
-                            if (mounted) _userIsScrolling = false;
-                          });
+                          Future.delayed(
+                            const Duration(milliseconds: 2500),
+                            () {
+                              if (mounted) _userIsScrolling = false;
+                            },
+                          );
                         }
                         return false;
                       },
@@ -404,7 +428,8 @@ class _LyricsModalState extends State<LyricsModal> {
                           }
 
                           // Auto-scroll when active line changes
-                          if (activeIndex != _lastActiveIndex && activeIndex >= 0) {
+                          if (activeIndex != _lastActiveIndex &&
+                              activeIndex >= 0) {
                             _lastActiveIndex = activeIndex;
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               _scrollToActiveIndex(activeIndex);
@@ -427,12 +452,16 @@ class _LyricsModalState extends State<LyricsModal> {
 
                               return Padding(
                                 key: _itemKeys[index],
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 child: InkWell(
                                   onTap: () {
                                     AppHaptics.selectionClick();
                                     context.read<PlayerBloc>().add(
-                                      SeekRequested(Duration(seconds: lyric.time)),
+                                      SeekRequested(
+                                        Duration(seconds: lyric.time),
+                                      ),
                                     );
                                   },
                                   borderRadius: BorderRadius.circular(12),
@@ -442,7 +471,9 @@ class _LyricsModalState extends State<LyricsModal> {
                                       horizontal: 4,
                                     ),
                                     child: AnimatedDefaultTextStyle(
-                                      duration: const Duration(milliseconds: 300),
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
                                       curve: Curves.easeOut,
                                       style: _getLyricTextStyle(
                                         isCurrent: isCurrent,
@@ -528,10 +559,7 @@ class _LyricsModalState extends State<LyricsModal> {
         fontWeight: FontWeight.w800,
         height: 1.32,
         shadows: [
-          Shadow(
-            color: accentColor.withValues(alpha: 0.6),
-            blurRadius: 18,
-          ),
+          Shadow(color: accentColor.withValues(alpha: 0.6), blurRadius: 18),
         ],
       );
     }

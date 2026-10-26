@@ -42,7 +42,8 @@ class _TrackListTileState extends State<TrackListTile> {
     final colors = context.colors;
     final playerState = context.watch<PlayerBloc>().state;
 
-    final isActive = playerState is PlayerActive &&
+    final isActive =
+        playerState is PlayerActive &&
         playerState.currentTrack.id == widget.track.id;
     final isPlaying = isActive && playerState.isPlaying;
 
@@ -50,8 +51,9 @@ class _TrackListTileState extends State<TrackListTile> {
       (c) => c.state.isTrackLiked(widget.track.id),
     );
 
-    final durationStr =
-        Duration(milliseconds: widget.track.durationMs).toMMSS();
+    final durationStr = Duration(
+      milliseconds: widget.track.durationMs,
+    ).toMMSS();
 
     return InkWell(
       onTap: () {

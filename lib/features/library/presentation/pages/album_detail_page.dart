@@ -72,66 +72,82 @@ class AlbumDetailPage extends StatelessWidget {
                     AlbumDetailRequested(int.parse(id)),
                   ),
                 ),
-                AlbumDetailLoaded(:final data) => BlocProvider<AlbumMetadataCubit>(
-                  create: (_) => getIt<AlbumMetadataCubit>()
-                    ..loadAlbumMetadata(data.album),
-                  child: Builder(
-                    builder: (contentCtx) {
-                      return CustomScrollView(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        slivers: [
-                          SliverPersistentHeader(
-                            pinned: true,
-                            delegate: _AlbumHeroDelegate(
-                              album: data.album,
-                              tracks: data.albumTracks,
-                              topPadding: MediaQuery.of(contentCtx).padding.top,
-                            ),
+                AlbumDetailLoaded(:final data) =>
+                  BlocProvider<AlbumMetadataCubit>(
+                    create: (_) =>
+                        getIt<AlbumMetadataCubit>()
+                          ..loadAlbumMetadata(data.album),
+                    child: Builder(
+                      builder: (contentCtx) {
+                        return CustomScrollView(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
                           ),
-                          _AlbumTracksView(tracks: data.albumTracks),
+                          slivers: [
+                            SliverPersistentHeader(
+                              pinned: true,
+                              delegate: _AlbumHeroDelegate(
+                                album: data.album,
+                                tracks: data.albumTracks,
+                                topPadding: MediaQuery.of(
+                                  contentCtx,
+                                ).padding.top,
+                              ),
+                            ),
+                            _AlbumTracksView(tracks: data.albumTracks),
 
-                          // ── Chronique & Last.fm Wiki de l'album ──────────────
-                          BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
-                            builder: (context, metaState) {
-                              if (metaState is AlbumMetadataLoaded &&
-                                  (metaState.info.wiki != null ||
-                                      metaState.info.listeners != null ||
-                                      metaState.info.playCount != null ||
-                                      metaState.info.tags.isNotEmpty)) {
-                                return SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: AppSpacing.lg),
-                                    child: AlbumWikiSection(info: metaState.info),
-                                  ),
+                            // ── Chronique & Last.fm Wiki de l'album ──────────────
+                            BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
+                              builder: (context, metaState) {
+                                if (metaState is AlbumMetadataLoaded &&
+                                    (metaState.info.wiki != null ||
+                                        metaState.info.listeners != null ||
+                                        metaState.info.playCount != null ||
+                                        metaState.info.tags.isNotEmpty)) {
+                                  return SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: AppSpacing.lg,
+                                      ),
+                                      child: AlbumWikiSection(
+                                        info: metaState.info,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return const SliverToBoxAdapter(
+                                  child: SizedBox.shrink(),
                                 );
-                              }
-                              return const SliverToBoxAdapter(child: SizedBox.shrink());
-                            },
-                          ),
+                              },
+                            ),
 
-                          if (data.artistAlbums.any((a) => a.id != data.album.id))
-                            _MoreByArtistView(
-                              artistName: data.album.artist,
-                              albums: data.artistAlbums
-                                  .where((a) => a.id != data.album.id)
-                                  .toList(),
+                            if (data.artistAlbums.any(
+                              (a) => a.id != data.album.id,
+                            ))
+                              _MoreByArtistView(
+                                artistName: data.album.artist,
+                                albums: data.artistAlbums
+                                    .where((a) => a.id != data.album.id)
+                                    .toList(),
+                              ),
+                            // Technical metadata card & storage footprint
+                            _AlbumMetadataFooter(
+                              tracks: data.albumTracks,
+                              album: data.album,
                             ),
-                          // Technical metadata card & storage footprint
-                          _AlbumMetadataFooter(tracks: data.albumTracks, album: data.album),
-                          SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: AppSpacing.miniPlayerHeight +
-                                  MediaQuery.of(contentCtx).padding.bottom +
-                                  AppSpacing.xl,
+                            SliverPadding(
+                              padding: EdgeInsets.only(
+                                bottom:
+                                    AppSpacing.miniPlayerHeight +
+                                    MediaQuery.of(contentCtx).padding.bottom +
+                                    AppSpacing.xl,
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                          ],
+                        );
+                      },
+                    ),
                   ),
-                ),
               },
             ),
           );
@@ -239,13 +255,17 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     color: const Color(0xFF161618),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.5),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         blurRadius: 16,
                                         offset: const Offset(4, 4),
                                       ),
                                     ],
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.12),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.12,
+                                      ),
                                       width: 1.0,
                                     ),
                                   ),
@@ -255,9 +275,13 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                       height: 60,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: colors.accent.withValues(alpha: 0.4),
+                                        color: colors.accent.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         border: Border.all(
-                                          color: Colors.white.withValues(alpha: 0.3),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.3,
+                                          ),
                                           width: 1.5,
                                         ),
                                       ),
@@ -286,12 +310,16 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.45),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.45,
+                                        ),
                                         blurRadius: 24,
                                         offset: const Offset(0, 10),
                                       ),
                                       BoxShadow(
-                                        color: colors.accent.withValues(alpha: 0.22),
+                                        color: colors.accent.withValues(
+                                          alpha: 0.22,
+                                        ),
                                         blurRadius: 36,
                                         offset: const Offset(0, 14),
                                       ),
@@ -299,56 +327,69 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
-                                      builder: (context, metaState) {
-                                        final localArt = album.artworkPath ??
-                                            (metaState is AlbumMetadataLoaded
-                                                ? metaState.localImagePath
-                                                : null);
-                                        final onlineUrl = metaState is AlbumMetadataLoaded
-                                            ? metaState.info.imageUrl
-                                            : null;
+                                    child:
+                                        BlocBuilder<
+                                          AlbumMetadataCubit,
+                                          AlbumMetadataState
+                                        >(
+                                          builder: (context, metaState) {
+                                            final localArt =
+                                                album.artworkPath ??
+                                                (metaState
+                                                        is AlbumMetadataLoaded
+                                                    ? metaState.localImagePath
+                                                    : null);
+                                            final onlineUrl =
+                                                metaState is AlbumMetadataLoaded
+                                                ? metaState.info.imageUrl
+                                                : null;
 
-                                        Widget fallbackIcon() => Container(
-                                          color: Colors.white.withValues(alpha: .08),
-                                          child: const Icon(
-                                            LucideIcons.disc,
-                                            color: Colors.white30,
-                                            size: 64,
-                                          ),
-                                        );
+                                            Widget fallbackIcon() => Container(
+                                              color: Colors.white.withValues(
+                                                alpha: .08,
+                                              ),
+                                              child: const Icon(
+                                                LucideIcons.disc,
+                                                color: Colors.white30,
+                                                size: 64,
+                                              ),
+                                            );
 
-                                        if (localArt != null && localArt.isNotEmpty) {
-                                          return ArtworkImage(
-                                            localArt,
-                                            width: 180,
-                                            height: 180,
-                                            errorBuilder: (_, _, _) =>
-                                                onlineUrl != null && onlineUrl.isNotEmpty
+                                            if (localArt != null &&
+                                                localArt.isNotEmpty) {
+                                              return ArtworkImage(
+                                                localArt,
+                                                width: 180,
+                                                height: 180,
+                                                errorBuilder: (_, _, _) =>
+                                                    onlineUrl != null &&
+                                                        onlineUrl.isNotEmpty
                                                     ? Image.network(
                                                         onlineUrl,
                                                         width: 180,
                                                         height: 180,
                                                         fit: BoxFit.cover,
-                                                        errorBuilder: (_, _, _) =>
-                                                            fallbackIcon(),
+                                                        errorBuilder:
+                                                            (_, _, _) =>
+                                                                fallbackIcon(),
                                                       )
                                                     : fallbackIcon(),
-                                          );
-                                        }
-                                        if (onlineUrl != null && onlineUrl.isNotEmpty) {
-                                          return Image.network(
-                                            onlineUrl,
-                                            width: 180,
-                                            height: 180,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                fallbackIcon(),
-                                          );
-                                        }
-                                        return fallbackIcon();
-                                      },
-                                    ),
+                                              );
+                                            }
+                                            if (onlineUrl != null &&
+                                                onlineUrl.isNotEmpty) {
+                                              return Image.network(
+                                                onlineUrl,
+                                                width: 180,
+                                                height: 180,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, _, _) =>
+                                                    fallbackIcon(),
+                                              );
+                                            }
+                                            return fallbackIcon();
+                                          },
+                                        ),
                                   ),
                                 ),
                               ),
@@ -362,7 +403,9 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
 
                       // Titles & interactive artist link
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
                         child: Column(
                           children: [
                             _animatedAlbumItem(
@@ -389,9 +432,14 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                   AppHaptics.lightImpact();
                                   context.pushArtist('${album.artistId}');
                                 },
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusFull,
+                                ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -428,7 +476,8 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     const SizedBox(width: 6),
                                   ],
                                   _GlassBadge(
-                                    label: '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'} • ${totalDuration.toHumanReadable()}',
+                                    label:
+                                        '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'} • ${totalDuration.toHumanReadable()}',
                                   ),
                                   const SizedBox(width: 6),
                                   const _GlassBadge(
@@ -532,7 +581,10 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                           icon: const Icon(LucideIcons.play, size: 18),
                           label: const Text(
                             'Lecture',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.accent,
@@ -562,13 +614,23 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     const ShuffleToggleRequested(),
                                   );
                                 },
-                          icon: Icon(LucideIcons.shuffle, size: 18, color: colors.accent),
+                          icon: Icon(
+                            LucideIcons.shuffle,
+                            size: 18,
+                            color: colors.accent,
+                          ),
                           label: const Text(
                             'Aléatoire',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.08,
+                            ),
                             side: BorderSide(
                               color: Colors.white.withValues(alpha: 0.16),
                               width: 0.8,
@@ -792,7 +854,12 @@ class _AlbumMetadataFooter extends StatelessWidget {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl2, AppSpacing.lg, 0),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xl2,
+          AppSpacing.lg,
+          0,
+        ),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(

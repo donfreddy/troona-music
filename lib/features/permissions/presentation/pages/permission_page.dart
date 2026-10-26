@@ -28,7 +28,8 @@ class PermissionPage extends StatefulWidget {
 
 enum _PermissionState { idle, loading, denied, permanentlyDenied }
 
-class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObserver {
+class _PermissionPageState extends State<PermissionPage>
+    with WidgetsBindingObserver {
   _PermissionState _state = _PermissionState.idle;
 
   @override
@@ -71,7 +72,11 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
     } on PermissionException catch (e) {
       if (!mounted) return;
       final isPermanent = e.message.toLowerCase().contains('permanent');
-      setState(() => _state = isPermanent ? _PermissionState.permanentlyDenied : _PermissionState.denied);
+      setState(
+        () => _state = isPermanent
+            ? _PermissionState.permanentlyDenied
+            : _PermissionState.denied,
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _state = _PermissionState.denied);
@@ -109,7 +114,11 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
                   const _SoundCoreHero()
                       .animate()
                       .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-                      .scale(begin: const Offset(0.85, 0.85), duration: 600.ms, curve: Curves.easeOutBack),
+                      .scale(
+                        begin: const Offset(0.85, 0.85),
+                        duration: 600.ms,
+                        curve: Curves.easeOutBack,
+                      ),
 
                   const SizedBox(height: AppSpacing.xl),
 
@@ -162,7 +171,10 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [colors.accent.withValues(alpha: 0.22), colors.accent.withValues(alpha: 0.0)],
+                    colors: [
+                      colors.accent.withValues(alpha: 0.22),
+                      colors.accent.withValues(alpha: 0.0),
+                    ],
                   ),
                 ),
               ),
@@ -177,14 +189,20 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [colors.progressStart.withValues(alpha: 0.16), colors.progressStart.withValues(alpha: 0.0)],
+                    colors: [
+                      colors.progressStart.withValues(alpha: 0.16),
+                      colors.progressStart.withValues(alpha: 0.0),
+                    ],
                   ),
                 ),
               ),
             ),
             // Full backdrop blur filter to soften light
             Positioned.fill(
-              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70), child: const SizedBox.expand()),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+                child: const SizedBox.expand(),
+              ),
             ),
           ],
         ),
@@ -232,28 +250,38 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
 
         // Main H1 Title
         Text(
-          'Votre musique.\nSublimée et sans compromis.',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: -0.6,
-            height: 1.18,
-          ),
-        ).animate().fadeIn(delay: 250.ms, duration: 600.ms).slideY(begin: 0.15, end: 0),
+              'Votre musique.\nSublimée et sans compromis.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 27,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -0.6,
+                height: 1.18,
+              ),
+            )
+            .animate()
+            .fadeIn(delay: 250.ms, duration: 600.ms)
+            .slideY(begin: 0.15, end: 0),
 
         const SizedBox(height: AppSpacing.sm),
 
         // Subtitle description
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          child: Text(
-            'Un lecteur audio haute fidélité qui révèle votre collection locale dans une expérience pure, fluide et 100% privée.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: colors.labelSecondary, height: 1.45),
-          ),
-        ).animate().fadeIn(delay: 350.ms, duration: 600.ms).slideY(begin: 0.15, end: 0),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              child: Text(
+                'Un lecteur audio haute fidélité qui révèle votre collection locale dans une expérience pure, fluide et 100% privée.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: colors.labelSecondary,
+                  height: 1.45,
+                ),
+              ),
+            )
+            .animate()
+            .fadeIn(delay: 350.ms, duration: 600.ms)
+            .slideY(begin: 0.15, end: 0),
       ],
     );
   }
@@ -267,21 +295,30 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
             icon: LucideIcons.disc3,
             iconColor: colors.accent,
             title: 'Qualité Studio Sans Perte',
-            description: 'Lecture native de vos fichiers FLAC, MP3, WAV et AAC avec décodage audiophile.',
+            description:
+                'Lecture native de vos fichiers FLAC, MP3, WAV et AAC avec décodage audiophile.',
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: AppSpacing.lg * 2),
+          Divider(
+            color: Colors.white.withValues(alpha: 0.06),
+            height: AppSpacing.lg * 2,
+          ),
           _PillarRow(
             icon: LucideIcons.shieldCheck,
             iconColor: const Color(0xFF68D391), // Vibrant green
             title: '100% Hors-Ligne & Privé',
-            description: 'Aucun compte requis, aucun suivi. Vos morceaux restent exclusivement sur votre appareil.',
+            description:
+                'Aucun compte requis, aucun suivi. Vos morceaux restent exclusivement sur votre appareil.',
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: AppSpacing.lg * 2),
+          Divider(
+            color: Colors.white.withValues(alpha: 0.06),
+            height: AppSpacing.lg * 2,
+          ),
           _PillarRow(
             icon: LucideIcons.layoutGrid,
             iconColor: colors.progressStart, // Ice blue
             title: 'Bibliothèque Intelligente',
-            description: 'Extraction automatique des pochettes, tri par artistes et mix aléatoire instantané.',
+            description:
+                'Extraction automatique des pochettes, tri par artistes et mix aléatoire instantané.',
           ),
         ],
       ),
@@ -295,19 +332,30 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
         children: [
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(color: colors.accent.withValues(alpha: 0.15), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: colors.accent.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
             child: Icon(LucideIcons.folderLock, color: colors.accent, size: 32),
           ),
           const SizedBox(height: AppSpacing.md),
           const Text(
             'Autorisation nécessaire',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             'Troona a besoin d\'accéder à votre stockage audio pour construire votre bibliothèque et jouer vos morceaux.',
-            style: TextStyle(fontSize: 13, color: colors.labelSecondary, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              color: colors.labelSecondary,
+              height: 1.4,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -322,19 +370,34 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
         children: [
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.15), shape: BoxShape.circle),
-            child: const Icon(LucideIcons.settings2, color: Colors.amberAccent, size: 32),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              LucideIcons.settings2,
+              color: Colors.amberAccent,
+              size: 32,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           const Text(
             'Accès désactivé dans le système',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             'L\'autorisation a été refusée définitivement. Activez l\'accès audio dans les Réglages de votre appareil pour continuer.',
-            style: TextStyle(fontSize: 13, color: colors.labelSecondary, height: 1.4),
+            style: TextStyle(
+              fontSize: 13,
+              color: colors.labelSecondary,
+              height: 1.4,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -351,72 +414,95 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
       children: [
         // Main Magnetic CTA
         Container(
-          width: double.infinity,
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            gradient: LinearGradient(
-              colors: [colors.accent, Color.lerp(colors.accent, Colors.deepPurple, 0.3)!],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(color: colors.accent.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8)),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: isLoading
-                  ? null
-                  : isPermanent
-                  ? _openSettings
-                  : _requestPermission,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              child: Center(
-                child: isLoading
-                    ? const SizedBox.square(
-                        dimension: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isPermanent ? LucideIcons.externalLink : LucideIcons.headphones,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Text(
-                            isPermanent
-                                ? 'Ouvrir les Réglages'
-                                : _state == _PermissionState.denied
-                                ? 'Réessayer l\'autorisation'
-                                : 'Explorer ma musique',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: -0.2,
-                            ),
-                          ),
-                        ],
-                      ),
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                gradient: LinearGradient(
+                  colors: [
+                    colors.accent,
+                    Color.lerp(colors.accent, Colors.deepPurple, 0.3)!,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.accent.withValues(alpha: 0.35),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            ),
-          ),
-        ).animate().fadeIn(delay: 550.ms, duration: 600.ms).slideY(begin: 0.2, end: 0),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isLoading
+                      ? null
+                      : isPermanent
+                      ? _openSettings
+                      : _requestPermission,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                  child: Center(
+                    child: isLoading
+                        ? const SizedBox.square(
+                            dimension: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isPermanent
+                                    ? LucideIcons.externalLink
+                                    : LucideIcons.headphones,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text(
+                                isPermanent
+                                    ? 'Ouvrir les Réglages'
+                                    : _state == _PermissionState.denied
+                                    ? 'Réessayer l\'autorisation'
+                                    : 'Explorer ma musique',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            )
+            .animate()
+            .fadeIn(delay: 550.ms, duration: 600.ms)
+            .slideY(begin: 0.2, end: 0),
 
         // Secondary check button for permanently denied state
         if (isPermanent) ...[
           const SizedBox(height: AppSpacing.sm),
           TextButton.icon(
             onPressed: _checkPermissionSilently,
-            icon: Icon(LucideIcons.refreshCw, size: 15, color: colors.labelSecondary),
+            icon: Icon(
+              LucideIcons.refreshCw,
+              size: 15,
+              color: colors.labelSecondary,
+            ),
             label: Text(
               'J\'ai activé la permission, vérifier',
-              style: TextStyle(color: colors.labelSecondary, fontSize: 13, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: colors.labelSecondary,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -433,7 +519,11 @@ class _PermissionPageState extends State<PermissionPage> with WidgetsBindingObse
         const SizedBox(width: 6),
         Text(
           'Gratuit  •  Sans publicité  •  Données 100% locales',
-          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: colors.labelTertiary),
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: colors.labelTertiary,
+          ),
         ),
       ],
     ).animate().fadeIn(delay: 650.ms, duration: 600.ms);
@@ -447,7 +537,12 @@ class _PillarRow extends StatelessWidget {
   final String title;
   final String description;
 
-  const _PillarRow({required this.icon, required this.iconColor, required this.title, required this.description});
+  const _PillarRow({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.description,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -462,7 +557,10 @@ class _PillarRow extends StatelessWidget {
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: iconColor.withValues(alpha: 0.2), width: 0.8),
+            border: Border.all(
+              color: iconColor.withValues(alpha: 0.2),
+              width: 0.8,
+            ),
           ),
           child: Icon(icon, color: iconColor, size: 20),
         ),
@@ -473,10 +571,21 @@ class _PillarRow extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 3),
-              Text(description, style: TextStyle(fontSize: 13, color: colors.labelSecondary, height: 1.35)),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colors.labelSecondary,
+                  height: 1.35,
+                ),
+              ),
             ],
           ),
         ),
@@ -504,7 +613,10 @@ class _SoundCoreHero extends StatelessWidget {
                 height: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: colors.accent.withValues(alpha: 0.15), width: 1.5),
+                  border: Border.all(
+                    color: colors.accent.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
                 ),
               )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
@@ -521,10 +633,19 @@ class _SoundCoreHero extends StatelessWidget {
             height: 112,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [colors.bgSecondary, colors.bgPrimary]),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.2),
+              gradient: RadialGradient(
+                colors: [colors.bgSecondary, colors.bgPrimary],
+              ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.12),
+                width: 1.2,
+              ),
               boxShadow: [
-                BoxShadow(color: colors.accent.withValues(alpha: 0.25), blurRadius: 28, offset: const Offset(0, 10)),
+                BoxShadow(
+                  color: colors.accent.withValues(alpha: 0.25),
+                  blurRadius: 28,
+                  offset: const Offset(0, 10),
+                ),
               ],
             ),
             child: Stack(
@@ -536,7 +657,10 @@ class _SoundCoreHero extends StatelessWidget {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.0),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      width: 1.0,
+                    ),
                   ),
                 ),
                 // Center pulsing equalizer bars
@@ -571,11 +695,21 @@ class _EqualizerBars extends StatelessWidget {
               decoration: BoxDecoration(
                 color: colors.accent,
                 borderRadius: BorderRadius.circular(3),
-                boxShadow: [BoxShadow(color: colors.accent.withValues(alpha: 0.5), blurRadius: 6)],
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.accent.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                  ),
+                ],
               ),
             )
             .animate(onPlay: (controller) => controller.repeat(reverse: true))
-            .scaleY(begin: 0.35, end: 1.0, duration: durations[index].ms, curve: Curves.easeInOut);
+            .scaleY(
+              begin: 0.35,
+              end: 1.0,
+              duration: durations[index].ms,
+              curve: Curves.easeInOut,
+            );
       }),
     );
   }

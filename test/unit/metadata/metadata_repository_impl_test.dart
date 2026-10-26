@@ -11,10 +11,7 @@ void main() {
       final json = {
         'artist': {
           'name': 'Daft Punk',
-          'stats': {
-            'listeners': '4500000',
-            'playcount': '180000000',
-          },
+          'stats': {'listeners': '4500000', 'playcount': '180000000'},
           'bio': {
             'published': '2023-01-01',
             'content':
@@ -30,126 +27,141 @@ void main() {
       final dto = LastFmArtistDto.fromJson(json);
       final domain = dto.toDomain();
 
-      expect(domain.bio, equals('Daft Punk was a French electronic music duo.'));
+      expect(
+        domain.bio,
+        equals('Daft Punk was a French electronic music duo.'),
+      );
       expect(domain.imageUrl, equals('https://example.com/mega.png'));
       expect(domain.formattedListeners, equals('4.5 M auditeurs'));
       expect(domain.formattedPlayCount, equals('180 M écoutes'));
     });
 
-    test('parses Future response with tags, similar artists, ontour and rejects placeholder star', () {
-      final json = {
-        'artist': {
-          'name': 'Future',
-          'ontour': '1',
-          'image': [
-            {
-              '#text':
-                  'https://lastfm-img.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png',
-              'size': 'small',
-            },
-            {
-              '#text':
-                  'https://lastfm-img.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png',
-              'size': 'extralarge',
-            },
-          ],
-          'stats': {'listeners': '3381004', 'playcount': '490550591'},
-          'tags': {
-            'tag': [
-              {'name': 'Hip-Hop', 'url': 'https://www.last.fm/tag/Hip-Hop'},
-              {'name': 'rap', 'url': 'https://www.last.fm/tag/rap'},
-              {'name': 'trap', 'url': 'https://www.last.fm/tag/trap'},
-              {'name': 'hip hop', 'url': 'https://www.last.fm/tag/hip+hop'},
-              {'name': 'atlanta', 'url': 'https://www.last.fm/tag/atlanta'},
+    test(
+      'parses Future response with tags, similar artists, ontour and rejects placeholder star',
+      () {
+        final json = {
+          'artist': {
+            'name': 'Future',
+            'ontour': '1',
+            'image': [
+              {
+                '#text':
+                    'https://lastfm-img.freetls.fastly.net/i/u/34s/2a96cbd8b46e442fc41c2b86b821562f.png',
+                'size': 'small',
+              },
+              {
+                '#text':
+                    'https://lastfm-img.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png',
+                'size': 'extralarge',
+              },
             ],
+            'stats': {'listeners': '3381004', 'playcount': '490550591'},
+            'tags': {
+              'tag': [
+                {'name': 'Hip-Hop', 'url': 'https://www.last.fm/tag/Hip-Hop'},
+                {'name': 'rap', 'url': 'https://www.last.fm/tag/rap'},
+                {'name': 'trap', 'url': 'https://www.last.fm/tag/trap'},
+                {'name': 'hip hop', 'url': 'https://www.last.fm/tag/hip+hop'},
+                {'name': 'atlanta', 'url': 'https://www.last.fm/tag/atlanta'},
+              ],
+            },
+            'similar': {
+              'artist': [
+                {
+                  'name': 'Young Thug',
+                  'url': 'https://www.last.fm/music/Young+Thug',
+                },
+                {'name': 'DJ Esco', 'url': 'https://www.last.fm/music/DJ+Esco'},
+                {'name': 'Gunna', 'url': 'https://www.last.fm/music/Gunna'},
+              ],
+            },
+            'bio': {
+              'published': '25 Dec 2012, 05:14',
+              'content':
+                  'Future est un rappeur américain. <a href="https://www.last.fm/music/Future">Read more on Last.fm</a>',
+            },
           },
-          'similar': {
-            'artist': [
-              {'name': 'Young Thug', 'url': 'https://www.last.fm/music/Young+Thug'},
-              {'name': 'DJ Esco', 'url': 'https://www.last.fm/music/DJ+Esco'},
-              {'name': 'Gunna', 'url': 'https://www.last.fm/music/Gunna'},
-            ],
-          },
-          'bio': {
-            'published': '25 Dec 2012, 05:14',
-            'content':
-                'Future est un rappeur américain. <a href="https://www.last.fm/music/Future">Read more on Last.fm</a>',
-          },
-        },
-      };
+        };
 
-      final dto = LastFmArtistDto.fromJson(json);
-      final domain = dto.toDomain();
+        final dto = LastFmArtistDto.fromJson(json);
+        final domain = dto.toDomain();
 
-      // Placeholder hash 2a96cbd8b46e442fc41c2b86b821562f is properly rejected!
-      expect(domain.imageUrl, isNull);
-      expect(domain.isOnTour, isTrue);
-      expect(domain.tags, containsAll(['Hip-Hop', 'Rap', 'Trap', 'Atlanta']));
-      expect(domain.similarArtists.length, equals(3));
-      expect(domain.similarArtists.first.name, equals('Young Thug'));
-      expect(domain.formattedListeners, equals('3.4 M auditeurs'));
-      expect(domain.formattedPlayCount, equals('490.6 M écoutes'));
-    });
+        // Placeholder hash 2a96cbd8b46e442fc41c2b86b821562f is properly rejected!
+        expect(domain.imageUrl, isNull);
+        expect(domain.isOnTour, isTrue);
+        expect(domain.tags, containsAll(['Hip-Hop', 'Rap', 'Trap', 'Atlanta']));
+        expect(domain.similarArtists.length, equals(3));
+        expect(domain.similarArtists.first.name, equals('Young Thug'));
+        expect(domain.formattedListeners, equals('3.4 M auditeurs'));
+        expect(domain.formattedPlayCount, equals('490.6 M écoutes'));
+      },
+    );
 
-    test('falls back cleanly to summary when content is empty (Future & Zaytoven)', () {
-      // Case 1: summary has text before the link
-      final jsonWithText = {
-        'artist': {
-          'name': 'Future & Zaytoven',
-          'bio': {
-            'content': '',
-            'summary':
-                'Future & Zaytoven est un duo de trap américain. <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+    test(
+      'falls back cleanly to summary when content is empty (Future & Zaytoven)',
+      () {
+        // Case 1: summary has text before the link
+        final jsonWithText = {
+          'artist': {
+            'name': 'Future & Zaytoven',
+            'bio': {
+              'content': '',
+              'summary':
+                  'Future & Zaytoven est un duo de trap américain. <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+            },
           },
-        },
-      };
-      final dto1 = LastFmArtistDto.fromJson(jsonWithText);
-      expect(
-        dto1.toDomain().bio,
-        equals('Future & Zaytoven est un duo de trap américain.'),
-      );
-      expect(
-        dto1.toDomain().lastFmUrl,
-        equals('https://www.last.fm/music/Future+&+Zaytoven'),
-      );
+        };
+        final dto1 = LastFmArtistDto.fromJson(jsonWithText);
+        expect(
+          dto1.toDomain().bio,
+          equals('Future & Zaytoven est un duo de trap américain.'),
+        );
+        expect(
+          dto1.toDomain().lastFmUrl,
+          equals('https://www.last.fm/music/Future+&+Zaytoven'),
+        );
 
-      // Case 2: summary only has the link "<a href="...">Read more on Last.fm</a>"
-      final jsonOnlyLink = {
-        'artist': {
-          'name': 'Future & Zaytoven',
-          'bio': {
-            'content': '',
-            'summary':
-                ' <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+        // Case 2: summary only has the link "<a href="...">Read more on Last.fm</a>"
+        final jsonOnlyLink = {
+          'artist': {
+            'name': 'Future & Zaytoven',
+            'bio': {
+              'content': '',
+              'summary':
+                  ' <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+            },
           },
-        },
-      };
-      final dto2 = LastFmArtistDto.fromJson(jsonOnlyLink);
-      expect(
-        dto2.toDomain().bio,
-        equals('Consulter la page complète sur Last.fm.'),
-      );
-      expect(
-        dto2.toDomain().lastFmUrl,
-        equals('https://www.last.fm/music/Future+&+Zaytoven'),
-      );
-    });
+        };
+        final dto2 = LastFmArtistDto.fromJson(jsonOnlyLink);
+        expect(
+          dto2.toDomain().bio,
+          equals('Consulter la page complète sur Last.fm.'),
+        );
+        expect(
+          dto2.toDomain().lastFmUrl,
+          equals('https://www.last.fm/music/Future+&+Zaytoven'),
+        );
+      },
+    );
 
-    test('returns null bio for [unknown] and eliminates residual dots from CC boilerplate', () {
-      final json = {
-        'artist': {
-          'name': '[unknown]',
-          'bio': {
-            'summary':
-                ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>',
-            'content':
-                ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>. User-contributed text is available under the Creative Commons By-SA License; additional terms may apply.',
+    test(
+      'returns null bio for [unknown] and eliminates residual dots from CC boilerplate',
+      () {
+        final json = {
+          'artist': {
+            'name': '[unknown]',
+            'bio': {
+              'summary':
+                  ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>',
+              'content':
+                  ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>. User-contributed text is available under the Creative Commons By-SA License; additional terms may apply.',
+            },
           },
-        },
-      };
-      final dto = LastFmArtistDto.fromJson(json);
-      expect(dto.toDomain().bio, isNull);
-    });
+        };
+        final dto = LastFmArtistDto.fromJson(json);
+        expect(dto.toDomain().bio, isNull);
+      },
+    );
 
     test('cleans HTML anchor tags and boilerplate from album wiki', () {
       final json = {
@@ -181,7 +193,9 @@ void main() {
       expect(domain.published, equals('03 Mar 2001'));
       expect(
         domain.wiki,
-        equals('Discovery is the second studio album by French house duo Daft Punk.'),
+        equals(
+          'Discovery is the second studio album by French house duo Daft Punk.',
+        ),
       );
       expect(domain.formattedListeners, equals('950 k auditeurs'));
       expect(domain.formattedPlayCount, equals('25 M écoutes'));
@@ -212,10 +226,9 @@ void main() {
           bio: LastFmBioDto(content: 'Test bio', published: '2024'),
           tags: ['Trap', 'Hip-Hop'],
           isOnTour: true,
-          customImageUrl: 'https://e-cdns-images.dzcdn.net/images/artist/123/1000x1000.jpg',
-          similar: [
-            LastFmSimilarArtistDto(name: 'Young Thug'),
-          ],
+          customImageUrl:
+              'https://e-cdns-images.dzcdn.net/images/artist/123/1000x1000.jpg',
+          similar: [LastFmSimilarArtistDto(name: 'Young Thug')],
         ),
       );
 
@@ -229,7 +242,9 @@ void main() {
       expect(retrieved.artist?.isOnTour, isTrue);
       expect(
         retrieved.artist?.customImageUrl,
-        equals('https://e-cdns-images.dzcdn.net/images/artist/123/1000x1000.jpg'),
+        equals(
+          'https://e-cdns-images.dzcdn.net/images/artist/123/1000x1000.jpg',
+        ),
       );
       expect(retrieved.artist?.similar.first.name, equals('Young Thug'));
     });

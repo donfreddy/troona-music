@@ -10,7 +10,11 @@ abstract interface class MetadataCacheDataSource {
   Future<void> saveArtist(String artistName, LastFmArtistDto dto);
 
   Future<LastFmAlbumDto?> getAlbum(String artistName, String albumName);
-  Future<void> saveAlbum(String artistName, String albumName, LastFmAlbumDto dto);
+  Future<void> saveAlbum(
+    String artistName,
+    String albumName,
+    LastFmAlbumDto dto,
+  );
 
   Future<int> getCacheSizeBytes();
   Future<void> clearCache();
@@ -115,7 +119,11 @@ class MetadataCacheDataSourceImpl implements MetadataCacheDataSource {
   }
 
   @override
-  Future<void> saveAlbum(String artistName, String albumName, LastFmAlbumDto dto) async {
+  Future<void> saveAlbum(
+    String artistName,
+    String albumName,
+    LastFmAlbumDto dto,
+  ) async {
     try {
       await _albumsDir.create(recursive: true);
       final key = '${_sanitizeKey(artistName)}__${_sanitizeKey(albumName)}';
@@ -135,7 +143,10 @@ class MetadataCacheDataSourceImpl implements MetadataCacheDataSource {
     try {
       if (!await cacheDir.exists()) return 0;
       int total = 0;
-      await for (final file in cacheDir.list(recursive: true, followLinks: false)) {
+      await for (final file in cacheDir.list(
+        recursive: true,
+        followLinks: false,
+      )) {
         if (file is File) {
           total += await file.length();
         }

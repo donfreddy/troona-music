@@ -48,7 +48,8 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
     final colors = context.colors;
     final playerState = context.watch<PlayerBloc>().state;
 
-    final isActive = playerState is PlayerActive &&
+    final isActive =
+        playerState is PlayerActive &&
         playerState.currentTrack.id == widget.track.id;
     final isPlaying = isActive && playerState.isPlaying;
 
@@ -61,8 +62,9 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
         ? trackNum.toString().padLeft(2, '0')
         : '—';
 
-    final durationStr =
-        Duration(milliseconds: widget.track.durationMs).toMMSS();
+    final durationStr = Duration(
+      milliseconds: widget.track.durationMs,
+    ).toMMSS();
 
     return InkWell(
       onTap: () {

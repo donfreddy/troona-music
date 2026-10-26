@@ -10,11 +10,15 @@ class ArtistArtworkPrefetchService {
   final MetadataRepository _repo;
   final Set<String> _inFlight = {};
 
-  ArtistArtworkPrefetchService({required MetadataRepository repo}) : _repo = repo;
+  ArtistArtworkPrefetchService({required MetadataRepository repo})
+    : _repo = repo;
 
   /// Prefetches artist portraits in the background.
   /// Throttled by [delayMs] between network requests so it doesn't saturate Deezer/Last.fm.
-  Future<void> prefetchArtists(List<Artist> artists, {int delayMs = 250}) async {
+  Future<void> prefetchArtists(
+    List<Artist> artists, {
+    int delayMs = 250,
+  }) async {
     for (final artist in artists) {
       if (artist.id.isEmpty || artist.name.trim().isEmpty) continue;
       if (_inFlight.contains(artist.id)) continue;
@@ -29,7 +33,9 @@ class ArtistArtworkPrefetchService {
           artistName: artist.name,
         );
       } catch (e) {
-        appLogger.w('ArtistArtworkPrefetchService: failed for ${artist.name}: $e');
+        appLogger.w(
+          'ArtistArtworkPrefetchService: failed for ${artist.name}: $e',
+        );
       } finally {
         _inFlight.remove(artist.id);
       }

@@ -8,20 +8,21 @@ class ApiClient {
   final Dio dio;
 
   ApiClient({Dio? customDio})
-      : dio = customDio ??
-            Dio(
-              BaseOptions(
-                baseUrl: ApiEndpoints.lastFmBaseUrl,
-                connectTimeout: const Duration(seconds: 4),
-                receiveTimeout: const Duration(seconds: 5),
-                sendTimeout: const Duration(seconds: 4),
-                headers: const {
-                  'Accept': 'application/json',
-                  'User-Agent': 'TroonaMusic/1.0.0 (troona.music.app)',
-                },
-                responseType: ResponseType.json,
-              ),
-            ) {
+    : dio =
+          customDio ??
+          Dio(
+            BaseOptions(
+              baseUrl: ApiEndpoints.lastFmBaseUrl,
+              connectTimeout: const Duration(seconds: 4),
+              receiveTimeout: const Duration(seconds: 5),
+              sendTimeout: const Duration(seconds: 4),
+              headers: const {
+                'Accept': 'application/json',
+                'User-Agent': 'TroonaMusic/1.0.0 (troona.music.app)',
+              },
+              responseType: ResponseType.json,
+            ),
+          ) {
     dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException error, handler) {

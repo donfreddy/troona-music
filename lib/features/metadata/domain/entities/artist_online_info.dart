@@ -73,11 +73,7 @@ class SimilarArtistInfo extends Equatable {
   final String? url;
   final String? imageUrl;
 
-  const SimilarArtistInfo({
-    required this.name,
-    this.url,
-    this.imageUrl,
-  });
+  const SimilarArtistInfo({required this.name, this.url, this.imageUrl});
 
   @override
   List<Object?> get props => [name, url, imageUrl];

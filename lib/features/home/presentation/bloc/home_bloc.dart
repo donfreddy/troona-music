@@ -18,9 +18,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({
     required HomeRepository repo,
     ArtistArtworkPrefetchService? prefetchService,
-  })  : _repo = repo,
-        _prefetchService = prefetchService,
-        super(HomeInitial()) {
+  }) : _repo = repo,
+       _prefetchService = prefetchService,
+       super(HomeInitial()) {
     on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
     on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
     // A recorded play reorders Recently Played. The reload keeps the loaded

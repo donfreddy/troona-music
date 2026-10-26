@@ -22,10 +22,7 @@ final class ArtistMetadataLoaded extends ArtistMetadataState {
   final ArtistOnlineInfo info;
   final String? localImagePath;
 
-  const ArtistMetadataLoaded({
-    required this.info,
-    this.localImagePath,
-  });
+  const ArtistMetadataLoaded({required this.info, this.localImagePath});
 
   ArtistMetadataLoaded copyWith({
     ArtistOnlineInfo? info,
@@ -47,8 +44,8 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
   final MetadataRepository _repo;
 
   ArtistMetadataCubit({required MetadataRepository repo})
-      : _repo = repo,
-        super(const ArtistMetadataInitial());
+    : _repo = repo,
+      super(const ArtistMetadataInitial());
 
   Future<void> loadArtistMetadata(Artist artist) async {
     emit(const ArtistMetadataLoading());

@@ -44,11 +44,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      LucideIcons.user,
-                      size: 18,
-                      color: colors.accent,
-                    ),
+                    Icon(LucideIcons.user, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
                     const Text(
                       'À propos',
@@ -71,10 +67,16 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          color: const Color(
+                            0xFF10B981,
+                          ).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                           border: Border.all(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.35),
                           ),
                         ),
                         child: Row(
@@ -109,7 +111,9 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.12),
                         ),
@@ -141,36 +145,43 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                 ),
               ],
             ),
-        
+
             // Tags (Genres, Styles, Vibe)
             if (tags.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: tags.map((tag) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colors.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.28),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Text(
-                    '#$tag',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: colors.accent,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                )).toList(),
+                children: tags
+                    .map(
+                      (tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colors.accent.withValues(alpha: 0.28),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: colors.accent,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
-        
+
             // Stat chips
             if (listeners != null || playCount != null) ...[
               const SizedBox(height: AppSpacing.md),
@@ -179,26 +190,22 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (listeners != null)
-                    _StatBadge(
-                      icon: LucideIcons.headphones,
-                      label: listeners,
-                    ),
+                    _StatBadge(icon: LucideIcons.headphones, label: listeners),
                   if (playCount != null)
-                    _StatBadge(
-                      icon: LucideIcons.play,
-                      label: playCount,
-                    ),
+                    _StatBadge(icon: LucideIcons.play, label: playCount),
                 ],
               ),
             ],
-        
+
             // Bio content
             if (bio != null && bio.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               Text(
                 bio,
                 maxLines: _isExpanded ? null : 4,
-                overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                overflow: _isExpanded
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.5,
@@ -236,7 +243,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                 ),
               ],
             ],
-        
+
             // Similar artists ("Artistes similaires")
             if (similar.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.lg),

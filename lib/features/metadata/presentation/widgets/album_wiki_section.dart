@@ -38,11 +38,7 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      LucideIcons.disc,
-                      size: 18,
-                      color: colors.accent,
-                    ),
+                    Icon(LucideIcons.disc, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
                     const Text(
                       'À propos de l\'album',
@@ -92,69 +88,71 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                 ),
               ],
             ),
-        
+
             // Tags (Genres, Styles)
             if (tags.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
-                children: tags.map((tag) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: colors.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colors.accent.withValues(alpha: 0.28),
-                      width: 0.8,
-                    ),
-                  ),
-                  child: Text(
-                    '#$tag',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: colors.accent,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                )).toList(),
+                children: tags
+                    .map(
+                      (tag) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colors.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colors.accent.withValues(alpha: 0.28),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          '#$tag',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: colors.accent,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
-        
+
             // Stat chips & release info
-            if (listeners != null || playCount != null || published != null) ...[
+            if (listeners != null ||
+                playCount != null ||
+                published != null) ...[
               const SizedBox(height: AppSpacing.md),
               Wrap(
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (listeners != null)
-                    _StatBadge(
-                      icon: LucideIcons.headphones,
-                      label: listeners,
-                    ),
+                    _StatBadge(icon: LucideIcons.headphones, label: listeners),
                   if (playCount != null)
-                    _StatBadge(
-                      icon: LucideIcons.play,
-                      label: playCount,
-                    ),
+                    _StatBadge(icon: LucideIcons.play, label: playCount),
                   if (published != null && published.isNotEmpty)
-                    _StatBadge(
-                      icon: LucideIcons.calendar,
-                      label: published,
-                    ),
+                    _StatBadge(icon: LucideIcons.calendar, label: published),
                 ],
               ),
             ],
-        
+
             // Wiki story content
             if (wiki != null && wiki.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.md),
               Text(
                 wiki,
                 maxLines: _isExpanded ? null : 4,
-                overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                overflow: _isExpanded
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.5,

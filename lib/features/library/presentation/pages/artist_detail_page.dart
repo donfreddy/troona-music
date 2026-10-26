@@ -78,8 +78,9 @@ class ArtistDetailPage extends StatelessWidget {
                   ),
                 ),
                 ArtistDetailLoaded(:final data) => BlocProvider<ArtistMetadataCubit>(
-                  create: (_) => getIt<ArtistMetadataCubit>()
-                    ..loadArtistMetadata(data.artist),
+                  create: (_) =>
+                      getIt<ArtistMetadataCubit>()
+                        ..loadArtistMetadata(data.artist),
                   child: Builder(
                     builder: (contentCtx) {
                       return CustomScrollView(
@@ -113,15 +114,24 @@ class ArtistDetailPage extends StatelessWidget {
                                       metaState.info.listeners != null ||
                                       metaState.info.playCount != null ||
                                       metaState.info.tags.isNotEmpty ||
-                                      metaState.info.similarArtists.isNotEmpty)) {
+                                      metaState
+                                          .info
+                                          .similarArtists
+                                          .isNotEmpty)) {
                                 return SliverToBoxAdapter(
                                   child: Padding(
-                                    padding: const EdgeInsets.only(top: AppSpacing.lg),
-                                    child: ArtistBioSection(info: metaState.info),
+                                    padding: const EdgeInsets.only(
+                                      top: AppSpacing.lg,
+                                    ),
+                                    child: ArtistBioSection(
+                                      info: metaState.info,
+                                    ),
                                   ),
                                 );
                               }
-                              return const SliverToBoxAdapter(child: SizedBox.shrink());
+                              return const SliverToBoxAdapter(
+                                child: SizedBox.shrink(),
+                              );
                             },
                           ),
 
@@ -134,7 +144,8 @@ class ArtistDetailPage extends StatelessWidget {
 
                           SliverPadding(
                             padding: EdgeInsets.only(
-                              bottom: AppSpacing.miniPlayerHeight +
+                              bottom:
+                                  AppSpacing.miniPlayerHeight +
                                   MediaQuery.of(contentCtx).padding.bottom +
                                   AppSpacing.xl,
                             ),
@@ -296,52 +307,73 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             ),
                           ),
                           child: ClipOval(
-                            child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
-                              builder: (context, metaState) {
-                                final downloaded = metaState is ArtistMetadataLoaded
-                                    ? metaState.localImagePath
-                                    : null;
-                                final onlineUrl = metaState is ArtistMetadataLoaded
-                                    ? metaState.info.imageUrl
-                                    : null;
-                                final localAlbumArt = artist.artworkPath;
+                            child:
+                                BlocBuilder<
+                                  ArtistMetadataCubit,
+                                  ArtistMetadataState
+                                >(
+                                  builder: (context, metaState) {
+                                    final downloaded =
+                                        metaState is ArtistMetadataLoaded
+                                        ? metaState.localImagePath
+                                        : null;
+                                    final onlineUrl =
+                                        metaState is ArtistMetadataLoaded
+                                        ? metaState.info.imageUrl
+                                        : null;
+                                    final localAlbumArt = artist.artworkPath;
 
-                                // 1. Prefer downloaded HD artist photo
-                                if (downloaded != null && downloaded.isNotEmpty) {
-                                  return ArtworkImage(
-                                    downloaded,
-                                    width: 130,
-                                    height: 130,
-                                    errorBuilder: (_, _, _) =>
-                                        onlineUrl != null && onlineUrl.isNotEmpty
+                                    // 1. Prefer downloaded HD artist photo
+                                    if (downloaded != null &&
+                                        downloaded.isNotEmpty) {
+                                      return ArtworkImage(
+                                        downloaded,
+                                        width: 130,
+                                        height: 130,
+                                        errorBuilder: (_, _, _) =>
+                                            onlineUrl != null &&
+                                                onlineUrl.isNotEmpty
                                             ? Image.network(
                                                 onlineUrl,
                                                 width: 130,
                                                 height: 130,
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (_, _, _) =>
-                                                    _fallbackLocalOrMonogram(localAlbumArt, colors),
+                                                    _fallbackLocalOrMonogram(
+                                                      localAlbumArt,
+                                                      colors,
+                                                    ),
                                               )
-                                            : _fallbackLocalOrMonogram(localAlbumArt, colors),
-                                  );
-                                }
+                                            : _fallbackLocalOrMonogram(
+                                                localAlbumArt,
+                                                colors,
+                                              ),
+                                      );
+                                    }
 
-                                // 2. Next prefer online HD artist photo (Deezer/Last.fm)
-                                if (onlineUrl != null && onlineUrl.isNotEmpty) {
-                                  return Image.network(
-                                    onlineUrl,
-                                    width: 130,
-                                    height: 130,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, _, _) =>
-                                        _fallbackLocalOrMonogram(localAlbumArt, colors),
-                                  );
-                                }
+                                    // 2. Next prefer online HD artist photo (Deezer/Last.fm)
+                                    if (onlineUrl != null &&
+                                        onlineUrl.isNotEmpty) {
+                                      return Image.network(
+                                        onlineUrl,
+                                        width: 130,
+                                        height: 130,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, _, _) =>
+                                            _fallbackLocalOrMonogram(
+                                              localAlbumArt,
+                                              colors,
+                                            ),
+                                      );
+                                    }
 
-                                // 3. Fallback to local track album art or monogram
-                                return _fallbackLocalOrMonogram(localAlbumArt, colors);
-                              },
-                            ),
+                                    // 3. Fallback to local track album art or monogram
+                                    return _fallbackLocalOrMonogram(
+                                      localAlbumArt,
+                                      colors,
+                                    );
+                                  },
+                                ),
                           ),
                         ),
                         0,
@@ -351,7 +383,9 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
 
                       // Artist Name
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
                         child: Column(
                           children: [
                             _animatedArtistItem(
@@ -377,12 +411,14 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   _GlassBadge(
-                                    label: '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}',
+                                    label:
+                                        '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}',
                                     icon: LucideIcons.music,
                                   ),
                                   const SizedBox(width: 6),
                                   _GlassBadge(
-                                    label: '${artist.albumCount} ${artist.albumCount > 1 ? 'albums' : 'album'}',
+                                    label:
+                                        '${artist.albumCount} ${artist.albumCount > 1 ? 'albums' : 'album'}',
                                     icon: LucideIcons.disc,
                                   ),
                                   if (totalDuration > Duration.zero) ...[
@@ -489,7 +525,10 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                           icon: const Icon(LucideIcons.play, size: 18),
                           label: const Text(
                             'Écouter',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: colors.accent,
@@ -519,13 +558,23 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                     const ShuffleToggleRequested(),
                                   );
                                 },
-                          icon: Icon(LucideIcons.shuffle, size: 18, color: colors.accent),
+                          icon: Icon(
+                            LucideIcons.shuffle,
+                            size: 18,
+                            color: colors.accent,
+                          ),
                           label: const Text(
                             'Aléatoire',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
                           ),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.08,
+                            ),
                             side: BorderSide(
                               color: Colors.white.withValues(alpha: 0.16),
                               width: 0.8,
@@ -750,7 +799,12 @@ class _ArtistCollectionFooter extends StatelessWidget {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl2, AppSpacing.lg, 0),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.xl2,
+          AppSpacing.lg,
+          0,
+        ),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
@@ -791,10 +845,7 @@ class _ArtistCollectionFooter extends StatelessWidget {
                 label: 'Temps d\'écoute total',
                 value: totalDuration.toHumanReadable(),
               ),
-              _MetaRow(
-                label: 'Empreinte de stockage',
-                value: '$totalMb Mo',
-              ),
+              _MetaRow(label: 'Empreinte de stockage', value: '$totalMb Mo'),
             ],
           ),
         ),

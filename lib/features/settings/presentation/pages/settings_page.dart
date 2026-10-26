@@ -89,7 +89,10 @@ class _SettingsViewState extends State<_SettingsView> {
       final dir = getIt<ArtworkExtractor>().cacheDir;
       int artworkTotal = 0;
       if (await dir.exists()) {
-        await for (final file in dir.list(recursive: true, followLinks: false)) {
+        await for (final file in dir.list(
+          recursive: true,
+          followLinks: false,
+        )) {
           if (file is File) {
             artworkTotal += await file.length();
           }
@@ -98,7 +101,8 @@ class _SettingsViewState extends State<_SettingsView> {
 
       int metadataTotal = 0;
       try {
-        metadataTotal = await getIt<MetadataRepository>().getMetadataCacheSizeBytes();
+        metadataTotal = await getIt<MetadataRepository>()
+            .getMetadataCacheSizeBytes();
       } catch (_) {}
 
       if (mounted) {
@@ -483,7 +487,8 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
                 icon: LucideIcons.volume2,
                 iconColor: const Color(0xFF8B5CF6), // Purple
                 title: 'Atténuer le volume sur notification',
-                subtitle: 'Réduit le son lors de l\'arrivée d\'une notification',
+                subtitle:
+                    'Réduit le son lors de l\'arrivée d\'une notification',
                 value: settings.duckAudioOnNotification,
                 onChanged: cubit.setDuckAudioOnNotification,
               ),
@@ -619,7 +624,8 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
                 icon: LucideIcons.image,
                 iconColor: const Color(0xFF10B981),
                 title: 'Photos d\'artistes en ligne',
-                subtitle: 'Télécharge les visuels pour les artistes sans pochette',
+                subtitle:
+                    'Télécharge les visuels pour les artistes sans pochette',
                 value: settings.fetchArtistArtwork,
                 onChanged: cubit.setFetchArtistArtwork,
               ),

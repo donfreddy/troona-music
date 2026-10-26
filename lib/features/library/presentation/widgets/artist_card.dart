@@ -26,9 +26,9 @@ class _ArtistCardState extends State<ArtistCard> {
   void initState() {
     super.initState();
     _resolveArtwork();
-    _artworkSub = getIt<MetadataRepository>()
-        .onArtistArtworkUpdated
-        .listen((updatedId) {
+    _artworkSub = getIt<MetadataRepository>().onArtistArtworkUpdated.listen((
+      updatedId,
+    ) {
       if (updatedId == widget.artist.id && mounted) {
         _resolveArtwork();
       }
@@ -44,8 +44,9 @@ class _ArtistCardState extends State<ArtistCard> {
   }
 
   void _resolveArtwork() {
-    final cached = getIt<MetadataRepository>()
-        .getCachedArtistArtworkPath(widget.artist.id);
+    final cached = getIt<MetadataRepository>().getCachedArtistArtworkPath(
+      widget.artist.id,
+    );
     final next = cached ?? widget.artist.artworkPath;
     if (next != _effectiveArtwork) {
       setState(() => _effectiveArtwork = next);

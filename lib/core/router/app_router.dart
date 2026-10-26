@@ -46,8 +46,7 @@ GoRoute _buildAlbumDetailRoute({String? name}) => GoRoute(
   builder: (context, state) {
     final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
     return BlocProvider(
-      create: (_) =>
-          getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
+      create: (_) => getIt<AlbumDetailBloc>()..add(AlbumDetailRequested(id)),
       child: AlbumDetailPage(id: id.toString()),
     );
   },
@@ -59,8 +58,7 @@ GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
   builder: (context, state) {
     final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
     return BlocProvider(
-      create: (_) =>
-          getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
       child: ArtistDetailPage(id: id.toString()),
     );
   },
@@ -140,10 +138,7 @@ final appRouter = GoRouter(
                 create: (_) => getIt<SearchBloc>(),
                 child: const SearchPage(),
               ),
-              routes: [
-                _buildAlbumDetailRoute(),
-                _buildArtistDetailRoute(),
-              ],
+              routes: [_buildAlbumDetailRoute(), _buildArtistDetailRoute()],
             ),
           ],
         ),
@@ -234,4 +229,3 @@ extension NavigationContextExt on BuildContext {
     }
   }
 }
-

@@ -25,11 +25,11 @@ class MetadataRepositoryImpl implements MetadataRepository {
     required SettingsRepository settingsRepo,
     required ApiClient client,
     required Directory artworkCacheDir,
-  })  : _cache = cache,
-        _remote = remote,
-        _settingsRepo = settingsRepo,
-        _client = client,
-        _artworkCacheDir = artworkCacheDir;
+  }) : _cache = cache,
+       _remote = remote,
+       _settingsRepo = settingsRepo,
+       _client = client,
+       _artworkCacheDir = artworkCacheDir;
 
   @override
   Stream<String> get onArtistArtworkUpdated =>
@@ -108,8 +108,10 @@ class MetadataRepositoryImpl implements MetadataRepository {
           if (cached.album?.bestImageUrl != null) {
             return cached.toDomain();
           }
-          final deezerCover =
-              await _remote.fetchDeezerAlbumCover(artistName, albumName);
+          final deezerCover = await _remote.fetchDeezerAlbumCover(
+            artistName,
+            albumName,
+          );
           if (deezerCover != null && deezerCover.isNotEmpty) {
             final updated = cached.copyWith(
               album: cached.album?.copyWith(customImageUrl: deezerCover),
@@ -163,9 +165,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
       await _client.dio.download(
         imageUrl,
         targetFile.path,
-        options: Options(
-          receiveTimeout: const Duration(seconds: 10),
-        ),
+        options: Options(receiveTimeout: const Duration(seconds: 10)),
       );
 
       if (await targetFile.exists() && (await targetFile.length()) > 0) {
@@ -175,7 +175,9 @@ class MetadataRepositoryImpl implements MetadataRepository {
       }
       return null;
     } catch (e) {
-      appLogger.w('MetadataRepositoryImpl.downloadAndCacheArtistArtwork failed: $e');
+      appLogger.w(
+        'MetadataRepositoryImpl.downloadAndCacheArtistArtwork failed: $e',
+      );
       return null;
     }
   }
@@ -226,9 +228,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
       await _client.dio.download(
         imageUrl,
         targetFile.path,
-        options: Options(
-          receiveTimeout: const Duration(seconds: 10),
-        ),
+        options: Options(receiveTimeout: const Duration(seconds: 10)),
       );
 
       if (await targetFile.exists() && (await targetFile.length()) > 0) {
@@ -237,7 +237,9 @@ class MetadataRepositoryImpl implements MetadataRepository {
       }
       return null;
     } catch (e) {
-      appLogger.w('MetadataRepositoryImpl.downloadAndCacheAlbumArtwork failed: $e');
+      appLogger.w(
+        'MetadataRepositoryImpl.downloadAndCacheAlbumArtwork failed: $e',
+      );
       return null;
     }
   }
