@@ -55,11 +55,17 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     });
 
-    // Forward the queue so the OS notification can show track count.
+    // Forward the queue so the OS notification can show track count. Any
+    // playback state push resets the anchor time, so the position goes with
+    // it, and an edit that leaves the index alone pushes nothing.
     _port.queueStream.listen((q) {
       queue.add(q.playbackTracks.map(_trackToMediaItem).toList());
+      if (q.currentIndex == playbackState.value.queueIndex) return;
       playbackState.add(
-        playbackState.value.copyWith(queueIndex: q.currentIndex),
+        playbackState.value.copyWith(
+          queueIndex: q.currentIndex,
+          updatePosition: _port.currentPosition,
+        ),
       );
     });
 

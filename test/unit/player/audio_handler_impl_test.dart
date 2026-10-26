@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
@@ -54,6 +55,50 @@ void main() {
     );
     expect(handler.playbackState.value.queueIndex, 0);
     expect(handler.queue.value, hasLength(2));
+  });
+
+  group('a queue edit while playing', () {
+    Queue queueAt(int index) => Queue(
+      originalTracks: [a, b],
+      playbackTracks: [a, b],
+      currentIndex: index,
+      shuffleEnabled: false,
+      repeatMode: RepeatMode.off,
+    );
+
+    // One minute into the track, anchored at 0:00 one minute ago.
+    void playingForAMinute({required int queueIndex}) {
+      port.currentPositionValue = const Duration(minutes: 1);
+      handler.playbackState.add(
+        PlaybackState(
+          playing: true,
+          processingState: AudioProcessingState.ready,
+          queueIndex: queueIndex,
+          updateTime: DateTime.now().subtract(const Duration(minutes: 1)),
+        ),
+      );
+    }
+
+    test('keeps the position when the index is unchanged', () {
+      playingForAMinute(queueIndex: 0);
+
+      port.queueCtrl.add(queueAt(0));
+
+      expect(
+        handler.playbackState.value.position,
+        greaterThanOrEqualTo(const Duration(minutes: 1)),
+      );
+    });
+
+    test('re-anchors the position when the index moves', () {
+      playingForAMinute(queueIndex: 1);
+
+      port.queueCtrl.add(queueAt(0));
+
+      final state = handler.playbackState.value;
+      expect(state.queueIndex, 0);
+      expect(state.position, greaterThanOrEqualTo(const Duration(minutes: 1)));
+    });
   });
 
   test('a seek made in the app reaches the lock screen', () {
