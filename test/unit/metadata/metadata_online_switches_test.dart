@@ -347,6 +347,21 @@ void main() {
     expect(remote.calls, ['deezer:artist']);
   });
 
+  test('a photo landing after the delete stays hidden', () async {
+    settings.value = switches(info: false, photos: false);
+    await repo.forgetPhotos();
+    // A download that passed its switch check renames late.
+    final late = File('${tempDir.path}/photos/artists/1.jpg');
+    await late.create(recursive: true);
+    await late.writeAsBytes([1, 2, 3]);
+
+    expect(repo.getCachedArtistArtworkPath('1'), isNull);
+
+    settings.value = switches(info: false, photos: true);
+    await repo.getArtistInfo('Daft Punk');
+    expect(repo.getCachedArtistArtworkPath('1'), late.path);
+  });
+
   test('forgetting photos keeps bios and tells every artist card', () async {
     settings.value = switches(info: true, photos: true);
     await repo.getArtistInfo('Daft Punk');

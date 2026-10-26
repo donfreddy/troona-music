@@ -23,10 +23,12 @@ abstract interface class MetadataRepository {
     required String imageUrl,
   });
 
+  /// The downloaded photo of [artistId], or null when there is none or the
+  /// photos switch was last seen off.
   String? getCachedArtistArtworkPath(String artistId);
 
-  /// Emits an artist id when its photo changes, or [allArtists] after photos
-  /// were removed in bulk.
+  /// Emits an artist id when its photo changes, or [allArtists] after every
+  /// artist photo and album cover was removed.
   Stream<String> get onArtistArtworkUpdated;
 
   static const allArtists = '*';

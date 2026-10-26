@@ -27,6 +27,10 @@ class MetadataRepositoryImpl implements MetadataRepository {
   /// so the next visit asks again.
   final _deezerLookups = <String, Future<String?>>{};
 
+  /// The photos switch as last read. A photo that survived a failed delete,
+  /// or landed just after it, stays hidden while this is set.
+  bool _photosOff = false;
+
   MetadataRepositoryImpl({
     required MetadataCacheDataSource cache,
     required LastFmRemoteDataSource remote,
@@ -45,6 +49,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
 
   @override
   String? getCachedArtistArtworkPath(String artistId) {
+    if (_photosOff) return null;
     try {
       final safeId = artistId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
       final targetFile = File('${_artworkCacheDir.path}/artists/$safeId.jpg');
@@ -69,10 +74,9 @@ class MetadataRepositoryImpl implements MetadataRepository {
       (_) => null,
       (s) => s,
     );
-    return (
-      info: settings?.fetchOnlineMetadata ?? false,
-      photos: settings?.fetchArtistArtwork ?? false,
-    );
+    final photos = settings?.fetchArtistArtwork ?? false;
+    _photosOff = !photos;
+    return (info: settings?.fetchOnlineMetadata ?? false, photos: photos);
   }
 
   // Bios and stats come from Last.fm (info switch); pictures fall back to
@@ -285,6 +289,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
 
   @override
   Future<void> forgetPhotos() async {
+    _photosOff = true;
     try {
       if (await _artworkCacheDir.exists()) {
         await _artworkCacheDir.delete(recursive: true);
