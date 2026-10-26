@@ -89,26 +89,66 @@ final class PlaybackSessionSnapshot {
   }
 }
 
+/// Persists the playback session in two parts: the queue, rewritten only
+/// when it changes, and the small playback state (track, index, position,
+/// modes), rewritten every few seconds while playing. A long shuffled queue
+/// is thousands of ids; re-encoding it with every position update made each
+/// save rewrite the whole preferences file.
 final class PlaybackSessionStore {
-  static const _sessionKey = 'playback_session_v1';
+  static const _queueKey = 'playback_session_queue_v2';
+  static const _stateKey = 'playback_session_state_v2';
+  static const _legacyKey = 'playback_session_v1';
   static const _fullPlayerOpenKey = 'playback_full_player_open_v1';
 
   final SharedPreferences _prefs;
 
-  const PlaybackSessionStore(this._prefs);
+  /// What the queue key holds, so an unchanged queue is not written again.
+  int? _savedQueueSignature;
+
+  PlaybackSessionStore(this._prefs);
 
   Future<void> save(PlaybackSessionSnapshot snapshot) async {
-    await _prefs.setString(_sessionKey, jsonEncode(snapshot.toJson()));
+    final json = snapshot.toJson();
+    final queue = {for (final key in _queueFields) key: json.remove(key)};
+    final signature = Object.hash(
+      Object.hashAll(snapshot.originalTrackIds),
+      Object.hashAll(snapshot.playbackTrackIds),
+    );
+    final writes = [_prefs.setString(_stateKey, jsonEncode(json))];
+    if (signature != _savedQueueSignature) {
+      // Set before writing: saves are not awaited by the caller, and
+      // SharedPreferences applies writes in call order.
+      _savedQueueSignature = signature;
+      writes
+        ..add(_prefs.setString(_queueKey, jsonEncode(queue)))
+        ..add(_prefs.remove(_legacyKey));
+    }
+    try {
+      await Future.wait(writes);
+    } catch (_) {
+      _savedQueueSignature = null; // Write the queue again next time.
+      rethrow;
+    }
   }
 
-  PlaybackSessionSnapshot? load() {
-    final raw = _prefs.getString(_sessionKey);
-    if (raw == null || raw.isEmpty) return null;
+  static const _queueFields = ['original_track_ids', 'playback_track_ids'];
 
+  PlaybackSessionSnapshot? load() {
+    final queue = _decode(_prefs.getString(_queueKey));
+    final state = _decode(_prefs.getString(_stateKey));
+    if (queue != null && state != null) {
+      return PlaybackSessionSnapshot.fromJson({...state, ...queue});
+    }
+    // Sessions saved before the split: one key with everything.
+    final legacy = _decode(_prefs.getString(_legacyKey));
+    return legacy == null ? null : PlaybackSessionSnapshot.fromJson(legacy);
+  }
+
+  static Map<String, dynamic>? _decode(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is! Map<String, dynamic>) return null;
-      return PlaybackSessionSnapshot.fromJson(decoded);
+      return decoded is Map<String, dynamic> ? decoded : null;
     } catch (_) {
       return null;
     }
@@ -120,8 +160,11 @@ final class PlaybackSessionStore {
       _prefs.setBool(_fullPlayerOpenKey, value);
 
   Future<void> clear() async {
+    _savedQueueSignature = null;
     await Future.wait([
-      _prefs.remove(_sessionKey),
+      _prefs.remove(_queueKey),
+      _prefs.remove(_stateKey),
+      _prefs.remove(_legacyKey),
       _prefs.remove(_fullPlayerOpenKey),
     ]);
   }
