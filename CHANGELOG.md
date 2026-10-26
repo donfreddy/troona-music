@@ -22,6 +22,7 @@
 - Daily listening totals (plays, listening time, first plays), never pruned and built once from the stored events.
 - "Your week in music" on Home: last week's listening time and top artist; the page adds the top song, first listens and a calendar of this month's listening days. No streak, no badge, no notification.
 - Monthly "Replay" playlist: on the first run of a month, last month's 25 most played songs are saved as a normal playlist (skipped below five songs, made once per month even if deleted).
+- "What's new" sheet: opens once on the first launch after an update that has notes (never on a fresh install), grouped as New, Improved and Fixed, and reopens from Settings. Notes live in `lib/features/whats_new/presentation/release_notes.dart`.
 - Home "Recently Played" now lists the last played tracks, topped up with the newest ones until four have been played, and refreshes when a play is recorded.
 - Now Playing: fixed glass lens over a cover carousel, elapsed-time arc with circular seek on the ring, and a morph between the glass ring and the mini player.
 - Global search for tracks, artists and albums; playlist management; album and artist detail pages.
