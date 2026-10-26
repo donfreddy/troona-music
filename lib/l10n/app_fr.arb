@@ -77,7 +77,7 @@
   "privacyLocalTitle": "Sur cet appareil",
   "privacyLocalBody": "Votre bibliothèque, vos titres aimés, vos playlists et votre historique d'écoute sont stockés uniquement sur ce téléphone. Troona lit vos fichiers audio et jamais vos photos, vidéos ou documents.",
   "privacyOnlineTitle": "Extras en ligne (désactivés par défaut)",
-  "privacyOnlineBody": "Si vous les activez, Troona envoie les noms d'artistes et d'albums à Last.fm et Deezer pour récupérer photos et biographies. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni historique d'écoute n'est envoyé. Désactivez-les à tout moment dans les Réglages.",
+  "privacyOnlineBody": "Il y a deux interrupteurs distincts. Les biographies envoient les noms d'artistes et d'albums à Last.fm. Les photos les envoient à Deezer et téléchargent les images depuis Deezer ou Last.fm. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni historique d'écoute n'est envoyé. Désactivez l'un ou l'autre à tout moment dans les Réglages : les requêtes vers ce service s'arrêtent, et désactiver les photos supprime aussi celles déjà téléchargées.",
   "privacyReportsTitle": "Signalements de problèmes",
   "privacyReportsBody": "Les erreurs sont écrites dans un journal sur cet appareil. Il peut contenir des noms de fichiers. Rien n'est envoyé, sauf si vous choisissez Signaler un problème et le partagez vous-même.",
   "privacyDeleteTitle": "Supprimer vos données",

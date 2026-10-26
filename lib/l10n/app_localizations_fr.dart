@@ -284,7 +284,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyOnlineBody =>
-      'Si vous les activez, Troona envoie les noms d\'artistes et d\'albums à Last.fm et Deezer pour récupérer photos et biographies. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni historique d\'écoute n\'est envoyé. Désactivez-les à tout moment dans les Réglages.';
+      'Il y a deux interrupteurs distincts. Les biographies envoient les noms d\'artistes et d\'albums à Last.fm. Les photos les envoient à Deezer et téléchargent les images depuis Deezer ou Last.fm. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni historique d\'écoute n\'est envoyé. Désactivez l\'un ou l\'autre à tout moment dans les Réglages : les requêtes vers ce service s\'arrêtent, et désactiver les photos supprime aussi celles déjà téléchargées.';
 
   @override
   String get privacyReportsTitle => 'Signalements de problèmes';

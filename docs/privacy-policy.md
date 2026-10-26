@@ -10,7 +10,7 @@ Your library, likes, playlists and listening history are stored only on this pho
 
 ## Online extras (off by default)
 
-If you turn them on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn them off at any time in Settings.
+There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded. "Clear downloaded info" deletes everything fetched online.
 
 - Last.fm privacy policy: https://www.last.fm/legal/privacy
 - Deezer privacy policy: https://www.deezer.com/legal/personal-datas
