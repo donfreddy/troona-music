@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:troona/l10n/app_localizations_en.dart';
 
 Widget _app(Widget Function(BuildContext) home, {Locale? locale}) =>
@@ -109,6 +111,46 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Nouveautés'), findsOneWidget);
     expect(find.text('Continuer'), findsOneWidget);
+  });
+
+  group('glass above the tab bar', () {
+    tearDown(() {
+      GlassTheme.setDetectedTier(GlassQuality.high);
+      GlassTheme.overrideQuality(null);
+    });
+
+    Future<Finder> openSheet(WidgetTester tester) async {
+      await tester.pumpWidget(
+        _app(
+          (context) => TextButton(
+            onPressed: () => showWhatsNewSheet(context, release),
+            child: const Text('Open'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      return find.descendant(
+        of: find.byType(GlassBottomSheet),
+        matching: find.byType(BackdropFilter),
+      );
+    }
+
+    testWidgets('blurs on a high-tier device', (tester) async {
+      GlassTheme.setDetectedTier(GlassQuality.high);
+      expect(await openSheet(tester), findsOneWidget);
+    });
+
+    testWidgets('is opaque on a low-tier device', (tester) async {
+      GlassTheme.setDetectedTier(GlassQuality.low);
+      expect(await openSheet(tester), findsNothing);
+    });
+
+    testWidgets('is opaque when the user turns glass down', (tester) async {
+      GlassTheme.setDetectedTier(GlassQuality.high);
+      GlassTheme.overrideQuality(GlassQuality.low);
+      expect(await openSheet(tester), findsNothing);
+    });
   });
 
   group('catalog', () {

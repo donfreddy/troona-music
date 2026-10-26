@@ -8,13 +8,13 @@ import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 
 /// Opens "What's new" for [release] above the mini player and the tab bar.
-/// Opaque: the tab bar and a collapsed page header already blur.
+/// Glass on high-tier devices only: the tab bar already blurs below it.
 Future<void> showWhatsNewSheet(BuildContext context, Release release) =>
     showGlassBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      quality: GlassQuality.off,
+      quality: GlassTheme.aboveGlass(context),
       builder: (_) => WhatsNewSheet(release: release),
     );
 

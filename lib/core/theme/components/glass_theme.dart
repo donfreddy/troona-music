@@ -143,6 +143,14 @@ abstract final class GlassTheme {
   static GlassQuality resolveQuality(BuildContext ctx, [GlassQuality? q]) =>
       _resolveQuality(ctx, q);
 
+  /// Quality for a short-lived surface over glass that already blurs (a
+  /// modal sheet above the tab bar): a third blur only where the device is
+  /// high-tier, opaque otherwise. See the blur budget in CLAUDE.md.
+  static GlassQuality aboveGlass(BuildContext ctx) =>
+      _resolveQuality(ctx) == GlassQuality.high
+      ? GlassQuality.high
+      : GlassQuality.off;
+
   // ── Public surface accessors ─────────────────────────────────────────────
 
   /// Config for standard content cards (albums, playlists, info panels).
