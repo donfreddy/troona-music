@@ -36,14 +36,18 @@ final class LibrarySortChanged extends LibraryEvent {
 }
 
 // ── Streams internes ─────────────────────────────────────
+// Each carries the scan it came from: events of a scan that was restarted
+// are dropped.
 final class _ScanProgressReceived extends LibraryEvent {
   final ScanProgress progress;
-  const _ScanProgressReceived(this.progress);
+  final int scan;
+  const _ScanProgressReceived(this.progress, this.scan);
 }
 
 final class _ScanFailed extends LibraryEvent {
   final String message;
-  const _ScanFailed(this.message);
+  final int scan;
+  const _ScanFailed(this.message, this.scan);
 }
 
 final class _TracksLoaded extends LibraryEvent {

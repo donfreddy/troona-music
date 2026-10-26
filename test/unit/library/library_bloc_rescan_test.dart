@@ -16,9 +16,20 @@ import '../../helpers/fake_player.dart';
 class _Repo extends Fake implements LibraryRepository {
   final scans = <StreamController<ScanProgress>>[];
 
+  /// Holds the next read until completed.
+  Completer<void>? gate;
+  bool failReads = false;
+  int reads = 0;
+
   @override
-  Future<Either<Failure, List<Track>>> getTracks() async =>
-      right([testTrack('1', durationMs: 60000)]);
+  Future<Either<Failure, List<Track>>> getTracks() async {
+    reads++;
+    final held = gate;
+    gate = null;
+    if (held != null) await held.future;
+    if (failReads) return left(const DatabaseFailure());
+    return right([testTrack('1', durationMs: 60000)]);
+  }
 
   @override
   Future<Either<Failure, Stream<ScanProgress>>> scanLibrary() async {
@@ -78,4 +89,50 @@ void main() {
 
     expect((bloc.state as LibraryScanning).cached, isNotNull);
   });
+
+  test('a failed final read keeps the library on screen', () async {
+    bloc.add(const LibraryBootstrapRequested());
+    await settle();
+    await settle();
+    repo.failReads = true;
+    await repo.scans.last.close();
+    await settle();
+    await settle();
+
+    expect(bloc.state, isA<LibraryError>());
+    expect((bloc.state as LibraryError).lastLoaded, isNotNull);
+  });
+
+  test(
+    'a scan that finishes after a restart does not hide the new one',
+    () async {
+      bloc.add(const LibraryBootstrapRequested());
+      await settle();
+      await settle();
+
+      // Scan 1 finishes; its final read is held.
+      final held = repo.gate = Completer<void>();
+      await repo.scans.last.close();
+      await settle();
+
+      // A refresh starts scan 2 meanwhile, then scan 1's read lands.
+      bloc.add(const LibraryRefreshRequested());
+      await settle();
+      await settle();
+      held.complete();
+      await settle();
+      await settle();
+
+      expect(repo.scans, hasLength(2));
+      expect(bloc.state, isA<LibraryScanning>());
+
+      // Scan 2's own completion is what shows the library.
+      final readsBefore = repo.reads;
+      await repo.scans.last.close();
+      await settle();
+      await settle();
+      expect(repo.reads, readsBefore + 1);
+      expect(bloc.state, isA<LibraryLoaded>());
+    },
+  );
 }

@@ -25,6 +25,9 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
   StreamSubscription<ScanProgress>? _scanSub;
 
+  /// Bumped by every scan start; results of an older scan are stale.
+  int _scanId = 0;
+
   LibraryBloc({
     required ScanLibraryUseCase scanLibrary,
     required GetTracksUseCase getTracks,
@@ -37,8 +40,9 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       _onBootstrapRequested,
       transformer: droppable(),
     );
-    on<LibraryScanRequested>(_onScanRequested, transformer: droppable());
-    on<LibraryRefreshRequested>(_onRefreshRequested, transformer: droppable());
+    on<LibraryScanRequested>(_onScanRequested, transformer: sequential());
+    // Funnelled into the scan handler so two scans never start side by side.
+    on<LibraryRefreshRequested>((_, _) => add(const LibraryScanRequested()));
     on<LibrarySearchChanged>(_onSearchChanged, transformer: sequential());
     on<LibraryFilterChanged>(_onFilterChanged);
     on<LibrarySortChanged>(_onSortChanged);
@@ -79,6 +83,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   ) async {
     // Cancel a previous scan if still running
     await _cancelScan();
+    final scan = ++_scanId;
 
     // Keep the cached data visible during the scan, including when a scan
     // restarts over a running one or retries after a failure.
@@ -93,15 +98,17 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
     final result = await _scanLibrary();
 
-    result.fold((failure) => add(_ScanFailed(failure.message)), (stream) {
+    if (scan != _scanId) return;
+    result.fold((failure) => add(_ScanFailed(failure.message, scan)), (stream) {
       _scanSub = stream.listen(
-        (progress) => add(_ScanProgressReceived(progress)),
-        onError: (e) => add(_ScanFailed(e.toString())),
+        (progress) => add(_ScanProgressReceived(progress, scan)),
+        onError: (e) => add(_ScanFailed(e.toString(), scan)),
         onDone: () {
           // Scan finished: load the data from Isar
           add(
-            const _ScanProgressReceived(
-              ScanProgress(phase: ScanPhase.done, progress: 1),
+            _ScanProgressReceived(
+              const ScanProgress(phase: ScanPhase.done, progress: 1),
+              scan,
             ),
           );
         },
@@ -109,21 +116,16 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     });
   }
 
-  Future<void> _onRefreshRequested(
-    LibraryRefreshRequested event,
-    Emitter<LibraryState> emit,
-  ) => _onScanRequested(const LibraryScanRequested(), emit);
-
   Future<void> _onScanProgress(
     _ScanProgressReceived event,
     Emitter<LibraryState> emit,
   ) async {
-    if (state is! LibraryScanning) return;
+    if (event.scan != _scanId || state is! LibraryScanning) return;
     final scanning = state as LibraryScanning;
 
     if (event.progress.phase == ScanPhase.done) {
       // Scan finished: load everything from the Isar cache
-      await _loadFromCache(emit);
+      await _loadFromCache(emit, scan: event.scan);
       return;
     }
 
@@ -134,6 +136,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     _ScanFailed event,
     Emitter<LibraryState> emit,
   ) async {
+    if (event.scan != _scanId) return;
     final lastLoaded = switch (state) {
       LibraryScanning(:final cached) => cached,
       LibraryLoaded() => state as LibraryLoaded,
@@ -146,11 +149,21 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // LOADING FROM ISAR
   // ══════════════════════════════════════════════════════════
 
-  Future<void> _loadFromCache(Emitter<LibraryState> emit) async {
+  Future<void> _loadFromCache(
+    Emitter<LibraryState> emit, {
+    required int scan,
+  }) async {
     // A rescan must not reset the user's filter, sort or query.
     final loaded = await _readLoadedState(view: _loadedSnapshotOf(state));
+    // A newer scan started during the read: its own result will follow.
+    if (scan != _scanId) return;
     if (loaded == null) {
-      emit(const LibraryError(message: 'Unable to load cached library.'));
+      emit(
+        LibraryError(
+          message: 'Unable to load cached library.',
+          lastLoaded: _loadedSnapshotOf(state),
+        ),
+      );
       return;
     }
 
