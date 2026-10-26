@@ -45,6 +45,11 @@ dependencies:
   palette_generator_master: ^1.0.1
   flutter_animate: ^4.5.2
 
+dependency_overrides:
+  # Audio-only permissions, see third_party/on_audio_query_plus_android/TROONA_PATCH.md.
+  on_audio_query_plus_android:
+    path: third_party/on_audio_query_plus_android
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

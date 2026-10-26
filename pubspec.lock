@@ -673,12 +673,11 @@ packages:
     source: hosted
     version: "1.7.0"
   on_audio_query_plus_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: on_audio_query_plus_android
-      sha256: "30ff80db9d8cbd5c3b4869bc36ff2e60ce2724d4ee19a90fa7e47ade2ab34224"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/on_audio_query_plus_android"
+      relative: true
+    source: path
     version: "1.2.2"
   on_audio_query_pluse:
     dependency: "direct main"

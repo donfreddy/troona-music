@@ -1,0 +1,8 @@
+# Copy to android/key.properties (gitignored) and fill in.
+# Create the upload key once:
+#   keytool -genkey -v -keystore ~/troona-upload.jks -keyalg RSA \
+#     -keysize 2048 -validity 10000 -alias upload
+storeFile=/absolute/path/to/troona-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=
