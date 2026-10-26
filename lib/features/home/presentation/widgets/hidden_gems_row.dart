@@ -50,9 +50,7 @@ class _GemCard extends StatelessWidget {
     final glass = GlassTheme.card(context);
 
     return GestureDetector(
-      onTap: () => context.read<PlayerBloc>().add(
-        PlayTrackRequested(track),
-      ),
+      onTap: () => context.read<PlayerBloc>().add(PlayTrackRequested(track)),
       child: SizedBox(
         width: 130,
         child: Column(
@@ -92,7 +90,9 @@ class _GemCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: glass.fill,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius: BorderRadius.circular(
+                        AppSpacing.radiusFull,
+                      ),
                       border: Border.all(
                         color: glass.border,
                         width: glass.borderWidth,
@@ -107,10 +107,7 @@ class _GemCard extends StatelessWidget {
                           color: context.colors.accent,
                         ),
                         const SizedBox(width: 3),
-                        Text(
-                          '💎',
-                          style: const TextStyle(fontSize: 10),
-                        ),
+                        Text('💎', style: const TextStyle(fontSize: 10)),
                       ],
                     ),
                   ),

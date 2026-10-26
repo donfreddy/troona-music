@@ -434,10 +434,7 @@ class _ArtistsView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (artists.isEmpty) {
       return const SliverFillRemaining(
-        child: EmptyState(
-          message: 'Aucun artiste trouvé',
-          icon: Icons.person,
-        ),
+        child: EmptyState(message: 'Aucun artiste trouvé', icon: Icons.person),
       );
     }
     return SliverPadding(

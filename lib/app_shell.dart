@@ -76,7 +76,8 @@ class _AppShellState extends State<AppShell> {
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
             margin: EdgeInsets.only(
-              bottom: AppSpacing.bottomBlockHeight +
+              bottom:
+                  AppSpacing.bottomBlockHeight +
                   MediaQuery.of(context).padding.bottom +
                   8,
               left: 12,

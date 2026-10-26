@@ -60,100 +60,103 @@ class _TrackListTileState extends State<TrackListTile> {
             vertical: AppSpacing.sm,
           ),
           child: Row(
-          children: [
-            // Artwork
-            SizedBox.square(
-              dimension: 50,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: widget.track.artworkPath != null
-                        ? ArtworkImage(
-                            widget.track.artworkPath!,
-                            width: 50,
-                            height: 50,
-                          )
-                        : Container(
-                            color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(
-                              LucideIcons.music,
-                              color: Colors.white30,
+            children: [
+              // Artwork
+              SizedBox.square(
+                dimension: 50,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: widget.track.artworkPath != null
+                          ? ArtworkImage(
+                              widget.track.artworkPath!,
+                              width: 50,
+                              height: 50,
+                            )
+                          : Container(
+                              color: Colors.white.withValues(alpha: .08),
+                              child: const Icon(
+                                LucideIcons.music,
+                                color: Colors.white30,
+                              ),
                             ),
+                    ),
+                    if (isActive)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: .4),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                  ),
-                  if (isActive)
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .4),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          LucideIcons.music2,
-                          color: colors.labelPrimary,
-                          size: 20,
+                          child: Icon(
+                            LucideIcons.music2,
+                            color: colors.labelPrimary,
+                            size: 20,
+                          ),
                         ),
                       ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: AppSpacing.md),
+
+              // Info track
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.track.title,
+                      style: TextStyle(
+                        color: isActive ? colors.accent : Colors.white,
+                        fontSize: 15,
+                        fontWeight: isActive
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: AppSpacing.md),
-
-            // Info track
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.track.title,
-                    style: TextStyle(
-                      color: isActive ? colors.accent : Colors.white,
-                      fontSize: 15,
-                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.track.artist,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: .5),
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    widget.track.artist,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: .5),
-                      fontSize: 13,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
 
-            // Like quick button
-            IconButton(
-              icon: Icon(
-                isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                size: 20,
-                color: isLiked ? Colors.redAccent : Colors.white24,
+              // Like quick button
+              IconButton(
+                icon: Icon(
+                  isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
+                  size: 20,
+                  color: isLiked ? Colors.redAccent : Colors.white24,
+                ),
+                onPressed: () =>
+                    context.read<LikesCubit>().toggle(widget.track),
               ),
-              onPressed: () => context.read<LikesCubit>().toggle(widget.track),
-            ),
 
-            // More options button
-            IconButton(
-              icon: const Icon(
-                LucideIcons.ellipsis,
-                size: 18,
-                color: Colors.white30,
+              // More options button
+              IconButton(
+                icon: const Icon(
+                  LucideIcons.ellipsis,
+                  size: 18,
+                  color: Colors.white30,
+                ),
+                onPressed: () => _showContextMenu(context),
               ),
-              onPressed: () => _showContextMenu(context),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

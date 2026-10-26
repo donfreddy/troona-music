@@ -17,11 +17,7 @@ class SearchTopResult extends StatelessWidget {
   final SearchResult result;
   final String query;
 
-  const SearchTopResult({
-    super.key,
-    required this.result,
-    required this.query,
-  });
+  const SearchTopResult({super.key, required this.result, required this.query});
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +53,13 @@ class SearchTopResult extends StatelessWidget {
     }
 
     // Prioritize: Artist if query matches artist name, else Album, else Track
-    final isArtistTop = bestArtist != null &&
+    final isArtistTop =
+        bestArtist != null &&
         (bestArtist.name.toLowerCase().startsWith(cleanQuery) ||
             (bestAlbum == null && bestTrack == null));
 
-    final isAlbumTop = !isArtistTop &&
+    final isAlbumTop =
+        !isArtistTop &&
         bestAlbum != null &&
         (bestAlbum.name.toLowerCase().startsWith(cleanQuery) ||
             bestTrack == null);
@@ -97,7 +95,8 @@ class SearchTopResult extends StatelessWidget {
             ClipOval(
               child: SizedBox.square(
                 dimension: 64,
-                child: artist.artworkPath != null && artist.artworkPath!.isNotEmpty
+                child:
+                    artist.artworkPath != null && artist.artworkPath!.isNotEmpty
                     ? ArtworkImage(artist.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
@@ -150,11 +149,7 @@ class SearchTopResult extends StatelessWidget {
     );
   }
 
-  Widget _buildAlbumTop(
-    BuildContext context,
-    Album album,
-    AppColors colors,
-  ) {
+  Widget _buildAlbumTop(BuildContext context, Album album, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -171,7 +166,8 @@ class SearchTopResult extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: SizedBox.square(
                 dimension: 64,
-                child: album.artworkPath != null && album.artworkPath!.isNotEmpty
+                child:
+                    album.artworkPath != null && album.artworkPath!.isNotEmpty
                     ? ArtworkImage(album.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
@@ -225,11 +221,7 @@ class SearchTopResult extends StatelessWidget {
     );
   }
 
-  Widget _buildTrackTop(
-    BuildContext context,
-    Track track,
-    AppColors colors,
-  ) {
+  Widget _buildTrackTop(BuildContext context, Track track, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -252,7 +244,8 @@ class SearchTopResult extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: SizedBox.square(
                 dimension: 64,
-                child: track.artworkPath != null && track.artworkPath!.isNotEmpty
+                child:
+                    track.artworkPath != null && track.artworkPath!.isNotEmpty
                     ? ArtworkImage(track.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),

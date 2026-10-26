@@ -61,8 +61,7 @@ class QuickAccessRow extends StatelessWidget {
                 opacity: opacity,
                 onTap: isActive
                     ? () {
-                        final libraryState =
-                            context.read<LibraryBloc>().state;
+                        final libraryState = context.read<LibraryBloc>().state;
                         if (libraryState is LibraryLoaded &&
                             libraryState.allTracks.isNotEmpty) {
                           final tracks = List<Track>.of(libraryState.allTracks)

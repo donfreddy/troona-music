@@ -80,11 +80,7 @@ class _StatItem extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 14,
-          color: colors.accent.withValues(alpha: .8),
-        ),
+        Icon(icon, size: 14, color: colors.accent.withValues(alpha: .8)),
         const SizedBox(width: 6),
         Text(
           value,
@@ -97,10 +93,7 @@ class _StatItem extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: colors.labelSecondary,
-          ),
+          style: TextStyle(fontSize: 12, color: colors.labelSecondary),
         ),
       ],
     );

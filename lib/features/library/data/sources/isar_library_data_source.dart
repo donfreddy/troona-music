@@ -102,8 +102,7 @@ class IsarLibraryDataSource {
   /// with the Likes playlist always ensured and pinned to the top.
   Future<List<PlaylistModel>> getPlaylists({int limit = 50}) async {
     await ensureLikes();
-    final playlists =
-        _isar.playlistModels.where().findAll(limit: limit);
+    final playlists = _isar.playlistModels.where().findAll(limit: limit);
     // Pin Likes playlist to index 0
     playlists.sort((a, b) {
       if (a.playlistId == likesPlaylistId) return -1;
@@ -410,12 +409,11 @@ class IsarLibraryDataSource {
       });
 
   /// Clears the cached [artworkPath] for all tracks in the database.
-  Future<void> clearAllArtworkPaths() async =>
-      _isar.write((isar) {
-        final tracks = isar.trackModels.where().findAll();
-        for (final t in tracks) {
-          t.artworkPath = null;
-        }
-        isar.trackModels.putAll(tracks);
-      });
+  Future<void> clearAllArtworkPaths() async => _isar.write((isar) {
+    final tracks = isar.trackModels.where().findAll();
+    for (final t in tracks) {
+      t.artworkPath = null;
+    }
+    isar.trackModels.putAll(tracks);
+  });
 }

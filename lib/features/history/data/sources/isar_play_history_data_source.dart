@@ -59,9 +59,7 @@ final class IsarPlayHistoryDataSource {
     }
     final sorted = counts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return {
-      for (final e in sorted.take(limit)) e.key: e.value,
-    };
+    return {for (final e in sorted.take(limit)) e.key: e.value};
   }
 
   /// Returns track IDs from [likedIds] that have not been played in the
@@ -99,9 +97,6 @@ final class IsarPlayHistoryDataSource {
   /// Total number of plays recorded in the last [days] days.
   int totalPlays({int days = 7}) {
     final since = DateTime.now().subtract(Duration(days: days));
-    return _isar.playEventModels
-        .where()
-        .playedAtGreaterThan(since)
-        .count();
+    return _isar.playEventModels.where().playedAtGreaterThan(since).count();
   }
 }

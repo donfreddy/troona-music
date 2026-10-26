@@ -39,10 +39,7 @@ class PlaylistCard extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF450AF5),
-                              Color(0xFF8E8EE5),
-                            ],
+                            colors: [Color(0xFF450AF5), Color(0xFF8E8EE5)],
                           ),
                         ),
                         child: Icon(
@@ -52,17 +49,17 @@ class PlaylistCard extends StatelessWidget {
                         ),
                       )
                     : playlist.artworkPath != null
-                        ? ArtworkImage(playlist.artworkPath!)
-                        : playlist.trackIds.isNotEmpty
-                            ? PlaylistMosaic(trackIds: playlist.trackIds)
-                            : Container(
-                                color: Colors.white10,
-                                child: const Icon(
-                                  LucideIcons.listMusic,
-                                  color: Colors.white30,
-                                  size: 40,
-                                ),
-                              ),
+                    ? ArtworkImage(playlist.artworkPath!)
+                    : playlist.trackIds.isNotEmpty
+                    ? PlaylistMosaic(trackIds: playlist.trackIds)
+                    : Container(
+                        color: Colors.white10,
+                        child: const Icon(
+                          LucideIcons.listMusic,
+                          color: Colors.white30,
+                          size: 40,
+                        ),
+                      ),
               ),
             ),
 

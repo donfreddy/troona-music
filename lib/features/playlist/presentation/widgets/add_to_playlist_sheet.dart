@@ -57,9 +57,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Nom de la playlist',
-          ),
+          decoration: const InputDecoration(hintText: 'Nom de la playlist'),
         ),
         actions: [
           TextButton(
@@ -71,9 +69,8 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
               final name = controller.text.trim();
               if (name.isEmpty) return;
               Navigator.pop(dlgCtx);
-              final createRes = await getIt<PlaylistRepository>().createPlaylist(
-                title: name,
-              );
+              final createRes = await getIt<PlaylistRepository>()
+                  .createPlaylist(title: name);
               createRes.fold((_) {}, (created) async {
                 await getIt<PlaylistRepository>().addTrackToPlaylist(
                   created.id,
@@ -106,9 +103,9 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     Navigator.pop(context);
 
     res.fold(
-      (f) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${f.message}')),
-      ),
+      (f) => ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: ${f.message}'))),
       (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

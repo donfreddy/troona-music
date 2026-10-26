@@ -54,9 +54,7 @@ class HomePage extends StatelessWidget {
                   );
                 }
                 if (state is HomeLoaded) {
-                  return _HomeBody(
-                    state: state,
-                  );
+                  return _HomeBody(state: state);
                 }
                 if (state is HomeError) {
                   return SliverFillRemaining(
@@ -153,9 +151,7 @@ class _HomeBody extends StatelessWidget {
               child: SectionHeader(title: 'Your Top This Week'),
             ),
           ),
-          SliverToBoxAdapter(
-            child: TopWeeklyRow(items: feed.topWeekly),
-          ),
+          SliverToBoxAdapter(child: TopWeeklyRow(items: feed.topWeekly)),
           const _SectionGap(),
         ],
 
@@ -168,9 +164,7 @@ class _HomeBody extends StatelessWidget {
               child: SectionHeader(title: 'Hidden Gems 💎'),
             ),
           ),
-          SliverToBoxAdapter(
-            child: HiddenGemsRow(tracks: feed.hiddenGems),
-          ),
+          SliverToBoxAdapter(child: HiddenGemsRow(tracks: feed.hiddenGems)),
           const _SectionGap(),
         ],
 
@@ -196,8 +190,7 @@ class _HomeBody extends StatelessWidget {
               height: 140,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 itemCount: feed.yourArtists.length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.md),
@@ -205,10 +198,7 @@ class _HomeBody extends StatelessWidget {
                   key: ValueKey('artist-${feed.yourArtists[i].id}'),
                   index: i,
                   slideY: 0.04,
-                  child: ArtistCard(
-                    artist: feed.yourArtists[i],
-                    size: 100,
-                  ),
+                  child: ArtistCard(artist: feed.yourArtists[i], size: 100),
                 ),
               ),
             ),
@@ -238,8 +228,7 @@ class _HomeBody extends StatelessWidget {
               height: 180,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 itemCount: feed.newAlbums.length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.md),
@@ -247,10 +236,7 @@ class _HomeBody extends StatelessWidget {
                   key: ValueKey('album-${feed.newAlbums[i].id}'),
                   index: i,
                   slideY: 0.04,
-                  child: AlbumCard(
-                    album: feed.newAlbums[i],
-                    size: 130,
-                  ),
+                  child: AlbumCard(album: feed.newAlbums[i], size: 130),
                 ),
               ),
             ),
@@ -272,8 +258,7 @@ class _HomeBody extends StatelessWidget {
               height: 180,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 itemCount: feed.yourPlaylists.length,
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.md),
@@ -294,7 +279,8 @@ class _HomeBody extends StatelessWidget {
         // ── Bottom safe-area padding ─────────────────────────────────────
         SliverPadding(
           padding: EdgeInsets.only(
-            bottom: AppSpacing.bottomBlockHeight +
+            bottom:
+                AppSpacing.bottomBlockHeight +
                 MediaQuery.of(context).padding.bottom +
                 AppSpacing.md,
           ),
@@ -326,47 +312,48 @@ class _HomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.md,
-          AppSpacing.lg,
-          AppSpacing.xl,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _greeting,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+      child:
+          Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                  AppSpacing.xl,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _greeting,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Welcome back to your music',
+                            style: TextStyle(
+                              color: context.colors.labelSecondary,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Welcome back to your music',
-                    style: TextStyle(
-                      color: context.colors.labelSecondary,
-                      fontSize: 18,
+                    GlassIconButton(
+                      icon: LucideIcons.settings,
+                      onTap: () => context.pushNamed(AppRoute.settings),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            GlassIconButton(
-              icon: LucideIcons.settings,
-              onTap: () => context.pushNamed(AppRoute.settings),
-            ),
-          ],
-        ),
-      )
-          .animate()
-          .fadeIn(duration: 400.ms)
-          .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
+                  ],
+                ),
+              )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
     );
   }
 }

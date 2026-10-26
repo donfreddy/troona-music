@@ -66,18 +66,14 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> stop() async {
     await _port.stop();
     playbackState.add(
-      playbackState.value.copyWith(
-        processingState: AudioProcessingState.idle,
-      ),
+      playbackState.value.copyWith(processingState: AudioProcessingState.idle),
     );
   }
 
   @override
   Future<void> seek(Duration position) async {
     await _port.seekTo(position);
-    playbackState.add(
-      playbackState.value.copyWith(updatePosition: position),
-    );
+    playbackState.add(playbackState.value.copyWith(updatePosition: position));
   }
 
   @override

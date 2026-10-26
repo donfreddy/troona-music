@@ -62,7 +62,9 @@ void showTrackActions(
             context.read<LikesCubit>().toggle(track);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(isLiked ? 'Removed from Likes' : 'Added to Likes'),
+                content: Text(
+                  isLiked ? 'Removed from Likes' : 'Added to Likes',
+                ),
                 behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 2),
               ),

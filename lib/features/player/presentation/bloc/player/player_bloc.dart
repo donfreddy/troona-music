@@ -55,7 +55,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   late final StreamSubscription<Queue> _queueSub;
   late final StreamSubscription<double> _volumeSub;
   late final StreamSubscription<Failure> _errorSub;
-  final StreamController<String> _noticesController = StreamController<String>.broadcast();
+  final StreamController<String> _noticesController =
+      StreamController<String>.broadcast();
 
   /// One-shot error notices (e.g. unplayable track). Listen in the shell
   /// to show a toast. Does not affect player state.

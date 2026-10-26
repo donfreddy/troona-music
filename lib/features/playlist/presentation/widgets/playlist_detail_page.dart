@@ -70,9 +70,9 @@ class PlaylistDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     ElevatedButton(
-                      onPressed: () => context
-                          .read<PlaylistDetailBloc>()
-                          .add(PlaylistDetailRequested(id)),
+                      onPressed: () => context.read<PlaylistDetailBloc>().add(
+                        PlaylistDetailRequested(id),
+                      ),
                       child: const Text('Réessayer'),
                     ),
                   ],
@@ -106,11 +106,7 @@ class _SliverHeader extends StatelessWidget {
   void _onPlay(BuildContext context) {
     if (tracks.isEmpty) return;
     context.read<PlayerBloc>().add(
-      PlayTrackRequested(
-        tracks[0],
-        contextQueue: tracks,
-        contextIndex: 0,
-      ),
+      PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
     );
   }
 
@@ -119,11 +115,7 @@ class _SliverHeader extends StatelessWidget {
     context.read<PlayerBloc>().add(const ShuffleToggleRequested());
     final shuffled = List<Track>.from(tracks)..shuffle();
     context.read<PlayerBloc>().add(
-      PlayTrackRequested(
-        shuffled[0],
-        contextQueue: shuffled,
-        contextIndex: 0,
-      ),
+      PlayTrackRequested(shuffled[0], contextQueue: shuffled, contextIndex: 0),
     );
   }
 
@@ -212,10 +204,10 @@ class _SliverHeader extends StatelessWidget {
                               ),
                             )
                           : artworkPath != null
-                              ? ArtworkImage(artworkPath!)
-                              : PlaylistMosaic(
-                                  trackIds: tracks.map((t) => t.id).toList(),
-                                ),
+                          ? ArtworkImage(artworkPath!)
+                          : PlaylistMosaic(
+                              trackIds: tracks.map((t) => t.id).toList(),
+                            ),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -485,8 +477,9 @@ class _TrackTile extends StatelessWidget {
                         style: TextStyle(
                           color: isActive ? colors.accent : Colors.white,
                           fontSize: 15,
-                          fontWeight:
-                              isActive ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: isActive
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

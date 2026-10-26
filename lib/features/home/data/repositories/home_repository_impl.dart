@@ -74,8 +74,8 @@ final class HomeRepositoryImpl implements HomeRepository {
 
       // ── Phase 2: top weekly — needs track resolution ──────────────────
       final topIdsResult = results[4] as Either;
-      final topCounts = topIdsResult.getOrElse(() => <String, int>{})
-          as Map<String, int>;
+      final topCounts =
+          topIdsResult.getOrElse(() => <String, int>{}) as Map<String, int>;
       final topWeekly = await _resolveTopWeekly(topCounts);
 
       // ── Phase 3: hidden gems — needs liked IDs + history ──────────────

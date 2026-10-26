@@ -28,15 +28,20 @@ final class SearchRepositoryImpl implements SearchRepository {
       // Deduplicate artists and enrich with counts and artwork
       final rawArtists = results[1];
       final seenArtists = <String>{};
-      final uniqueArtistTracks = rawArtists.where((t) => seenArtists.add(t.artist)).toList();
+      final uniqueArtistTracks = rawArtists
+          .where((t) => seenArtists.add(t.artist))
+          .toList();
 
       final artists = await Future.wait(
         uniqueArtistTracks.map((t) async {
           final artistTracks = await _db.getTracksByArtistId(t.artistId);
           final albumCount = artistTracks.map((x) => x.albumId).toSet().length;
-          final artwork = t.artworkPath ??
+          final artwork =
+              t.artworkPath ??
               artistTracks
-                  .where((x) => x.artworkPath != null && x.artworkPath!.isNotEmpty)
+                  .where(
+                    (x) => x.artworkPath != null && x.artworkPath!.isNotEmpty,
+                  )
                   .firstOrNull
                   ?.artworkPath;
           return Artist(
@@ -52,14 +57,19 @@ final class SearchRepositoryImpl implements SearchRepository {
       // Deduplicate albums and enrich with counts and artwork
       final rawAlbums = results[2];
       final seenAlbums = <String>{};
-      final uniqueAlbumTracks = rawAlbums.where((t) => seenAlbums.add(t.album)).toList();
+      final uniqueAlbumTracks = rawAlbums
+          .where((t) => seenAlbums.add(t.album))
+          .toList();
 
       final albums = await Future.wait(
         uniqueAlbumTracks.map((t) async {
           final albumTracks = await _db.getTracksByAlbumId(t.albumId);
-          final artwork = t.artworkPath ??
+          final artwork =
+              t.artworkPath ??
               albumTracks
-                  .where((x) => x.artworkPath != null && x.artworkPath!.isNotEmpty)
+                  .where(
+                    (x) => x.artworkPath != null && x.artworkPath!.isNotEmpty,
+                  )
                   .firstOrNull
                   ?.artworkPath;
           return Album(

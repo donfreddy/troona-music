@@ -18,12 +18,12 @@ class ShuffleBanner extends StatelessWidget {
 
     final shuffled = List<Track>.from(tracks)..shuffle();
     context.read<PlayerBloc>().add(
-          PlayTrackRequested(
-            shuffled.first,
-            contextQueue: shuffled,
-            contextIndex: 0,
-          ),
-        );
+      PlayTrackRequested(
+        shuffled.first,
+        contextQueue: shuffled,
+        contextIndex: 0,
+      ),
+    );
     context.read<PlayerBloc>().add(const ShuffleToggleRequested());
   }
 
@@ -70,11 +70,7 @@ class ShuffleBanner extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    LucideIcons.shuffle,
-                    size: 14,
-                    color: colors.accent,
-                  ),
+                  Icon(LucideIcons.shuffle, size: 14, color: colors.accent),
                   const SizedBox(width: 6),
                   Text(
                     'Aléatoire',

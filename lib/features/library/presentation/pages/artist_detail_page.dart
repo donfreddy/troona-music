@@ -147,210 +147,205 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
     final blurSigma = GlassTheme.card(context).blurSigma * collapse;
 
     final content = DecoratedBox(
-            decoration: BoxDecoration(
-              color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
-              border: Border(
-                bottom: BorderSide(
-                  color: colors.separator.withValues(alpha: collapse),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SizedBox(
-              height: currentHeight,
-              child: Stack(
-                clipBehavior: Clip.hardEdge,
-                children: [
-                  // ── Image hero en background (parallax) ────────────────────
-                  Positioned(
-                    top: -shrinkOffset * 0.4,
-                    left: 0,
-                    right: 0,
-                    bottom: _actionsBarHeight,
-                    child: Opacity(
-                      opacity: (1 - collapse).clamp(0.0, 1.0),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          artist.artworkPath != null
-                              ? ArtworkImage(artist.artworkPath!)
-                              : Container(
-                                  color: Colors.white.withValues(alpha: .08),
-                                  child: const Icon(
-                                    LucideIcons.user,
-                                    color: Colors.white30,
-                                    size: 80,
-                                  ),
-                                ),
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.black.withValues(
-                                    alpha: .3 * bottomScrimOpacity,
-                                  ),
-                                  Colors.black.withValues(
-                                    alpha: .6 * bottomScrimOpacity,
-                                  ),
-                                  Colors.black.withValues(
-                                    alpha: .85 * bottomScrimOpacity,
-                                  ),
-                                ],
-                              ),
+      decoration: BoxDecoration(
+        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator.withValues(alpha: collapse),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: SizedBox(
+        height: currentHeight,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // ── Image hero en background (parallax) ────────────────────
+            Positioned(
+              top: -shrinkOffset * 0.4,
+              left: 0,
+              right: 0,
+              bottom: _actionsBarHeight,
+              child: Opacity(
+                opacity: (1 - collapse).clamp(0.0, 1.0),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    artist.artworkPath != null
+                        ? ArtworkImage(artist.artworkPath!)
+                        : Container(
+                            color: Colors.white.withValues(alpha: .08),
+                            child: const Icon(
+                              LucideIcons.user,
+                              color: Colors.white30,
+                              size: 80,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── Titre + stats grand format ────────────────────────────
-                  Positioned(
-                    bottom: _actionsBarHeight + AppSpacing.lg,
-                    left: AppSpacing.xl,
-                    right: AppSpacing.xl,
-                    child: Opacity(
-                      opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
-                      child: Transform.translate(
-                        offset: Offset(0, shrinkOffset * 0.2),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _animatedArtistItem(
-                              Text(
-                                artist.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 44,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.1,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              0,
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(
+                              alpha: .3 * bottomScrimOpacity,
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                            _animatedArtistItem(
-                              Text(
-                                '${artist.trackCount} songs • ${artist.albumCount} albums',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: .7),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              1,
+                            Colors.black.withValues(
+                              alpha: .6 * bottomScrimOpacity,
+                            ),
+                            Colors.black.withValues(
+                              alpha: .85 * bottomScrimOpacity,
                             ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-
-                  // ── Navbar compacte (back + titre + more) ─────────────────
-                  Positioned(
-                    top: topPadding,
-                    left: 0,
-                    right: 0,
-                    height: _navBarHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Opacity(
-                            opacity: collapse,
-                            child: Text(
-                              artist.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 17,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Positioned(
-                            left: 0,
-                            child: GlassIconButton(
-                              icon: LucideIcons.arrowLeft,
-                              onTap: () => context.pop(),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            child: GlassIconButton(
-                              icon: LucideIcons.ellipsisVertical,
-                              onTap: tracks.isEmpty
-                                  ? null
-                                  : () => _showArtistOptions(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── Barre Play/Shuffle dans bottom ────────────────────────
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: _actionsBarHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.sm,
-                      ),
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: GlassButton(
-                              label: 'Play',
-                              leading: const Icon(LucideIcons.play),
-                              onTap: () {
-                                if (tracks.isNotEmpty) {
-                                  context.read<PlayerBloc>().add(
-                                    PlayTrackRequested(
-                                      tracks[0],
-                                      contextQueue: tracks,
-                                      contextIndex: 0,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          GlassIconButton(
-                            icon: LucideIcons.shuffle,
-                            onTap: tracks.isEmpty
-                                ? null
-                                : () {
-                                    context.read<PlayerBloc>().add(
-                                      QueueSetRequested(
-                                        tracks,
-                                        startIndex: 0,
-                                      ),
-                                    );
-                                    context.read<PlayerBloc>().add(
-                                      const ShuffleToggleRequested(),
-                                    );
-                                  },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          );
+
+            // ── Titre + stats grand format ────────────────────────────
+            Positioned(
+              bottom: _actionsBarHeight + AppSpacing.lg,
+              left: AppSpacing.xl,
+              right: AppSpacing.xl,
+              child: Opacity(
+                opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset(0, shrinkOffset * 0.2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _animatedArtistItem(
+                        Text(
+                          artist.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 44,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        0,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      _animatedArtistItem(
+                        Text(
+                          '${artist.trackCount} songs • ${artist.albumCount} albums',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: .7),
+                            fontSize: 15,
+                          ),
+                        ),
+                        1,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Navbar compacte (back + titre + more) ─────────────────
+            Positioned(
+              top: topPadding,
+              left: 0,
+              right: 0,
+              height: _navBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Opacity(
+                      opacity: collapse,
+                      child: Text(
+                        artist.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      child: GlassIconButton(
+                        icon: LucideIcons.arrowLeft,
+                        onTap: () => context.pop(),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      child: GlassIconButton(
+                        icon: LucideIcons.ellipsisVertical,
+                        onTap: tracks.isEmpty
+                            ? null
+                            : () => _showArtistOptions(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Barre Play/Shuffle dans bottom ────────────────────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _actionsBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: GlassButton(
+                        label: 'Play',
+                        leading: const Icon(LucideIcons.play),
+                        onTap: () {
+                          if (tracks.isNotEmpty) {
+                            context.read<PlayerBloc>().add(
+                              PlayTrackRequested(
+                                tracks[0],
+                                contextQueue: tracks,
+                                contextIndex: 0,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    GlassIconButton(
+                      icon: LucideIcons.shuffle,
+                      onTap: tracks.isEmpty
+                          ? null
+                          : () {
+                              context.read<PlayerBloc>().add(
+                                QueueSetRequested(tracks, startIndex: 0),
+                              );
+                              context.read<PlayerBloc>().add(
+                                const ShuffleToggleRequested(),
+                              );
+                            },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return RepaintBoundary(
       child: ClipRect(

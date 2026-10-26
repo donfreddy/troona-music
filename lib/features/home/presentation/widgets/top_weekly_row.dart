@@ -52,9 +52,7 @@ class _TopCard extends StatelessWidget {
     final glass = GlassTheme.card(context);
 
     return GestureDetector(
-      onTap: () => context.read<PlayerBloc>().add(
-        PlayTrackRequested(track),
-      ),
+      onTap: () => context.read<PlayerBloc>().add(PlayTrackRequested(track)),
       child: SizedBox(
         width: 130,
         child: Column(
@@ -116,7 +114,9 @@ class _TopCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: glass.fill,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius: BorderRadius.circular(
+                        AppSpacing.radiusFull,
+                      ),
                       border: Border.all(
                         color: glass.border,
                         width: glass.borderWidth,

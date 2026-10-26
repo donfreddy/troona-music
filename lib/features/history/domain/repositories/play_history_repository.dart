@@ -27,4 +27,3 @@ abstract interface class PlayHistoryRepository {
   /// Total plays in the last [days] days.
   Future<Either<Failure, int>> totalPlays({int days = 7});
 }
-

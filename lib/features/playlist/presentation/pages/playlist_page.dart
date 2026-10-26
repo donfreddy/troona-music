@@ -170,10 +170,7 @@ class _PlaylistTile extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF450AF5),
-                              Color(0xFF8E8EE5),
-                            ],
+                            colors: [Color(0xFF450AF5), Color(0xFF8E8EE5)],
                           ),
                         ),
                         child: const Icon(
@@ -183,20 +180,16 @@ class _PlaylistTile extends StatelessWidget {
                         ),
                       )
                     : playlist.artworkPath != null
-                        ? ArtworkImage(
-                            playlist.artworkPath!,
-                            width: 56,
-                            height: 56,
-                          )
-                        : playlist.trackIds.isNotEmpty
-                            ? PlaylistMosaic(trackIds: playlist.trackIds)
-                            : Container(
-                                color: Colors.white10,
-                                child: const Icon(
-                                  LucideIcons.listMusic,
-                                  color: Colors.white30,
-                                ),
-                              ),
+                    ? ArtworkImage(playlist.artworkPath!, width: 56, height: 56)
+                    : playlist.trackIds.isNotEmpty
+                    ? PlaylistMosaic(trackIds: playlist.trackIds)
+                    : Container(
+                        color: Colors.white10,
+                        child: const Icon(
+                          LucideIcons.listMusic,
+                          color: Colors.white30,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -214,9 +207,7 @@ class _PlaylistTile extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: isLikes
-                                ? colors.labelPrimary
-                                : Colors.white,
+                            color: isLikes ? colors.labelPrimary : Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -230,7 +221,9 @@ class _PlaylistTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF450AF5).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF450AF5,
+                            ).withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: const Text(

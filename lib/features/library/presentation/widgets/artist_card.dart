@@ -50,10 +50,7 @@ class ArtistCard extends StatelessWidget {
         if (artist.trackCount > 0)
           Text(
             '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}',
-            style: TextStyle(
-              fontSize: 11,
-              color: colors.labelSecondary,
-            ),
+            style: TextStyle(fontSize: 11, color: colors.labelSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,

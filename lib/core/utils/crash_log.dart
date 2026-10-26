@@ -44,7 +44,10 @@ final class CrashLog {
     if (file == null || !file.existsSync()) return [];
     try {
       final content = await file.readAsString();
-      final lines = content.split('\n').where((l) => l.trim().isNotEmpty).toList();
+      final lines = content
+          .split('\n')
+          .where((l) => l.trim().isNotEmpty)
+          .toList();
       if (lines.length <= limit) return lines;
       return lines.sublist(lines.length - limit);
     } catch (_) {

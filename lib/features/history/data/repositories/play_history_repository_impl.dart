@@ -71,4 +71,3 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
     }
   }
 }
-

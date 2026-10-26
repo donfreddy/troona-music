@@ -57,10 +57,7 @@ class SearchSuggestions extends StatelessWidget {
               Text(
                 'Recherche des artistes, albums ou titres dans ta bibliothèque.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colors.labelSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: colors.labelSecondary),
               ),
             ],
           ),
@@ -71,7 +68,7 @@ class SearchSuggestions extends StatelessWidget {
     final artists = libState.allArtists;
     final albums = libState.allAlbums;
     final allTracks = libState.allTracks;
-    
+
     // Pick up to 5 suggested tracks
     final suggestedTracks = allTracks.take(5).toList();
 
@@ -172,7 +169,8 @@ class _ArtistSuggestionChip extends StatelessWidget {
             ClipOval(
               child: SizedBox.square(
                 dimension: 72,
-                child: artist.artworkPath != null && artist.artworkPath!.isNotEmpty
+                child:
+                    artist.artworkPath != null && artist.artworkPath!.isNotEmpty
                     ? ArtworkImage(artist.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),

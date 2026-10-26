@@ -101,7 +101,8 @@ final appRouter = GoRouter(
                   name: AppRoute.albumDetail,
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
-                    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final id =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     return BlocProvider(
                       create: (_) =>
                           getIt<AlbumDetailBloc>()
@@ -115,7 +116,8 @@ final appRouter = GoRouter(
                   name: AppRoute.artistDetail,
                   parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
-                    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final id =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     return BlocProvider(
                       create: (_) =>
                           getIt<ArtistDetailBloc>()

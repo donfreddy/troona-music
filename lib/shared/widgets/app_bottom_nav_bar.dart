@@ -487,7 +487,8 @@ class _FillPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_FillPainter old) => old.ratio != ratio || old.tint != tint;
+  bool shouldRepaint(_FillPainter old) =>
+      old.ratio != ratio || old.tint != tint;
 }
 
 void _openFullPlayer(BuildContext context) {

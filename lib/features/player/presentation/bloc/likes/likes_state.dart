@@ -17,12 +17,11 @@ class LikesState extends Equatable {
     String? id,
     bool? isLiked,
     Set<String>? likedTrackIds,
-  }) =>
-      LikesState(
-        id: id ?? this.id,
-        isLiked: isLiked ?? this.isLiked,
-        likedTrackIds: likedTrackIds ?? this.likedTrackIds,
-      );
+  }) => LikesState(
+    id: id ?? this.id,
+    isLiked: isLiked ?? this.isLiked,
+    likedTrackIds: likedTrackIds ?? this.likedTrackIds,
+  );
 
   @override
   List<Object?> get props => [id, isLiked, likedTrackIds];

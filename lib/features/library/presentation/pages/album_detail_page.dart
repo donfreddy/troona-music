@@ -151,217 +151,210 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     final blurSigma = GlassTheme.card(context).blurSigma * collapse;
 
     final content = DecoratedBox(
-            decoration: BoxDecoration(
-              color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
-              border: Border(
-                bottom: BorderSide(
-                  color: colors.separator.withValues(alpha: collapse),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SizedBox(
-              height: currentHeight,
-              child: Stack(
-                clipBehavior: Clip.hardEdge,
-                children: [
-                  // ── Contenu étendu (image + textes) ──────────────────────
-                  Positioned(
-                    top: topPadding + _navBarHeight,
-                    left: 0,
-                    right: 0,
-                    bottom: _actionsBarHeight,
-                    child: Opacity(
-                      opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
-                      child: SingleChildScrollView(
-                        physics: const NeverScrollableScrollPhysics(),
+      decoration: BoxDecoration(
+        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator.withValues(alpha: collapse),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: SizedBox(
+        height: currentHeight,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // ── Contenu étendu (image + textes) ──────────────────────
+            Positioned(
+              top: topPadding + _navBarHeight,
+              left: 0,
+              right: 0,
+              bottom: _actionsBarHeight,
+              child: Opacity(
+                opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.xl),
+                      _animatedAlbumItem(
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          child: SizedBox.square(
+                            dimension: 180,
+                            child: album.artworkPath != null
+                                ? ArtworkImage(album.artworkPath!)
+                                : Container(
+                                    color: Colors.white.withValues(alpha: .08),
+                                    child: const Icon(
+                                      LucideIcons.disc,
+                                      color: Colors.white30,
+                                      size: 64,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        0,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                        ),
                         child: Column(
                           children: [
-                            const SizedBox(height: AppSpacing.xl),
                             _animatedAlbumItem(
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusMd,
+                              Text(
+                                album.name,
+                                style: TextStyle(
+                                  color: colors.labelPrimary,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                child: SizedBox.square(
-                                  dimension: 180,
-                                  child: album.artworkPath != null
-                                      ? ArtworkImage(album.artworkPath!)
-                                      : Container(
-                                          color: Colors.white.withValues(
-                                            alpha: .08,
-                                          ),
-                                          child: const Icon(
-                                            LucideIcons.disc,
-                                            color: Colors.white30,
-                                            size: 64,
-                                          ),
-                                        ),
-                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              0,
+                              1,
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xl,
+                            const SizedBox(height: AppSpacing.xs),
+                            _animatedAlbumItem(
+                              Text(
+                                album.artist,
+                                style: TextStyle(
+                                  color: colors.labelSecondary,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                              child: Column(
-                                children: [
-                                  _animatedAlbumItem(
-                                    Text(
-                                      album.name,
-                                      style: TextStyle(
-                                        color: colors.labelPrimary,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
+                              2,
+                            ),
+                            _animatedAlbumItem(
+                              Builder(
+                                builder: (_) {
+                                  final year = tracks
+                                      .map((t) => t.year)
+                                      .where((y) => y != null && y > 0)
+                                      .firstOrNull;
+                                  final subtitle = year != null
+                                      ? '$year • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}'
+                                      : '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}';
+                                  return Text(
+                                    subtitle,
+                                    style: TextStyle(
+                                      color: colors.labelTertiary,
+                                      fontSize: 14,
                                     ),
-                                    1,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  _animatedAlbumItem(
-                                    Text(
-                                      album.artist,
-                                      style: TextStyle(
-                                        color: colors.labelSecondary,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    2,
-                                  ),
-                                  _animatedAlbumItem(
-                                    Builder(
-                                      builder: (_) {
-                                        final year = tracks
-                                            .map((t) => t.year)
-                                            .where((y) => y != null && y > 0)
-                                            .firstOrNull;
-                                        final subtitle = year != null
-                                            ? '$year • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}'
-                                            : '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}';
-                                        return Text(
-                                          subtitle,
-                                          style: TextStyle(
-                                            color: colors.labelTertiary,
-                                            fontSize: 14,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    3,
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
+                              3,
                             ),
                           ],
                         ),
                       ),
-                    ),
+                    ],
                   ),
-
-                  // ── Navbar compacte (back + titre + more) ─────────────────
-                  Positioned(
-                    top: topPadding,
-                    left: 0,
-                    right: 0,
-                    height: _navBarHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Opacity(
-                            opacity: collapse,
-                            child: Text(
-                              album.name,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: colors.labelPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Positioned(
-                            left: 0,
-                            child: GlassIconButton(
-                              icon: LucideIcons.arrowLeft,
-                              onTap: () => context.pop(),
-                            ),
-                          ),
-                          Positioned(
-                            right: 0,
-                            child: GlassIconButton(
-                              icon: LucideIcons.ellipsisVertical,
-                              onTap: tracks.isEmpty
-                                  ? null
-                                  : () => _showAlbumOptions(context),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // ── Barre Play/Shuffle dans bottom ────────────────────────
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: _actionsBarHeight,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.sm,
-                      ),
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: GlassButton(
-                              label: 'Play Album',
-                              leading: const Icon(LucideIcons.play),
-                              onTap: () {
-                                if (tracks.isNotEmpty) {
-                                  context.read<PlayerBloc>().add(
-                                    PlayTrackRequested(
-                                      tracks[0],
-                                      contextQueue: tracks,
-                                      contextIndex: 0,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          GlassIconButton(
-                            icon: LucideIcons.shuffle,
-                            onTap: tracks.isEmpty
-                                ? null
-                                : () {
-                                    context.read<PlayerBloc>().add(
-                                      QueueSetRequested(
-                                        tracks,
-                                        startIndex: 0,
-                                      ),
-                                    );
-                                    context.read<PlayerBloc>().add(
-                                      const ShuffleToggleRequested(),
-                                    );
-                                  },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          );
+
+            // ── Navbar compacte (back + titre + more) ─────────────────
+            Positioned(
+              top: topPadding,
+              left: 0,
+              right: 0,
+              height: _navBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Opacity(
+                      opacity: collapse,
+                      child: Text(
+                        album.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colors.labelPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Positioned(
+                      left: 0,
+                      child: GlassIconButton(
+                        icon: LucideIcons.arrowLeft,
+                        onTap: () => context.pop(),
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      child: GlassIconButton(
+                        icon: LucideIcons.ellipsisVertical,
+                        onTap: tracks.isEmpty
+                            ? null
+                            : () => _showAlbumOptions(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── Barre Play/Shuffle dans bottom ────────────────────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _actionsBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: GlassButton(
+                        label: 'Play Album',
+                        leading: const Icon(LucideIcons.play),
+                        onTap: () {
+                          if (tracks.isNotEmpty) {
+                            context.read<PlayerBloc>().add(
+                              PlayTrackRequested(
+                                tracks[0],
+                                contextQueue: tracks,
+                                contextIndex: 0,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    GlassIconButton(
+                      icon: LucideIcons.shuffle,
+                      onTap: tracks.isEmpty
+                          ? null
+                          : () {
+                              context.read<PlayerBloc>().add(
+                                QueueSetRequested(tracks, startIndex: 0),
+                              );
+                              context.read<PlayerBloc>().add(
+                                const ShuffleToggleRequested(),
+                              );
+                            },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 
     return RepaintBoundary(
       child: ClipRect(

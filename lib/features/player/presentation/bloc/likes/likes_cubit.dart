@@ -36,14 +36,10 @@ final class LikesCubit extends Cubit<LikesState> {
       for (final id in ids) {
         _knownLikes[id] = true;
       }
-      final currentTrackLiked =
-          state.id != null ? ids.contains(state.id) : state.isLiked;
-      emit(
-        state.copyWith(
-          isLiked: currentTrackLiked,
-          likedTrackIds: ids,
-        ),
-      );
+      final currentTrackLiked = state.id != null
+          ? ids.contains(state.id)
+          : state.isLiked;
+      emit(state.copyWith(isLiked: currentTrackLiked, likedTrackIds: ids));
     });
   }
 
@@ -72,19 +68,14 @@ final class LikesCubit extends Cubit<LikesState> {
       updatedIds.remove(track.id);
     }
     emit(
-      LikesState(
-        id: track.id,
-        isLiked: nextLiked,
-        likedTrackIds: updatedIds,
-      ),
+      LikesState(id: track.id, isLiked: nextLiked, likedTrackIds: updatedIds),
     );
   }
 
   Future<void> toggle(Track? track) async {
     if (track == null) return;
 
-    final previousLiked =
-        _knownLikes[track.id] ?? state.isTrackLiked(track.id);
+    final previousLiked = _knownLikes[track.id] ?? state.isTrackLiked(track.id);
     final nextLiked = !previousLiked;
 
     _knownLikes[track.id] = nextLiked;
@@ -97,11 +88,7 @@ final class LikesCubit extends Cubit<LikesState> {
     }
 
     emit(
-      LikesState(
-        id: track.id,
-        isLiked: nextLiked,
-        likedTrackIds: updatedIds,
-      ),
+      LikesState(id: track.id, isLiked: nextLiked, likedTrackIds: updatedIds),
     );
 
     final result = nextLiked

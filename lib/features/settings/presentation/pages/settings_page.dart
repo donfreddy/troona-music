@@ -8,7 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
-import 'package:troona/core/theme/components/glass_theme.dart' hide GlassQuality;
+import 'package:troona/core/theme/components/glass_theme.dart'
+    hide GlassQuality;
 import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -94,8 +95,7 @@ class _SettingsView extends StatelessWidget {
     final tier = GlassTier.detected.name;
     final quality = GlassTheme.resolveQuality(context).name;
     final libState = context.read<LibraryBloc>().state;
-    final trackCount =
-        libState is LibraryLoaded ? libState.totalCount : 'N/A';
+    final trackCount = libState is LibraryLoaded ? libState.totalCount : 'N/A';
 
     final deviceInfo = DeviceInfoPlugin();
     String deviceStr = Platform.operatingSystem;
@@ -113,7 +113,8 @@ class _SettingsView extends StatelessWidget {
     final logFile = CrashLog.logFile;
     final logExists = logFile != null && await logFile.exists();
 
-    final diagnostics = '''
+    final diagnostics =
+        '''
 === Troona Music Diagnostics ===
 App Version: 1.0.0+1
 Device: $deviceStr
@@ -276,9 +277,9 @@ Timestamp: ${DateTime.now().toIso8601String()}
                     onTap: scanning
                         ? null
                         : () {
-                            context
-                                .read<LibraryBloc>()
-                                .add(const LibraryRefreshRequested());
+                            context.read<LibraryBloc>().add(
+                              const LibraryRefreshRequested(),
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Library scan started'),

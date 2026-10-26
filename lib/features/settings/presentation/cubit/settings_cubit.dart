@@ -25,13 +25,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   // Init
   Future<void> load() async {
     final result = await _repo.loadSettings();
-    result.fold(
-      (failure) => emit(SettingsState.error(failure.message)),
-      (settings) {
-        AppHaptics.enabled = settings.hapticFeedbackEnabled;
-        emit(SettingsState.loaded(settings));
-      },
-    );
+    result.fold((failure) => emit(SettingsState.error(failure.message)), (
+      settings,
+    ) {
+      AppHaptics.enabled = settings.hapticFeedbackEnabled;
+      emit(SettingsState.loaded(settings));
+    });
   }
 
   AppSettings? get _current => state.mapOrNull(loaded: (s) => s.settings);

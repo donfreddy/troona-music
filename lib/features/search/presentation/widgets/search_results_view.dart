@@ -49,10 +49,7 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Artistes ──────────────────────────────────────────────────────
         if (result.artists.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: 'Artistes',
-            count: result.artists.length,
-          ),
+          _SearchSectionTitle(title: 'Artistes', count: result.artists.length),
           SizedBox(
             height: 120,
             child: ListView.separated(
@@ -71,10 +68,7 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Albums ────────────────────────────────────────────────────────
         if (result.albums.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: 'Albums',
-            count: result.albums.length,
-          ),
+          _SearchSectionTitle(title: 'Albums', count: result.albums.length),
           SizedBox(
             height: 220,
             child: ListView.separated(
@@ -93,10 +87,7 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Morceaux ──────────────────────────────────────────────────────
         if (result.tracks.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: 'Titres',
-            count: result.tracks.length,
-          ),
+          _SearchSectionTitle(title: 'Titres', count: result.tracks.length),
           ...result.tracks.asMap().entries.map((entry) {
             final index = entry.key;
             final track = entry.value;
@@ -112,7 +103,11 @@ class SearchResultsView extends StatelessWidget {
                 );
               },
               onLongPress: () {
-                showTrackActions(context, track, origin: TrackActionOrigin.library);
+                showTrackActions(
+                  context,
+                  track,
+                  origin: TrackActionOrigin.library,
+                );
               },
             );
           }),
@@ -192,7 +187,8 @@ class _ArtistResultChip extends StatelessWidget {
             ClipOval(
               child: SizedBox.square(
                 dimension: 72,
-                child: artist.artworkPath != null && artist.artworkPath!.isNotEmpty
+                child:
+                    artist.artworkPath != null && artist.artworkPath!.isNotEmpty
                     ? ArtworkImage(artist.artworkPath!)
                     : Container(
                         color: Colors.white.withValues(alpha: .08),

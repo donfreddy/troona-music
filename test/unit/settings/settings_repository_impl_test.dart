@@ -15,14 +15,11 @@ void main() {
       final result = await repo.loadSettings();
 
       expect(result.isRight(), isTrue);
-      result.fold(
-        (_) => fail('Expected right'),
-        (settings) {
-          expect(settings.glassQuality, equals(GlassQuality.auto));
-          expect(settings.themeMode, equals(AppThemeMode.dark));
-          expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
-        },
-      );
+      result.fold((_) => fail('Expected right'), (settings) {
+        expect(settings.glassQuality, equals(GlassQuality.auto));
+        expect(settings.themeMode, equals(AppThemeMode.dark));
+        expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
+      });
     });
 
     test('falls back to default on unknown enum name', () async {
@@ -37,14 +34,11 @@ void main() {
       final result = await repo.loadSettings();
 
       expect(result.isRight(), isTrue);
-      result.fold(
-        (_) => fail('Expected right'),
-        (settings) {
-          expect(settings.glassQuality, equals(GlassQuality.auto));
-          expect(settings.themeMode, equals(AppThemeMode.dark));
-          expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
-        },
-      );
+      result.fold((_) => fail('Expected right'), (settings) {
+        expect(settings.glassQuality, equals(GlassQuality.auto));
+        expect(settings.themeMode, equals(AppThemeMode.dark));
+        expect(settings.crossfadeStyle, equals(CrossfadeStyle.equalPower));
+      });
     });
 
     test('migrates legacy integer enum index', () async {
@@ -62,14 +56,11 @@ void main() {
       final result = await repo.loadSettings();
 
       expect(result.isRight(), isTrue);
-      result.fold(
-        (_) => fail('Expected right'),
-        (settings) {
-          expect(settings.themeMode, equals(AppThemeMode.dark));
-          expect(settings.glassQuality, equals(GlassQuality.high));
-          expect(settings.crossfadeStyle, equals(CrossfadeStyle.linear));
-        },
-      );
+      result.fold((_) => fail('Expected right'), (settings) {
+        expect(settings.themeMode, equals(AppThemeMode.dark));
+        expect(settings.glassQuality, equals(GlassQuality.high));
+        expect(settings.crossfadeStyle, equals(CrossfadeStyle.linear));
+      });
     });
 
     test('saves and loads enum values by string name', () async {
@@ -92,14 +83,11 @@ void main() {
 
       final loadResult = await repo.loadSettings();
       expect(loadResult.isRight(), isTrue);
-      loadResult.fold(
-        (_) => fail('Expected right'),
-        (loaded) {
-          expect(loaded.glassQuality, equals(GlassQuality.off));
-          expect(loaded.crossfadeStyle, equals(CrossfadeStyle.linear));
-          expect(loaded.hapticFeedbackEnabled, isFalse);
-        },
-      );
+      loadResult.fold((_) => fail('Expected right'), (loaded) {
+        expect(loaded.glassQuality, equals(GlassQuality.off));
+        expect(loaded.crossfadeStyle, equals(CrossfadeStyle.linear));
+        expect(loaded.hapticFeedbackEnabled, isFalse);
+      });
     });
   });
 }

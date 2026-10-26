@@ -13,7 +13,11 @@ abstract final class GlassTier {
   static GlassQuality get detected => _detected;
 
   static Future<void> detect() async {
-    if (ui.PlatformDispatcher.instance.accessibilityFeatures.disableAnimations) {
+    if (ui
+        .PlatformDispatcher
+        .instance
+        .accessibilityFeatures
+        .disableAnimations) {
       _detected = GlassQuality.off;
       return;
     }

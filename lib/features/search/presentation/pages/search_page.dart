@@ -151,7 +151,9 @@ class _SearchPageState extends State<SearchPage> {
                   if (state is SearchLoading) {
                     return Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colors.accent,
+                        ),
                         strokeWidth: 2.5,
                       ),
                     );
@@ -171,8 +173,8 @@ class _SearchPageState extends State<SearchPage> {
                         onRetry: () {
                           if (_controller.text.isNotEmpty) {
                             context.read<SearchBloc>().add(
-                                  SearchTextChanged(_controller.text),
-                                );
+                              SearchTextChanged(_controller.text),
+                            );
                           }
                         },
                       ),

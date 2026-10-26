@@ -48,7 +48,9 @@ class JustAudioAdapter implements AudioServicePort {
 
   /// [player] is for tests; the app uses the default.
   JustAudioAdapter({AudioPlayer? player})
-    : _player = player ?? AudioPlayer(handleInterruptions: false, maxSkipsOnError: 3) {
+    : _player =
+          player ??
+          AudioPlayer(handleInterruptions: false, maxSkipsOnError: 3) {
     _initStreams();
   }
 
@@ -129,7 +131,8 @@ class JustAudioAdapter implements AudioServicePort {
 
   @override
   Stream<Failure> get errorStream => _player.errorStream.map(
-    (e) => PlaybackFailure(e.message ?? 'This file cannot be played (${e.code})'),
+    (e) =>
+        PlaybackFailure(e.message ?? 'This file cannot be played (${e.code})'),
   );
 
   // ---------------------------------------------------------------------------

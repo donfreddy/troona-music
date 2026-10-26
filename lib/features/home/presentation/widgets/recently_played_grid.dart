@@ -128,11 +128,7 @@ class _RecentCard extends StatelessWidget {
                 child: SizedBox.square(
                   dimension: 38,
                   child: track.artworkPath != null
-                      ? ArtworkImage(
-                          track.artworkPath!,
-                          width: 38,
-                          height: 38,
-                        )
+                      ? ArtworkImage(track.artworkPath!, width: 38, height: 38)
                       : Container(
                           color: Colors.white.withValues(alpha: .08),
                           child: const Icon(

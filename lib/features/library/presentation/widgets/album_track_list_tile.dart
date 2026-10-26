@@ -59,71 +59,68 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
             vertical: AppSpacing.sm,
           ),
           child: Row(
-          children: [
-            // Track number or active icon
-            SizedBox.square(
-              dimension: 36,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (!isActive)
-                    Text(
-                      '${widget.track.trackNumber}',
-                      style: TextStyle(
-                        color: colors.labelSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+            children: [
+              // Track number or active icon
+              SizedBox.square(
+                dimension: 36,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (!isActive)
+                      Text(
+                        '${widget.track.trackNumber}',
+                        style: TextStyle(
+                          color: colors.labelSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  if (isActive)
-                    Icon(
-                      LucideIcons.music2,
-                      color: colors.accent,
-                      size: 20,
-                    ),
-                ],
-              ),
-            ),
-
-            const SizedBox(width: AppSpacing.sm),
-
-            // Track title
-            Expanded(
-              child: Text(
-                widget.track.title,
-                style: TextStyle(
-                  color: isActive ? colors.accent : colors.labelPrimary,
-                  fontSize: 15,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    if (isActive)
+                      Icon(LucideIcons.music2, color: colors.accent, size: 20),
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
 
-            // Quick like button
-            IconButton(
-              icon: Icon(
-                isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                size: 18,
-                color: isLiked ? Colors.redAccent : Colors.white24,
-              ),
-              onPressed: () => context.read<LikesCubit>().toggle(widget.track),
-            ),
+              const SizedBox(width: AppSpacing.sm),
 
-            // More options button
-            IconButton(
-              icon: const Icon(
-                LucideIcons.ellipsis,
-                size: 18,
-                color: Colors.white30,
+              // Track title
+              Expanded(
+                child: Text(
+                  widget.track.title,
+                  style: TextStyle(
+                    color: isActive ? colors.accent : colors.labelPrimary,
+                    fontSize: 15,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              onPressed: () => _showContextMenu(context),
-            ),
-          ],
+
+              // Quick like button
+              IconButton(
+                icon: Icon(
+                  isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
+                  size: 18,
+                  color: isLiked ? Colors.redAccent : Colors.white24,
+                ),
+                onPressed: () =>
+                    context.read<LikesCubit>().toggle(widget.track),
+              ),
+
+              // More options button
+              IconButton(
+                icon: const Icon(
+                  LucideIcons.ellipsis,
+                  size: 18,
+                  color: Colors.white30,
+                ),
+                onPressed: () => _showContextMenu(context),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

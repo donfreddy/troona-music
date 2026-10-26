@@ -94,7 +94,9 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   Future<Either<Failure, Unit>> deletePlaylist(String id) async {
     if (id == IsarLibraryDataSource.likesPlaylistId) {
       return left(
-        const DatabaseFailure('Impossible de supprimer la playlist des favoris'),
+        const DatabaseFailure(
+          'Impossible de supprimer la playlist des favoris',
+        ),
       );
     }
     try {

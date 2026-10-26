@@ -44,17 +44,18 @@ class ArtworkImage extends StatelessWidget {
           ? null
           : math.max(1, (logicalWidth * dpr).round()),
       gaplessPlayback: true,
-      errorBuilder: errorBuilder ??
+      errorBuilder:
+          errorBuilder ??
           (context, error, stackTrace) => Container(
-                width: width,
-                height: height,
-                color: Colors.white.withValues(alpha: .06),
-                child: const Icon(
-                  Icons.music_note_rounded,
-                  color: Colors.white24,
-                  size: 24,
-                ),
-              ),
+            width: width,
+            height: height,
+            color: Colors.white.withValues(alpha: .06),
+            child: const Icon(
+              Icons.music_note_rounded,
+              color: Colors.white24,
+              size: 24,
+            ),
+          ),
     );
 
     final explicit = width;

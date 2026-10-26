@@ -57,7 +57,8 @@ import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/history/play_history_recorder.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
-import 'package:troona/core/theme/components/glass_theme.dart' hide GlassQuality;
+import 'package:troona/core/theme/components/glass_theme.dart'
+    hide GlassQuality;
 import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
