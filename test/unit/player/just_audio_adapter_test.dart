@@ -467,7 +467,7 @@ void main() {
       fakeAsync((async) {
         playing(async);
 
-        adapter.pause(fade: false);
+        adapter.pause(fade: Duration.zero);
         async.flushMicrotasks();
 
         expect(player.pauses, 1);
@@ -482,7 +482,7 @@ void main() {
         async.elapse(fade ~/ 3);
         final steps = player.volumes.length;
 
-        adapter.pause(fade: false);
+        adapter.pause(fade: Duration.zero);
         async.flushMicrotasks();
         expect(player.pauses, 1);
 
@@ -495,7 +495,7 @@ void main() {
     test('resume after a cut pause starts from silence and fades in', () {
       fakeAsync((async) {
         playing(async);
-        adapter.pause(fade: false);
+        adapter.pause(fade: Duration.zero);
         async.flushMicrotasks();
 
         adapter.resume();

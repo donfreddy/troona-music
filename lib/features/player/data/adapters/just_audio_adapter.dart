@@ -41,7 +41,7 @@ class JustAudioAdapter implements AudioServicePort {
   final AudioPlayer _player;
 
   /// Fade at play, resume and pause, and fade-in after a track change.
-  static const fadeDuration = Duration(milliseconds: 300);
+  static const fadeDuration = AudioServicePort.pauseFade;
 
   /// Fade-out before a track change: shorter, so a skip still feels instant.
   static const switchFadeDuration = Duration(milliseconds: 120);
@@ -196,18 +196,21 @@ class JustAudioAdapter implements AudioServicePort {
     }
   }
 
-  /// Fades out, then pauses. A resume during the fade cancels the pause,
-  /// and of several pauses only the latest one pauses the player, once its
-  /// fade is over. Without [fade], pauses at once, cutting any fade short.
+  /// Fades out over [fade], then pauses. A resume during the fade cancels
+  /// the pause, and of several pauses only the latest one pauses the player,
+  /// once its fade is over. [Duration.zero] pauses at once, cutting any fade
+  /// short.
   @override
-  Future<Either<Failure, Unit>> pause({bool fade = true}) async {
+  Future<Either<Failure, Unit>> pause({
+    Duration fade = AudioServicePort.pauseFade,
+  }) async {
     try {
       final request = ++_pauseRequest;
       _playIntent.add(false);
-      if (!fade) {
+      if (fade <= Duration.zero) {
         _fade.stop();
       } else if (_player.playing) {
-        await _fade.to(0, fadeDuration);
+        await _fade.to(0, fade);
       }
       if (!_playIntent.value && request == _pauseRequest) {
         await _player.pause();

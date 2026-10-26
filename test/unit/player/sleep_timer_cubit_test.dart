@@ -27,9 +27,11 @@ final class _Port implements AudioServicePort {
   Track? get currentTrack => playing;
 
   @override
-  Future<Either<Failure, Unit>> pause({bool fade = true}) async {
+  Future<Either<Failure, Unit>> pause({
+    Duration fade = AudioServicePort.pauseFade,
+  }) async {
     pauses++;
-    if (fade) fadedPauses++;
+    if (fade > Duration.zero) fadedPauses++;
     return right(unit);
   }
 

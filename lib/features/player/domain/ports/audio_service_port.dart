@@ -13,6 +13,9 @@ import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 /// All streams must emit an initial value immediately
 /// (use a BehaviorSubject or a seeded StreamController).
 abstract interface class AudioServicePort {
+  /// Fade-out of a normal pause.
+  static const pauseFade = Duration(milliseconds: 300);
+
   // ── Streams (real-time observation) ─────────────────────────────────────────
 
   /// Current playback position, emitted at ~60 fps during playback.
@@ -55,10 +58,11 @@ abstract interface class AudioServicePort {
   /// Loads and plays [track]. Initialises the queue when [queue] is provided.
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue});
 
-  /// Pauses playback, after a short fade-out unless [fade] is false: for a
-  /// pause that must be immediate (headphones unplugged) or that comes after
-  /// its own fade (sleep timer).
-  Future<Either<Failure, Unit>> pause({bool fade = true});
+  /// Pauses playback once the volume has faded out over [fade]. The user's
+  /// volume is left alone. [Duration.zero] pauses at once (headphones
+  /// unplugged, a call); a long fade suits the sleep timer. Resuming during
+  /// the fade cancels the pause.
+  Future<Either<Failure, Unit>> pause({Duration fade = pauseFade});
 
   /// Resumes playback.
   Future<Either<Failure, Unit>> resume();
