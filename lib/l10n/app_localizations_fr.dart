@@ -344,10 +344,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get permissionBlockedBody =>
-      'Activez « Musique et audio » pour Troona dans les Réglages, puis revenez : on s\'occupe du reste.';
+      'Autorisez Troona à accéder à votre musique dans les paramètres du téléphone, puis revenez : on s\'occupe du reste.';
 
   @override
-  String get permissionOpenSettings => 'Ouvrir les Réglages';
+  String get permissionOpenSettings => 'Ouvrir les paramètres';
 
   @override
   String get permissionCheckAgain => 'C\'est activé';
@@ -432,7 +432,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce morceau ne peut pas être lu. Passage au suivant.';
 
   @override
-  String get bootTitle => 'Troona n\'a pas pu ouvrir votre bibliothèque';
+  String get notificationChannelName => 'Commandes de lecture';
+
+  @override
+  String get bootTitle => 'Troona n\'a pas pu démarrer';
 
   @override
   String get bootBody =>

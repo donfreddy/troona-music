@@ -665,13 +665,13 @@ abstract class AppLocalizations {
   /// No description provided for @permissionBlockedBody.
   ///
   /// In en, this message translates to:
-  /// **'Turn on \"Music and audio\" for Troona in Settings, then come back. We\'ll take it from there.'**
+  /// **'Allow Troona to access your music in your phone\'s settings, then come back. We\'ll take it from there.'**
   String get permissionBlockedBody;
 
   /// No description provided for @permissionOpenSettings.
   ///
   /// In en, this message translates to:
-  /// **'Open Settings'**
+  /// **'Open settings'**
   String get permissionOpenSettings;
 
   /// No description provided for @permissionCheckAgain.
@@ -776,10 +776,16 @@ abstract class AppLocalizations {
   /// **'This song can\'t be played. Skipping to the next one.'**
   String get playerCantPlayUnknown;
 
+  /// No description provided for @notificationChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback controls'**
+  String get notificationChannelName;
+
   /// No description provided for @bootTitle.
   ///
   /// In en, this message translates to:
-  /// **'Troona couldn\'t open your library'**
+  /// **'Troona couldn\'t start'**
   String get bootTitle;
 
   /// No description provided for @bootBody.

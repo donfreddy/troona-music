@@ -1,8 +1,11 @@
+import 'dart:ui';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
+import 'package:troona/l10n/app_localizations.dart';
 
 /// Bootstraps the `audio_service` package and wires the [AudioHandlerImpl]
 /// around the [JustAudioAdapter].
@@ -16,7 +19,7 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 /// makes it easy to swap the audio back-end in tests by providing a different
 /// [AudioServicePort] implementation without touching the DI graph.
 final class AudioServiceInitializer {
-  // Private constructor — static-only class.
+  // Private constructor: static-only class.
   const AudioServiceInitializer._();
 
   /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
@@ -29,7 +32,9 @@ final class AudioServiceInitializer {
       builder: () => AudioHandlerImpl(adapter),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
-        androidNotificationChannelName: 'Playback controls',
+        androidNotificationChannelName: channelName(
+          PlatformDispatcher.instance.locale,
+        ),
         androidNotificationOngoing: true,
         androidShowNotificationBadge: true,
         androidStopForegroundOnPause: true,
@@ -37,5 +42,15 @@ final class AudioServiceInitializer {
     );
 
     return adapter;
+  }
+
+  /// Shown by Android in the app's notification settings, outside any widget
+  /// tree, so it follows the device language directly.
+  static String channelName(Locale device) {
+    final supported = AppLocalizations.supportedLocales.any(
+      (l) => l.languageCode == device.languageCode,
+    );
+    final locale = Locale(supported ? device.languageCode : 'en');
+    return lookupAppLocalizations(locale).notificationChannelName;
   }
 }
