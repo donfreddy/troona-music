@@ -100,12 +100,12 @@ typedef GlassQuality = troona_settings.GlassQuality;
 /// | low   | 8–14 px         | Reduced blur + boosted fill on low-end   |
 /// | off   | 0 px            | Flat tint, no [BackdropFilter] cost       |
 ///
-/// ### Auto-detection heuristic ([_resolveQuality])
+/// ### Auto-detection ([GlassTier.detect], at start-up)
 ///
-/// Devices with `devicePixelRatio < 2.0` or `shortestSide < 360` are
-/// classified as low-tier and receive the [GlassQuality.low] preset
-/// automatically.  Override at any time via [overrideQuality] (e.g. the
-/// user's "Reduce transparency" setting).
+/// Android with under 3 GB of RAM gets [GlassQuality.off]; under 6 GB, or
+/// below Android 10, [GlassQuality.low]; otherwise [GlassQuality.high].
+/// iOS gets [GlassQuality.high], and "remove animations" [GlassQuality.off].
+/// The user's glass quality setting overrides it ([overrideQuality]).
 ///
 /// ### iOS reference values
 ///
@@ -341,7 +341,7 @@ abstract final class GlassTheme {
 
   static const _cardLowDark = GlassConfig(
     blurSigma: 8,
-    fill: Color(0x1EFFFFFF), // 12 %: boosted vs. high-quality 8 %
+    fill: Color(0x1EFFFFFF), // 12 %: boosted vs. high quality's 4 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -351,7 +351,7 @@ abstract final class GlassTheme {
     blurSigma: 12,
     fill: Color(0x24FFFFFF), // 14 %
     border: Color(0x12FFFFFF), // 7 %
-    highlight: Color.fromARGB(0, 255, 255, 255), // 3 %
+    highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(16)),
     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   );
