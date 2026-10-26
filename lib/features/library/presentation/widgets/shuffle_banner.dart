@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class ShuffleBanner extends StatelessWidget {
   final List<Track> tracks;
@@ -16,15 +17,21 @@ class ShuffleBanner extends StatelessWidget {
     if (tracks.isEmpty) return;
     AppHaptics.mediumImpact();
 
+    final bloc = context.read<PlayerBloc>();
+    final alreadyShuffled = switch (bloc.state) {
+      PlayerActive(:final shuffleEnabled) => shuffleEnabled,
+      _ => false,
+    };
     final shuffled = List<Track>.from(tracks)..shuffle();
-    context.read<PlayerBloc>().add(
+    bloc.add(
       PlayTrackRequested(
         shuffled.first,
         contextQueue: shuffled,
         contextIndex: 0,
       ),
     );
-    context.read<PlayerBloc>().add(const ShuffleToggleRequested());
+    // A toggle: sending it while shuffle is on would turn it off.
+    if (!alreadyShuffled) bloc.add(const ShuffleToggleRequested());
   }
 
   @override
@@ -44,7 +51,7 @@ class ShuffleBanner extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '${tracks.length} ${tracks.length > 1 ? 'titres' : 'titre'}',
+            context.l10n.songCount(tracks.length),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -73,7 +80,7 @@ class ShuffleBanner extends StatelessWidget {
                   Icon(LucideIcons.shuffle, size: 14, color: colors.accent),
                   const SizedBox(width: 6),
                   Text(
-                    'Aléatoire',
+                    context.l10n.actionShuffle,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

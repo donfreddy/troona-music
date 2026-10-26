@@ -14,6 +14,7 @@ import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/features/search/presentation/widgets/search_top_result.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class SearchResultsView extends StatelessWidget {
   final SearchResult result;
@@ -32,7 +33,8 @@ class SearchResultsView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: EmptyState(
-            message: 'Aucun résultat pour « $query »',
+            title: context.l10n.searchNoResultsTitle(query),
+            body: context.l10n.searchNoResultsBody,
             icon: LucideIcons.searchX,
           ),
         ),
@@ -49,7 +51,10 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Artistes ──────────────────────────────────────────────────────
         if (result.artists.isNotEmpty) ...[
-          _SearchSectionTitle(title: 'Artistes', count: result.artists.length),
+          _SearchSectionTitle(
+            title: context.l10n.libraryFilterArtists,
+            count: result.artists.length,
+          ),
           SizedBox(
             height: 120,
             child: ListView.separated(
@@ -68,7 +73,10 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Albums ────────────────────────────────────────────────────────
         if (result.albums.isNotEmpty) ...[
-          _SearchSectionTitle(title: 'Albums', count: result.albums.length),
+          _SearchSectionTitle(
+            title: context.l10n.libraryFilterAlbums,
+            count: result.albums.length,
+          ),
           SizedBox(
             height: 220,
             child: ListView.separated(
@@ -87,7 +95,10 @@ class SearchResultsView extends StatelessWidget {
 
         // ── Morceaux ──────────────────────────────────────────────────────
         if (result.tracks.isNotEmpty) ...[
-          _SearchSectionTitle(title: 'Titres', count: result.tracks.length),
+          _SearchSectionTitle(
+            title: context.l10n.libraryFilterSongs,
+            count: result.tracks.length,
+          ),
           ...result.tracks.asMap().entries.map((entry) {
             final index = entry.key;
             final track = entry.value;

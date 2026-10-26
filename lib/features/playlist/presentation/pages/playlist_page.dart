@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -13,7 +12,11 @@ import 'package:troona/features/playlist/presentation/pages/playlist_editor_page
 import 'package:troona/features/playlist/presentation/widgets/likes_hero_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
+import 'package:troona/shared/widgets/app_dialog.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 enum _PlaylistFilter { all, likesOnly, customOnly }
 
@@ -96,14 +99,14 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         ),
                         child: Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Playlists',
-                                    style: TextStyle(
+                                    context.l10n.navPlaylists,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 28,
                                       color: Colors.white,
@@ -128,7 +131,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
                                   color: Colors.white70,
                                   size: 19,
                                 ),
-                                tooltip: _isGrid ? 'Vue liste' : 'Vue grille',
+                                tooltip: _isGrid
+                                    ? context.l10n.playlistsListView
+                                    : context.l10n.playlistsGridView,
                                 onPressed: () =>
                                     setState(() => _isGrid = !_isGrid),
                               ),
@@ -157,18 +162,18 @@ class _PlaylistPageState extends State<PlaylistPage> {
                                     ),
                                   ],
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       LucideIcons.plus,
                                       size: 15,
                                       color: Colors.black,
                                     ),
-                                    SizedBox(width: 4),
+                                    const SizedBox(width: 4),
                                     Text(
-                                      'Créer',
-                                      style: TextStyle(
+                                      context.l10n.playlistsCreate,
+                                      style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.black,
@@ -194,14 +199,14 @@ class _PlaylistPageState extends State<PlaylistPage> {
                         child: Row(
                           children: [
                             _FilterChip(
-                              label: 'Toutes',
+                              label: context.l10n.playlistsFilterAll,
                               isSelected: _filter == _PlaylistFilter.all,
                               onTap: () =>
                                   setState(() => _filter = _PlaylistFilter.all),
                             ),
                             const SizedBox(width: 8),
                             _FilterChip(
-                              label: 'Coups de cœur',
+                              label: context.l10n.likedSongs,
                               icon: LucideIcons.heart,
                               isSelected: _filter == _PlaylistFilter.likesOnly,
                               onTap: () => setState(
@@ -210,7 +215,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                             ),
                             const SizedBox(width: 8),
                             _FilterChip(
-                              label: 'Mes playlists',
+                              label: context.l10n.playlistsFilterMine,
                               icon: LucideIcons.listMusic,
                               isSelected: _filter == _PlaylistFilter.customOnly,
                               onTap: () => setState(
@@ -226,7 +231,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                       child: SizedBox(height: AppSpacing.md),
                     ),
 
-                    // ── Hero Banner: Titres likés ─────────────────────────────
+                    // ── Hero banner: liked songs ──────────────────────────────
                     if (showHero) ...[
                       SliverToBoxAdapter(
                         child: LikesHeroCard(playlist: likesPlaylist),
@@ -246,9 +251,9 @@ class _PlaylistPageState extends State<PlaylistPage> {
                           ),
                           child: Row(
                             children: [
-                              const Text(
-                                'Vos playlists',
-                                style: TextStyle(
+                              Text(
+                                context.l10n.playlistsYours,
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white,
@@ -333,12 +338,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               }
 
               if (state is PlaylistError) {
-                return Center(
-                  child: Text(
-                    'Erreur: ${state.message}',
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                );
+                return ErrorView(body: context.l10n.playlistLoadError);
               }
 
               return const SizedBox.shrink();
@@ -449,9 +449,9 @@ class _EmptyPlaylistsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const Text(
-            'Créez votre première playlist',
-            style: TextStyle(
+          Text(
+            context.l10n.playlistsEmptyTitle,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -460,7 +460,7 @@ class _EmptyPlaylistsView extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Rassemblez vos morceaux favoris selon vos envies et ambiances.',
+            context.l10n.playlistsEmptyBody,
             style: TextStyle(fontSize: 13, color: colors.labelSecondary),
             textAlign: TextAlign.center,
           ),
@@ -468,7 +468,7 @@ class _EmptyPlaylistsView extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onCreate,
             icon: const Icon(LucideIcons.plus, size: 16),
-            label: const Text('Nouvelle playlist'),
+            label: Text(context.l10n.playlistNew),
             style: ElevatedButton.styleFrom(
               backgroundColor: colors.accent,
               foregroundColor: Colors.black,
@@ -486,32 +486,18 @@ class _PlaylistTile extends StatelessWidget {
   final Playlist playlist;
   const _PlaylistTile({required this.playlist});
 
-  void _showDeleteDialog(BuildContext context) {
-    showCupertinoDialog<void>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: const Text('Supprimer la playlist'),
-        content: Text(
-          'Voulez-vous vraiment supprimer "${playlist.name}" ? Cette action est irréversible.',
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<PlaylistBloc>().add(
-                PlaylistDeleteRequested(playlist.id),
-              );
-            },
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
+  Future<void> _showDeleteDialog(BuildContext context) async {
+    final l10n = context.l10n;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: l10n.playlistDeleteTitle(playlist.name),
+      body: l10n.playlistDeleteBody,
+      confirmLabel: l10n.actionDelete,
+      destructive: true,
     );
+    if (!confirmed || !context.mounted) return;
+    context.read<PlaylistBloc>().add(PlaylistDeleteRequested(playlist.id));
+    AppToast.show(context, l10n.playlistDeleted);
   }
 
   @override
@@ -519,7 +505,7 @@ class _PlaylistTile extends StatelessWidget {
     final colors = context.colors;
     final isLikes = playlist.id == IsarLibraryDataSource.likesPlaylistId;
     final trackCount = playlist.trackIds.length;
-    final subtitle = trackCount == 1 ? '1 morceau' : '$trackCount morceaux';
+    final subtitle = context.l10n.songCount(trackCount);
 
     return InkWell(
       onTap: () => context.pushPlaylist(playlist.id),
@@ -580,7 +566,7 @@ class _PlaylistTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isLikes ? 'Titres likés' : playlist.name,
+                    isLikes ? context.l10n.likedSongs : playlist.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15.5,

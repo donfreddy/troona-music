@@ -3,7 +3,14 @@
 /// convert them to [Failure] inside repositories.
 class PermissionException implements Exception {
   final String message;
-  const PermissionException([this.message = 'Permission not granted.']);
+
+  /// The system will not show the prompt again: only Settings can grant it.
+  final bool permanent;
+
+  const PermissionException([
+    this.message = 'Permission not granted.',
+    this.permanent = false,
+  ]);
 
   @override
   String toString() => 'PermissionException: $message';

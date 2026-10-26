@@ -47,6 +47,10 @@ class GlassIconButton extends StatefulWidget {
   /// Optional icon colour override.  Defaults to [AppColors.labelPrimary].
   final Color? iconColor;
 
+  /// Shown on long press and read by screen readers. Icon-only buttons need
+  /// one to be accessible.
+  final String? tooltip;
+
   final _GlassIconVariant _variant;
 
   /// Glass-fill variant — secondary controls.
@@ -56,6 +60,7 @@ class GlassIconButton extends StatefulWidget {
     this.onTap,
     this.size = GlassIconButtonSize.md,
     this.iconColor,
+    this.tooltip,
   }) : _variant = _GlassIconVariant.glass;
 
   /// Accent-fill variant — primary action (play/pause).
@@ -65,6 +70,7 @@ class GlassIconButton extends StatefulWidget {
     this.onTap,
     this.size = GlassIconButtonSize.lg,
     this.iconColor,
+    this.tooltip,
   }) : _variant = _GlassIconVariant.accent;
 
   @override
@@ -140,15 +146,28 @@ class _GlassIconButtonState extends State<GlassIconButton> {
       ),
     );
 
-    if (isDisabled) return body;
+    final Widget button = isDisabled
+        ? body
+        : GestureDetector(
+            onTap: widget.onTap,
+            onTapDown: _onTapDown,
+            onTapUp: _onTapUp,
+            onTapCancel: _onTapCancel,
+            behavior: HitTestBehavior.opaque,
+            child: body,
+          );
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: body,
+    final tooltip = widget.tooltip;
+    if (tooltip == null) return button;
+    return Tooltip(
+      message: tooltip,
+      excludeFromSemantics: true,
+      child: Semantics(
+        label: tooltip,
+        button: true,
+        enabled: !isDisabled,
+        child: button,
+      ),
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 /// Opens the queue over the Now Playing page.
 Future<void> showQueueSheet(BuildContext context) {
@@ -262,7 +263,7 @@ class _QueueSheetState extends State<QueueSheet> {
       // until the user scrolls up, without measuring anything.
       center: _centerKey,
       slivers: [
-        if (current > 0) const _SectionHeader('History'),
+        if (current > 0) _SectionHeader(context.l10n.queueHistory),
         SliverFixedExtentList(
           itemExtent: AppSpacing.trackRowHeight,
           delegate: SliverChildBuilderDelegate(
@@ -280,17 +281,17 @@ class _QueueSheetState extends State<QueueSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _SectionHeaderBox('Now playing'),
+              _SectionHeaderBox(context.l10n.queueNowPlaying),
               if (queue.currentTrack case final track?)
                 _QueueRow(track: track, trailing: const _PlayingBars()),
             ],
           ),
         ),
         _SectionHeader(switch ((upNextCount, queue.repeatMode)) {
-          (0, RepeatMode.one) => 'Repeating this track',
-          (0, RepeatMode.all) => 'Then back to the start',
-          (0, RepeatMode.off) => 'Nothing up next',
-          _ => 'Up next • $upNextCount',
+          (0, RepeatMode.one) => context.l10n.queueRepeatOne,
+          (0, RepeatMode.all) => context.l10n.queueRepeatAll,
+          (0, RepeatMode.off) => context.l10n.queueNothingNext,
+          _ => context.l10n.queueUpNext(upNextCount),
         }),
         SliverReorderableList(
           itemExtent: AppSpacing.trackRowHeight,
@@ -401,14 +402,14 @@ class _Header extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Queue',
+                context.l10n.queueTitle,
                 style: AppTypography.textTheme.headlineSmall?.copyWith(
                   color: colors.labelPrimary,
                 ),
               ),
               const Spacer(),
               Text(
-                count == 1 ? '1 track' : '$count tracks',
+                context.l10n.songCount(count),
                 style: AppTypography.textTheme.labelLarge?.copyWith(
                   color: colors.labelSecondary,
                 ),
@@ -420,7 +421,9 @@ class _Header extends StatelessWidget {
                   valueListenable: historyInView,
                   builder: (_, inView, _) => IconButton(
                     onPressed: onHistory,
-                    tooltip: inView ? 'Back to now playing' : 'History',
+                    tooltip: inView
+                        ? context.l10n.queueBackToNow
+                        : context.l10n.queueHistory,
                     icon: Icon(
                       LucideIcons.history,
                       size: 20,
@@ -604,7 +607,7 @@ class _UndoBar extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                'Removed "$title"',
+                context.l10n.queueRemoved(title),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.textTheme.bodySmall?.copyWith(
@@ -615,7 +618,7 @@ class _UndoBar extends StatelessWidget {
             CupertinoButton(
               onPressed: onUndo,
               child: Text(
-                'Undo',
+                context.l10n.actionUndo,
                 style: AppTypography.textTheme.labelLarge?.copyWith(
                   color: colors.accent,
                 ),

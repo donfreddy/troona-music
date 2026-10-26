@@ -8,6 +8,7 @@ import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
 import 'package:troona/features/search/presentation/widgets/search_results_view.dart';
 import 'package:troona/features/search/presentation/widgets/search_suggestions.dart';
 import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -82,7 +83,7 @@ class _SearchPageState extends State<SearchPage> {
                   textInputAction: TextInputAction.search,
                   cursorColor: colors.accent,
                   decoration: InputDecoration(
-                    hintText: 'Artistes, albums, morceaux...',
+                    hintText: context.l10n.searchHint,
                     hintStyle: TextStyle(
                       color: colors.labelTertiary,
                       fontSize: 15,
@@ -95,16 +96,13 @@ class _SearchPageState extends State<SearchPage> {
                       size: 20,
                     ),
                     suffixIcon: _controller.text.isNotEmpty
-                        ? GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: _onClear,
-                            child: Padding(
-                              padding: const EdgeInsets.all(AppSpacing.sm),
-                              child: Icon(
-                                LucideIcons.circleX,
-                                color: colors.labelTertiary,
-                                size: 18,
-                              ),
+                        ? IconButton(
+                            tooltip: context.l10n.searchClear,
+                            onPressed: _onClear,
+                            icon: Icon(
+                              LucideIcons.circleX,
+                              color: colors.labelTertiary,
+                              size: 18,
                             ),
                           )
                         : null,
@@ -169,7 +167,7 @@ class _SearchPageState extends State<SearchPage> {
                   if (state is SearchError) {
                     return Center(
                       child: ErrorView(
-                        message: state.message,
+                        body: context.l10n.searchError,
                         onRetry: () {
                           if (_controller.text.isNotEmpty) {
                             context.read<SearchBloc>().add(

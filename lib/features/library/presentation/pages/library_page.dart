@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
@@ -18,15 +17,13 @@ import 'package:troona/features/library/presentation/widgets/library_segment_con
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/features/library/presentation/widgets/library_stats_banner.dart';
 import 'package:troona/features/library/presentation/widgets/shuffle_banner.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
-import 'package:troona/shared/widgets/glass_button.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 
@@ -41,7 +38,7 @@ class _LibraryPageState extends State<LibraryPage> {
   @override
   void initState() {
     super.initState();
-    // Déclenche le scan au premier lancement uniquement si Initial
+    // First launch only: the shell bootstraps every later start.
     final bloc = context.read<LibraryBloc>();
     if (bloc.state is LibraryInitial) {
       bloc.add(const LibraryScanRequested());
@@ -57,19 +54,23 @@ class _LibraryPageState extends State<LibraryPage> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // Header large title iOS
           BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
             selector: _selectedFilterFromState,
             builder: (context, filter) => CustomSliverHeader(
-              title: 'Library',
+              title: context.l10n.navLibrary,
               actions: [
                 _SortButton(),
                 SizedBox(width: AppSpacing.sm),
                 GlassIconButton(
                   icon: LucideIcons.refreshCw,
-                  onTap: () => context.read<LibraryBloc>().add(
-                    const LibraryRefreshRequested(),
-                  ),
+                  tooltip: context.l10n.settingsRescan,
+                  onTap: () {
+                    // Rescans are silent; the shell toasts what changed.
+                    AppToast.show(context, context.l10n.libraryUpdating);
+                    context.read<LibraryBloc>().add(
+                      const LibraryRefreshRequested(),
+                    );
+                  },
                 ),
               ],
               bottom: Column(
@@ -88,29 +89,12 @@ class _LibraryPageState extends State<LibraryPage> {
             ),
           ),
 
-          // Barre de progression scan (hauteur 0 si pas de scan)
-          SliverToBoxAdapter(
-            child: BlocBuilder<LibraryBloc, LibraryState>(
-              buildWhen: (prev, curr) =>
-                  (prev is LibraryScanning) != (curr is LibraryScanning) ||
-                  (prev is LibraryScanning &&
-                      curr is LibraryScanning &&
-                      prev.progress != curr.progress),
-              builder: (_, state) {
-                if (state is! LibraryScanning) {
-                  return const SizedBox.shrink();
-                }
-                return _ScanBanner(progress: state.progress);
-              },
-            ),
-          ),
-
-          // Corps principal switché sur le state
           BlocBuilder<LibraryBloc, LibraryState>(
             buildWhen: (prev, curr) => _bodyKey(prev) != _bodyKey(curr),
             builder: (context, state) => switch (state) {
               LibraryInitial() => const SliverFillRemaining(
-                child: _FirstLaunchEmpty(),
+                hasScrollBody: false,
+                child: _NoMusicEmpty(),
               ),
 
               LibraryScanning(:final cached) when cached == null =>
@@ -128,7 +112,8 @@ class _LibraryPageState extends State<LibraryPage> {
 
               LibraryError() => SliverFillRemaining(
                 child: ErrorView(
-                  message: state.message,
+                  title: context.l10n.libraryLoadErrorTitle,
+                  body: context.l10n.libraryLoadErrorBody,
                   onRetry: () => context.read<LibraryBloc>().add(
                     const LibraryScanRequested(),
                   ),
@@ -137,7 +122,6 @@ class _LibraryPageState extends State<LibraryPage> {
             },
           ),
 
-          // Padding bas
           SliverPadding(
             padding: EdgeInsets.only(
               bottom:
@@ -151,7 +135,7 @@ class _LibraryPageState extends State<LibraryPage> {
     );
   }
 
-  // Clé de comparaison pour limiter les rebuilds du body
+  // Comparison key that limits body rebuilds
   Object? _bodyKey(LibraryState s) => switch (s) {
     LibraryLoaded(
       :final visibleTracks,
@@ -188,7 +172,7 @@ class _LibraryPageState extends State<LibraryPage> {
   };
 }
 
-// Corps des listes selon le filtre actif
+// Lists for the active filter
 class _LibraryBody extends StatelessWidget {
   final LibraryLoaded loaded;
 
@@ -196,6 +180,12 @@ class _LibraryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (loaded.isEmpty) {
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: _NoMusicEmpty(),
+      );
+    }
     final statsBanner = SliverToBoxAdapter(
       child: LibraryStatsBanner(
         trackCount: loaded.allTracks.length,
@@ -237,7 +227,7 @@ Widget _animatedLibraryItem(
       );
 }
 
-// ── Vue "Tout" ────────────────────────────────────────────
+// ── All ───────────────────────────────────────────────────
 
 class _AllView extends StatelessWidget {
   final LibraryLoaded loaded;
@@ -248,12 +238,11 @@ class _AllView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverMainAxisGroup(
       slivers: [
-        // Section Albums (grille horizontale scrollable)
         if (loaded.visibleAlbums.isNotEmpty) ...[
           const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
           SliverToBoxAdapter(
             child: SectionHeader(
-              title: 'Albums',
+              title: context.l10n.libraryFilterAlbums,
               onViewAll: () => context.read<LibraryBloc>().add(
                 const LibraryFilterChanged(LibraryFilter.albums),
               ),
@@ -279,11 +268,10 @@ class _AllView extends StatelessWidget {
           const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.md)),
         ],
 
-        // Section Artistes (grille horizontale scrollable)
         if (loaded.visibleArtists.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: SectionHeader(
-              title: 'Artistes',
+              title: context.l10n.libraryFilterArtists,
               onViewAll: () => context.read<LibraryBloc>().add(
                 const LibraryFilterChanged(LibraryFilter.artists),
               ),
@@ -309,11 +297,10 @@ class _AllView extends StatelessWidget {
           const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.md)),
         ],
 
-        // Section Titres
         if (loaded.visibleTracks.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: SectionHeader(
-              title: 'Titres',
+              title: context.l10n.libraryFilterSongs,
               onViewAll: () => context.read<LibraryBloc>().add(
                 const LibraryFilterChanged(LibraryFilter.tracks),
               ),
@@ -329,7 +316,7 @@ class _AllView extends StatelessWidget {
   }
 }
 
-// ── Vue Titres ────────────────────────────────────────────
+// ── Songs ─────────────────────────────────────────────────
 
 class _TracksView extends StatelessWidget {
   final List<Track> tracks;
@@ -340,10 +327,11 @@ class _TracksView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (tracks.isEmpty) {
-      return const SliverFillRemaining(
+      return SliverFillRemaining(
+        hasScrollBody: false,
         child: EmptyState(
-          message: 'Aucun titre trouvé',
-          icon: Icons.music_note_rounded,
+          title: context.l10n.libraryNoSongs,
+          icon: LucideIcons.music,
         ),
       );
     }
@@ -381,7 +369,7 @@ class _TracksView extends StatelessWidget {
   }
 }
 
-// ── Vue Albums ────────────────────────────────────────────
+// ── Albums ────────────────────────────────────────────────
 
 class _AlbumsView extends StatelessWidget {
   final List<Album> albums;
@@ -392,8 +380,9 @@ class _AlbumsView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (albums.isEmpty) {
       return SliverFillRemaining(
+        hasScrollBody: false,
         child: EmptyState(
-          message: 'Aucun album trouvé',
+          title: context.l10n.libraryNoAlbums,
           icon: LucideIcons.disc,
         ),
       );
@@ -423,7 +412,7 @@ class _AlbumsView extends StatelessWidget {
   }
 }
 
-// ── Vue Artistes ──────────────────────────────────────────
+// ── Artists ───────────────────────────────────────────────
 
 class _ArtistsView extends StatelessWidget {
   final List<Artist> artists;
@@ -433,8 +422,12 @@ class _ArtistsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (artists.isEmpty) {
-      return const SliverFillRemaining(
-        child: EmptyState(message: 'Aucun artiste trouvé', icon: Icons.person),
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: EmptyState(
+          title: context.l10n.libraryNoArtists,
+          icon: LucideIcons.micVocal,
+        ),
       );
     }
     return SliverPadding(
@@ -462,93 +455,6 @@ class _ArtistsView extends StatelessWidget {
   }
 }
 
-// ── Scan banner ───────────────────────────────────────────
-
-class _ScanBanner extends StatelessWidget {
-  final ScanProgress progress;
-
-  const _ScanBanner({required this.progress});
-
-  @override
-  Widget build(BuildContext context) {
-    final isIndeterminate = progress.phase == ScanPhase.scanning;
-    final baseConfig = GlassTheme.card(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.sm,
-        AppSpacing.lg,
-        0,
-      ),
-      child: GlassCard(
-        config: GlassConfig(
-          blurSigma: 0,
-          fill: baseConfig.fill,
-          border: baseConfig.border,
-          highlight: baseConfig.highlight,
-          borderWidth: baseConfig.borderWidth,
-          borderRadius: baseConfig.borderRadius,
-          padding: baseConfig.padding,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                // Spinner si indéterminé
-                if (isIndeterminate) ...[
-                  SizedBox.square(
-                    dimension: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: context.colors.accent,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Expanded(
-                  child: Text(
-                    _phaseLabel,
-                    style: context.textTheme.labelLarge?.copyWith(
-                      color: context.colors.labelSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (!isIndeterminate) ...[
-              const SizedBox(height: AppSpacing.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: LinearProgressIndicator(
-                  value: progress.progress,
-                  minHeight: 3,
-                  backgroundColor: context.colors.separator,
-                  color: context.colors.accent,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  String get _phaseLabel => switch (progress.phase) {
-    ScanPhase.scanning => 'Recherche des fichiers audio…',
-    ScanPhase.indexing =>
-      progress.total > 0
-          ? 'Indexation  ${progress.count} / ${progress.total}'
-          : 'Indexation…',
-    ScanPhase.artworks =>
-      progress.total > 0
-          ? 'Pochettes  ${progress.count} / ${progress.total}'
-          : 'Chargement des pochettes…',
-    ScanPhase.done => 'Bibliothèque à jour',
-  };
-}
-
 // ── Sort button ───────────────────────────────────────────
 
 class _SortButton extends StatelessWidget {
@@ -560,22 +466,24 @@ class _SortButton extends StatelessWidget {
         return GlassIconButton(
           onTap: () => _showSortSheet(context, sort),
           icon: LucideIcons.arrowDownNarrowWide,
+          tooltip: context.l10n.librarySort,
         );
       },
     );
   }
 
   void _showSortSheet(BuildContext context, LibrarySort current) {
+    final l10n = context.l10n;
     showCupertinoModalPopup<LibrarySort>(
       context: context,
       builder: (_) => CupertinoActionSheet(
-        title: const Text('Trier par'),
+        title: Text(l10n.librarySortBy),
         actions: LibrarySort.values.map((sort) {
           final label = switch (sort) {
-            LibrarySort.title => 'Titre',
-            LibrarySort.artist => 'Artiste',
-            LibrarySort.album => 'Album',
-            LibrarySort.dateAdded => 'Date d\'ajout',
+            LibrarySort.title => l10n.librarySortTitle,
+            LibrarySort.artist => l10n.librarySortArtist,
+            LibrarySort.album => l10n.librarySortAlbum,
+            LibrarySort.dateAdded => l10n.librarySortRecent,
           };
           return CupertinoActionSheetAction(
             isDefaultAction: sort == current,
@@ -588,7 +496,7 @@ class _SortButton extends StatelessWidget {
         }).toList(),
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => context.pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.actionCancel),
         ),
       ),
     );
@@ -597,44 +505,19 @@ class _SortButton extends StatelessWidget {
 
 // ── Empty states ──────────────────────────────────────────
 
-class _FirstLaunchEmpty extends StatelessWidget {
-  const _FirstLaunchEmpty();
+class _NoMusicEmpty extends StatelessWidget {
+  const _NoMusicEmpty();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            CupertinoIcons.music_note_2,
-            size: 64,
-            color: context.colors.labelTertiary,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Aucune musique trouvée',
-            style: context.textTheme.headlineSmall?.copyWith(
-              color: context.colors.labelPrimary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Lance un scan pour indexer\nles fichiers audio de ton appareil.',
-            textAlign: TextAlign.center,
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colors.labelSecondary,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl2),
-          GlassButton.filled(
-            label: 'Scanner la bibliothèque',
-            leading: const Icon(LucideIcons.scanLine, size: 18),
-            onTap: () =>
-                context.read<LibraryBloc>().add(const LibraryScanRequested()),
-          ),
-        ],
-      ),
+    final l10n = context.l10n;
+    return EmptyState(
+      icon: LucideIcons.music,
+      title: l10n.libraryEmptyTitle,
+      body: l10n.libraryEmptyBody,
+      actionLabel: l10n.libraryScanAgain,
+      onAction: () =>
+          context.read<LibraryBloc>().add(const LibraryScanRequested()),
     );
   }
 }

@@ -16,6 +16,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/audio_format.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
@@ -28,6 +29,7 @@ import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -66,8 +68,8 @@ class AlbumDetailPage extends StatelessWidget {
                 AlbumDetailInitial() || AlbumDetailLoading() => const Center(
                   child: CircularProgressIndicator(),
                 ),
-                AlbumDetailError(:final message) => ErrorView(
-                  message: message,
+                AlbumDetailError() => ErrorView(
+                  body: context.l10n.albumLoadError,
                   onRetry: () => context.read<AlbumDetailBloc>().add(
                     AlbumDetailRequested(int.parse(id)),
                   ),
@@ -476,14 +478,23 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     const SizedBox(width: 6),
                                   ],
                                   _GlassBadge(
-                                    label:
-                                        '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'} • ${totalDuration.toHumanReadable()}',
+                                    label: context.l10n.detailCountsSummary(
+                                      context.l10n.songCount(album.trackCount),
+                                      totalDuration.toHumanReadable(
+                                        context.l10n,
+                                      ),
+                                    ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  const _GlassBadge(
-                                    label: 'Lossless',
-                                    icon: LucideIcons.sparkles,
-                                  ),
+                                  if (_formatBadge(context)
+                                      case final badge?) ...[
+                                    const SizedBox(width: 6),
+                                    _GlassBadge(
+                                      label: badge,
+                                      icon: badge == context.l10n.formatLossless
+                                          ? LucideIcons.audioWaveform
+                                          : null,
+                                    ),
+                                  ],
                                 ],
                               ),
                               3,
@@ -528,6 +539,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                       left: 0,
                       child: GlassIconButton(
                         icon: LucideIcons.chevronLeft,
+                        tooltip: context.l10n.detailBack,
                         onTap: () {
                           AppHaptics.lightImpact();
                           context.pop();
@@ -538,6 +550,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                       right: 0,
                       child: GlassIconButton(
                         icon: LucideIcons.ellipsisVertical,
+                        tooltip: context.l10n.detailMore,
                         onTap: tracks.isEmpty
                             ? null
                             : () => _showAlbumOptions(context),
@@ -579,9 +592,9 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                             }
                           },
                           icon: const Icon(LucideIcons.play, size: 18),
-                          label: const Text(
-                            'Lecture',
-                            style: TextStyle(
+                          label: Text(
+                            context.l10n.actionPlay,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),
@@ -663,6 +676,14 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
+  /// "Lossless" only when every song is FLAC or WAV, else the single
+  /// format; a mixed album gets no badge.
+  String? _formatBadge(BuildContext context) {
+    if (AudioFormat.allLossless(tracks)) return context.l10n.formatLossless;
+    final formats = AudioFormat.allOf(tracks);
+    return formats.length == 1 ? formats.single.label : null;
+  }
+
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
     AppHaptics.lightImpact();
@@ -670,7 +691,12 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
       context: context,
       builder: (ctx) => CupertinoActionSheet(
         title: Text(album.name),
-        message: Text('${album.artist} • ${tracks.length} titres'),
+        message: Text(
+          context.l10n.albumByArtist(
+            album.artist,
+            context.l10n.songCount(tracks.length),
+          ),
+        ),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -679,7 +705,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackQueuedNext(track));
               }
             },
-            child: const Text('Lire ensuite'),
+            child: Text(context.l10n.trackPlayNext),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
@@ -688,12 +714,12 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackAddedToQueue(track));
               }
             },
-            child: const Text("Ajouter à la file d'attente"),
+            child: Text(context.l10n.trackAddToQueue),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Annuler'),
+          child: Text(context.l10n.actionCancel),
         ),
       ),
     );
@@ -755,7 +781,7 @@ class _AlbumTracksView extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.lg),
               _animatedAlbumItem(
-                SectionHeader(title: 'Pistes (${tracks.length})'),
+                SectionHeader(title: context.l10n.detailSongs),
                 5,
               ),
             ],
@@ -804,7 +830,9 @@ class _MoreByArtistView extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.xl2),
               _animatedAlbumItem(
-                SectionHeader(title: 'Plus de ${artistName.toTitleCase()}'),
+                SectionHeader(
+                  title: context.l10n.detailMoreBy(artistName.toTitleCase()),
+                ),
                 0,
               ),
             ],
@@ -851,6 +879,7 @@ class _AlbumMetadataFooter extends StatelessWidget {
         .map((t) => t.year)
         .where((y) => y != null && y > 0)
         .firstOrNull;
+    final formats = AudioFormat.allOf(tracks);
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -877,9 +906,9 @@ class _AlbumMetadataFooter extends StatelessWidget {
                 children: [
                   Icon(LucideIcons.info, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Informations & Stockage',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.albumAbout,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -889,23 +918,24 @@ class _AlbumMetadataFooter extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _MetaRow(
-                label: 'Nombre de pistes',
-                value: '${tracks.length} titres',
+                label: context.l10n.infoSongs,
+                value: '${tracks.length}',
               ),
               _MetaRow(
-                label: 'Durée totale',
-                value: totalDuration.toHumanReadable(),
+                label: context.l10n.infoLength,
+                value: totalDuration.toHumanReadable(context.l10n),
               ),
               if (year != null)
-                _MetaRow(label: 'Année de sortie', value: '$year'),
+                _MetaRow(label: context.l10n.infoYear, value: '$year'),
               _MetaRow(
-                label: 'Espace occupé',
-                value: '$totalMb Mo (Stockage local)',
+                label: context.l10n.infoSize,
+                value: context.l10n.sizeMegabytes(totalMb),
               ),
-              _MetaRow(
-                label: 'Format audio',
-                value: 'Décodage haute fidélité sans perte',
-              ),
+              if (formats.isNotEmpty)
+                _MetaRow(
+                  label: context.l10n.infoFormat,
+                  value: formats.map((f) => f.label).join(' · '),
+                ),
             ],
           ),
         ),

@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -109,7 +111,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       return state;
     }
     if (state is PlayerLoading) {
-      // Si on charge, on garde l'ancien état mais on met à jour le titre/pochette
+      // While loading, keep the previous state but show the new title and cover
       final previous = _lastActiveState;
       final next = PlayerActive(
         currentTrack: state.track,
@@ -151,12 +153,20 @@ class _NavBarBody extends StatelessWidget {
   });
 
   static const _tabs = [
-    (AppTab.home, LucideIcons.house, 'Home'),
-    (AppTab.library, LucideIcons.library, 'Library'),
-    (AppTab.player, null, null), // centre artwork slot
-    (AppTab.search, LucideIcons.search, 'Search'),
-    (AppTab.playlists, LucideIcons.listMusic, 'Playlists'),
+    (AppTab.home, LucideIcons.house),
+    (AppTab.library, LucideIcons.library),
+    (AppTab.player, null), // centre artwork slot
+    (AppTab.search, LucideIcons.search),
+    (AppTab.playlists, LucideIcons.listMusic),
   ];
+
+  static String _labelOf(AppTab tab, AppLocalizations l10n) => switch (tab) {
+    AppTab.home => l10n.navHome,
+    AppTab.library => l10n.navLibrary,
+    AppTab.search => l10n.navSearch,
+    AppTab.playlists => l10n.navPlaylists,
+    AppTab.player => '',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +207,7 @@ class _NavBarBody extends StatelessWidget {
                 children: [
                   Row(
                     children: _tabs.map((tab) {
-                      final (appTab, icon, label) = tab;
+                      final (appTab, icon) = tab;
                       if (appTab == AppTab.player) {
                         return Expanded(
                           child: _CenterArtworkSlot(
@@ -209,7 +219,7 @@ class _NavBarBody extends StatelessWidget {
                       return Expanded(
                         child: _TabItem(
                           icon: icon!,
-                          label: label!,
+                          label: _labelOf(appTab, context.l10n),
                           isActive: currentTab == appTab,
                           onTap: () => onTabChanged(appTab),
                         ),
@@ -387,6 +397,9 @@ class _MiniPlayerRow extends StatelessWidget {
 
                       // ── Play / Pause ───────────────────────────────────────
                       IconButton(
+                        tooltip: state.isPlaying
+                            ? context.l10n.playerPause
+                            : context.l10n.actionPlay,
                         onPressed: () => context.read<PlayerBloc>().add(
                           state.isPlaying
                               ? const PauseRequested()
@@ -401,6 +414,7 @@ class _MiniPlayerRow extends StatelessWidget {
 
                       // ── Skip next ──────────────────────────────────────────
                       IconButton(
+                        tooltip: context.l10n.playerNext,
                         onPressed: state.hasNext
                             ? () => context.read<PlayerBloc>().add(
                                 const SkipNextRequested(),
@@ -562,27 +576,20 @@ class _TabItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelColor = context.colors.labelPrimary;
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox.expand(
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 200),
-          opacity: isActive ? 1.0 : 0.4,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: labelColor, size: 24),
-              // const SizedBox(height: 3),
-              // Text(
-              //   label,
-              //   style: TextStyle(
-              //     color: labelColor,
-              //     fontSize: 10,
-              //     fontWeight: FontWeight.w500,
-              //   ),
-              // ),
-            ],
+    // Icon-only tabs: the label lives in semantics for screen readers.
+    return Semantics(
+      label: label,
+      button: true,
+      selected: isActive,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox.expand(
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: isActive ? 1.0 : 0.4,
+            child: Center(child: Icon(icon, color: labelColor, size: 24)),
           ),
         ),
       ),

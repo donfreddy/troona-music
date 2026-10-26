@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -21,47 +23,13 @@ class SearchSuggestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final libState = context.watch<LibraryBloc>().state;
 
     if (libState is! LibraryLoaded || libState.allTracks.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .05),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  LucideIcons.search,
-                  size: 32,
-                  color: Colors.white30,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              const Text(
-                'Explore ta musique',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Recherche des artistes, albums ou titres dans ta bibliothèque.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: colors.labelSecondary),
-              ),
-            ],
-          ),
-        ),
+      return EmptyState(
+        icon: LucideIcons.search,
+        title: context.l10n.searchIdleTitle,
+        body: context.l10n.searchIdleBody,
       );
     }
 
@@ -69,17 +37,23 @@ class SearchSuggestions extends StatelessWidget {
     final albums = libState.allAlbums;
     final allTracks = libState.allTracks;
 
-    // Pick up to 5 suggested tracks
-    final suggestedTracks = allTracks.take(5).toList();
+    // Newest five; tracks without a date sort last.
+    final suggestedTracks =
+        (List.of(allTracks)..sort(
+              (a, b) => (b.dateAdded?.millisecondsSinceEpoch ?? 0).compareTo(
+                a.dateAdded?.millisecondsSinceEpoch ?? 0,
+              ),
+            ))
+            .take(5)
+            .toList();
 
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.only(top: AppSpacing.md, bottom: 120),
       children: [
-        // ── Artistes recommandés ──────────────────────────────────────────
         if (artists.isNotEmpty) ...[
           SectionHeader(
-            title: 'Artistes à explorer',
+            title: context.l10n.searchSuggestedArtists,
             onViewAll: () => context.go(AppRoute.library),
           ),
           SizedBox(
@@ -98,10 +72,9 @@ class SearchSuggestions extends StatelessWidget {
           const SizedBox(height: AppSpacing.xl),
         ],
 
-        // ── Albums populaires ─────────────────────────────────────────────
         if (albums.isNotEmpty) ...[
           SectionHeader(
-            title: 'Albums recommandés',
+            title: context.l10n.searchSuggestedAlbums,
             onViewAll: () => context.go(AppRoute.library),
           ),
           SizedBox(
@@ -120,10 +93,9 @@ class SearchSuggestions extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
         ],
 
-        // ── Titres à redécouvrir ──────────────────────────────────────────
         if (suggestedTracks.isNotEmpty) ...[
           SectionHeader(
-            title: 'Titres récents',
+            title: context.l10n.searchRecentlyAdded,
             onViewAll: () => context.go(AppRoute.library),
           ),
           ...suggestedTracks.asMap().entries.map((entry) {

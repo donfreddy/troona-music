@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
+import 'package:troona/l10n/app_localizations.dart';
 
 const double _diameter = 300;
 const double _hole = 190;
@@ -34,6 +35,8 @@ void main() {
   Future<void> pumpRing(WidgetTester tester) => tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.dark,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         // Mimics the full player's drag-to-dismiss wrapper.
         body: GestureDetector(

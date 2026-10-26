@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/repeat_shuffle_buttons.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
-// Les 5 boutons : Shuffle • Prev • Play/Pause • Next • Repeat
-// buildWhen granulaire : chaque bouton ne rebuild que si sa donnée change.
+// Five buttons: shuffle, previous, play/pause, next, repeat.
+// Granular buildWhen: each button rebuilds only when its own data changes.
 
 class PlayerControls extends StatelessWidget {
   const PlayerControls({super.key});
@@ -43,32 +44,37 @@ class _PlayPauseButton extends StatelessWidget {
         final isPlaying = _isPlaying(state);
         final isBuffering = _isBuffering(state);
 
-        return GestureDetector(
-          onTap: () => context.read<PlayerBloc>().add(
-            isPlaying ? const PauseRequested() : const ResumeRequested(),
-          ),
-          child: Container(
-            width: 72,
-            height: 72,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+        return Semantics(
+          button: true,
+          label: isPlaying ? context.l10n.playerPause : context.l10n.actionPlay,
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () => context.read<PlayerBloc>().add(
+              isPlaying ? const PauseRequested() : const ResumeRequested(),
             ),
-            child: isBuffering
-                ? Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.5,
-                      color: Colors.black.withValues(alpha: .6),
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: isBuffering
+                  ? Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.black.withValues(alpha: .6),
+                      ),
+                    )
+                  : Icon(
+                      isPlaying
+                          ? EvaIcons.pauseCircleOutline
+                          : EvaIcons.playCircleOutline,
+                      color: Colors.black,
+                      size: 30,
                     ),
-                  )
-                : Icon(
-                    isPlaying
-                        ? EvaIcons.pauseCircleOutline
-                        : EvaIcons.playCircleOutline,
-                    color: Colors.black,
-                    size: 30,
-                  ),
+            ),
           ),
         );
       },
@@ -79,7 +85,7 @@ class _PlayPauseButton extends StatelessWidget {
   bool _isBuffering(PlayerState s) => s is PlayerActive && s.isBuffering;
 }
 
-// ── Skip précédent ────────────────────────────────────────────────────────────
+// ── Skip previous ─────────────────────────────────────────────────────────────
 
 class _SkipPreviousButton extends StatelessWidget {
   const _SkipPreviousButton();
@@ -90,21 +96,27 @@ class _SkipPreviousButton extends StatelessWidget {
       buildWhen: (prev, curr) => _hasPrevious(prev) != _hasPrevious(curr),
       builder: (context, state) {
         final enabled = _hasPrevious(state);
-        return GestureDetector(
-          onTap: enabled
-              ? () => context.read<PlayerBloc>().add(
-                  const SkipPreviousRequested(),
-                )
-              : null,
-          child: SizedBox(
-            width: 52,
-            height: 52,
-            child: Icon(
-              EvaIcons.skipBackOutline,
-              color: enabled
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: .3),
-              size: 32,
+        return Semantics(
+          button: true,
+          enabled: enabled,
+          label: context.l10n.playerPrevious,
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: enabled
+                ? () => context.read<PlayerBloc>().add(
+                    const SkipPreviousRequested(),
+                  )
+                : null,
+            child: SizedBox(
+              width: 52,
+              height: 52,
+              child: Icon(
+                EvaIcons.skipBackOutline,
+                color: enabled
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: .3),
+                size: 32,
+              ),
             ),
           ),
         );
@@ -117,7 +129,7 @@ class _SkipPreviousButton extends StatelessWidget {
   bool _hasPrevious(PlayerState s) => s is PlayerActive;
 }
 
-// ── Skip suivant ──────────────────────────────────────────────────────────────
+// ── Skip next ─────────────────────────────────────────────────────────────────
 
 class _SkipNextButton extends StatelessWidget {
   const _SkipNextButton();
@@ -128,19 +140,26 @@ class _SkipNextButton extends StatelessWidget {
       buildWhen: (prev, curr) => _hasNext(prev) != _hasNext(curr),
       builder: (context, state) {
         final enabled = _hasNext(state);
-        return GestureDetector(
-          onTap: enabled
-              ? () => context.read<PlayerBloc>().add(const SkipNextRequested())
-              : null,
-          child: SizedBox(
-            width: 52,
-            height: 52,
-            child: Icon(
-              EvaIcons.skipForwardOutline,
-              color: enabled
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: .3),
-              size: 32,
+        return Semantics(
+          button: true,
+          enabled: enabled,
+          label: context.l10n.playerNext,
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: enabled
+                ? () =>
+                      context.read<PlayerBloc>().add(const SkipNextRequested())
+                : null,
+            child: SizedBox(
+              width: 52,
+              height: 52,
+              child: Icon(
+                EvaIcons.skipForwardOutline,
+                color: enabled
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: .3),
+                size: 32,
+              ),
             ),
           ),
         );

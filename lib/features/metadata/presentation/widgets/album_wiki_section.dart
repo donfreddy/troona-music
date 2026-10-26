@@ -4,6 +4,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class AlbumWikiSection extends StatefulWidget {
   final AlbumOnlineInfo info;
@@ -40,9 +41,9 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                   children: [
                     Icon(LucideIcons.disc, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
-                    const Text(
-                      'À propos de l\'album',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.metaAboutAlbum,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -169,7 +170,9 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _isExpanded ? 'Moins' : 'Lire la suite',
+                          _isExpanded
+                              ? context.l10n.metaReadLess
+                              : context.l10n.metaReadMore,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

@@ -1,3 +1,5 @@
+import 'package:troona/l10n/app_localizations.dart';
+
 extension DurationExt on Duration {
   /// `3:04` for minutes; `1:02:03` when hours > 0.
   String toMMSS() {
@@ -11,12 +13,12 @@ extension DurationExt on Duration {
     return h > 0 ? '$h:$mm:$ss' : '$mm:$ss';
   }
 
-  /// Human friendly label: `3 min`, `1 hr 2 min`.
-  String toHumanReadable() {
+  /// Human friendly label: `3 min`, `1 hr 2 min` (localized).
+  String toHumanReadable(AppLocalizations l10n) {
     final h = inHours;
     final m = inMinutes.remainder(60);
-    if (h == 0) return '$m min';
-    return m == 0 ? '$h hr' : '$h hr $m min';
+    if (h == 0) return l10n.durationMinutes(m);
+    return m == 0 ? l10n.durationHours(h) : l10n.durationHoursMinutes(h, m);
   }
 
   /// Progress ratio clamped to [0.0, 1.0].

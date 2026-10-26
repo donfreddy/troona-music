@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 
 class PlaylistEditorPage extends StatefulWidget {
@@ -45,7 +46,8 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         ),
       );
     } else {
-      // TODO: Implémenter PlaylistUpdateRequested dans le BLoC
+      // TODO: add PlaylistUpdateRequested; nothing opens the editor on an
+      // existing playlist yet.
     }
     context.pop();
   }
@@ -60,19 +62,22 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         leading: Center(
           child: GlassIconButton(
             icon: LucideIcons.x,
+            tooltip: context.l10n.actionClose,
             onTap: () => context.pop(),
           ),
         ),
         title: Text(
-          widget.playlist == null ? 'Nouvelle Playlist' : 'Modifier Playlist',
+          widget.playlist == null
+              ? context.l10n.playlistNew
+              : context.l10n.playlistEdit,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           TextButton(
             onPressed: _onSave,
-            child: const Text(
-              'Enregistrer',
-              style: TextStyle(
+            child: Text(
+              context.l10n.actionSave,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -86,23 +91,25 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         child: Column(
           children: [
             const SizedBox(height: AppSpacing.xl),
-            _PlaylistImagePicker(artworkPath: widget.playlist?.artworkPath),
+            const _PlaylistCoverPlaceholder(),
             const SizedBox(height: AppSpacing.xl2),
             TextField(
               controller: _titleController,
               autofocus: widget.playlist == null,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(
-                hintText: 'Nom de la playlist',
+              maxLength: 80,
+              decoration: InputDecoration(
+                hintText: context.l10n.playlistNameHint,
                 border: InputBorder.none,
+                counterText: '',
               ),
             ),
             const Divider(color: Colors.white12),
             TextField(
               controller: _descController,
               style: const TextStyle(color: Colors.white70),
-              decoration: const InputDecoration(
-                hintText: 'Description (facultatif)',
+              decoration: InputDecoration(
+                hintText: context.l10n.playlistDescriptionHint,
                 border: InputBorder.none,
               ),
               maxLines: 3,
@@ -114,9 +121,9 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
   }
 }
 
-class _PlaylistImagePicker extends StatelessWidget {
-  final String? artworkPath;
-  const _PlaylistImagePicker({this.artworkPath});
+/// Custom covers are not supported yet: the cover is the playlist's mosaic.
+class _PlaylistCoverPlaceholder extends StatelessWidget {
+  const _PlaylistCoverPlaceholder();
 
   @override
   Widget build(BuildContext context) {
@@ -128,17 +135,7 @@ class _PlaylistImagePicker extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(color: Colors.white10),
       ),
-      child: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(LucideIcons.imagePlus, size: 42, color: Colors.white30),
-          SizedBox(height: AppSpacing.sm),
-          Text(
-            'Ajouter un visuel',
-            style: TextStyle(color: Colors.white30, fontSize: 12),
-          ),
-        ],
-      ),
+      child: const Icon(LucideIcons.listMusic, size: 48, color: Colors.white30),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -23,6 +24,8 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 part 'playback_progress.dart';
+
+part 'player_notice.dart';
 
 @injectable
 final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
@@ -55,12 +58,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   late final StreamSubscription<Queue> _queueSub;
   late final StreamSubscription<double> _volumeSub;
   late final StreamSubscription<Failure> _errorSub;
-  final StreamController<String> _noticesController =
-      StreamController<String>.broadcast();
+  final StreamController<PlayerNotice> _noticesController =
+      StreamController<PlayerNotice>.broadcast();
 
   /// One-shot error notices (e.g. unplayable track). Listen in the shell
   /// to show a toast. Does not affect player state.
-  Stream<String> get notices => _noticesController.stream;
+  Stream<PlayerNotice> get notices => _noticesController.stream;
 
   int? _lastPersistedPositionSecond;
   PlaybackSessionSnapshot? _restoringSnapshot;
@@ -672,8 +675,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   void _onAudioError(_AudioErrorOccurred event, Emitter<PlayerState> emit) {
+    // The raw engine message is for the log; the user gets the song title.
+    appLogger.w('[PlayerBloc] audio error: ${event.message}');
     if (!_noticesController.isClosed) {
-      _noticesController.add(event.message);
+      _noticesController.add(
+        TrackUnplayable(_audioServicePort.currentTrack?.title),
+      );
     }
     // just_audio's maxSkipsOnError handles recovery: no timer, no state replace.
   }

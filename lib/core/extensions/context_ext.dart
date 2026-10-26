@@ -22,18 +22,4 @@ extension ContextExt on BuildContext {
 
   bool get isLandscape =>
       MediaQuery.orientationOf(this) == Orientation.landscape;
-
-  // ── SnackBar helper ────────────────────────────────────────────────────────
-
-  void showSnackBar(
-    String message, {
-    Duration duration = const Duration(seconds: 3),
-    SnackBarAction? action,
-  }) {
-    ScaffoldMessenger.of(this)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message), duration: duration, action: action),
-      );
-  }
 }

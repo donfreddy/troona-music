@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
+import 'package:troona/shared/widgets/app_dialog.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 
 Future<void> showAddToPlaylistSheet(BuildContext context, Track track) {
   return showModalBottomSheet<void>(
@@ -47,73 +50,46 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     });
   }
 
-  void _showCreateDialog() {
-    final controller = TextEditingController();
-    showDialog<void>(
-      context: context,
-      builder: (dlgCtx) => AlertDialog(
-        backgroundColor: const Color(0xFF222225),
-        title: const Text('Nouvelle playlist'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: 'Nom de la playlist'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dlgCtx),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              Navigator.pop(dlgCtx);
-              final createRes = await getIt<PlaylistRepository>()
-                  .createPlaylist(title: name);
-              createRes.fold((_) {}, (created) async {
-                await getIt<PlaylistRepository>().addTrackToPlaylist(
-                  created.id,
-                  widget.track.id,
-                );
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Morceau ajouté à "${created.name}"'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              });
-            },
-            child: const Text('Créer et ajouter'),
-          ),
-        ],
-      ),
+  Future<void> _createAndAdd() async {
+    final l10n = context.l10n;
+    final name = await showTextInputDialog(
+      context,
+      title: l10n.playlistNew,
+      placeholder: l10n.playlistNameHint,
+      confirmLabel: l10n.playlistCreateAndAdd,
     );
+    if (name == null || !mounted) return;
+    final repo = getIt<PlaylistRepository>();
+    final created = (await repo.createPlaylist(
+      title: name,
+    )).toOption().toNullable();
+    if (!mounted) return;
+    if (created == null) {
+      Navigator.pop(context);
+      AppToast.show(context, l10n.errorGeneric);
+      return;
+    }
+    await _addTrackTo(created);
   }
 
   Future<void> _addTrackTo(Playlist playlist) async {
-    final res = await getIt<PlaylistRepository>().addTrackToPlaylist(
-      playlist.id,
-      widget.track.id,
-    );
+    final l10n = context.l10n;
+    final repo = getIt<PlaylistRepository>();
+    final trackId = widget.track.id;
+    final res = await repo.addTrackToPlaylist(playlist.id, trackId);
     if (!mounted) return;
+    // The toast outlives the sheet: show it from the caller's context.
+    final host = Navigator.of(context).context;
     Navigator.pop(context);
 
     res.fold(
-      (f) => ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erreur: ${f.message}'))),
-      (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ajouté à "${playlist.name}"'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
+      (_) => AppToast.show(host, l10n.errorGeneric),
+      (_) => AppToast.show(
+        host,
+        l10n.playlistAddedTo(playlist.name),
+        actionLabel: l10n.actionUndo,
+        onAction: () => repo.removeTrackFromPlaylist(playlist.id, trackId),
+      ),
     );
   }
 
@@ -133,9 +109,9 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Ajouter à la playlist',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.playlistAddTo,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -143,6 +119,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                   ),
                   IconButton(
                     icon: const Icon(LucideIcons.x, color: Colors.white54),
+                    tooltip: context.l10n.actionClose,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -150,7 +127,6 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
             ),
             const Divider(color: Colors.white12),
 
-            // Button "+ Nouvelle playlist"
             ListTile(
               leading: Container(
                 width: 44,
@@ -161,11 +137,11 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                 ),
                 child: Icon(LucideIcons.plus, color: colors.accent),
               ),
-              title: const Text(
-                'Nouvelle playlist',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              title: Text(
+                context.l10n.playlistNew,
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              onTap: _showCreateDialog,
+              onTap: _createAndAdd,
             ),
 
             const SizedBox(height: 4),
@@ -186,12 +162,12 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
 
                   final playlists = snapshot.data ?? [];
                   if (playlists.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg),
+                    return Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Center(
                         child: Text(
-                          'Aucune playlist personnalisée créée',
-                          style: TextStyle(color: Colors.white30),
+                          context.l10n.playlistNoneYet,
+                          style: const TextStyle(color: Colors.white38),
                         ),
                       ),
                     );
@@ -222,7 +198,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                           style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         subtitle: Text(
-                          '${p.trackIds.length} morceaux',
+                          context.l10n.songCount(p.trackIds.length),
                           style: const TextStyle(
                             color: Colors.white38,
                             fontSize: 12,

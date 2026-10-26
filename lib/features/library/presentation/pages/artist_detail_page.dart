@@ -27,6 +27,7 @@ import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -71,8 +72,8 @@ class ArtistDetailPage extends StatelessWidget {
                 ArtistDetailInitial() || ArtistDetailLoading() => const Center(
                   child: CircularProgressIndicator(),
                 ),
-                ArtistDetailError(:final message) => ErrorView(
-                  message: message,
+                ArtistDetailError() => ErrorView(
+                  body: context.l10n.artistLoadError,
                   onRetry: () => context.read<ArtistDetailBloc>().add(
                     ArtistDetailRequested(int.parse(id)),
                   ),
@@ -411,20 +412,24 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   _GlassBadge(
-                                    label:
-                                        '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}',
+                                    label: context.l10n.songCount(
+                                      artist.trackCount,
+                                    ),
                                     icon: LucideIcons.music,
                                   ),
                                   const SizedBox(width: 6),
                                   _GlassBadge(
-                                    label:
-                                        '${artist.albumCount} ${artist.albumCount > 1 ? 'albums' : 'album'}',
+                                    label: context.l10n.albumCount(
+                                      artist.albumCount,
+                                    ),
                                     icon: LucideIcons.disc,
                                   ),
                                   if (totalDuration > Duration.zero) ...[
                                     const SizedBox(width: 6),
                                     _GlassBadge(
-                                      label: totalDuration.toHumanReadable(),
+                                      label: totalDuration.toHumanReadable(
+                                        context.l10n,
+                                      ),
                                       icon: LucideIcons.clock,
                                     ),
                                   ],
@@ -472,6 +477,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                       left: 0,
                       child: GlassIconButton(
                         icon: LucideIcons.chevronLeft,
+                        tooltip: context.l10n.detailBack,
                         onTap: () {
                           AppHaptics.lightImpact();
                           context.pop();
@@ -482,6 +488,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                       right: 0,
                       child: GlassIconButton(
                         icon: LucideIcons.ellipsisVertical,
+                        tooltip: context.l10n.detailMore,
                         onTap: tracks.isEmpty
                             ? null
                             : () => _showArtistOptions(context),
@@ -492,7 +499,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Twin Action Buttons (Lecture + Aléatoire 50/50) ──────────────
+            // ── Play and shuffle, side by side ──────────────────────────────
             Positioned(
               left: 0,
               right: 0,
@@ -523,9 +530,9 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             }
                           },
                           icon: const Icon(LucideIcons.play, size: 18),
-                          label: const Text(
-                            'Écouter',
-                            style: TextStyle(
+                          label: Text(
+                            context.l10n.actionPlay,
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),
@@ -614,7 +621,12 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       context: context,
       builder: (ctx) => CupertinoActionSheet(
         title: Text(artist.name),
-        message: Text('${tracks.length} titres • ${albums.length} albums'),
+        message: Text(
+          context.l10n.detailCountsSummary(
+            context.l10n.songCount(tracks.length),
+            context.l10n.albumCount(albums.length),
+          ),
+        ),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -623,7 +635,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackQueuedNext(track));
               }
             },
-            child: const Text('Lire ensuite'),
+            child: Text(context.l10n.trackPlayNext),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
@@ -632,12 +644,12 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackAddedToQueue(track));
               }
             },
-            child: const Text("Ajouter à la file d'attente"),
+            child: Text(context.l10n.trackAddToQueue),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Annuler'),
+          child: Text(context.l10n.actionCancel),
         ),
       ),
     );
@@ -699,7 +711,7 @@ class _ArtistTopTracksList extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.lg),
               _animatedArtistItem(
-                SectionHeader(title: 'Morceaux populaires (${tracks.length})'),
+                SectionHeader(title: context.l10n.detailSongs),
                 3,
               ),
             ],
@@ -746,7 +758,7 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.xl2),
               _animatedArtistItem(
-                SectionHeader(title: 'Discographie (${albums.length})'),
+                SectionHeader(title: context.l10n.detailAlbums),
                 5,
               ),
             ],
@@ -822,9 +834,9 @@ class _ArtistCollectionFooter extends StatelessWidget {
                 children: [
                   Icon(LucideIcons.library, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Dans votre bibliothèque locale',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.artistInLibrary,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -834,18 +846,21 @@ class _ArtistCollectionFooter extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _MetaRow(
-                label: 'Titres disponibles',
-                value: '${artist.trackCount} morceaux',
+                label: context.l10n.infoSongs,
+                value: '${artist.trackCount}',
               ),
               _MetaRow(
-                label: 'Albums référencés',
-                value: '${artist.albumCount} albums',
+                label: context.l10n.infoAlbums,
+                value: '${artist.albumCount}',
               ),
               _MetaRow(
-                label: 'Temps d\'écoute total',
-                value: totalDuration.toHumanReadable(),
+                label: context.l10n.infoLength,
+                value: totalDuration.toHumanReadable(context.l10n),
               ),
-              _MetaRow(label: 'Empreinte de stockage', value: '$totalMb Mo'),
+              _MetaRow(
+                label: context.l10n.infoSize,
+                value: context.l10n.sizeMegabytes(totalMb),
+              ),
             ],
           ),
         ),

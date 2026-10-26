@@ -1,13 +1,14 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 
 enum TrackActionOrigin { library, album, artist, queue, nowPlaying }
 
@@ -17,6 +18,7 @@ void showTrackActions(
   TrackActionOrigin origin = TrackActionOrigin.library,
 }) {
   final isLiked = context.read<LikesCubit>().state.isTrackLiked(track.id);
+  final l10n = context.l10n;
   AppHaptics.mediumImpact();
 
   showCupertinoModalPopup<void>(
@@ -30,47 +32,30 @@ void showTrackActions(
             Navigator.pop(ctx);
             AppHaptics.selectionClick();
             context.read<PlayerBloc>().add(TrackQueuedNext(track));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Playing next: ${track.title}'),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
-            );
+            AppToast.show(context, l10n.toastPlaysNext);
           },
-          child: const Text('Play Next'),
+          child: Text(l10n.trackPlayNext),
         ),
         CupertinoActionSheetAction(
           onPressed: () {
             Navigator.pop(ctx);
             AppHaptics.selectionClick();
             context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Added to queue: ${track.title}'),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
-            );
+            AppToast.show(context, l10n.toastAddedToQueue);
           },
-          child: const Text('Add to Queue'),
+          child: Text(l10n.trackAddToQueue),
         ),
         CupertinoActionSheetAction(
           onPressed: () {
             Navigator.pop(ctx);
             AppHaptics.selectionClick();
             context.read<LikesCubit>().toggle(track);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  isLiked ? 'Removed from Likes' : 'Added to Likes',
-                ),
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
+            AppToast.show(
+              context,
+              isLiked ? l10n.toastUnliked : l10n.toastLiked,
             );
           },
-          child: Text(isLiked ? 'Unlike' : 'Like'),
+          child: Text(isLiked ? l10n.likesRemove : l10n.trackLike),
         ),
         CupertinoActionSheetAction(
           onPressed: () {
@@ -78,7 +63,7 @@ void showTrackActions(
             AppHaptics.selectionClick();
             showAddToPlaylistSheet(context, track);
           },
-          child: const Text('Add to Playlist...'),
+          child: Text(l10n.trackAddToPlaylist),
         ),
         if (origin != TrackActionOrigin.album)
           CupertinoActionSheetAction(
@@ -93,7 +78,7 @@ void showTrackActions(
                 pathParameters: {'id': '${track.albumId}'},
               );
             },
-            child: const Text('Go to Album'),
+            child: Text(l10n.trackGoToAlbum),
           ),
         if (origin != TrackActionOrigin.artist)
           CupertinoActionSheetAction(
@@ -108,13 +93,13 @@ void showTrackActions(
                 pathParameters: {'id': '${track.artistId}'},
               );
             },
-            child: const Text('Go to Artist'),
+            child: Text(l10n.trackGoToArtist),
           ),
       ],
       cancelButton: CupertinoActionSheetAction(
         isDestructiveAction: false,
         onPressed: () => Navigator.pop(ctx),
-        child: const Text('Cancel'),
+        child: Text(l10n.actionCancel),
       ),
     ),
   );

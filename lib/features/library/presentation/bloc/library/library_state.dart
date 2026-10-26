@@ -7,15 +7,15 @@ sealed class LibraryState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Premier lancement — aucun scan jamais effectué
+/// First launch: no scan has run yet.
 final class LibraryInitial extends LibraryState {
   const LibraryInitial();
 }
 
-/// Scan en cours — on a déjà potentiellement des données en cache
+/// Scan in progress, possibly over cached data.
 final class LibraryScanning extends LibraryState {
   final ScanProgress progress;
-  final LibraryLoaded? cached; // données précédentes visibles pendant le scan
+  final LibraryLoaded? cached; // previous data, shown during the scan
 
   const LibraryScanning({required this.progress, this.cached});
 
@@ -27,23 +27,15 @@ final class LibraryScanning extends LibraryState {
     progress.total,
     cached,
   ];
-
-  // Helpers exposés directement aux widgets
-  String get phaseLabel => switch (progress.phase) {
-    ScanPhase.scanning => 'Recherche des fichiers audio…',
-    ScanPhase.indexing => 'Indexation… (${progress.count}/${progress.total})',
-    ScanPhase.artworks => 'Chargement des pochettes…',
-    ScanPhase.done => 'Terminé',
-  };
 }
 
-/// Bibliothèque chargée — état principal
+/// Library loaded: the main state.
 final class LibraryLoaded extends LibraryState {
   final List<Track> allTracks;
   final List<Album> allAlbums;
   final List<Artist> allArtists;
 
-  // Vue filtrée / triée — calculée une fois, pas à chaque rebuild
+  // Filtered and sorted view, computed once rather than on every rebuild
   final List<Track> visibleTracks;
   final List<Album> visibleAlbums;
   final List<Artist> visibleArtists;
@@ -104,10 +96,10 @@ final class LibraryLoaded extends LibraryState {
   ];
 }
 
-/// Erreur récupérable
+/// Recoverable error.
 final class LibraryError extends LibraryState {
   final String message;
-  final LibraryLoaded? lastLoaded; // affiche les données en cache si dispo
+  final LibraryLoaded? lastLoaded; // cached data to keep showing, if any
   const LibraryError({required this.message, this.lastLoaded});
 
   @override

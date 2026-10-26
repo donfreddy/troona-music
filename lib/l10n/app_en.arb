@@ -119,5 +119,393 @@
   "privacyReportsTitle": "Problem reports",
   "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
   "privacyDeleteTitle": "Deleting your data",
-  "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files are never touched."
+  "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files are never touched.",
+  "permissionHeadline": "All your music.\nNothing in the way.",
+  "permissionSubhead": "Troona plays the songs already on your phone. No account, no ads, no streaming.",
+  "permissionQualityTitle": "Plays what you own",
+  "permissionQualityBody": "MP3, FLAC, AAC, WAV, OGG and Opus, at their original quality.",
+  "permissionPrivacyTitle": "Private by design",
+  "permissionPrivacyBody": "Your music stays on this device. Online extras are optional.",
+  "permissionLibraryTitle": "Ready in seconds",
+  "permissionLibraryBody": "Covers, albums and artists, sorted for you.",
+  "permissionAllow": "Allow access",
+  "permissionDeniedTitle": "Troona can't see your music yet",
+  "permissionDeniedBody": "Troona needs access to your audio files to build your library. It never reads your photos, videos or documents.",
+  "permissionBlockedTitle": "Access is turned off",
+  "permissionBlockedBody": "Turn on \"Music and audio\" for Troona in Settings, then come back. We'll take it from there.",
+  "permissionOpenSettings": "Open Settings",
+  "permissionCheckAgain": "I turned it on",
+  "permissionFooter": "Free · No ads · No account",
+  "scanTitle": "Finding your music",
+  "scanPhaseScanning": "Looking for songs on your phone…",
+  "scanPhaseIndexing": "Building your library…",
+  "scanPhaseArtwork": "Adding album covers…",
+  "scanPhaseDone": "Almost ready…",
+  "scanSongsFound": "{count, plural, =1{1 song found} other{{count} songs found}}",
+  "@scanSongsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanProgress": "{count} of {total}",
+  "@scanProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "scanNewSongs": "{count, plural, =1{1 new song added} other{{count} new songs added}}",
+  "@scanNewSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanRemovedSongs": "{count, plural, =1{1 song is no longer on your phone} other{{count} songs are no longer on your phone}}",
+  "@scanRemovedSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "libraryLoadErrorTitle": "We couldn't open your library",
+  "libraryLoadErrorBody": "Check that Troona can still access your music, then try again.",
+  "errorTitle": "Something went wrong",
+  "playerCantPlay": "Can't play \"{title}\". Skipping to the next song.",
+  "@playerCantPlay": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "playerCantPlayUnknown": "This song can't be played. Skipping to the next one.",
+  "bootTitle": "Troona couldn't open your library",
+  "bootBody": "Restart the app. If it keeps happening, copy the report and send it to us.",
+  "bootCopyReport": "Copy report",
+  "bootReportCopied": "Report copied",
+  "libraryFilterAll": "All",
+  "libraryFilterSongs": "Songs",
+  "libraryFilterAlbums": "Albums",
+  "libraryFilterArtists": "Artists",
+  "libraryEmptyTitle": "No music on this device yet",
+  "libraryEmptyBody": "Copy songs to your phone, then scan again.",
+  "libraryScanAgain": "Scan again",
+  "libraryNoSongs": "No songs yet",
+  "libraryNoAlbums": "No albums yet",
+  "libraryNoArtists": "No artists yet",
+  "librarySort": "Sort",
+  "librarySortBy": "Sort by",
+  "librarySortTitle": "Title",
+  "librarySortArtist": "Artist",
+  "librarySortAlbum": "Album",
+  "librarySortRecent": "Recently added",
+  "libraryUpdating": "Updating your library…",
+  "libraryShuffleAll": "Shuffle all",
+  "albumByArtist": "{artist} · {songs}",
+  "@albumByArtist": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      },
+      "songs": {
+        "type": "String"
+      }
+    }
+  },
+  "statSongs": "{count, plural, =1{song} other{songs}}",
+  "@statSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statAlbums": "{count, plural, =1{album} other{albums}}",
+  "@statAlbums": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statArtists": "{count, plural, =1{artist} other{artists}}",
+  "@statArtists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHours": "{hours} hr",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} hr {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "trackPlayNext": "Play next",
+  "trackAddToQueue": "Add to queue",
+  "detailSongs": "Songs",
+  "detailAlbums": "Albums",
+  "detailMoreBy": "More by {artist}",
+  "@detailMoreBy": {
+    "placeholders": {
+      "artist": {
+        "type": "String"
+      }
+    }
+  },
+  "detailMore": "More options",
+  "detailBack": "Back",
+  "detailCountsSummary": "{songs} · {albums}",
+  "@detailCountsSummary": {
+    "placeholders": {
+      "songs": {
+        "type": "String"
+      },
+      "albums": {
+        "type": "String"
+      }
+    }
+  },
+  "albumAbout": "About this album",
+  "artistInLibrary": "In your library",
+  "infoSongs": "Songs",
+  "infoAlbums": "Albums",
+  "infoLength": "Length",
+  "infoYear": "Year",
+  "infoSize": "Size",
+  "infoFormat": "Format",
+  "formatLossless": "Lossless",
+  "albumLoadError": "We couldn't open this album.",
+  "artistLoadError": "We couldn't open this artist.",
+  "searchHint": "Songs, artists, albums",
+  "searchClear": "Clear search",
+  "searchIdleTitle": "Search your library",
+  "searchIdleBody": "Songs, artists and albums on this device.",
+  "searchNoResultsTitle": "No results for \"{query}\"",
+  "@searchNoResultsTitle": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNoResultsBody": "Try a shorter word or an artist name.",
+  "searchError": "Search isn't available right now.",
+  "searchSuggestedArtists": "Artists",
+  "searchSuggestedAlbums": "Albums",
+  "searchRecentlyAdded": "Recently added",
+  "searchBadgeArtist": "Artist",
+  "searchBadgeAlbum": "Album",
+  "searchBadgeSong": "Song",
+  "playlistsCreate": "New",
+  "playlistsListView": "List view",
+  "playlistsGridView": "Grid view",
+  "playlistsFilterAll": "All",
+  "playlistsFilterMine": "My playlists",
+  "playlistsYours": "Your playlists",
+  "playlistsEmptyTitle": "Make your first playlist",
+  "playlistsEmptyBody": "Group songs for a mood, a moment or a road trip.",
+  "playlistNew": "New playlist",
+  "playlistEdit": "Edit playlist",
+  "playlistNameHint": "Playlist name",
+  "playlistDescriptionHint": "Description (optional)",
+  "playlistAddCover": "Add a cover",
+  "playlistCreateAndAdd": "Create and add",
+  "playlistCreate": "Create",
+  "playlistAddTo": "Add to playlist",
+  "playlistNoneYet": "No playlists yet",
+  "playlistAddedTo": "Added to {name}",
+  "@playlistAddedTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistAlreadyIn": "Already in {name}",
+  "@playlistAlreadyIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleteTitle": "Delete \"{name}\"?",
+  "@playlistDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDeleteBody": "This removes the playlist only. The songs stay in your library.",
+  "playlistDeleted": "Playlist deleted",
+  "playlistEmptyTitle": "This playlist is empty",
+  "playlistEmptyBody": "Add songs from the ··· menu on any song.",
+  "playlistRemove": "Remove from playlist",
+  "playlistLoadError": "We couldn't load your playlists.",
+  "playlistOpenError": "We couldn't open this playlist.",
+  "playlistLabel": "Playlist",
+  "likesEmptyTitle": "Songs you like will live here",
+  "likesEmptyBody": "Tap the heart on any song to save it.",
+  "likesSubtitle": "{songs} · Your favorites in one place",
+  "@likesSubtitle": {
+    "placeholders": {
+      "songs": {
+        "type": "String"
+      }
+    }
+  },
+  "likesBadge": "Favorites",
+  "likesRemove": "Remove from Liked songs",
+  "trackLike": "Like",
+  "trackAddToPlaylist": "Add to playlist…",
+  "trackGoToAlbum": "Go to album",
+  "trackGoToArtist": "Go to artist",
+  "toastPlaysNext": "Plays next",
+  "toastAddedToQueue": "Added to queue",
+  "toastLiked": "Added to Liked songs",
+  "toastUnliked": "Removed from Liked songs",
+  "homeGreetingMorning": "Good morning",
+  "homeGreetingAfternoon": "Good afternoon",
+  "homeGreetingEvening": "Good evening",
+  "homeGreetingNight": "Late-night session",
+  "homeSubtitleWarm": "Pick up where you left off.",
+  "homeSongsReady": "{count, plural, =1{1 song, ready when you are.} other{{count} songs, ready when you are.}}",
+  "@homeSongsReady": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeEmptyTitle": "No music here yet",
+  "homeEmptyBody": "Copy songs to your phone's Music folder, then scan again.",
+  "homeFreshTitle": "Your library is ready",
+  "homeJumpBackIn": "Jump back in",
+  "homeQuickRecent": "Recently added",
+  "homeRecentlyPlayed": "Recently played",
+  "homeOnRepeat": "On repeat this week",
+  "homeRediscover": "Rediscover",
+  "homeYourArtists": "Your artists",
+  "homeRecentlyAdded": "Recently added",
+  "homeYourPlaylists": "Your playlists",
+  "homeWeeklyPlays": "{count, plural, =1{play this week} other{plays this week}}",
+  "@homeWeeklyPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLoadError": "We couldn't load your home. Pull down to try again.",
+  "homeExtrasTitle": "Add artist photos and bios?",
+  "homeExtrasBody": "Troona can fetch them from Last.fm and Deezer using artist and album names. Your music files stay on this device.",
+  "homeExtrasAccept": "Turn on",
+  "homeExtrasDecline": "Not now",
+  "homeExtrasDeclined": "You can turn them on anytime in Settings.",
+  "queueTitle": "Queue",
+  "queueHistory": "History",
+  "queueBackToNow": "Back to now playing",
+  "queueNowPlaying": "Now playing",
+  "queueRepeatOne": "Repeating this song",
+  "queueRepeatAll": "Then back to the start",
+  "queueNothingNext": "Nothing up next",
+  "queueUpNext": "Up next · {count}",
+  "@queueUpNext": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "queueRemoved": "Removed \"{title}\"",
+  "@queueRemoved": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepTimer": "Sleep timer",
+  "sleepStopsAt": "Music stops at {time}.",
+  "@sleepStopsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepStopsEndOfSong": "Music stops at the end of this song.",
+  "sleepIdle": "Stop the music after a while.",
+  "sleepOneHour": "1 hour",
+  "sleepEndOfSong": "End of song",
+  "sleepTurnOff": "Turn off",
+  "playbackSpeed": "Playback speed",
+  "playbackSpeedNormal": "{speed} (normal)",
+  "@playbackSpeedNormal": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "playbackPosition": "Playback position",
+  "playbackPositionValue": "{position} of {duration}",
+  "@playbackPositionValue": {
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "metaAboutAlbum": "About this album",
+  "metaAboutArtist": "About",
+  "metaOnTour": "On tour",
+  "metaReadMore": "Read more",
+  "metaReadLess": "Show less",
+  "metaSimilarArtists": "Similar artists",
+  "playerPause": "Pause",
+  "playerNext": "Next",
+  "playerPrevious": "Previous",
+  "playerShuffle": "Shuffle",
+  "playerRepeatOff": "Repeat off",
+  "playerRepeatAll": "Repeat all",
+  "playerRepeatOne": "Repeat this song",
+  "playerClose": "Close player",
+  "playerOpen": "Open player"
 }

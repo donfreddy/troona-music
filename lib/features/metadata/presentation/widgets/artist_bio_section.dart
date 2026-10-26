@@ -4,6 +4,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class ArtistBioSection extends StatefulWidget {
   final ArtistOnlineInfo info;
@@ -46,9 +47,9 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                   children: [
                     Icon(LucideIcons.user, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
-                    const Text(
-                      'À propos',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.metaAboutArtist,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -91,9 +92,9 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Text(
-                              'En tournée',
-                              style: TextStyle(
+                            Text(
+                              context.l10n.metaOnTour,
+                              style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF10B981),
@@ -222,7 +223,9 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _isExpanded ? 'Moins' : 'Lire la suite',
+                          _isExpanded
+                              ? context.l10n.metaReadLess
+                              : context.l10n.metaReadMore,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -256,7 +259,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Artistes similaires',
+                    context.l10n.metaSimilarArtists,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,

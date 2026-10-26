@@ -13,6 +13,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class SearchTopResult extends StatelessWidget {
   final SearchResult result;
@@ -115,7 +116,10 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(label: 'ARTISTE', color: colors.accent),
+                  _Badge(
+                    label: context.l10n.searchBadgeArtist,
+                    color: colors.accent,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     artist.name,
@@ -129,8 +133,12 @@ class SearchTopResult extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}'
-                    '${artist.albumCount > 0 ? ' • ${artist.albumCount} ${artist.albumCount > 1 ? 'albums' : 'album'}' : ''}',
+                    artist.albumCount > 0
+                        ? context.l10n.detailCountsSummary(
+                            context.l10n.songCount(artist.trackCount),
+                            context.l10n.albumCount(artist.albumCount),
+                          )
+                        : context.l10n.songCount(artist.trackCount),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.labelSecondary,
@@ -183,7 +191,10 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(label: 'ALBUM', color: colors.accent),
+                  _Badge(
+                    label: context.l10n.searchBadgeAlbum,
+                    color: colors.accent,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     album.name,
@@ -197,7 +208,10 @@ class SearchTopResult extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${album.artist} • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}',
+                    context.l10n.albumByArtist(
+                      album.artist,
+                      context.l10n.songCount(album.trackCount),
+                    ),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.labelSecondary,
@@ -261,7 +275,10 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(label: 'TITRE', color: colors.accent),
+                  _Badge(
+                    label: context.l10n.searchBadgeSong,
+                    color: colors.accent,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     track.title,
@@ -321,7 +338,7 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        label,
+        label.toUpperCase(),
         style: TextStyle(
           color: color,
           fontSize: 10,

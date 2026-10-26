@@ -3,12 +3,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
 import 'package:troona/features/home/presentation/widgets/home_hero_banner.dart';
+import 'package:troona/features/home/presentation/widgets/online_extras_offer.dart';
 import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/features/home/presentation/widgets/recently_played_grid.dart';
 import 'package:troona/features/home/presentation/widgets/top_weekly_row.dart';
@@ -18,16 +20,16 @@ import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
+import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HomePage — Troona's adaptive home feed
+// HomePage: Troona's adaptive home feed
 // ─────────────────────────────────────────────────────────────────────────────
 //
-// Displays two distinct visual states:
-// • Cold Start  — elegant welcome + scan CTA when no plays exist
-// • Warm State  — intelligent feed driven by local listening stats
+// Three states, driven by the library size and the listening history:
+// empty (no music), fresh (music, no plays yet) and warm (stats-driven feed).
 // ─────────────────────────────────────────────────────────────────────────────
 
 class HomePage extends StatelessWidget {
@@ -45,7 +47,13 @@ class HomePage extends StatelessWidget {
             parent: AlwaysScrollableScrollPhysics(),
           ),
           slivers: [
-            const SliverToBoxAdapter(child: _HomeHeader()),
+            SliverToBoxAdapter(
+              child: BlocBuilder<HomeBloc, HomeState>(
+                buildWhen: (a, b) => _subtitleKey(a) != _subtitleKey(b),
+                builder: (context, state) =>
+                    _HomeHeader(subtitle: _subtitleOf(context, state)),
+              ),
+            ),
             BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
@@ -58,7 +66,12 @@ class HomePage extends StatelessWidget {
                 }
                 if (state is HomeError) {
                   return SliverFillRemaining(
-                    child: Center(child: Text(state.message)),
+                    hasScrollBody: false,
+                    child: ErrorView(
+                      body: context.l10n.homeLoadError,
+                      onRetry: () =>
+                          context.read<HomeBloc>().add(HomeRefreshRequested()),
+                    ),
                   );
                 }
                 return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -69,10 +82,25 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+
+  static Object? _subtitleKey(HomeState state) => switch (state) {
+    HomeLoaded(:final feed, :final totalTracks) => (
+      feed.isColdStart,
+      totalTracks,
+    ),
+    _ => null,
+  };
+
+  static String? _subtitleOf(BuildContext context, HomeState state) {
+    if (state is! HomeLoaded || state.totalTracks == 0) return null;
+    return state.feed.isColdStart
+        ? context.l10n.homeSongsReady(state.totalTracks)
+        : context.l10n.homeSubtitleWarm;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Home Body — assembles all sections based on feed state
+// Home body: assembles all sections based on feed state
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _HomeBody extends StatelessWidget {
@@ -91,6 +119,8 @@ class _HomeBody extends StatelessWidget {
         SliverToBoxAdapter(
           child: HomeHeroBanner(
             lastPlayed: isColdStart ? null : feed.recentlyPlayed.firstOrNull,
+            totalTracks: state.totalTracks,
+            onShuffleAll: () => shuffleWholeLibrary(context),
             onContinue: isColdStart
                 ? null
                 : () {
@@ -103,13 +133,16 @@ class _HomeBody extends StatelessWidget {
                       ),
                     );
                   },
-            onScanLibrary: () {
+            onScanAgain: () {
               context.read<LibraryBloc>().add(LibraryScanRequested());
               context.go(AppRoute.library);
             },
           ),
         ),
         const _SectionGap(),
+
+        if (state.totalTracks > 0)
+          const SliverToBoxAdapter(child: OnlineExtrasOffer()),
 
         // ── Quick Access Chips ───────────────────────────────────────────
         SliverToBoxAdapter(
@@ -133,7 +166,7 @@ class _HomeBody extends StatelessWidget {
             child: EntranceFader.staggered(
               index: 0,
               slideY: 0.05,
-              child: SectionHeader(title: 'Recently Played'),
+              child: SectionHeader(title: context.l10n.homeRecentlyPlayed),
             ),
           ),
           SliverToBoxAdapter(
@@ -148,7 +181,7 @@ class _HomeBody extends StatelessWidget {
             child: EntranceFader.staggered(
               index: 0,
               slideY: 0.05,
-              child: SectionHeader(title: 'Your Top This Week'),
+              child: SectionHeader(title: context.l10n.homeOnRepeat),
             ),
           ),
           SliverToBoxAdapter(child: TopWeeklyRow(items: feed.topWeekly)),
@@ -161,7 +194,7 @@ class _HomeBody extends StatelessWidget {
             child: EntranceFader.staggered(
               index: 0,
               slideY: 0.05,
-              child: SectionHeader(title: 'Hidden Gems 💎'),
+              child: SectionHeader(title: context.l10n.homeRediscover),
             ),
           ),
           SliverToBoxAdapter(child: HiddenGemsRow(tracks: feed.hiddenGems)),
@@ -175,7 +208,7 @@ class _HomeBody extends StatelessWidget {
               index: 0,
               slideY: 0.05,
               child: SectionHeader(
-                title: 'Your Artists',
+                title: context.l10n.homeYourArtists,
                 onViewAll: () {
                   context.read<LibraryBloc>().add(
                     const LibraryFilterChanged(LibraryFilter.artists),
@@ -206,14 +239,14 @@ class _HomeBody extends StatelessWidget {
           const _SectionGap(),
         ],
 
-        // ── New in Library (Albums) ──────────────────────────────────────
+        // ── Recently added albums ────────────────────────────────────────
         if (feed.newAlbums.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: EntranceFader.staggered(
               index: 0,
               slideY: 0.05,
               child: SectionHeader(
-                title: 'New in Library',
+                title: context.l10n.homeRecentlyAdded,
                 onViewAll: () {
                   context.read<LibraryBloc>().add(
                     const LibraryFilterChanged(LibraryFilter.albums),
@@ -250,7 +283,7 @@ class _HomeBody extends StatelessWidget {
             child: EntranceFader.staggered(
               index: 0,
               slideY: 0.05,
-              child: SectionHeader(title: 'Your Playlists'),
+              child: SectionHeader(title: context.l10n.homeYourPlaylists),
             ),
           ),
           SliverToBoxAdapter(
@@ -291,21 +324,22 @@ class _HomeBody extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Header — greeting + settings icon
+// Header: greeting and settings button
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader();
+  final String? subtitle;
 
-  String get _greeting {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) {
-      return 'Good Morning';
-    } else if (hour >= 12 && hour < 17) {
-      return 'Good Afternoon';
-    } else {
-      return 'Good Evening';
-    }
+  const _HomeHeader({required this.subtitle});
+
+  static String _greeting(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (DateTime.now().hour) {
+      >= 5 && < 12 => l10n.homeGreetingMorning,
+      >= 12 && < 18 => l10n.homeGreetingAfternoon,
+      >= 18 && < 23 => l10n.homeGreetingEvening,
+      _ => l10n.homeGreetingNight,
+    };
   }
 
   @override
@@ -328,24 +362,26 @@ class _HomeHeader extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _greeting,
+                            _greeting(context),
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(
-                            'Welcome back to your music',
-                            style: TextStyle(
-                              color: context.colors.labelSecondary,
-                              fontSize: 18,
+                          if (subtitle != null)
+                            Text(
+                              subtitle!,
+                              style: TextStyle(
+                                color: context.colors.labelSecondary,
+                                fontSize: 17,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
                     GlassIconButton(
                       icon: LucideIcons.settings,
+                      tooltip: context.l10n.settingsTitle,
                       onTap: () => context.pushNamed(AppRoute.settings),
                     ),
                   ],
@@ -359,7 +395,7 @@ class _HomeHeader extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Weekly Stats Banner — compact glass card with play count
+// Weekly stats banner: compact card with the play count
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _WeeklyStatsBanner extends StatelessWidget {
@@ -419,7 +455,7 @@ class _WeeklyStatsBanner extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      const TextSpan(text: 'plays this week'),
+                      TextSpan(text: context.l10n.homeWeeklyPlays(playCount)),
                     ],
                   ),
                 ),
@@ -433,7 +469,7 @@ class _WeeklyStatsBanner extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section Gap — consistent vertical spacing between home sections
+// Section gap: consistent vertical spacing between home sections
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SectionGap extends StatelessWidget {

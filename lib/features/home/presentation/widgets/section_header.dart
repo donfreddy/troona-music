@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -48,9 +49,9 @@ class SectionHeader extends StatelessWidget {
                     width: 0.5,
                   ),
                 ),
-                child: const Text(
-                  'View All',
-                  style: TextStyle(
+                child: Text(
+                  context.l10n.actionSeeAll,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,

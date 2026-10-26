@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -9,35 +10,67 @@ import 'package:troona/shared/widgets/artwork_image.dart';
 
 /// Hero banner at the top of the home page.
 ///
-/// Two modes:
-/// - **Welcome** (Cold Start): elegant invite to scan the library.
-/// - **Continue Listening** (Warm State): last played track with play CTA.
+/// Three modes:
+/// - **Empty**: no music on the device; explains how to add some.
+/// - **Fresh**: music but no plays yet; offers a shuffle of everything.
+/// - **Continue**: the last played song, one tap to resume.
 class HomeHeroBanner extends StatelessWidget {
-  /// Null when in Cold Start mode.
+  /// Null until something has been played.
   final Track? lastPlayed;
+  final int totalTracks;
   final VoidCallback? onContinue;
-  final VoidCallback? onScanLibrary;
+  final VoidCallback? onShuffleAll;
+  final VoidCallback? onScanAgain;
 
   const HomeHeroBanner({
     super.key,
     this.lastPlayed,
+    required this.totalTracks,
     this.onContinue,
-    this.onScanLibrary,
+    this.onShuffleAll,
+    this.onScanAgain,
   });
-
-  bool get _isColdStart => lastPlayed == null;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: _isColdStart ? _buildWelcome(context) : _buildContinue(context),
+      child: switch ((lastPlayed, totalTracks)) {
+        (_, 0) => _buildWelcome(
+          context,
+          icon: LucideIcons.music,
+          title: l10n.homeEmptyTitle,
+          body: l10n.homeEmptyBody,
+          ctaIcon: LucideIcons.refreshCw,
+          ctaLabel: l10n.libraryScanAgain,
+          onTap: onScanAgain,
+        ),
+        (null, _) => _buildWelcome(
+          context,
+          icon: LucideIcons.headphones,
+          title: l10n.homeFreshTitle,
+          body: l10n.homeSongsReady(totalTracks),
+          ctaIcon: LucideIcons.shuffle,
+          ctaLabel: l10n.libraryShuffleAll,
+          onTap: onShuffleAll,
+        ),
+        _ => _buildContinue(context),
+      },
     );
   }
 
-  // ── Cold Start: Welcome Card ────────────────────────────────────────────
+  // ── Empty and fresh: invitation card ────────────────────────────────────
 
-  Widget _buildWelcome(BuildContext context) {
+  Widget _buildWelcome(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String body,
+    required IconData ctaIcon,
+    required String ctaLabel,
+    required VoidCallback? onTap,
+  }) {
     final glass = GlassTheme.card(context);
     return Container(
           width: double.infinity,
@@ -64,15 +97,12 @@ class HomeHeroBanner extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: context.colors.accent.withValues(alpha: .12),
                 ),
-                child: Icon(
-                  LucideIcons.music,
-                  color: context.colors.accent,
-                  size: 28,
-                ),
+                child: Icon(icon, color: context.colors.accent, size: 28),
               ),
               const SizedBox(height: AppSpacing.lg),
               Text(
-                'Your music, offline.',
+                title,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: context.colors.labelPrimary,
                   fontSize: 22,
@@ -82,17 +112,17 @@ class HomeHeroBanner extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                'Always.',
+                body,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: context.colors.labelSecondary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  height: 1.4,
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
-              // Scan CTA
               GestureDetector(
-                onTap: onScanLibrary,
+                onTap: onTap,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
@@ -106,13 +136,13 @@ class HomeHeroBanner extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        LucideIcons.search,
+                        ctaIcon,
                         color: context.colors.accentForeground,
                         size: 18,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
-                        'Scan Library',
+                        ctaLabel,
                         style: TextStyle(
                           color: context.colors.accentForeground,
                           fontSize: 16,
@@ -131,7 +161,7 @@ class HomeHeroBanner extends StatelessWidget {
         .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
   }
 
-  // ── Warm State: Continue Listening ──────────────────────────────────────
+  // ── Continue ────────────────────────────────────────────────────────────
 
   Widget _buildContinue(BuildContext context) {
     final track = lastPlayed!;
@@ -205,7 +235,7 @@ class HomeHeroBanner extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Continue listening',
+                              context.l10n.homeJumpBackIn,
                               style: TextStyle(
                                 color: context.colors.accent,
                                 fontSize: 12,

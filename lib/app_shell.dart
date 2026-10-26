@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -15,6 +16,7 @@ import 'package:troona/features/player/presentation/bloc/palette/track_palette_c
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
@@ -46,7 +48,8 @@ class _AppShellState extends State<AppShell> {
   bool _didRestoreFullPlayerRoute = false;
   String _currentLocation = '';
   GoRouter? _router;
-  StreamSubscription<String>? _noticesSub;
+  StreamSubscription<PlayerNotice>? _noticesSub;
+  LibraryLoaded? _rescanBaseline;
 
   @override
   void initState() {
@@ -68,23 +71,14 @@ class _AppShellState extends State<AppShell> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _noticesSub = context.read<PlayerBloc>().notices.listen((message) {
+      _noticesSub = context.read<PlayerBloc>().notices.listen((notice) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-              bottom:
-                  AppSpacing.bottomBlockHeight +
-                  MediaQuery.of(context).padding.bottom +
-                  8,
-              left: 12,
-              right: 12,
-            ),
-          ),
-        );
+        final l10n = context.l10n;
+        final message = switch (notice) {
+          TrackUnplayable(:final title?) => l10n.playerCantPlay(title),
+          TrackUnplayable() => l10n.playerCantPlayUnknown,
+        };
+        AppToast.show(context, message);
       });
     });
   }
@@ -144,10 +138,30 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final safeBottom = mediaQuery.padding.bottom;
-    final safeTop = mediaQuery.padding.top;
 
     return MultiBlocListener(
       listeners: [
+        BlocListener<LibraryBloc, LibraryState>(
+          // A rescan over cached data runs silently; only its outcome is
+          // worth a toast. listener only sees the new state, so the
+          // baseline is captured here.
+          listenWhen: (previous, current) {
+            if (previous case LibraryScanning(
+              :final cached?,
+            ) when current is LibraryLoaded) {
+              _rescanBaseline = cached;
+              return true;
+            }
+            return false;
+          },
+          listener: (context, state) {
+            final before = _rescanBaseline;
+            _rescanBaseline = null;
+            if (before != null && state is LibraryLoaded) {
+              _announceRescan(before, state);
+            }
+          },
+        ),
         BlocListener<LibraryBloc, LibraryState>(
           listenWhen: (previous, current) =>
               !_didRequestPlaybackRestore && _canRestorePlayback(current),
@@ -225,16 +239,6 @@ class _AppShellState extends State<AppShell> {
                 // ── The Branch Content ─────────────────────────────────────────
                 Positioned.fill(child: widget.navigationShell),
 
-                if (libraryState case LibraryScanning(
-                  :final cached,
-                ) when cached != null)
-                  Positioned(
-                    top: safeTop + 12,
-                    left: 12,
-                    right: 12,
-                    child: _LibraryRescanBanner(state: libraryState),
-                  ),
-
                 // ── Bottom Bar ────────────────────────────────────────────────
                 Positioned(
                   bottom: 0,
@@ -255,6 +259,19 @@ class _AppShellState extends State<AppShell> {
         },
       ),
     );
+  }
+
+  void _announceRescan(LibraryLoaded before, LibraryLoaded after) {
+    final beforeIds = {for (final t in before.allTracks) t.id};
+    final afterIds = {for (final t in after.allTracks) t.id};
+    final added = afterIds.difference(beforeIds).length;
+    final removed = beforeIds.difference(afterIds).length;
+    final l10n = context.l10n;
+    if (added > 0) {
+      AppToast.show(context, l10n.scanNewSongs(added));
+    } else if (removed > 0) {
+      AppToast.show(context, l10n.scanRemovedSongs(removed));
+    }
   }
 
   bool _shouldShowBootstrap(LibraryState state) => switch (state) {
@@ -279,9 +296,6 @@ class _AppShellState extends State<AppShell> {
     _ => AppTab.home,
   };
 }
-
-// Keep the private bootstrap/banner classes below...
-// (I am keeping them identical to your previous version but ensuring they are in the file)
 
 class _LibraryBootstrapScreen extends StatelessWidget {
   final LibraryState state;
@@ -323,8 +337,9 @@ class _LibraryBootstrapScreen extends StatelessWidget {
                     ),
                   ),
                   child: switch (state) {
-                    LibraryError(:final message) => ErrorView(
-                      message: message,
+                    LibraryError() => ErrorView(
+                      title: context.l10n.libraryLoadErrorTitle,
+                      body: context.l10n.libraryLoadErrorBody,
                       onRetry: onRetry,
                     ),
                     _ => _LibraryBootstrapContent(state: state),
@@ -353,22 +368,25 @@ class _LibraryBootstrapContent extends StatelessWidget {
         scanning != null &&
         scanning.progress.total > 0 &&
         scanning.progress.phase != ScanPhase.scanning;
+    final l10n = context.l10n;
     final counterLabel = scanning == null
         ? null
         : switch (scanning.progress.phase) {
             ScanPhase.scanning when scanning.progress.count > 0 =>
-              '${scanning.progress.count} songs found',
+              l10n.scanSongsFound(scanning.progress.count),
             ScanPhase.indexing || ScanPhase.artworks
                 when scanning.progress.total > 0 =>
-              '${scanning.progress.count}/${scanning.progress.total}',
+              l10n.scanProgress(
+                scanning.progress.count,
+                scanning.progress.total,
+              ),
             _ => null,
           };
     final phaseLabel = switch (scanning?.progress.phase) {
-      ScanPhase.scanning => 'Scanning your device for songs...',
-      ScanPhase.indexing => 'Indexing your library...',
-      ScanPhase.artworks => 'Loading album artwork...',
-      ScanPhase.done => 'Preparing your home screen...',
-      null => 'Preparing your home screen...',
+      ScanPhase.scanning => l10n.scanPhaseScanning,
+      ScanPhase.indexing => l10n.scanPhaseIndexing,
+      ScanPhase.artworks => l10n.scanPhaseArtwork,
+      ScanPhase.done || null => l10n.scanPhaseDone,
     };
 
     return Column(
@@ -389,8 +407,8 @@ class _LibraryBootstrapContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        const Text(
-          'Loading your music',
+        Text(
+          l10n.scanTitle,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white,
@@ -434,72 +452,6 @@ class _LibraryBootstrapContent extends StatelessWidget {
         else
           const CupertinoActivityIndicator(radius: 14),
       ],
-    );
-  }
-}
-
-class _LibraryRescanBanner extends StatelessWidget {
-  final LibraryScanning state;
-
-  const _LibraryRescanBanner({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final progress = state.progress.progress.clamp(0.0, 1.0);
-    final showDeterminate =
-        state.progress.total > 0 && state.progress.phase != ScanPhase.scanning;
-    final phaseLabel = switch (state.progress.phase) {
-      ScanPhase.scanning => 'Scanning for new songs...',
-      ScanPhase.indexing => 'Updating your library...',
-      ScanPhase.artworks => 'Refreshing album artwork...',
-      ScanPhase.done => 'Finalizing...',
-    };
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: .58),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: Colors.white.withValues(alpha: .08)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Updating your library',
-              style: TextStyle(
-                color: colors.labelPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              phaseLabel,
-              style: TextStyle(color: colors.labelSecondary, fontSize: 12),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (showDeterminate)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                child: LinearProgressIndicator(
-                  minHeight: 4,
-                  value: progress,
-                  backgroundColor: Colors.white.withValues(alpha: .10),
-                  valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
-                ),
-              )
-            else
-              const CupertinoActivityIndicator(radius: 9),
-          ],
-        ),
-      ),
     );
   }
 }

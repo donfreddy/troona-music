@@ -5,6 +5,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class AlbumCard extends StatelessWidget {
   final Album album;
@@ -55,7 +56,10 @@ class AlbumCard extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 album.trackCount > 0
-                    ? '${album.artist} • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}'
+                    ? context.l10n.albumByArtist(
+                        album.artist,
+                        context.l10n.songCount(album.trackCount),
+                      )
                     : album.artist,
                 style: TextStyle(
                   color: context.colors.labelSecondary,

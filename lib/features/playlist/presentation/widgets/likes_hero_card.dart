@@ -11,8 +11,9 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
-/// Hero Banner for the "Titres likés" (Coups de cœur) playlist.
+/// Hero banner for the liked songs playlist.
 ///
 /// Features a dark carmine/ruby glass aesthetic, direct one-tap playback,
 /// and an overlapping 3-card artwork deck displaying recent favorite covers.
@@ -93,7 +94,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final count = widget.playlist.trackIds.length;
-    final countLabel = count == 1 ? '1 morceau' : '$count morceaux';
+    final l10n = context.l10n;
 
     return GestureDetector(
       onTap: () => context.pushPlaylist(widget.playlist.id),
@@ -142,18 +143,18 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                         width: 0.8,
                       ),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           LucideIcons.heart,
                           size: 11,
                           color: Color(0xFFB79CFF),
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
-                          'COUPS DE CŒUR',
-                          style: TextStyle(
+                          l10n.likesBadge.toUpperCase(),
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.1,
@@ -166,9 +167,9 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                   const SizedBox(height: 8),
 
                   // Title
-                  const Text(
-                    'Titres likés',
-                    style: TextStyle(
+                  Text(
+                    l10n.likedSongs,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -182,8 +183,8 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                   // Subtitle
                   Text(
                     count == 0
-                        ? 'Aucun titre favori pour le moment'
-                        : '$countLabel • Vos favoris réunis',
+                        ? l10n.likesEmptyBody
+                        : l10n.likesSubtitle(l10n.songCount(count)),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.65),
@@ -217,18 +218,18 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               LucideIcons.play,
                               size: 14,
                               color: Color(0xFF12081F),
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
-                              'Écouter',
-                              style: TextStyle(
+                              l10n.actionPlay,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: Color(0xFF12081F),

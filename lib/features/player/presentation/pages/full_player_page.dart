@@ -22,6 +22,7 @@ import 'package:troona/features/player/presentation/widgets/track_title_switcher
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class FullPlayerPage extends StatefulWidget {
   const FullPlayerPage({super.key, this.morphFromMini = true});
@@ -518,24 +519,34 @@ class _TopBar extends StatelessWidget {
           ),
           Row(
             children: [
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => _dismissFullPlayer(context),
-                child: const Icon(
-                  EvaIcons.chevronDown,
-                  color: Colors.white,
-                  size: 22,
+              Semantics(
+                button: true,
+                label: context.l10n.playerClose,
+                excludeSemantics: true,
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  onPressed: () => _dismissFullPlayer(context),
+                  child: const Icon(
+                    EvaIcons.chevronDown,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
               const Spacer(),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size.square(40),
-                onPressed: () => _showOptionsSheet(context),
-                child: const Icon(
-                  EvaIcons.moreVertical,
-                  color: Colors.white,
-                  size: 22,
+              Semantics(
+                button: true,
+                label: context.l10n.detailMore,
+                excludeSemantics: true,
+                child: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size.square(40),
+                  onPressed: () => _showOptionsSheet(context),
+                  child: const Icon(
+                    EvaIcons.moreVertical,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
             ],
@@ -602,6 +613,9 @@ class _TrackInfo extends StatelessWidget {
             final isLiked = state.isLiked && state.id == track?.id;
             return IconButton(
               padding: EdgeInsets.zero,
+              tooltip: isLiked
+                  ? context.l10n.likesRemove
+                  : context.l10n.trackLike,
               onPressed: () => context.read<LikesCubit>().toggle(track),
               icon: Icon(
                 isLiked ? EvaIcons.heart : EvaIcons.heartOutline,

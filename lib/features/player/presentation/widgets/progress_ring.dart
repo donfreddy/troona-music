@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 /// Gap left free around the time label at the bottom of the ring, per side.
 const double _kLabelGap = GlassLens.labelGap;
@@ -332,8 +333,11 @@ class _SeekSemanticsState extends State<_SeekSemantics> {
     return Semantics(
       container: true,
       slider: true,
-      label: 'Playback position',
-      value: '${at(progress.position)} of ${at(progress.duration)}',
+      label: context.l10n.playbackPosition,
+      value: context.l10n.playbackPositionValue(
+        at(progress.position),
+        at(progress.duration),
+      ),
       increasedValue: at(up > progress.duration ? progress.duration : up),
       decreasedValue: at(down.isNegative ? Duration.zero : down),
       onIncrease: widget.onIncrease,

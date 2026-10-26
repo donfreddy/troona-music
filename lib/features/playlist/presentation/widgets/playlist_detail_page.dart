@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -13,6 +15,7 @@ import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playl
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class PlaylistDetailPage extends StatelessWidget {
   final String id;
@@ -44,7 +47,9 @@ class PlaylistDetailPage extends StatelessWidget {
                 slivers: [
                   _SliverHeader(
                     id: id,
-                    name: isLikes ? 'Titres likés' : data.playlist.name,
+                    name: isLikes
+                        ? context.l10n.likedSongs
+                        : data.playlist.name,
                     tracks: data.tracks,
                     artworkPath: data.playlist.artworkPath,
                     isLikes: isLikes,
@@ -60,22 +65,10 @@ class PlaylistDetailPage extends StatelessWidget {
             }
 
             if (state is PlaylistDetailError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Erreur: ${state.message}',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    ElevatedButton(
-                      onPressed: () => context.read<PlaylistDetailBloc>().add(
-                        PlaylistDetailRequested(id),
-                      ),
-                      child: const Text('Réessayer'),
-                    ),
-                  ],
+              return ErrorView(
+                body: context.l10n.playlistOpenError,
+                onRetry: () => context.read<PlaylistDetailBloc>().add(
+                  PlaylistDetailRequested(id),
                 ),
               );
             }
@@ -112,18 +105,24 @@ class _SliverHeader extends StatelessWidget {
 
   void _onShuffle(BuildContext context) {
     if (tracks.isEmpty) return;
-    context.read<PlayerBloc>().add(const ShuffleToggleRequested());
+    final bloc = context.read<PlayerBloc>();
+    final alreadyShuffled = switch (bloc.state) {
+      PlayerActive(:final shuffleEnabled) => shuffleEnabled,
+      _ => false,
+    };
     final shuffled = List<Track>.from(tracks)..shuffle();
-    context.read<PlayerBloc>().add(
+    bloc.add(
       PlayTrackRequested(shuffled[0], contextQueue: shuffled, contextIndex: 0),
     );
+    // A toggle: sending it while shuffle is on would turn it off.
+    if (!alreadyShuffled) bloc.add(const ShuffleToggleRequested());
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final trackCount = tracks.length;
-    final countLabel = trackCount == 1 ? '1 morceau' : '$trackCount morceaux';
+    final countLabel = context.l10n.songCount(trackCount);
 
     return SliverAppBar(
       expandedHeight: 330,
@@ -240,7 +239,7 @@ class _SliverHeader extends StatelessWidget {
                         ElevatedButton.icon(
                           onPressed: () => _onPlay(context),
                           icon: const Icon(LucideIcons.play, size: 18),
-                          label: const Text('Lecture'),
+                          label: Text(context.l10n.actionPlay),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colors.accent,
                             foregroundColor: Colors.black,
@@ -288,39 +287,14 @@ class _TrackList extends StatelessWidget {
     if (tracks.isEmpty) {
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isLikes ? LucideIcons.heartOff : LucideIcons.music,
-                  color: Colors.white24,
-                  size: 48,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  isLikes
-                      ? 'Aucun titre liké pour le moment'
-                      : 'Aucun morceau dans cette playlist',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  isLikes
-                      ? 'Touchez le cœur sur un titre pour l\'ajouter ici'
-                      : 'Ajoutez des morceaux depuis votre bibliothèque',
-                  style: const TextStyle(color: Colors.white38, fontSize: 13),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+        child: EmptyState(
+          icon: isLikes ? LucideIcons.heart : LucideIcons.listMusic,
+          title: isLikes
+              ? context.l10n.likesEmptyTitle
+              : context.l10n.playlistEmptyTitle,
+          body: isLikes
+              ? context.l10n.likesEmptyBody
+              : context.l10n.playlistEmptyBody,
         ),
       );
     }
@@ -383,13 +357,13 @@ class _TrackTile extends StatelessWidget {
               }
             },
             child: Text(
-              isLikes ? 'Retirer des Titres likés' : 'Retirer de la playlist',
+              isLikes ? context.l10n.likesRemove : context.l10n.playlistRemove,
             ),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Annuler'),
+          child: Text(context.l10n.actionCancel),
         ),
       ),
     );

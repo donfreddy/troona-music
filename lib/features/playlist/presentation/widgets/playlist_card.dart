@@ -6,8 +6,9 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
-/// Premium Playlist Card used in Grid layouts and Home carousels.
+/// Playlist card for grids and Home carousels.
 class PlaylistCard extends StatelessWidget {
   final Playlist playlist;
   final double? size;
@@ -19,7 +20,7 @@ class PlaylistCard extends StatelessWidget {
     final colors = context.colors;
     final isLikes = playlist.id == IsarLibraryDataSource.likesPlaylistId;
     final count = playlist.trackIds.length;
-    final countLabel = count == 1 ? '1 titre' : '$count titres';
+    final countLabel = context.l10n.songCount(count);
 
     final coverWidget = AspectRatio(
       aspectRatio: 1.0,
@@ -146,7 +147,7 @@ class PlaylistCard extends StatelessWidget {
 
         // Title
         Text(
-          isLikes ? 'Titres likés' : playlist.name,
+          isLikes ? context.l10n.likedSongs : playlist.name,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 14.5,
@@ -160,7 +161,7 @@ class PlaylistCard extends StatelessWidget {
 
         // Subtitle
         Text(
-          isLikes ? 'Coups de cœur' : 'Playlist',
+          isLikes ? context.l10n.likesBadge : context.l10n.playlistLabel,
           style: TextStyle(
             color: isLikes ? const Color(0xFFD4C4FF) : colors.labelSecondary,
             fontSize: 12,

@@ -13,6 +13,10 @@ abstract final class AppPermissionHandler {
 
   static final OnAudioQuery _audioQuery = OnAudioQuery();
 
+  /// Android kills the process when a runtime permission is revoked, so a
+  /// grant seen once holds for the rest of the process.
+  static bool _granted = false;
+
   /// Resolves the correct [Permission] for the running platform/SDK.
   /// Async because Android SDK version requires a device info call.
   static Future<Permission> _resolvePermission() async {
@@ -45,11 +49,15 @@ abstract final class AppPermissionHandler {
             );
           }
         }
-        return true;
+        return _granted = true;
 
       case PermissionStatus.permanentlyDenied:
-        await openAppSettings();
-        throw const PermissionException('Audio permission permanently denied.');
+        // The page explains and offers Settings: opening it unasked lands the
+        // user in system settings with no context.
+        throw const PermissionException(
+          'Audio permission permanently denied.',
+          true,
+        );
 
       case PermissionStatus.denied:
       default:
@@ -59,8 +67,9 @@ abstract final class AppPermissionHandler {
     }
   }
 
-  /// Non-throwing check — `true` if permission is already granted.
+  /// Non-throwing check: `true` if permission is already granted.
   static Future<bool> hasAudioPermission() async {
+    if (_granted) return true;
     final permission = await _resolvePermission();
     final status = await permission.status;
     final granted =
@@ -69,9 +78,9 @@ abstract final class AppPermissionHandler {
     if (!granted) return false;
 
     if (Platform.isAndroid) {
-      return _audioQuery.permissionsStatus();
+      return _granted = await _audioQuery.permissionsStatus();
     }
 
-    return true;
+    return _granted = true;
   }
 }

@@ -7,6 +7,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class ArtistCard extends StatefulWidget {
   final Artist artist;
@@ -110,7 +111,7 @@ class _ArtistCardState extends State<ArtistCard> {
         ),
         if (widget.artist.trackCount > 0)
           Text(
-            '${widget.artist.trackCount} ${widget.artist.trackCount > 1 ? 'titres' : 'titre'}',
+            context.l10n.songCount(widget.artist.trackCount),
             style: TextStyle(fontSize: 11, color: colors.labelSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

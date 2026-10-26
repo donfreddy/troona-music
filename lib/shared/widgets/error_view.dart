@@ -1,58 +1,84 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 
+/// Full-area error state. Shows user-facing copy only: raw failure messages
+/// belong in the logs, not on screen.
 class ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
+  final String? title;
+  final String? body;
+  final VoidCallback? onRetry;
 
-  const ErrorView({super.key, required this.message, required this.onRetry});
+  const ErrorView({super.key, this.title, this.body, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
+    final l10n = context.l10n;
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            CupertinoIcons.exclamationmark_circle,
-            size: 48,
-            color: context.colors.labelTertiary,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Oups, une erreur est survenue :(',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              CupertinoIcons.exclamationmark_circle,
+              size: 44,
+              color: colors.labelTertiary,
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            message,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: .7),
-              fontSize: 14,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.xl2),
-          ElevatedButton(
-            onPressed: onRetry,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: .12),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              title ?? l10n.errorTitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.labelPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            child: const Text('Réessayer'),
-          ),
-        ],
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              body ?? l10n.errorGeneric,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: colors.labelSecondary,
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: AppSpacing.xl),
+              _PillButton(label: l10n.actionRetry, onPressed: onRetry!),
+            ],
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _PillButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _PillButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: Colors.white.withValues(alpha: .12),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        shape: const StadiumBorder(),
+        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+      ),
+      child: Text(label),
     );
   }
 }

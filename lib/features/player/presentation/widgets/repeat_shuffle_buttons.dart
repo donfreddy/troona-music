@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 class ShuffleButton extends StatelessWidget {
   const ShuffleButton({super.key});
@@ -16,6 +17,7 @@ class ShuffleButton extends StatelessWidget {
 
         return _ControlButton(
           icon: EvaIcons.shuffle2,
+          label: context.l10n.playerShuffle,
           active: enabled,
           onPressed: () =>
               context.read<PlayerBloc>().add(const ShuffleToggleRequested()),
@@ -37,47 +39,59 @@ class RepeatButton extends StatelessWidget {
       builder: (context, state) {
         final mode = _repeat(state) ?? RepeatMode.off;
 
-        return GestureDetector(
-          onTap: () => context.read<PlayerBloc>().add(
-            RepeatModeChangeRequested(_nextMode(mode)),
-          ),
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Icon(
-                  mode == RepeatMode.one ? Icons.repeat_on_sharp : Icons.repeat,
-                  color: mode == RepeatMode.off
-                      ? Colors.white.withValues(alpha: .4)
-                      : Colors.white,
-                  size: 22,
-                ),
-                // Indicateur "1" sous l'icône pour RepeatOne
-                if (mode == RepeatMode.one)
-                  Positioned(
-                    bottom: 6,
-                    child: Container(
-                      width: 16,
-                      height: 10,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      child: const Text(
-                        '1',
-                        style: TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                          height: 1,
+        final l10n = context.l10n;
+        return Semantics(
+          button: true,
+          label: switch (mode) {
+            RepeatMode.off => l10n.playerRepeatOff,
+            RepeatMode.all => l10n.playerRepeatAll,
+            RepeatMode.one => l10n.playerRepeatOne,
+          },
+          excludeSemantics: true,
+          child: GestureDetector(
+            onTap: () => context.read<PlayerBloc>().add(
+              RepeatModeChangeRequested(_nextMode(mode)),
+            ),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    mode == RepeatMode.one
+                        ? Icons.repeat_on_sharp
+                        : Icons.repeat,
+                    color: mode == RepeatMode.off
+                        ? Colors.white.withValues(alpha: .4)
+                        : Colors.white,
+                    size: 22,
+                  ),
+                  // "1" under the icon for repeat one
+                  if (mode == RepeatMode.one)
+                    Positioned(
+                      bottom: 6,
+                      child: Container(
+                        width: 16,
+                        height: 10,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text(
+                          '1',
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                            height: 1,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -94,30 +108,38 @@ class RepeatButton extends StatelessWidget {
   };
 }
 
-// ── Widget interne ────────────────────────────────────────────────────────────
+// ── Internal widget ───────────────────────────────────────────────────────────
 
 class _ControlButton extends StatelessWidget {
   final IconData icon;
+  final String label;
   final bool active;
   final VoidCallback onPressed;
 
   const _ControlButton({
     required this.icon,
+    required this.label,
     required this.active,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: SizedBox(
-        width: 44,
-        height: 44,
-        child: Icon(
-          icon,
-          color: active ? Colors.white : Colors.white.withValues(alpha: .4),
-          size: 22,
+    return Semantics(
+      button: true,
+      toggled: active,
+      label: label,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            icon,
+            color: active ? Colors.white : Colors.white.withValues(alpha: .4),
+            size: 22,
+          ),
         ),
       ),
     );

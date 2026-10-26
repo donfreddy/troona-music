@@ -1,24 +1,20 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:troona/core/error/exceptions.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 
-/// Full-screen onboarding & permission welcome experience.
+/// First-run welcome and audio permission request.
 ///
-/// Designed with Apple Music & Spotify aesthetics:
-/// - Atmospheric ambient mesh glows
-/// - Kinetic soundwave / vinyl hero visual
-/// - 3 Pillars of value proposition (Quality, Privacy, Smart Library)
-/// - Auto-recovery on app lifecycle resume (when returning from Settings)
-/// - Haptic feedback on all primary interactions
+/// Returning from system Settings re-checks the permission, so granting it
+/// there lands the user on Home without another tap.
 class PermissionPage extends StatefulWidget {
   const PermissionPage({super.key});
 
@@ -71,9 +67,8 @@ class _PermissionPageState extends State<PermissionPage>
       context.go('/home');
     } on PermissionException catch (e) {
       if (!mounted) return;
-      final isPermanent = e.message.toLowerCase().contains('permanent');
       setState(
-        () => _state = isPermanent
+        () => _state = e.permanent
             ? _PermissionState.permanentlyDenied
             : _PermissionState.denied,
       );
@@ -197,13 +192,6 @@ class _PermissionPageState extends State<PermissionPage>
                 ),
               ),
             ),
-            // Full backdrop blur filter to soften light
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-                child: const SizedBox.expand(),
-              ),
-            ),
           ],
         ),
       ),
@@ -214,43 +202,11 @@ class _PermissionPageState extends State<PermissionPage>
   Widget _buildBrandHeader(AppColors colors) {
     return Column(
       children: [
-        // Micro pill badge
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        //   decoration: BoxDecoration(
-        //     color: colors.accent.withValues(alpha: 0.12),
-        //     borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        //     border: Border.all(
-        //       color: colors.accent.withValues(alpha: 0.25),
-        //       width: 0.8,
-        //     ),
-        //   ),
-        //   child: Row(
-        //     mainAxisSize: MainAxisSize.min,
-        //     children: [
-        //       Icon(LucideIcons.sparkles, size: 12, color: colors.accent),
-        //       const SizedBox(width: 6),
-        //       Text(
-        //         'TROONA MUSIC',
-        //         style: TextStyle(
-        //           fontSize: 11,
-        //           fontWeight: FontWeight.w700,
-        //           letterSpacing: 1.4,
-        //           color: colors.accent,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // )
-        //     .animate()
-        //     .fadeIn(delay: 150.ms, duration: 500.ms)
-        //     .slideY(begin: -0.2, end: 0),
-
         const SizedBox(height: AppSpacing.md),
 
         // Main H1 Title
         Text(
-              'Votre musique.\nSublimée et sans compromis.',
+              context.l10n.permissionHeadline,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 27,
@@ -270,7 +226,7 @@ class _PermissionPageState extends State<PermissionPage>
         Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: Text(
-                'Un lecteur audio haute fidélité qui révèle votre collection locale dans une expérience pure, fluide et 100% privée.',
+                context.l10n.permissionSubhead,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -288,41 +244,42 @@ class _PermissionPageState extends State<PermissionPage>
 
   /// 3 Core Value Pillars presented in a refined glass container.
   Widget _buildFeaturePillars(AppColors colors) {
+    final l10n = context.l10n;
     return GlassCard(
-      child: Column(
-        children: [
-          _PillarRow(
-            icon: LucideIcons.disc3,
-            iconColor: colors.accent,
-            title: 'Qualité Studio Sans Perte',
-            description:
-                'Lecture native de vos fichiers FLAC, MP3, WAV et AAC avec décodage audiophile.',
+          child: Column(
+            children: [
+              _PillarRow(
+                icon: LucideIcons.disc3,
+                iconColor: colors.accent,
+                title: l10n.permissionQualityTitle,
+                description: l10n.permissionQualityBody,
+              ),
+              Divider(
+                color: Colors.white.withValues(alpha: 0.06),
+                height: AppSpacing.lg * 2,
+              ),
+              _PillarRow(
+                icon: LucideIcons.shieldCheck,
+                iconColor: const Color(0xFF68D391),
+                title: l10n.permissionPrivacyTitle,
+                description: l10n.permissionPrivacyBody,
+              ),
+              Divider(
+                color: Colors.white.withValues(alpha: 0.06),
+                height: AppSpacing.lg * 2,
+              ),
+              _PillarRow(
+                icon: LucideIcons.layoutGrid,
+                iconColor: colors.progressStart,
+                title: l10n.permissionLibraryTitle,
+                description: l10n.permissionLibraryBody,
+              ),
+            ],
           ),
-          Divider(
-            color: Colors.white.withValues(alpha: 0.06),
-            height: AppSpacing.lg * 2,
-          ),
-          _PillarRow(
-            icon: LucideIcons.shieldCheck,
-            iconColor: const Color(0xFF68D391), // Vibrant green
-            title: '100% Hors-Ligne & Privé',
-            description:
-                'Aucun compte requis, aucun suivi. Vos morceaux restent exclusivement sur votre appareil.',
-          ),
-          Divider(
-            color: Colors.white.withValues(alpha: 0.06),
-            height: AppSpacing.lg * 2,
-          ),
-          _PillarRow(
-            icon: LucideIcons.layoutGrid,
-            iconColor: colors.progressStart, // Ice blue
-            title: 'Bibliothèque Intelligente',
-            description:
-                'Extraction automatique des pochettes, tri par artistes et mix aléatoire instantané.',
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 450.ms, duration: 600.ms).slideY(begin: 0.15, end: 0);
+        )
+        .animate()
+        .fadeIn(delay: 450.ms, duration: 600.ms)
+        .slideY(begin: 0.15, end: 0);
   }
 
   /// Denied state recovery card.
@@ -339,8 +296,8 @@ class _PermissionPageState extends State<PermissionPage>
             child: Icon(LucideIcons.folderLock, color: colors.accent, size: 32),
           ),
           const SizedBox(height: AppSpacing.md),
-          const Text(
-            'Autorisation nécessaire',
+          Text(
+            context.l10n.permissionDeniedTitle,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
@@ -350,7 +307,7 @@ class _PermissionPageState extends State<PermissionPage>
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Troona a besoin d\'accéder à votre stockage audio pour construire votre bibliothèque et jouer vos morceaux.',
+            context.l10n.permissionDeniedBody,
             style: TextStyle(
               fontSize: 13,
               color: colors.labelSecondary,
@@ -381,8 +338,8 @@ class _PermissionPageState extends State<PermissionPage>
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          const Text(
-            'Accès désactivé dans le système',
+          Text(
+            context.l10n.permissionBlockedTitle,
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
@@ -392,7 +349,7 @@ class _PermissionPageState extends State<PermissionPage>
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'L\'autorisation a été refusée définitivement. Activez l\'accès audio dans les Réglages de votre appareil pour continuer.',
+            context.l10n.permissionBlockedBody,
             style: TextStyle(
               fontSize: 13,
               color: colors.labelSecondary,
@@ -465,10 +422,10 @@ class _PermissionPageState extends State<PermissionPage>
                               const SizedBox(width: AppSpacing.sm),
                               Text(
                                 isPermanent
-                                    ? 'Ouvrir les Réglages'
+                                    ? context.l10n.permissionOpenSettings
                                     : _state == _PermissionState.denied
-                                    ? 'Réessayer l\'autorisation'
-                                    : 'Explorer ma musique',
+                                    ? context.l10n.actionRetry
+                                    : context.l10n.permissionAllow,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -497,7 +454,7 @@ class _PermissionPageState extends State<PermissionPage>
               color: colors.labelSecondary,
             ),
             label: Text(
-              'J\'ai activé la permission, vérifier',
+              context.l10n.permissionCheckAgain,
               style: TextStyle(
                 color: colors.labelSecondary,
                 fontSize: 13,
@@ -518,7 +475,7 @@ class _PermissionPageState extends State<PermissionPage>
         Icon(LucideIcons.sparkle, size: 13, color: colors.labelTertiary),
         const SizedBox(width: 6),
         Text(
-          'Gratuit  •  Sans publicité  •  Données 100% locales',
+          context.l10n.permissionFooter,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,

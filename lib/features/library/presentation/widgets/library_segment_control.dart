@@ -21,11 +21,19 @@ class LibrarySegmentControl extends StatelessWidget {
   });
 
   static const _tabs = [
-    (LibraryFilter.all, 'All', LucideIcons.galleryVerticalEnd),
-    (LibraryFilter.tracks, 'Tracks', LucideIcons.music),
-    (LibraryFilter.albums, 'Albums', LucideIcons.disc),
-    (LibraryFilter.artists, 'Artists', LucideIcons.micVocal),
+    (LibraryFilter.all, LucideIcons.galleryVerticalEnd),
+    (LibraryFilter.tracks, LucideIcons.music),
+    (LibraryFilter.albums, LucideIcons.disc),
+    (LibraryFilter.artists, LucideIcons.micVocal),
   ];
+
+  static String _labelOf(LibraryFilter filter, BuildContext context) =>
+      switch (filter) {
+        LibraryFilter.all => context.l10n.libraryFilterAll,
+        LibraryFilter.tracks => context.l10n.libraryFilterSongs,
+        LibraryFilter.albums => context.l10n.libraryFilterAlbums,
+        LibraryFilter.artists => context.l10n.libraryFilterArtists,
+      };
 
   static const _animationDuration = Duration(milliseconds: 320);
 
@@ -98,7 +106,8 @@ class LibrarySegmentControl extends StatelessWidget {
                       ),
                       Row(
                         children: _tabs.map((tab) {
-                          final (filter, label, icon) = tab;
+                          final (filter, icon) = tab;
+                          final label = _labelOf(filter, context);
                           final isSelected = selected == filter;
 
                           return Expanded(

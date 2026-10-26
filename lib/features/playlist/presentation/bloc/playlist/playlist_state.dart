@@ -23,11 +23,3 @@ final class PlaylistError extends PlaylistState {
   @override
   List<Object?> get props => [message];
 }
-
-// Pour le retour d'action (ex: création réussie)
-final class PlaylistActionSuccess extends PlaylistState {
-  final String message;
-  const PlaylistActionSuccess(this.message);
-  @override
-  List<Object?> get props => [message];
-}

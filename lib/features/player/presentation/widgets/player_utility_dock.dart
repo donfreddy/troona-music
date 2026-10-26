@@ -10,6 +10,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 
 /// Secondary playback tools under the Now Playing controls: queue, sleep
 /// timer and playback speed, each with a 44 px touch target.
@@ -37,7 +38,7 @@ class PlayerUtilityDock extends StatelessWidget {
         children: [
           _DockItem(
             icon: LucideIcons.listMusic,
-            label: 'Queue',
+            label: context.l10n.queueTitle,
             onTap: () {
               AppHaptics.selectionClick();
               showQueueSheet(context);
@@ -46,7 +47,7 @@ class PlayerUtilityDock extends StatelessWidget {
           BlocBuilder<SleepTimerCubit, SleepTimerState>(
             builder: (context, timer) => _DockItem(
               icon: LucideIcons.timer,
-              label: 'Sleep timer',
+              label: context.l10n.sleepTimer,
               isActive: timer is! SleepTimerOff,
               onTap: () {
                 AppHaptics.selectionClick();
@@ -58,7 +59,7 @@ class PlayerUtilityDock extends StatelessWidget {
             selector: (s) => s is PlayerActive ? s.speed : 1.0,
             builder: (context, speed) => _DockItem(
               icon: LucideIcons.gauge,
-              label: 'Playback speed',
+              label: context.l10n.playbackSpeed,
               isActive: speed != 1.0,
               badgeText: speed != 1.0 ? _formatSpeed(speed) : null,
               onTap: () {
@@ -91,23 +92,30 @@ class PlayerUtilityDock extends StatelessWidget {
   void _showTimerSheet(BuildContext context) {
     final cubit = context.read<SleepTimerCubit>();
     final state = cubit.state;
+    final l10n = context.l10n;
     final subtitle = switch (state) {
-      SleepTimerRunning(:final endsAt) =>
-        'Music stops at ${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(endsAt))}.',
-      SleepTimerEndOfTrack() => 'Music stops at the end of this song.',
-      SleepTimerOff() => 'Stop the music after a while.',
+      SleepTimerRunning(:final endsAt) => l10n.sleepStopsAt(
+        MaterialLocalizations.of(
+          context,
+        ).formatTimeOfDay(TimeOfDay.fromDateTime(endsAt)),
+      ),
+      SleepTimerEndOfTrack() => l10n.sleepStopsEndOfSong,
+      SleepTimerOff() => l10n.sleepIdle,
     };
     final options = <(String, VoidCallback)>[
       for (final minutes in [15, 30, 45])
-        ('$minutes min', () => cubit.startFor(Duration(minutes: minutes))),
-      ('1 hour', () => cubit.startFor(const Duration(hours: 1))),
-      ('End of song', cubit.startEndOfTrack),
-      if (state is! SleepTimerOff) ('Turn off', cubit.cancel),
+        (
+          l10n.durationMinutes(minutes),
+          () => cubit.startFor(Duration(minutes: minutes)),
+        ),
+      (l10n.sleepOneHour, () => cubit.startFor(const Duration(hours: 1))),
+      (l10n.sleepEndOfSong, cubit.startEndOfTrack),
+      if (state is! SleepTimerOff) (l10n.sleepTurnOff, cubit.cancel),
     ];
 
     _showSheet(
       context: context,
-      title: 'Sleep timer',
+      title: l10n.sleepTimer,
       subtitle: subtitle,
       children: [
         for (final (label, action) in options)
@@ -128,11 +136,13 @@ class PlayerUtilityDock extends StatelessWidget {
     final bloc = context.read<PlayerBloc>();
     _showSheet(
       context: context,
-      title: 'Playback speed',
+      title: context.l10n.playbackSpeed,
       children: [
         for (final speed in _speeds)
           _SheetOptionTile(
-            title: speed == 1.0 ? '1× (normal)' : _formatSpeed(speed),
+            title: speed == 1.0
+                ? context.l10n.playbackSpeedNormal(_formatSpeed(speed))
+                : _formatSpeed(speed),
             isSelected: speed == current,
             onTap: () {
               AppHaptics.lightImpact();

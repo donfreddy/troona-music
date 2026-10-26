@@ -589,6 +589,1152 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Uninstalling Troona deletes everything it stored. Your music files are never touched.'**
   String get privacyDeleteBody;
+
+  /// No description provided for @permissionHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'All your music.\nNothing in the way.'**
+  String get permissionHeadline;
+
+  /// No description provided for @permissionSubhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona plays the songs already on your phone. No account, no ads, no streaming.'**
+  String get permissionSubhead;
+
+  /// No description provided for @permissionQualityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays what you own'**
+  String get permissionQualityTitle;
+
+  /// No description provided for @permissionQualityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MP3, FLAC, AAC, WAV, OGG and Opus, at their original quality.'**
+  String get permissionQualityBody;
+
+  /// No description provided for @permissionPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Private by design'**
+  String get permissionPrivacyTitle;
+
+  /// No description provided for @permissionPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your music stays on this device. Online extras are optional.'**
+  String get permissionPrivacyBody;
+
+  /// No description provided for @permissionLibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready in seconds'**
+  String get permissionLibraryTitle;
+
+  /// No description provided for @permissionLibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers, albums and artists, sorted for you.'**
+  String get permissionLibraryBody;
+
+  /// No description provided for @permissionAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access'**
+  String get permissionAllow;
+
+  /// No description provided for @permissionDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona can\'t see your music yet'**
+  String get permissionDeniedTitle;
+
+  /// No description provided for @permissionDeniedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona needs access to your audio files to build your library. It never reads your photos, videos or documents.'**
+  String get permissionDeniedBody;
+
+  /// No description provided for @permissionBlockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Access is turned off'**
+  String get permissionBlockedTitle;
+
+  /// No description provided for @permissionBlockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on \"Music and audio\" for Troona in Settings, then come back. We\'ll take it from there.'**
+  String get permissionBlockedBody;
+
+  /// No description provided for @permissionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get permissionOpenSettings;
+
+  /// No description provided for @permissionCheckAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'I turned it on'**
+  String get permissionCheckAgain;
+
+  /// No description provided for @permissionFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Free · No ads · No account'**
+  String get permissionFooter;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your music'**
+  String get scanTitle;
+
+  /// No description provided for @scanPhaseScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for songs on your phone…'**
+  String get scanPhaseScanning;
+
+  /// No description provided for @scanPhaseIndexing.
+  ///
+  /// In en, this message translates to:
+  /// **'Building your library…'**
+  String get scanPhaseIndexing;
+
+  /// No description provided for @scanPhaseArtwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding album covers…'**
+  String get scanPhaseArtwork;
+
+  /// No description provided for @scanPhaseDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost ready…'**
+  String get scanPhaseDone;
+
+  /// No description provided for @scanSongsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song found} other{{count} songs found}}'**
+  String scanSongsFound(int count);
+
+  /// No description provided for @scanProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {total}'**
+  String scanProgress(int count, int total);
+
+  /// No description provided for @scanNewSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new song added} other{{count} new songs added}}'**
+  String scanNewSongs(int count);
+
+  /// No description provided for @scanRemovedSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song is no longer on your phone} other{{count} songs are no longer on your phone}}'**
+  String scanRemovedSongs(int count);
+
+  /// No description provided for @libraryLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open your library'**
+  String get libraryLoadErrorTitle;
+
+  /// No description provided for @libraryLoadErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that Troona can still access your music, then try again.'**
+  String get libraryLoadErrorBody;
+
+  /// No description provided for @errorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get errorTitle;
+
+  /// No description provided for @playerCantPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t play \"{title}\". Skipping to the next song.'**
+  String playerCantPlay(String title);
+
+  /// No description provided for @playerCantPlayUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'This song can\'t be played. Skipping to the next one.'**
+  String get playerCantPlayUnknown;
+
+  /// No description provided for @bootTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona couldn\'t open your library'**
+  String get bootTitle;
+
+  /// No description provided for @bootBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart the app. If it keeps happening, copy the report and send it to us.'**
+  String get bootBody;
+
+  /// No description provided for @bootCopyReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy report'**
+  String get bootCopyReport;
+
+  /// No description provided for @bootReportCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Report copied'**
+  String get bootReportCopied;
+
+  /// No description provided for @libraryFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get libraryFilterAll;
+
+  /// No description provided for @libraryFilterSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs'**
+  String get libraryFilterSongs;
+
+  /// No description provided for @libraryFilterAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get libraryFilterAlbums;
+
+  /// No description provided for @libraryFilterArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'Artists'**
+  String get libraryFilterArtists;
+
+  /// No description provided for @libraryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No music on this device yet'**
+  String get libraryEmptyTitle;
+
+  /// No description provided for @libraryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy songs to your phone, then scan again.'**
+  String get libraryEmptyBody;
+
+  /// No description provided for @libraryScanAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get libraryScanAgain;
+
+  /// No description provided for @libraryNoSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'No songs yet'**
+  String get libraryNoSongs;
+
+  /// No description provided for @libraryNoAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'No albums yet'**
+  String get libraryNoAlbums;
+
+  /// No description provided for @libraryNoArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'No artists yet'**
+  String get libraryNoArtists;
+
+  /// No description provided for @librarySort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get librarySort;
+
+  /// No description provided for @librarySortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get librarySortBy;
+
+  /// No description provided for @librarySortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get librarySortTitle;
+
+  /// No description provided for @librarySortArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get librarySortArtist;
+
+  /// No description provided for @librarySortAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get librarySortAlbum;
+
+  /// No description provided for @librarySortRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get librarySortRecent;
+
+  /// No description provided for @libraryUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating your library…'**
+  String get libraryUpdating;
+
+  /// No description provided for @libraryShuffleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle all'**
+  String get libraryShuffleAll;
+
+  /// No description provided for @albumByArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'{artist} · {songs}'**
+  String albumByArtist(String artist, String songs);
+
+  /// No description provided for @statSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{song} other{songs}}'**
+  String statSongs(int count);
+
+  /// No description provided for @statAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{album} other{albums}}'**
+  String statAlbums(int count);
+
+  /// No description provided for @statArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{artist} other{artists}}'**
+  String statArtists(int count);
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String durationMinutes(int minutes);
+
+  /// No description provided for @durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hr'**
+  String durationHours(int hours);
+
+  /// No description provided for @durationHoursMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} hr {minutes} min'**
+  String durationHoursMinutes(int hours, int minutes);
+
+  /// No description provided for @trackPlayNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Play next'**
+  String get trackPlayNext;
+
+  /// No description provided for @trackAddToQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to queue'**
+  String get trackAddToQueue;
+
+  /// No description provided for @detailSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs'**
+  String get detailSongs;
+
+  /// No description provided for @detailAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get detailAlbums;
+
+  /// No description provided for @detailMoreBy.
+  ///
+  /// In en, this message translates to:
+  /// **'More by {artist}'**
+  String detailMoreBy(String artist);
+
+  /// No description provided for @detailMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get detailMore;
+
+  /// No description provided for @detailBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get detailBack;
+
+  /// No description provided for @detailCountsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{songs} · {albums}'**
+  String detailCountsSummary(String songs, String albums);
+
+  /// No description provided for @albumAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About this album'**
+  String get albumAbout;
+
+  /// No description provided for @artistInLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'In your library'**
+  String get artistInLibrary;
+
+  /// No description provided for @infoSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs'**
+  String get infoSongs;
+
+  /// No description provided for @infoAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get infoAlbums;
+
+  /// No description provided for @infoLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get infoLength;
+
+  /// No description provided for @infoYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get infoYear;
+
+  /// No description provided for @infoSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get infoSize;
+
+  /// No description provided for @infoFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get infoFormat;
+
+  /// No description provided for @formatLossless.
+  ///
+  /// In en, this message translates to:
+  /// **'Lossless'**
+  String get formatLossless;
+
+  /// No description provided for @albumLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open this album.'**
+  String get albumLoadError;
+
+  /// No description provided for @artistLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open this artist.'**
+  String get artistLoadError;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs, artists, albums'**
+  String get searchHint;
+
+  /// No description provided for @searchClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get searchClear;
+
+  /// No description provided for @searchIdleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your library'**
+  String get searchIdleTitle;
+
+  /// No description provided for @searchIdleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs, artists and albums on this device.'**
+  String get searchIdleBody;
+
+  /// No description provided for @searchNoResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String searchNoResultsTitle(String query);
+
+  /// No description provided for @searchNoResultsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a shorter word or an artist name.'**
+  String get searchNoResultsBody;
+
+  /// No description provided for @searchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Search isn\'t available right now.'**
+  String get searchError;
+
+  /// No description provided for @searchSuggestedArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'Artists'**
+  String get searchSuggestedArtists;
+
+  /// No description provided for @searchSuggestedAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get searchSuggestedAlbums;
+
+  /// No description provided for @searchRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get searchRecentlyAdded;
+
+  /// No description provided for @searchBadgeArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get searchBadgeArtist;
+
+  /// No description provided for @searchBadgeAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get searchBadgeAlbum;
+
+  /// No description provided for @searchBadgeSong.
+  ///
+  /// In en, this message translates to:
+  /// **'Song'**
+  String get searchBadgeSong;
+
+  /// No description provided for @playlistsCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get playlistsCreate;
+
+  /// No description provided for @playlistsListView.
+  ///
+  /// In en, this message translates to:
+  /// **'List view'**
+  String get playlistsListView;
+
+  /// No description provided for @playlistsGridView.
+  ///
+  /// In en, this message translates to:
+  /// **'Grid view'**
+  String get playlistsGridView;
+
+  /// No description provided for @playlistsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get playlistsFilterAll;
+
+  /// No description provided for @playlistsFilterMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My playlists'**
+  String get playlistsFilterMine;
+
+  /// No description provided for @playlistsYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Your playlists'**
+  String get playlistsYours;
+
+  /// No description provided for @playlistsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make your first playlist'**
+  String get playlistsEmptyTitle;
+
+  /// No description provided for @playlistsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Group songs for a mood, a moment or a road trip.'**
+  String get playlistsEmptyBody;
+
+  /// No description provided for @playlistNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New playlist'**
+  String get playlistNew;
+
+  /// No description provided for @playlistEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit playlist'**
+  String get playlistEdit;
+
+  /// No description provided for @playlistNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist name'**
+  String get playlistNameHint;
+
+  /// No description provided for @playlistDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get playlistDescriptionHint;
+
+  /// No description provided for @playlistAddCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a cover'**
+  String get playlistAddCover;
+
+  /// No description provided for @playlistCreateAndAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and add'**
+  String get playlistCreateAndAdd;
+
+  /// No description provided for @playlistCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get playlistCreate;
+
+  /// No description provided for @playlistAddTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to playlist'**
+  String get playlistAddTo;
+
+  /// No description provided for @playlistNoneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No playlists yet'**
+  String get playlistNoneYet;
+
+  /// No description provided for @playlistAddedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {name}'**
+  String playlistAddedTo(String name);
+
+  /// No description provided for @playlistAlreadyIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in {name}'**
+  String playlistAlreadyIn(String name);
+
+  /// No description provided for @playlistDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String playlistDeleteTitle(String name);
+
+  /// No description provided for @playlistDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the playlist only. The songs stay in your library.'**
+  String get playlistDeleteBody;
+
+  /// No description provided for @playlistDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist deleted'**
+  String get playlistDeleted;
+
+  /// No description provided for @playlistEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This playlist is empty'**
+  String get playlistEmptyTitle;
+
+  /// No description provided for @playlistEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add songs from the ··· menu on any song.'**
+  String get playlistEmptyBody;
+
+  /// No description provided for @playlistRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from playlist'**
+  String get playlistRemove;
+
+  /// No description provided for @playlistLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your playlists.'**
+  String get playlistLoadError;
+
+  /// No description provided for @playlistOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open this playlist.'**
+  String get playlistOpenError;
+
+  /// No description provided for @playlistLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist'**
+  String get playlistLabel;
+
+  /// No description provided for @likesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs you like will live here'**
+  String get likesEmptyTitle;
+
+  /// No description provided for @likesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the heart on any song to save it.'**
+  String get likesEmptyBody;
+
+  /// No description provided for @likesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{songs} · Your favorites in one place'**
+  String likesSubtitle(String songs);
+
+  /// No description provided for @likesBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get likesBadge;
+
+  /// No description provided for @likesRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Liked songs'**
+  String get likesRemove;
+
+  /// No description provided for @trackLike.
+  ///
+  /// In en, this message translates to:
+  /// **'Like'**
+  String get trackLike;
+
+  /// No description provided for @trackAddToPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to playlist…'**
+  String get trackAddToPlaylist;
+
+  /// No description provided for @trackGoToAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to album'**
+  String get trackGoToAlbum;
+
+  /// No description provided for @trackGoToArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to artist'**
+  String get trackGoToArtist;
+
+  /// No description provided for @toastPlaysNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays next'**
+  String get toastPlaysNext;
+
+  /// No description provided for @toastAddedToQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to queue'**
+  String get toastAddedToQueue;
+
+  /// No description provided for @toastLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to Liked songs'**
+  String get toastLiked;
+
+  /// No description provided for @toastUnliked.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from Liked songs'**
+  String get toastUnliked;
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get homeGreetingMorning;
+
+  /// No description provided for @homeGreetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get homeGreetingAfternoon;
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get homeGreetingEvening;
+
+  /// No description provided for @homeGreetingNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Late-night session'**
+  String get homeGreetingNight;
+
+  /// No description provided for @homeSubtitleWarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off.'**
+  String get homeSubtitleWarm;
+
+  /// No description provided for @homeSongsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song, ready when you are.} other{{count} songs, ready when you are.}}'**
+  String homeSongsReady(int count);
+
+  /// No description provided for @homeEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No music here yet'**
+  String get homeEmptyTitle;
+
+  /// No description provided for @homeEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy songs to your phone\'s Music folder, then scan again.'**
+  String get homeEmptyBody;
+
+  /// No description provided for @homeFreshTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your library is ready'**
+  String get homeFreshTitle;
+
+  /// No description provided for @homeJumpBackIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump back in'**
+  String get homeJumpBackIn;
+
+  /// No description provided for @homeQuickRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get homeQuickRecent;
+
+  /// No description provided for @homeRecentlyPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently played'**
+  String get homeRecentlyPlayed;
+
+  /// No description provided for @homeOnRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'On repeat this week'**
+  String get homeOnRepeat;
+
+  /// No description provided for @homeRediscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Rediscover'**
+  String get homeRediscover;
+
+  /// No description provided for @homeYourArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'Your artists'**
+  String get homeYourArtists;
+
+  /// No description provided for @homeRecentlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get homeRecentlyAdded;
+
+  /// No description provided for @homeYourPlaylists.
+  ///
+  /// In en, this message translates to:
+  /// **'Your playlists'**
+  String get homeYourPlaylists;
+
+  /// No description provided for @homeWeeklyPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{play this week} other{plays this week}}'**
+  String homeWeeklyPlays(int count);
+
+  /// No description provided for @homeLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your home. Pull down to try again.'**
+  String get homeLoadError;
+
+  /// No description provided for @homeExtrasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add artist photos and bios?'**
+  String get homeExtrasTitle;
+
+  /// No description provided for @homeExtrasBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona can fetch them from Last.fm and Deezer using artist and album names. Your music files stay on this device.'**
+  String get homeExtrasBody;
+
+  /// No description provided for @homeExtrasAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get homeExtrasAccept;
+
+  /// No description provided for @homeExtrasDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get homeExtrasDecline;
+
+  /// No description provided for @homeExtrasDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'You can turn them on anytime in Settings.'**
+  String get homeExtrasDeclined;
+
+  /// No description provided for @queueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get queueTitle;
+
+  /// No description provided for @queueHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get queueHistory;
+
+  /// No description provided for @queueBackToNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to now playing'**
+  String get queueBackToNow;
+
+  /// No description provided for @queueNowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get queueNowPlaying;
+
+  /// No description provided for @queueRepeatOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating this song'**
+  String get queueRepeatOne;
+
+  /// No description provided for @queueRepeatAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Then back to the start'**
+  String get queueRepeatAll;
+
+  /// No description provided for @queueNothingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing up next'**
+  String get queueNothingNext;
+
+  /// No description provided for @queueUpNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next · {count}'**
+  String queueUpNext(int count);
+
+  /// No description provided for @queueRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed \"{title}\"'**
+  String queueRemoved(String title);
+
+  /// No description provided for @sleepTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep timer'**
+  String get sleepTimer;
+
+  /// No description provided for @sleepStopsAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Music stops at {time}.'**
+  String sleepStopsAt(String time);
+
+  /// No description provided for @sleepStopsEndOfSong.
+  ///
+  /// In en, this message translates to:
+  /// **'Music stops at the end of this song.'**
+  String get sleepStopsEndOfSong;
+
+  /// No description provided for @sleepIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the music after a while.'**
+  String get sleepIdle;
+
+  /// No description provided for @sleepOneHour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get sleepOneHour;
+
+  /// No description provided for @sleepEndOfSong.
+  ///
+  /// In en, this message translates to:
+  /// **'End of song'**
+  String get sleepEndOfSong;
+
+  /// No description provided for @sleepTurnOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off'**
+  String get sleepTurnOff;
+
+  /// No description provided for @playbackSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get playbackSpeed;
+
+  /// No description provided for @playbackSpeedNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'{speed} (normal)'**
+  String playbackSpeedNormal(String speed);
+
+  /// No description provided for @playbackPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback position'**
+  String get playbackPosition;
+
+  /// No description provided for @playbackPositionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{position} of {duration}'**
+  String playbackPositionValue(String position, String duration);
+
+  /// No description provided for @metaAboutAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'About this album'**
+  String get metaAboutAlbum;
+
+  /// No description provided for @metaAboutArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get metaAboutArtist;
+
+  /// No description provided for @metaOnTour.
+  ///
+  /// In en, this message translates to:
+  /// **'On tour'**
+  String get metaOnTour;
+
+  /// No description provided for @metaReadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more'**
+  String get metaReadMore;
+
+  /// No description provided for @metaReadLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get metaReadLess;
+
+  /// No description provided for @metaSimilarArtists.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar artists'**
+  String get metaSimilarArtists;
+
+  /// No description provided for @playerPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get playerPause;
+
+  /// No description provided for @playerNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get playerNext;
+
+  /// No description provided for @playerPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get playerPrevious;
+
+  /// No description provided for @playerShuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get playerShuffle;
+
+  /// No description provided for @playerRepeatOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat off'**
+  String get playerRepeatOff;
+
+  /// No description provided for @playerRepeatAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat all'**
+  String get playerRepeatAll;
+
+  /// No description provided for @playerRepeatOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat this song'**
+  String get playerRepeatOne;
+
+  /// No description provided for @playerClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close player'**
+  String get playerClose;
+
+  /// No description provided for @playerOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open player'**
+  String get playerOpen;
 }
 
 class _AppLocalizationsDelegate

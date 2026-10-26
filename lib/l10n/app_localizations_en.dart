@@ -296,4 +296,691 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyDeleteBody =>
       'Uninstalling Troona deletes everything it stored. Your music files are never touched.';
+
+  @override
+  String get permissionHeadline => 'All your music.\nNothing in the way.';
+
+  @override
+  String get permissionSubhead =>
+      'Troona plays the songs already on your phone. No account, no ads, no streaming.';
+
+  @override
+  String get permissionQualityTitle => 'Plays what you own';
+
+  @override
+  String get permissionQualityBody =>
+      'MP3, FLAC, AAC, WAV, OGG and Opus, at their original quality.';
+
+  @override
+  String get permissionPrivacyTitle => 'Private by design';
+
+  @override
+  String get permissionPrivacyBody =>
+      'Your music stays on this device. Online extras are optional.';
+
+  @override
+  String get permissionLibraryTitle => 'Ready in seconds';
+
+  @override
+  String get permissionLibraryBody =>
+      'Covers, albums and artists, sorted for you.';
+
+  @override
+  String get permissionAllow => 'Allow access';
+
+  @override
+  String get permissionDeniedTitle => 'Troona can\'t see your music yet';
+
+  @override
+  String get permissionDeniedBody =>
+      'Troona needs access to your audio files to build your library. It never reads your photos, videos or documents.';
+
+  @override
+  String get permissionBlockedTitle => 'Access is turned off';
+
+  @override
+  String get permissionBlockedBody =>
+      'Turn on \"Music and audio\" for Troona in Settings, then come back. We\'ll take it from there.';
+
+  @override
+  String get permissionOpenSettings => 'Open Settings';
+
+  @override
+  String get permissionCheckAgain => 'I turned it on';
+
+  @override
+  String get permissionFooter => 'Free · No ads · No account';
+
+  @override
+  String get scanTitle => 'Finding your music';
+
+  @override
+  String get scanPhaseScanning => 'Looking for songs on your phone…';
+
+  @override
+  String get scanPhaseIndexing => 'Building your library…';
+
+  @override
+  String get scanPhaseArtwork => 'Adding album covers…';
+
+  @override
+  String get scanPhaseDone => 'Almost ready…';
+
+  @override
+  String scanSongsFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs found',
+      one: '1 song found',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scanProgress(int count, int total) {
+    return '$count of $total';
+  }
+
+  @override
+  String scanNewSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new songs added',
+      one: '1 new song added',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scanRemovedSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs are no longer on your phone',
+      one: '1 song is no longer on your phone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get libraryLoadErrorTitle => 'We couldn\'t open your library';
+
+  @override
+  String get libraryLoadErrorBody =>
+      'Check that Troona can still access your music, then try again.';
+
+  @override
+  String get errorTitle => 'Something went wrong';
+
+  @override
+  String playerCantPlay(String title) {
+    return 'Can\'t play \"$title\". Skipping to the next song.';
+  }
+
+  @override
+  String get playerCantPlayUnknown =>
+      'This song can\'t be played. Skipping to the next one.';
+
+  @override
+  String get bootTitle => 'Troona couldn\'t open your library';
+
+  @override
+  String get bootBody =>
+      'Restart the app. If it keeps happening, copy the report and send it to us.';
+
+  @override
+  String get bootCopyReport => 'Copy report';
+
+  @override
+  String get bootReportCopied => 'Report copied';
+
+  @override
+  String get libraryFilterAll => 'All';
+
+  @override
+  String get libraryFilterSongs => 'Songs';
+
+  @override
+  String get libraryFilterAlbums => 'Albums';
+
+  @override
+  String get libraryFilterArtists => 'Artists';
+
+  @override
+  String get libraryEmptyTitle => 'No music on this device yet';
+
+  @override
+  String get libraryEmptyBody => 'Copy songs to your phone, then scan again.';
+
+  @override
+  String get libraryScanAgain => 'Scan again';
+
+  @override
+  String get libraryNoSongs => 'No songs yet';
+
+  @override
+  String get libraryNoAlbums => 'No albums yet';
+
+  @override
+  String get libraryNoArtists => 'No artists yet';
+
+  @override
+  String get librarySort => 'Sort';
+
+  @override
+  String get librarySortBy => 'Sort by';
+
+  @override
+  String get librarySortTitle => 'Title';
+
+  @override
+  String get librarySortArtist => 'Artist';
+
+  @override
+  String get librarySortAlbum => 'Album';
+
+  @override
+  String get librarySortRecent => 'Recently added';
+
+  @override
+  String get libraryUpdating => 'Updating your library…';
+
+  @override
+  String get libraryShuffleAll => 'Shuffle all';
+
+  @override
+  String albumByArtist(String artist, String songs) {
+    return '$artist · $songs';
+  }
+
+  @override
+  String statSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'songs',
+      one: 'song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statAlbums(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'albums',
+      one: 'album',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String statArtists(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'artists',
+      one: 'artist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationHours(int hours) {
+    return '$hours hr';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours hr $minutes min';
+  }
+
+  @override
+  String get trackPlayNext => 'Play next';
+
+  @override
+  String get trackAddToQueue => 'Add to queue';
+
+  @override
+  String get detailSongs => 'Songs';
+
+  @override
+  String get detailAlbums => 'Albums';
+
+  @override
+  String detailMoreBy(String artist) {
+    return 'More by $artist';
+  }
+
+  @override
+  String get detailMore => 'More options';
+
+  @override
+  String get detailBack => 'Back';
+
+  @override
+  String detailCountsSummary(String songs, String albums) {
+    return '$songs · $albums';
+  }
+
+  @override
+  String get albumAbout => 'About this album';
+
+  @override
+  String get artistInLibrary => 'In your library';
+
+  @override
+  String get infoSongs => 'Songs';
+
+  @override
+  String get infoAlbums => 'Albums';
+
+  @override
+  String get infoLength => 'Length';
+
+  @override
+  String get infoYear => 'Year';
+
+  @override
+  String get infoSize => 'Size';
+
+  @override
+  String get infoFormat => 'Format';
+
+  @override
+  String get formatLossless => 'Lossless';
+
+  @override
+  String get albumLoadError => 'We couldn\'t open this album.';
+
+  @override
+  String get artistLoadError => 'We couldn\'t open this artist.';
+
+  @override
+  String get searchHint => 'Songs, artists, albums';
+
+  @override
+  String get searchClear => 'Clear search';
+
+  @override
+  String get searchIdleTitle => 'Search your library';
+
+  @override
+  String get searchIdleBody => 'Songs, artists and albums on this device.';
+
+  @override
+  String searchNoResultsTitle(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get searchNoResultsBody => 'Try a shorter word or an artist name.';
+
+  @override
+  String get searchError => 'Search isn\'t available right now.';
+
+  @override
+  String get searchSuggestedArtists => 'Artists';
+
+  @override
+  String get searchSuggestedAlbums => 'Albums';
+
+  @override
+  String get searchRecentlyAdded => 'Recently added';
+
+  @override
+  String get searchBadgeArtist => 'Artist';
+
+  @override
+  String get searchBadgeAlbum => 'Album';
+
+  @override
+  String get searchBadgeSong => 'Song';
+
+  @override
+  String get playlistsCreate => 'New';
+
+  @override
+  String get playlistsListView => 'List view';
+
+  @override
+  String get playlistsGridView => 'Grid view';
+
+  @override
+  String get playlistsFilterAll => 'All';
+
+  @override
+  String get playlistsFilterMine => 'My playlists';
+
+  @override
+  String get playlistsYours => 'Your playlists';
+
+  @override
+  String get playlistsEmptyTitle => 'Make your first playlist';
+
+  @override
+  String get playlistsEmptyBody =>
+      'Group songs for a mood, a moment or a road trip.';
+
+  @override
+  String get playlistNew => 'New playlist';
+
+  @override
+  String get playlistEdit => 'Edit playlist';
+
+  @override
+  String get playlistNameHint => 'Playlist name';
+
+  @override
+  String get playlistDescriptionHint => 'Description (optional)';
+
+  @override
+  String get playlistAddCover => 'Add a cover';
+
+  @override
+  String get playlistCreateAndAdd => 'Create and add';
+
+  @override
+  String get playlistCreate => 'Create';
+
+  @override
+  String get playlistAddTo => 'Add to playlist';
+
+  @override
+  String get playlistNoneYet => 'No playlists yet';
+
+  @override
+  String playlistAddedTo(String name) {
+    return 'Added to $name';
+  }
+
+  @override
+  String playlistAlreadyIn(String name) {
+    return 'Already in $name';
+  }
+
+  @override
+  String playlistDeleteTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get playlistDeleteBody =>
+      'This removes the playlist only. The songs stay in your library.';
+
+  @override
+  String get playlistDeleted => 'Playlist deleted';
+
+  @override
+  String get playlistEmptyTitle => 'This playlist is empty';
+
+  @override
+  String get playlistEmptyBody => 'Add songs from the ··· menu on any song.';
+
+  @override
+  String get playlistRemove => 'Remove from playlist';
+
+  @override
+  String get playlistLoadError => 'We couldn\'t load your playlists.';
+
+  @override
+  String get playlistOpenError => 'We couldn\'t open this playlist.';
+
+  @override
+  String get playlistLabel => 'Playlist';
+
+  @override
+  String get likesEmptyTitle => 'Songs you like will live here';
+
+  @override
+  String get likesEmptyBody => 'Tap the heart on any song to save it.';
+
+  @override
+  String likesSubtitle(String songs) {
+    return '$songs · Your favorites in one place';
+  }
+
+  @override
+  String get likesBadge => 'Favorites';
+
+  @override
+  String get likesRemove => 'Remove from Liked songs';
+
+  @override
+  String get trackLike => 'Like';
+
+  @override
+  String get trackAddToPlaylist => 'Add to playlist…';
+
+  @override
+  String get trackGoToAlbum => 'Go to album';
+
+  @override
+  String get trackGoToArtist => 'Go to artist';
+
+  @override
+  String get toastPlaysNext => 'Plays next';
+
+  @override
+  String get toastAddedToQueue => 'Added to queue';
+
+  @override
+  String get toastLiked => 'Added to Liked songs';
+
+  @override
+  String get toastUnliked => 'Removed from Liked songs';
+
+  @override
+  String get homeGreetingMorning => 'Good morning';
+
+  @override
+  String get homeGreetingAfternoon => 'Good afternoon';
+
+  @override
+  String get homeGreetingEvening => 'Good evening';
+
+  @override
+  String get homeGreetingNight => 'Late-night session';
+
+  @override
+  String get homeSubtitleWarm => 'Pick up where you left off.';
+
+  @override
+  String homeSongsReady(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs, ready when you are.',
+      one: '1 song, ready when you are.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeEmptyTitle => 'No music here yet';
+
+  @override
+  String get homeEmptyBody =>
+      'Copy songs to your phone\'s Music folder, then scan again.';
+
+  @override
+  String get homeFreshTitle => 'Your library is ready';
+
+  @override
+  String get homeJumpBackIn => 'Jump back in';
+
+  @override
+  String get homeQuickRecent => 'Recently added';
+
+  @override
+  String get homeRecentlyPlayed => 'Recently played';
+
+  @override
+  String get homeOnRepeat => 'On repeat this week';
+
+  @override
+  String get homeRediscover => 'Rediscover';
+
+  @override
+  String get homeYourArtists => 'Your artists';
+
+  @override
+  String get homeRecentlyAdded => 'Recently added';
+
+  @override
+  String get homeYourPlaylists => 'Your playlists';
+
+  @override
+  String homeWeeklyPlays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'plays this week',
+      one: 'play this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get homeLoadError =>
+      'We couldn\'t load your home. Pull down to try again.';
+
+  @override
+  String get homeExtrasTitle => 'Add artist photos and bios?';
+
+  @override
+  String get homeExtrasBody =>
+      'Troona can fetch them from Last.fm and Deezer using artist and album names. Your music files stay on this device.';
+
+  @override
+  String get homeExtrasAccept => 'Turn on';
+
+  @override
+  String get homeExtrasDecline => 'Not now';
+
+  @override
+  String get homeExtrasDeclined => 'You can turn them on anytime in Settings.';
+
+  @override
+  String get queueTitle => 'Queue';
+
+  @override
+  String get queueHistory => 'History';
+
+  @override
+  String get queueBackToNow => 'Back to now playing';
+
+  @override
+  String get queueNowPlaying => 'Now playing';
+
+  @override
+  String get queueRepeatOne => 'Repeating this song';
+
+  @override
+  String get queueRepeatAll => 'Then back to the start';
+
+  @override
+  String get queueNothingNext => 'Nothing up next';
+
+  @override
+  String queueUpNext(int count) {
+    return 'Up next · $count';
+  }
+
+  @override
+  String queueRemoved(String title) {
+    return 'Removed \"$title\"';
+  }
+
+  @override
+  String get sleepTimer => 'Sleep timer';
+
+  @override
+  String sleepStopsAt(String time) {
+    return 'Music stops at $time.';
+  }
+
+  @override
+  String get sleepStopsEndOfSong => 'Music stops at the end of this song.';
+
+  @override
+  String get sleepIdle => 'Stop the music after a while.';
+
+  @override
+  String get sleepOneHour => '1 hour';
+
+  @override
+  String get sleepEndOfSong => 'End of song';
+
+  @override
+  String get sleepTurnOff => 'Turn off';
+
+  @override
+  String get playbackSpeed => 'Playback speed';
+
+  @override
+  String playbackSpeedNormal(String speed) {
+    return '$speed (normal)';
+  }
+
+  @override
+  String get playbackPosition => 'Playback position';
+
+  @override
+  String playbackPositionValue(String position, String duration) {
+    return '$position of $duration';
+  }
+
+  @override
+  String get metaAboutAlbum => 'About this album';
+
+  @override
+  String get metaAboutArtist => 'About';
+
+  @override
+  String get metaOnTour => 'On tour';
+
+  @override
+  String get metaReadMore => 'Read more';
+
+  @override
+  String get metaReadLess => 'Show less';
+
+  @override
+  String get metaSimilarArtists => 'Similar artists';
+
+  @override
+  String get playerPause => 'Pause';
+
+  @override
+  String get playerNext => 'Next';
+
+  @override
+  String get playerPrevious => 'Previous';
+
+  @override
+  String get playerShuffle => 'Shuffle';
+
+  @override
+  String get playerRepeatOff => 'Repeat off';
+
+  @override
+  String get playerRepeatAll => 'Repeat all';
+
+  @override
+  String get playerRepeatOne => 'Repeat this song';
+
+  @override
+  String get playerClose => 'Close player';
+
+  @override
+  String get playerOpen => 'Open player';
 }
