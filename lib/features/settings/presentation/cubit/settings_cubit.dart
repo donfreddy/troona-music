@@ -26,10 +26,14 @@ class SettingsCubit extends Cubit<SettingsState> {
     : super(const SettingsState.loading());
 
   /// The cubit outlives every screen: a failed first load must not leave
-  /// Settings on its error state for the whole session.
+  /// Settings on its error state for the whole session. Called from the route
+  /// builder, so a rebuild during the retry must not start another one.
   void retryIfFailed() {
-    if (state is SettingsError) load();
+    if (state is! SettingsError) return;
+    _retry ??= load().whenComplete(() => _retry = null);
   }
+
+  Future<void>? _retry;
 
   // Init
   Future<void> load() async {

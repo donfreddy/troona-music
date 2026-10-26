@@ -19,10 +19,12 @@ class _Metadata extends Fake implements MetadataRepository {
 class _FlakySettings implements SettingsRepository {
   final SettingsRepository inner;
   var failNext = true;
+  var loads = 0;
   _FlakySettings(this.inner);
 
   @override
   Future<Either<Failure, AppSettings>> loadSettings() async {
+    loads++;
     if (failNext) {
       failNext = false;
       return left(const CacheFailure());
@@ -103,6 +105,21 @@ void main() {
     await pumpEventQueue();
 
     expect(cubit.state, isA<SettingsLoaded>());
+  });
+
+  test('rebuilds during a retry start no second load', () async {
+    final flaky = _FlakySettings(repo);
+    final cubit = SettingsCubit(flaky);
+    await cubit.load();
+
+    cubit
+      ..retryIfFailed()
+      ..retryIfFailed()
+      ..retryIfFailed();
+    await pumpEventQueue();
+
+    expect(flaky.loads, 2);
+    expect(settingsOf(cubit), isNotNull);
   });
 
   test('retry leaves a loaded state alone', () async {
