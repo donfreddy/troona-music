@@ -14,7 +14,7 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
-import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/section_header.dart';
 
 class SearchSuggestions extends StatelessWidget {
   final ValueChanged<String>? onQuerySelected;

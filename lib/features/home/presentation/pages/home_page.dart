@@ -22,7 +22,7 @@ import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
-import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/section_header.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomePage: Troona's adaptive home feed

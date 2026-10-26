@@ -25,7 +25,7 @@ import 'package:troona/features/library/presentation/widgets/library_stats_banne
 import 'package:troona/features/library/presentation/widgets/shuffle_banner.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
-import 'package:troona/shared/widgets/section_heater.dart';
+import 'package:troona/shared/widgets/section_header.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
