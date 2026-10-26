@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -16,13 +18,12 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/shared/widgets/glass_button.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_heater.dart';
-import 'package:troona/shared/widgets/entrance_fader.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -40,6 +41,13 @@ Widget _animatedArtistItem(
   );
 }
 
+/// Redesigned Artist Detail page in Apple Music & Spotify aesthetics.
+///
+/// Features:
+/// - Circular Artist Stage hero with glow halo and fallback monogram
+/// - Twin Play/Shuffle actions
+/// - Prioritized layout: Popular Tracks FIRST, followed by Discography carousel
+/// - Library collection footprint stats
 class ArtistDetailPage extends StatelessWidget {
   final String id;
 
@@ -76,19 +84,31 @@ class ArtistDetailPage extends StatelessWidget {
                       delegate: _ArtistHeroDelegate(
                         artist: data.artist,
                         tracks: data.topTracks,
+                        albums: data.albums,
                         topPadding: MediaQuery.of(context).padding.top,
                       ),
                     ),
-                    if (data.albums.isNotEmpty)
-                      _ArtistAlbumsGrid(albums: data.albums),
+
+                    // ── 1. Top Tracks FIRST for instant playback ───────────
                     if (data.topTracks.isNotEmpty)
                       _ArtistTopTracksList(tracks: data.topTracks),
+
+                    // ── 2. Discography Albums Carousel ─────────────────────
+                    if (data.albums.isNotEmpty)
+                      _ArtistAlbumsCarousel(albums: data.albums),
+
+                    // ── 3. Collection Stats Footer ─────────────────────────
+                    _ArtistCollectionFooter(
+                      artist: data.artist,
+                      tracks: data.topTracks,
+                      albums: data.albums,
+                    ),
+
                     SliverPadding(
                       padding: EdgeInsets.only(
-                        bottom:
-                            AppSpacing.miniPlayerHeight +
+                        bottom: AppSpacing.miniPlayerHeight +
                             MediaQuery.of(context).padding.bottom +
-                            AppSpacing.md,
+                            AppSpacing.xl,
                       ),
                     ),
                   ],
@@ -102,14 +122,17 @@ class ArtistDetailPage extends StatelessWidget {
   }
 }
 
+// ── Hero Header Delegate ──────────────────────────────────────────────────────
 class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   final Artist artist;
   final List<Track> tracks;
+  final List<Album> albums;
   final double topPadding;
 
   const _ArtistHeroDelegate({
     required this.artist,
     required this.tracks,
+    required this.albums,
     required this.topPadding,
   });
 
@@ -128,7 +151,17 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(_ArtistHeroDelegate old) =>
       old.artist != artist ||
       old.tracks != tracks ||
+      old.albums != albums ||
       old.topPadding != topPadding;
+
+  String _getInitials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts[0].isEmpty) return '♪';
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
 
   @override
   Widget build(
@@ -137,14 +170,15 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-    final bottomScrimOpacity = (1 - shrinkOffset / 24).clamp(0.0, 1.0);
     final currentHeight = (maxExtent - shrinkOffset).clamp(
       minExtent,
       maxExtent,
     );
     final colors = context.colors;
-
     final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+
+    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
+    final totalDuration = Duration(milliseconds: totalDurationMs);
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
@@ -161,88 +195,123 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            // ── Image hero en background (parallax) ────────────────────
+            // ── Expanded Content (Avatar + Name + Stats Badges) ─────────────
             Positioned(
-              top: -shrinkOffset * 0.4,
+              top: topPadding + _navBarHeight,
               left: 0,
               right: 0,
               bottom: _actionsBarHeight,
               child: Opacity(
-                opacity: (1 - collapse).clamp(0.0, 1.0),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    artist.artworkPath != null
-                        ? ArtworkImage(artist.artworkPath!)
-                        : Container(
-                            color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(
-                              LucideIcons.user,
-                              color: Colors.white30,
-                              size: 80,
-                            ),
-                          ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(
-                              alpha: .3 * bottomScrimOpacity,
-                            ),
-                            Colors.black.withValues(
-                              alpha: .6 * bottomScrimOpacity,
-                            ),
-                            Colors.black.withValues(
-                              alpha: .85 * bottomScrimOpacity,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // ── Titre + stats grand format ────────────────────────────
-            Positioned(
-              bottom: _actionsBarHeight + AppSpacing.lg,
-              left: AppSpacing.xl,
-              right: AppSpacing.xl,
-              child: Opacity(
-                opacity: (1 - collapse * 1.5).clamp(0.0, 1.0),
-                child: Transform.translate(
-                  offset: Offset(0, shrinkOffset * 0.2),
+                opacity: (1 - collapse * 1.6).clamp(0.0, 1.0),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // Circular Artist Avatar with Glow Ring
                       _animatedArtistItem(
-                        Text(
-                          artist.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 44,
-                            fontWeight: FontWeight.bold,
-                            height: 1.1,
+                        Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.accent.withValues(alpha: 0.35),
+                                blurRadius: 28,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: colors.accent.withValues(alpha: 0.5),
+                              width: 2.0,
+                            ),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          child: ClipOval(
+                            child: artist.artworkPath != null
+                                ? ArtworkImage(
+                                    artist.artworkPath!,
+                                    width: 130,
+                                    height: 130,
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      gradient: RadialGradient(
+                                        colors: [
+                                          colors.accent.withValues(alpha: 0.8),
+                                          Color.lerp(colors.accent, Colors.black, 0.6)!,
+                                        ],
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        _getInitials(artist.name),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 42,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: -1.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                          ),
                         ),
                         0,
                       ),
-                      const SizedBox(height: AppSpacing.xs),
-                      _animatedArtistItem(
-                        Text(
-                          '${artist.trackCount} songs • ${artist.albumCount} albums',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: .7),
-                            fontSize: 15,
-                          ),
+
+                      const SizedBox(height: AppSpacing.md),
+
+                      // Artist Name
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                        child: Column(
+                          children: [
+                            _animatedArtistItem(
+                              Text(
+                                artist.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.5,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              1,
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Stats Pill Badges
+                            _animatedArtistItem(
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _GlassBadge(
+                                    label: '${artist.trackCount} ${artist.trackCount > 1 ? 'titres' : 'titre'}',
+                                    icon: LucideIcons.music,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  _GlassBadge(
+                                    label: '${artist.albumCount} ${artist.albumCount > 1 ? 'albums' : 'album'}',
+                                    icon: LucideIcons.disc,
+                                  ),
+                                  if (totalDuration > Duration.zero) ...[
+                                    const SizedBox(width: 6),
+                                    _GlassBadge(
+                                      label: totalDuration.toHumanReadable(),
+                                      icon: LucideIcons.clock,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              2,
+                            ),
+                          ],
                         ),
-                        1,
                       ),
                     ],
                   ),
@@ -250,7 +319,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Navbar compacte (back + titre + more) ─────────────────
+            // ── Top Navigation Bar ──────────────────────────────────────────
             Positioned(
               top: topPadding,
               left: 0,
@@ -263,21 +332,28 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                   children: [
                     Opacity(
                       opacity: collapse,
-                      child: Text(
-                        artist.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 60),
+                        child: Text(
+                          artist.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Positioned(
                       left: 0,
                       child: GlassIconButton(
-                        icon: LucideIcons.arrowLeft,
-                        onTap: () => context.pop(),
+                        icon: LucideIcons.chevronLeft,
+                        onTap: () {
+                          AppHaptics.lightImpact();
+                          context.pop();
+                        },
                       ),
                     ),
                     Positioned(
@@ -294,7 +370,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Barre Play/Shuffle dans bottom ────────────────────────
+            // ── Twin Action Buttons (Lecture + Aléatoire 50/50) ──────────────
             Positioned(
               left: 0,
               right: 0,
@@ -302,41 +378,78 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
               height: _actionsBarHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.sm,
+                  horizontal: AppSpacing.lg,
+                  vertical: 8,
                 ),
                 child: Row(
                   children: [
-                    Flexible(
-                      child: GlassButton(
-                        label: 'Play',
-                        leading: const Icon(LucideIcons.play),
-                        onTap: () {
-                          if (tracks.isNotEmpty) {
-                            context.read<PlayerBloc>().add(
-                              PlayTrackRequested(
-                                tracks[0],
-                                contextQueue: tracks,
-                                contextIndex: 0,
-                              ),
-                            );
-                          }
-                        },
+                    // Primary Play Button
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            if (tracks.isNotEmpty) {
+                              AppHaptics.mediumImpact();
+                              context.read<PlayerBloc>().add(
+                                PlayTrackRequested(
+                                  tracks[0],
+                                  contextQueue: tracks,
+                                  contextIndex: 0,
+                                ),
+                              );
+                            }
+                          },
+                          icon: const Icon(LucideIcons.play, size: 18),
+                          label: const Text(
+                            'Écouter',
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.accent,
+                            foregroundColor: colors.accentForeground,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 4,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
-                    GlassIconButton(
-                      icon: LucideIcons.shuffle,
-                      onTap: tracks.isEmpty
-                          ? null
-                          : () {
-                              context.read<PlayerBloc>().add(
-                                QueueSetRequested(tracks, startIndex: 0),
-                              );
-                              context.read<PlayerBloc>().add(
-                                const ShuffleToggleRequested(),
-                              );
-                            },
+                    // Secondary Shuffle Button (Glass)
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: tracks.isEmpty
+                              ? null
+                              : () {
+                                  AppHaptics.mediumImpact();
+                                  context.read<PlayerBloc>().add(
+                                    QueueSetRequested(tracks, startIndex: 0),
+                                  );
+                                  context.read<PlayerBloc>().add(
+                                    const ShuffleToggleRequested(),
+                                  );
+                                },
+                          icon: Icon(LucideIcons.shuffle, size: 18, color: colors.accent),
+                          label: const Text(
+                            'Aléatoire',
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              width: 0.8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -361,11 +474,12 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
 
   void _showArtistOptions(BuildContext context) {
     if (tracks.isEmpty) return;
+    AppHaptics.lightImpact();
     showCupertinoModalPopup<void>(
       context: context,
       builder: (ctx) => CupertinoActionSheet(
         title: Text(artist.name),
-        message: Text('${tracks.length} tracks'),
+        message: Text('${tracks.length} titres • ${albums.length} albums'),
         actions: [
           CupertinoActionSheetAction(
             onPressed: () {
@@ -374,7 +488,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackQueuedNext(track));
               }
             },
-            child: const Text('Play Next'),
+            child: const Text('Lire ensuite'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
@@ -383,62 +497,60 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                 context.read<PlayerBloc>().add(TrackAddedToQueue(track));
               }
             },
-            child: const Text('Add to Queue'),
+            child: const Text("Ajouter à la file d'attente"),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancel'),
+          child: const Text('Annuler'),
         ),
       ),
     );
   }
 }
 
-// ── Albums grid ───────────────────────────────────────────────────────────────
-class _ArtistAlbumsGrid extends StatelessWidget {
-  final List<Album> albums;
-  const _ArtistAlbumsGrid({required this.albums});
+// ── Glass Pill Badge ──────────────────────────────────────────────────────────
+class _GlassBadge extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+
+  const _GlassBadge({required this.label, this.icon});
 
   @override
   Widget build(BuildContext context) {
-    return SliverMainAxisGroup(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.md),
-              _animatedArtistItem(const SectionHeader(title: 'Albums'), 4),
-            ],
-          ),
+    final colors = context.colors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 0.8,
         ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          sliver: SliverGrid.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: AppSpacing.lg,
-              crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.72,
-            ),
-            itemCount: albums.length,
-            itemBuilder: (context, i) => _animatedArtistItem(
-              AlbumCard(
-                key: ValueKey('artist-album-${albums[i].id}'),
-                album: albums[i],
-              ),
-              i + 5,
-              slideY: 0.04,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 11, color: colors.accent),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: colors.labelSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-      ],
+        ],
+      ),
     );
   }
 }
 
-// ── Popular songs ─────────────────────────────────────────────────────────────
+// ── Top Tracks List (Prioritized First) ────────────────────────────────────────
 class _ArtistTopTracksList extends StatelessWidget {
   final List<Track> tracks;
   const _ArtistTopTracksList({required this.tracks});
@@ -450,20 +562,24 @@ class _ArtistTopTracksList extends StatelessWidget {
         SliverToBoxAdapter(
           child: Column(
             children: [
+              const SizedBox(height: AppSpacing.lg),
               _animatedArtistItem(
-                const SectionHeader(title: 'Popular Songs'),
-                5,
+                SectionHeader(title: 'Morceaux populaires (${tracks.length})'),
+                3,
               ),
             ],
           ),
         ),
         SliverList.separated(
           itemCount: tracks.length,
-          separatorBuilder: (_, _) =>
-              Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          separatorBuilder: (_, _) => Divider(
+            height: 0.5,
+            indent: 72,
+            color: context.colors.separator.withValues(alpha: 0.4),
+          ),
           itemBuilder: (context, i) => _animatedArtistItem(
             TrackListTile(
-              key: ValueKey('track-${tracks[i].id}'),
+              key: ValueKey('artist-track-${tracks[i].id}'),
               track: tracks[i],
               onTap: () => context.read<PlayerBloc>().add(
                 PlayTrackRequested(
@@ -473,10 +589,164 @@ class _ArtistTopTracksList extends StatelessWidget {
                 ),
               ),
             ),
-            i + 6,
+            i + 4,
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Discography Albums Carousel ───────────────────────────────────────────────
+class _ArtistAlbumsCarousel extends StatelessWidget {
+  final List<Album> albums;
+  const _ArtistAlbumsCarousel({required this.albums});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.xl2),
+              _animatedArtistItem(
+                SectionHeader(title: 'Discographie (${albums.length})'),
+                5,
+              ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: 215,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              itemCount: albums.length,
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
+              itemBuilder: (context, i) => _animatedArtistItem(
+                AlbumCard(
+                  key: ValueKey('artist-album-${albums[i].id}'),
+                  album: albums[i],
+                  size: 140,
+                ),
+                i + 6,
+                slideY: 0.04,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Collection Stats Footer ───────────────────────────────────────────────────
+class _ArtistCollectionFooter extends StatelessWidget {
+  final Artist artist;
+  final List<Track> tracks;
+  final List<Album> albums;
+
+  const _ArtistCollectionFooter({
+    required this.artist,
+    required this.tracks,
+    required this.albums,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final totalBytes = tracks.fold<int>(0, (sum, t) => sum + t.size);
+    final totalMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
+    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
+    final totalDuration = Duration(milliseconds: totalDurationMs);
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl2, AppSpacing.lg, 0),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 0.8,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(LucideIcons.library, size: 16, color: colors.accent),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Dans votre bibliothèque locale',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _MetaRow(
+                label: 'Titres disponibles',
+                value: '${artist.trackCount} morceaux',
+              ),
+              _MetaRow(
+                label: 'Albums référencés',
+                value: '${artist.albumCount} albums',
+              ),
+              _MetaRow(
+                label: 'Temps d\'écoute total',
+                value: totalDuration.toHumanReadable(),
+              ),
+              _MetaRow(
+                label: 'Empreinte de stockage',
+                value: '$totalMb Mo',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MetaRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: context.colors.labelSecondary,
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

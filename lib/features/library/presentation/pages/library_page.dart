@@ -407,7 +407,7 @@ class _AlbumsView extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.md,
           mainAxisSpacing: AppSpacing.lg,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.70,
         ),
         itemCount: albums.length,
         itemBuilder: (context, i) => _animatedLibraryItem(
@@ -446,7 +446,7 @@ class _ArtistsView extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.md,
           mainAxisSpacing: AppSpacing.lg,
-          childAspectRatio: 0.78,
+          childAspectRatio: 0.75,
         ),
         itemCount: artists.length,
         itemBuilder: (context, i) => _animatedLibraryItem(

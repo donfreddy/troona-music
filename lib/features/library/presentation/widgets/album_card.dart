@@ -40,6 +40,7 @@ class AlbumCard extends StatelessWidget {
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 album.name,
@@ -47,29 +48,24 @@ class AlbumCard extends StatelessWidget {
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
+                  height: 1.2,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const SizedBox(height: 2),
               Text(
-                album.artist,
+                album.trackCount > 0
+                    ? '${album.artist} • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}'
+                    : album.artist,
                 style: TextStyle(
                   color: context.colors.labelSecondary,
                   fontSize: 12,
+                  height: 1.2,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (album.trackCount > 0)
-                Text(
-                  '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}',
-                  style: TextStyle(
-                    color: context.colors.labelTertiary,
-                    fontSize: 11,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
             ],
           ),
         ),

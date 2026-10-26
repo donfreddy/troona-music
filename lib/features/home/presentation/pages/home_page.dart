@@ -225,7 +225,7 @@ class _HomeBody extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 180,
+              height: 200,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
