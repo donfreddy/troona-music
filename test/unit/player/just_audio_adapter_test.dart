@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
+import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
@@ -77,8 +79,36 @@ final class _FakeAudioPlayer implements AudioPlayer {
   }
 
   @override
-  Future<void> play() =>
-      playCompletes ? Future.value() : Completer<void>().future;
+  bool playing = false;
+
+  /// Volumes sent to the platform, in order.
+  final volumes = <double>[];
+  int pauses = 0;
+
+  /// Track changes asked by the user, with the volume at that moment.
+  final switches = <(String, double)>[];
+
+  @override
+  PlayerState get playerState => PlayerState(playing, ProcessingState.ready);
+
+  @override
+  bool get hasNext => true;
+
+  @override
+  Future<void> seekToNext() async =>
+      switches.add(('next', volumes.lastOrNull ?? 1));
+
+  @override
+  Future<void> play() {
+    playing = true;
+    return playCompletes ? Future.value() : Completer<void>().future;
+  }
+
+  @override
+  Future<void> pause() async {
+    playing = false;
+    pauses++;
+  }
 
   @override
   Future<void> setLoopMode(LoopMode mode) async {
@@ -86,7 +116,7 @@ final class _FakeAudioPlayer implements AudioPlayer {
   }
 
   @override
-  Future<void> setVolume(double volume) async {}
+  Future<void> setVolume(double volume) async => volumes.add(volume);
   @override
   Future<void> setSpeed(double speed) async {}
   @override
@@ -400,5 +430,134 @@ void main() {
     await pumpEventQueue();
 
     expect(playing, ['b', 'c']);
+  });
+
+  group('fades', () {
+    const fade = JustAudioAdapter.fadeDuration;
+
+    /// An adapter playing [tracks], its fade-in over and forgotten.
+    void playing(FakeAsync async) {
+      player = _FakeAudioPlayer();
+      adapter = JustAudioAdapter(player: player);
+      adapter.setQueue(tracks);
+      async.elapse(fade * 2);
+      player.volumes.clear();
+    }
+
+    bool falling(List<double> v) =>
+        [for (var i = 1; i < v.length; i++) v[i] < v[i - 1]].every((x) => x);
+
+    test('pause fades out, then pauses; the status turns at the tap', () {
+      fakeAsync((async) {
+        playing(async);
+
+        adapter.pause();
+        async.flushMicrotasks();
+        expect(adapter.currentStatus, PlaybackStatus.paused);
+        expect(player.pauses, 0);
+
+        async.elapse(fade);
+        expect(player.pauses, 1);
+        expect(falling(player.volumes), isTrue);
+        expect(player.volumes.last, 0);
+      });
+    });
+
+    test('resume during the fade-out takes the volume back up', () {
+      fakeAsync((async) {
+        playing(async);
+
+        adapter.pause();
+        async.elapse(fade ~/ 3);
+        adapter.resume();
+        async.elapse(fade * 2);
+
+        expect(player.pauses, 0);
+        expect(player.volumes.reduce((a, b) => a < b ? a : b), greaterThan(0));
+        expect(player.volumes.last, 1);
+        expect(adapter.currentStatus, PlaybackStatus.playing);
+      });
+    });
+
+    test('pause, resume, pause: one pause, once the last fade is over', () {
+      fakeAsync((async) {
+        playing(async);
+
+        // Resume and pause again between two steps of the first fade: it
+        // sees both at once and must not take the second pause for its own.
+        adapter.pause();
+        async.elapse(const Duration(milliseconds: 50));
+        adapter.resume();
+        async.elapse(const Duration(milliseconds: 5));
+        adapter.pause();
+        async.elapse(const Duration(milliseconds: 40));
+        expect(player.pauses, 0, reason: 'the first pause must not cut');
+
+        async.elapse(fade);
+        expect(player.pauses, 1);
+        expect(player.volumes.last, 0);
+      });
+    });
+
+    test('resume starts from silence and fades in', () {
+      fakeAsync((async) {
+        playing(async);
+        adapter.pause();
+        async.elapse(fade);
+        player.volumes.clear();
+
+        adapter.resume();
+        async.elapse(fade);
+
+        expect(player.volumes.first, 0);
+        expect(falling(player.volumes.reversed.toList()), isTrue);
+        expect(player.volumes.last, 1);
+      });
+    });
+
+    test('a skip fades out, changes track, then fades back in', () {
+      fakeAsync((async) {
+        playing(async);
+
+        adapter.skipToNext();
+        async.elapse(fade * 2);
+
+        expect(player.switches.single.$2, 0);
+        expect(player.volumes.last, 1);
+      });
+    });
+
+    test('a skip while paused does not fade', () {
+      fakeAsync((async) {
+        playing(async);
+        adapter.pause();
+        async.elapse(fade);
+        player.volumes.clear();
+
+        adapter.skipToNext();
+        async.elapse(fade);
+
+        expect(player.switches, hasLength(1));
+        expect(player.volumes, isEmpty);
+      });
+    });
+
+    test('the fade stays off the volume stream, the user volume applies', () {
+      fakeAsync((async) {
+        playing(async);
+        final volumes = <double>[];
+        adapter.volumeStream.listen(volumes.add);
+
+        adapter.pause();
+        async.elapse(fade ~/ 2);
+        adapter.setVolume(.5);
+        async.elapse(fade);
+        adapter.resume();
+        async.elapse(fade);
+
+        expect(volumes, [1, .5]);
+        expect(player.volumes.last, .5);
+      });
+    });
   });
 }

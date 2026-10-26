@@ -6,6 +6,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/player/data/adapters/gain_ramp.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
@@ -31,8 +32,31 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 ///
 /// **Streams** backed by [BehaviorSubject] emit an initial value immediately
 /// on subscription, as required by [AudioServicePort]'s contract.
+///
+/// **Fades**: play and resume fade in, pause fades out before pausing, and a
+/// track change by the user fades out briefly, then in. Auto-advance stays
+/// gapless. The fade is a gain applied on top of the user's volume, so it
+/// never shows on the volume stream or in the saved session.
 class JustAudioAdapter implements AudioServicePort {
   final AudioPlayer _player;
+
+  /// Fade at play, resume and pause, and fade-in after a track change.
+  static const fadeDuration = Duration(milliseconds: 300);
+
+  /// Fade-out before a track change: shorter, so a skip still feels instant.
+  static const switchFadeDuration = Duration(milliseconds: 120);
+
+  /// The user's volume; the player gets it times the fade's gain.
+  double _volume = 1;
+
+  late final _fade = GainRamp((gain) => _player.setVolume(_volume * gain));
+
+  /// Whether playback should run. False as soon as a pause starts fading,
+  /// so the status says "paused" at the tap, not once the fade is over.
+  final _playIntent = BehaviorSubject<bool>.seeded(false);
+
+  /// Bumped by every pause: only the latest one pauses the player.
+  int _pauseRequest = 0;
 
   /// Local mirror of the domain queue. Kept in sync with the player's
   /// `currentIndexStream` and updated on every queue mutation.
@@ -72,7 +96,8 @@ class JustAudioAdapter implements AudioServicePort {
       _updateQueue(queue.copyWith(currentIndex: index));
     });
 
-    _volumeSubject.add(_player.volume);
+    _volume = _player.volume;
+    _volumeSubject.add(_volume);
   }
 
   // ---------------------------------------------------------------------------
@@ -87,7 +112,7 @@ class JustAudioAdapter implements AudioServicePort {
 
   @override
   Stream<PlaybackStatus> get statusStream =>
-      _player.playerStateStream.map(_mapState);
+      Rx.combineLatest2(_player.playerStateStream, _playIntent.stream, _status);
 
   /// Derived from the queue, the source of truth for what is playing: the
   /// player index alone is not re-emitted when a new queue starts at the
@@ -120,7 +145,8 @@ class JustAudioAdapter implements AudioServicePort {
   // ---------------------------------------------------------------------------
 
   @override
-  PlaybackStatus get currentStatus => _mapState(_player.playerState);
+  PlaybackStatus get currentStatus =>
+      _status(_player.playerState, _playIntent.value);
 
   @override
   Track? get currentTrack {
@@ -167,10 +193,18 @@ class JustAudioAdapter implements AudioServicePort {
     }
   }
 
+  /// Fades out, then pauses. A resume during the fade cancels the pause,
+  /// and of several pauses only the latest one pauses the player, once its
+  /// fade is over.
   @override
   Future<Either<Failure, Unit>> pause() async {
     try {
-      await _player.pause();
+      final request = ++_pauseRequest;
+      _playIntent.add(false);
+      if (_player.playing) await _fade.to(0, fadeDuration);
+      if (!_playIntent.value && request == _pauseRequest) {
+        await _player.pause();
+      }
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -180,7 +214,7 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> resume() async {
     try {
-      await _player.play();
+      await _play();
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -201,11 +235,11 @@ class JustAudioAdapter implements AudioServicePort {
   Future<Either<Failure, Unit>> skipToNext() async {
     try {
       if (_player.hasNext) {
-        await _player.seekToNext();
+        await _switchTrack(_player.seekToNext);
       } else if (_currentQueue?.repeatMode == RepeatMode.all) {
         // Manual wrap-around when repeat-all is active.
-        await _player.seek(Duration.zero, index: 0);
-        await _player.play();
+        await _switchTrack(() => _player.seek(Duration.zero, index: 0));
+        await _play();
       }
       return right(unit);
     } catch (e, st) {
@@ -220,10 +254,8 @@ class JustAudioAdapter implements AudioServicePort {
       if (queue == null || index < 0 || index >= queue.length) {
         return left(const PlaybackFailure('Queue index out of range'));
       }
-      await _player.seek(Duration.zero, index: index);
-      // Not awaited: play() only completes once playback pauses or ends,
-      // which would block the caller for the whole track.
-      unawaited(_player.play());
+      await _switchTrack(() => _player.seek(Duration.zero, index: index));
+      await _play();
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -234,11 +266,11 @@ class JustAudioAdapter implements AudioServicePort {
   Future<Either<Failure, Unit>> skipToPrevious() async {
     try {
       if (_player.hasPrevious) {
-        await _player.seekToPrevious();
+        await _switchTrack(_player.seekToPrevious);
       } else if (_currentQueue?.repeatMode == RepeatMode.all) {
         final last = (_currentQueue?.length ?? 1) - 1;
-        await _player.seek(Duration.zero, index: last);
-        await _player.play();
+        await _switchTrack(() => _player.seek(Duration.zero, index: last));
+        await _play();
       }
       return right(unit);
     } catch (e, st) {
@@ -305,10 +337,11 @@ class JustAudioAdapter implements AudioServicePort {
       // After the load, not inside it: the sources are in, so a failure
       // here must not roll the queue back.
       await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
-      await _player.setVolume(nextVolume);
+      _volume = nextVolume;
+      await _player.setVolume(nextVolume * _fade.gain);
       await _player.setSpeed(nextSpeed);
       _volumeSubject.add(nextVolume);
-      if (play) _playInBackground();
+      if (play) await _play();
       return loaded;
     } on PlayerException catch (e) {
       return left(PlaybackFailure(e.message ?? 'Audio source error'));
@@ -361,11 +394,15 @@ class JustAudioAdapter implements AudioServicePort {
   /// With no previous queue (cold start) there is nothing stale to guard
   /// against: the queue is published once loaded, so a failed first load
   /// leaves no queue behind.
+  ///
+  /// With [play], the track playing fades out before the load and the new
+  /// one fades in.
   Future<Either<Failure, Unit>> _loadQueue(
     Queue queue,
     Future<void> Function() load, {
     bool play = false,
   }) async {
+    if (play && _audible) await _fade.to(0, switchFadeDuration);
     final generation = ++_loadGeneration;
     final previous = _currentQueue;
     if (previous != null) _updateQueue(queue);
@@ -382,9 +419,42 @@ class JustAudioAdapter implements AudioServicePort {
     }
     if (generation != _loadGeneration) return right(unit);
     if (previous == null) _updateQueue(queue);
-    if (play) _playInBackground();
+    if (play) await _play();
     return right(unit);
   }
+
+  bool get _audible => _player.playing && _playIntent.value;
+
+  /// Starts playback, or takes it back from a pause still fading out, and
+  /// fades in. Starting from silence: the gain is zeroed first.
+  Future<void> _play() async {
+    _playIntent.add(true);
+    if (!_player.playing) {
+      await _fade.jump(0);
+      _playInBackground();
+    }
+    _fadeIn();
+  }
+
+  /// Runs [change] between a short fade-out and a fade-in, so a track
+  /// change by the user does not cut. Paused, it only runs [change].
+  Future<void> _switchTrack(Future<void> Function() change) async {
+    if (_audible) await _fade.to(0, switchFadeDuration);
+    await change();
+    if (_playIntent.value) _fadeIn();
+  }
+
+  /// Not awaited: the caller would wait for the whole fade.
+  void _fadeIn() => unawaited(
+    _fade
+        .to(1, fadeDuration)
+        .then<void>(
+          (_) {},
+          onError: (Object e, StackTrace st) {
+            ErrorHandler.handle(e, st);
+          },
+        ),
+  );
 
   /// play() only completes once playback pauses or ends: awaiting it would
   /// keep the caller (and the bloc's droppable handlers) busy for the whole
@@ -516,7 +586,8 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> setVolume(double volume) async {
     try {
-      await _player.setVolume(volume);
+      _volume = volume;
+      await _player.setVolume(volume * _fade.gain);
       _volumeSubject.add(volume);
       return right(unit);
     } catch (e, st) {
@@ -535,10 +606,16 @@ class JustAudioAdapter implements AudioServicePort {
   }
 
   @override
-  Future<void> stop() => _player.stop();
+  Future<void> stop() {
+    _playIntent.add(false);
+    _fade.stop();
+    return _player.stop();
+  }
 
   @override
   Future<void> dispose() async {
+    _fade.stop();
+    await _playIntent.close();
     await _queueSubject.close();
     await _volumeSubject.close();
     await _player.dispose();
@@ -561,6 +638,10 @@ class JustAudioAdapter implements AudioServicePort {
     track.uri.isNotEmpty ? Uri.parse(track.uri) : Uri.file(track.path),
     tag: track,
   );
+
+  /// Still playing but asked to pause: the pause is fading out.
+  PlaybackStatus _status(PlayerState state, bool playIntent) =>
+      state.playing && !playIntent ? PlaybackStatus.paused : _mapState(state);
 
   PlaybackStatus _mapState(PlayerState state) {
     if (state.processingState == ProcessingState.loading ||
