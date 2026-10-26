@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/shared/widgets/toast_anchor.dart';
 
-/// The app's single transient message: a pill above the mini player.
+/// The app's single transient message: a pill just above the bottom bar
+/// (see [ToastAnchor]), or near the bottom edge when there is none.
 ///
 /// One at a time; a new toast replaces the current one. Flat fill, no blur:
 /// it can show over any page, Now Playing included, without breaking the
@@ -44,31 +46,52 @@ abstract final class AppToast {
     if (!overlay.mounted) return;
     dismiss();
 
-    final bottom =
-        AppSpacing.bottomBlockHeight +
-        MediaQuery.paddingOf(overlay.context).bottom +
-        8;
+    final view = _ToastView(
+      message: message,
+      actionLabel: actionLabel,
+      onAction: onAction == null
+          ? null
+          : () {
+              dismiss();
+              onAction();
+            },
+    );
     final entry = OverlayEntry(
-      builder: (context) => Positioned(
-        left: AppSpacing.lg,
-        right: AppSpacing.lg,
-        bottom: bottom,
-        child: _ToastView(
-          message: message,
-          actionLabel: actionLabel,
-          onAction: onAction == null
-              ? null
-              : () {
-                  dismiss();
-                  onAction();
-                },
+      builder: (context) => ValueListenableBuilder<double?>(
+        valueListenable: ToastAnchor.top,
+        builder: (context, barTop, child) => AnimatedPositioned(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          bottom: bottomOffset(
+            screenHeight: MediaQuery.sizeOf(context).height,
+            safeBottom: MediaQuery.paddingOf(context).bottom,
+            barTop: barTop,
+          ),
+          child: child!,
         ),
+        child: view,
       ),
     );
     _entry = entry;
     overlay.insert(entry);
     _timer = Timer(duration, dismiss);
   }
+
+  /// Space between the toast and the bar, or the bottom edge.
+  static const gap = 8.0;
+
+  /// Distance from the screen's bottom edge to the toast's: just above the
+  /// bar's top edge, or above the system inset when no bar is mounted.
+  @visibleForTesting
+  static double bottomOffset({
+    required double screenHeight,
+    required double safeBottom,
+    required double? barTop,
+  }) => barTop == null
+      ? safeBottom + AppSpacing.md + gap
+      : screenHeight - barTop + gap;
 
   static void dismiss() {
     _timer?.cancel();

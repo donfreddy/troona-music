@@ -20,6 +20,7 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/marquee.dart';
+import 'package:troona/shared/widgets/toast_anchor.dart';
 
 import '../../features/player/domain/entities/repeat_mode.dart';
 
@@ -77,18 +78,21 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PlayerBloc, PlayerState>(
-      buildWhen: (prev, curr) => _navKey(prev) != _navKey(curr),
-      builder: (context, playerState) {
-        final resolvedPlayerState = _resolvePlayerState(playerState);
-        return _NavBarBody(
-          currentTab: widget.currentTab,
-          onTabChanged: widget.onTabChanged,
-          playerState: resolvedPlayerState,
-          showMiniPlayer: widget.showMiniPlayer,
-          showTabs: widget.showTabs,
-        );
-      },
+    // Toasts sit just above whatever the bar shows, down to nothing.
+    return ToastAnchor(
+      child: BlocBuilder<PlayerBloc, PlayerState>(
+        buildWhen: (prev, curr) => _navKey(prev) != _navKey(curr),
+        builder: (context, playerState) {
+          final resolvedPlayerState = _resolvePlayerState(playerState);
+          return _NavBarBody(
+            currentTab: widget.currentTab,
+            onTabChanged: widget.onTabChanged,
+            playerState: resolvedPlayerState,
+            showMiniPlayer: widget.showMiniPlayer,
+            showTabs: widget.showTabs,
+          );
+        },
+      ),
     );
   }
 
