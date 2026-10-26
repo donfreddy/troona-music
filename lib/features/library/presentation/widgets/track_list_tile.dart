@@ -40,12 +40,16 @@ class _TrackListTileState extends State<TrackListTile> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final playerState = context.watch<PlayerBloc>().state;
-
-    final isActive =
-        playerState is PlayerActive &&
-        playerState.currentTrack.id == widget.track.id;
-    final isPlaying = isActive && playerState.isPlaying;
+    // Only the two flags this row draws: a watch on the whole state rebuilt
+    // every visible row on each player emission (volume drag included).
+    final (isActive, isPlaying) = context.select<PlayerBloc, (bool, bool)>((
+      bloc,
+    ) {
+      final state = bloc.state;
+      final active =
+          state is PlayerActive && state.currentTrack.id == widget.track.id;
+      return (active, active && state.isPlaying);
+    });
 
     final isLiked = context.select<LikesCubit, bool>(
       (c) => c.state.isTrackLiked(widget.track.id),

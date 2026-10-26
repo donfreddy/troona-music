@@ -98,9 +98,9 @@ class IsarLibraryDataSource {
       .findFirst()
       ?.artworkPath;
 
-  /// Returns up to [limit] playlists ordered by Isar insertion ID,
-  /// with the Likes playlist always ensured and pinned to the top.
-  Future<List<PlaylistModel>> getPlaylists({int limit = 50}) async {
+  /// Returns the playlists ordered by Isar insertion ID, all of them unless
+  /// [limit] is given (Home row), with Likes ensured and pinned to the top.
+  Future<List<PlaylistModel>> getPlaylists({int? limit}) async {
     await ensureLikes();
     final playlists = _isar.playlistModels.where().findAll(limit: limit);
     // Pin Likes playlist to index 0

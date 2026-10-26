@@ -79,6 +79,15 @@ void main() {
       expect(_view(tracks).$1.map((t) => t.id), ['2', '1']);
     });
 
+    test('title sort folds accents and ignores a leading "The"', () {
+      final tracks = [
+        _t('zebra', title: 'Zebra'),
+        _t('ete', title: 'Été'),
+        _t('beatles', title: 'The Beatles'),
+      ];
+      expect(_view(tracks).$1.map((t) => t.id), ['beatles', 'ete', 'zebra']);
+    });
+
     test('query matches title, artist or album, case-insensitively', () {
       final tracks = [
         _t('1', title: 'Hello'),

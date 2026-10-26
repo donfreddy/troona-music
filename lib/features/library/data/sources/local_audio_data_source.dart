@@ -35,8 +35,9 @@ abstract interface class LocalAudioDataSource {
 final class OnAudioQueryDataSource implements LocalAudioDataSource {
   final OnAudioQuery _query;
 
-  static const _minTrackDurationMs = 45 * 1000;
-  static const _minTrackSizeBytes = 512 * 1024;
+  /// Low on purpose: album intros, skits and interludes are often 20 to
+  /// 40 s. System sounds are excluded by the MediaStore flags instead.
+  static const _minTrackDurationMs = 10 * 1000;
   static const _allowedExtensions = {
     'mp3',
     'm4a',
@@ -148,8 +149,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   ///
   /// Filters out:
   /// - Non-music items reported by MediaStore.
-  /// - Files shorter than 45 seconds (ringtones, sound effects, jingles).
-  /// - Very small files that are unlikely to be full songs.
+  /// - Files shorter than 10 seconds, and empty files.
   /// - System / messaging app audio directories.
   /// - Files with an empty title (likely corrupted).
   /// - Files with an empty path (no accessible storage location).
@@ -170,7 +170,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
       return false;
     }
     if ((song.duration ?? 0) < _minTrackDurationMs) return false;
-    if (song.size < _minTrackSizeBytes) return false;
+    if (song.size <= 0) return false;
     if (!_allowedExtensions.contains(extension)) return false;
     if (lowerPath.contains(
       '/android/media/com.whatsapp/business/voice notes/',

@@ -37,7 +37,10 @@ part of 'library_bloc.dart';
         ]
       : <Artist>[];
 
-  int text(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+  // One key per string, computed once: the comparator runs n log n times.
+  final keys = <String, String>{};
+  String k(String s) => keys[s] ??= sortKey(s);
+  int text(String a, String b) => k(a).compareTo(k(b));
 
   switch (sort) {
     case LibrarySort.title:
