@@ -34,4 +34,41 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
       return left(ErrorHandler.handle(e, st));
     }
   }
+
+  @override
+  Future<Either<Failure, Map<String, int>>> topTrackIds({
+    int days = 7,
+    int limit = 5,
+  }) async {
+    try {
+      return right(_source.topTrackIds(days: days, limit: limit));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> forgottenTrackIds(
+    Set<String> likedIds, {
+    int staleDays = 14,
+    int limit = 5,
+  }) async {
+    try {
+      return right(
+        _source.forgottenTrackIds(likedIds, staleDays: staleDays, limit: limit),
+      );
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> totalPlays({int days = 7}) async {
+    try {
+      return right(_source.totalPlays(days: days));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
 }
+
