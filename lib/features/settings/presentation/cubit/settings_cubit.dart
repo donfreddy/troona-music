@@ -89,6 +89,16 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setWatchFolderChanges(bool value) =>
       _update((s) => s.copyWith(watchFolderChanges: value));
 
+  // Online Metadata & Artwork
+  Future<void> setFetchOnlineMetadata(bool value) =>
+      _update((s) => s.copyWith(fetchOnlineMetadata: value));
+
+  Future<void> setFetchArtistArtwork(bool value) =>
+      _update((s) => s.copyWith(fetchArtistArtwork: value));
+
+  Future<void> setMetadataWifiOnly(bool value) =>
+      _update((s) => s.copyWith(metadataWifiOnly: value));
+
   // UI
   Future<void> setShowAlbumArtInNotification(bool value) =>
       _update((s) => s.copyWith(showAlbumArtInNotification: value));

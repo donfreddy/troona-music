@@ -5,6 +5,13 @@ import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/database/app_database.dart';
+import 'package:troona/core/network/api_client.dart';
+import 'package:troona/features/metadata/data/repositories/metadata_repository_impl.dart';
+import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
+import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
+import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
+import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
+import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
 import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
@@ -76,6 +83,7 @@ final GetIt getIt = GetIt.instance;
 /// `getIt()` calls inside factory/singleton constructors always resolve.
 Future<void> configureDependencies() async {
   // ── Core external clients ─────────────────────────────────────────────────
+  getIt.registerLazySingleton<ApiClient>(() => ApiClient());
   getIt.registerLazySingleton<OnAudioQuery>(() => OnAudioQuery());
   final sharedPrefs = await SharedPreferences.getInstance();
   getIt.registerSingleton<SharedPreferences>(sharedPrefs);
@@ -110,6 +118,19 @@ Future<void> configureDependencies() async {
 
   getIt.registerLazySingleton<ArtworkExtractor>(
     () => ArtworkExtractor(query: getIt(), cacheDir: artworkCache),
+  );
+
+  // ── Metadata cache directory & Remote Data Source ─────────────────────────
+  final metadataCache = Directory('${cacheBase.path}/troona_metadata_cache');
+  await metadataCache.create(recursive: true);
+  final metadataCacheDataSource = MetadataCacheDataSourceImpl(
+    cacheDir: metadataCache,
+  );
+  await metadataCacheDataSource.init();
+  getIt.registerSingleton<MetadataCacheDataSource>(metadataCacheDataSource);
+
+  getIt.registerLazySingleton<LastFmRemoteDataSource>(
+    () => LastFmRemoteDataSourceImpl(client: getIt()),
   );
 
   // ── Services ──────────────────────────────────────────────────────────────
@@ -185,6 +206,15 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<SettingsRepository>(
     () => SettingsRepositoryImpl(getIt()),
+  );
+  getIt.registerLazySingleton<MetadataRepository>(
+    () => MetadataRepositoryImpl(
+      cache: getIt(),
+      remote: getIt(),
+      settingsRepo: getIt(),
+      client: getIt(),
+      artworkCacheDir: artworkCache,
+    ),
   );
 
   // ── Use cases ─────────────────────────────────────────────────────────────
@@ -302,6 +332,14 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerFactory<AlbumDetailBloc>(() => AlbumDetailBloc(repo: getIt()));
+
+  getIt.registerFactory<ArtistMetadataCubit>(
+    () => ArtistMetadataCubit(repo: getIt()),
+  );
+
+  getIt.registerFactory<AlbumMetadataCubit>(
+    () => AlbumMetadataCubit(repo: getIt()),
+  );
 
   // LibraryBloc remains a factory so each ShellRoute mount creates a fresh
   // instance with a clean state. The initial scan is triggered by AppShell.

@@ -17,6 +17,7 @@ import 'package:troona/core/utils/crash_log.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
@@ -74,6 +75,7 @@ class _SettingsView extends StatefulWidget {
 
 class _SettingsViewState extends State<_SettingsView> {
   int _artworkCacheBytes = 0;
+  int _metadataCacheBytes = 0;
   bool _isLoadingCacheSize = true;
 
   @override
@@ -82,30 +84,59 @@ class _SettingsViewState extends State<_SettingsView> {
     _calculateCacheSize();
   }
 
-  /// Recursively compute the size of cover artwork stored on disk.
+  /// Recursively compute the size of cover artwork and online metadata stored on disk.
   Future<void> _calculateCacheSize() async {
     try {
       final dir = getIt<ArtworkExtractor>().cacheDir;
-      if (!await dir.exists()) {
-        if (mounted) setState(() => _artworkCacheBytes = 0);
-        return;
-      }
-
-      int total = 0;
-      await for (final file in dir.list(recursive: true, followLinks: false)) {
-        if (file is File) {
-          total += await file.length();
+      int artworkTotal = 0;
+      if (await dir.exists()) {
+        await for (final file in dir.list(recursive: true, followLinks: false)) {
+          if (file is File) {
+            artworkTotal += await file.length();
+          }
         }
       }
 
+      int metadataTotal = 0;
+      try {
+        metadataTotal = await getIt<MetadataRepository>().getMetadataCacheSizeBytes();
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
-          _artworkCacheBytes = total;
+          _artworkCacheBytes = artworkTotal;
+          _metadataCacheBytes = metadataTotal;
           _isLoadingCacheSize = false;
         });
       }
     } catch (_) {
       if (mounted) setState(() => _isLoadingCacheSize = false);
+    }
+  }
+
+  Future<void> _clearMetadataCache(BuildContext context) async {
+    AppHaptics.mediumImpact();
+    try {
+      await getIt<MetadataRepository>().clearMetadataCache();
+      await _calculateCacheSize();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cache des métadonnées en ligne vidé avec succès.'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du nettoyage : $e'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -575,7 +606,81 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
             ],
           ),
 
-          // ── SECTION 3 : Apparence & Performance ───────────────────────────
+          // ── SECTION 3 : Métadonnées en ligne (Last.fm) ───────────────────
+          SettingsSection(
+            title: 'Métadonnées en ligne',
+            footer:
+                'Télécharge les biographies d\'artistes, chroniques d\'albums et statistiques via Last.fm. Les données sont conservées en cache local (30 jours) pour préserver vos données mobiles et la réactivité hors-ligne.',
+            children: [
+              SettingsTile.switchTile(
+                icon: LucideIcons.globe,
+                iconColor: const Color(0xFFD51007),
+                title: 'Métadonnées en ligne',
+                subtitle: 'Biographies, chroniques d\'albums et statistiques',
+                value: settings.fetchOnlineMetadata,
+                onChanged: cubit.setFetchOnlineMetadata,
+              ),
+              SettingsTile.switchTile(
+                icon: LucideIcons.image,
+                iconColor: const Color(0xFF10B981),
+                title: 'Photos d\'artistes en ligne',
+                subtitle: 'Télécharge les visuels pour les artistes sans pochette',
+                value: settings.fetchArtistArtwork,
+                onChanged: cubit.setFetchArtistArtwork,
+              ),
+              SettingsTile.switchTile(
+                icon: LucideIcons.wifi,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'Uniquement en Wi-Fi',
+                subtitle: 'Économise vos données mobiles',
+                value: settings.metadataWifiOnly,
+                onChanged: cubit.setMetadataWifiOnly,
+              ),
+              SettingsTile(
+                icon: LucideIcons.databaseZap,
+                iconColor: const Color(0xFFF97316),
+                title: 'Vider le cache des métadonnées',
+                subtitle: 'Supprime les biographies et wikis enregistrés',
+                trailing: Text(
+                  _isLoadingCacheSize
+                      ? '...'
+                      : _formatBytes(_metadataCacheBytes),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colors.labelSecondary,
+                  ),
+                ),
+                onTap: () async {
+                  final confirm = await showCupertinoDialog<bool>(
+                    context: context,
+                    builder: (dialogCtx) => CupertinoAlertDialog(
+                      title: const Text('Vider le cache des métadonnées ?'),
+                      content: const Text(
+                        'Toutes les biographies d\'artistes, wikis et statistiques en cache local seront supprimés.',
+                      ),
+                      actions: [
+                        CupertinoDialogAction(
+                          isDefaultAction: true,
+                          onPressed: () => Navigator.pop(dialogCtx, false),
+                          child: const Text('Annuler'),
+                        ),
+                        CupertinoDialogAction(
+                          isDestructiveAction: true,
+                          onPressed: () => Navigator.pop(dialogCtx, true),
+                          child: const Text('Vider'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm != true || !context.mounted) return;
+                  await _clearMetadataCache(context);
+                },
+              ),
+            ],
+          ),
+
+          // ── SECTION 4 : Apparence & Performance ───────────────────────────
           SettingsSection(
             title: 'Apparence & Performance',
             footer:

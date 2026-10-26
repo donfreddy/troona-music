@@ -31,6 +31,11 @@ class AppSettings extends Equatable {
   final bool hapticFeedbackEnabled;
   final GlassQuality glassQuality; // Reduce effects / blur quality
 
+  // Online Metadata & Artwork
+  final bool fetchOnlineMetadata;
+  final bool fetchArtistArtwork;
+  final bool metadataWifiOnly;
+
   // Sleep timer
   final bool sleepTimerEnabled;
   final int sleepTimerMinutes; // 5–120
@@ -50,6 +55,10 @@ class AppSettings extends Equatable {
     // Library
     this.scanOnStartup = true,
     this.watchFolderChanges = false,
+    // Online Metadata & Artwork
+    this.fetchOnlineMetadata = true,
+    this.fetchArtistArtwork = true,
+    this.metadataWifiOnly = false,
     // UI
     this.showAlbumArtInNotification = true,
     this.hapticFeedbackEnabled = true,
@@ -71,6 +80,9 @@ class AppSettings extends Equatable {
     bool? duckAudioOnNotification,
     bool? scanOnStartup,
     bool? watchFolderChanges,
+    bool? fetchOnlineMetadata,
+    bool? fetchArtistArtwork,
+    bool? metadataWifiOnly,
     bool? showAlbumArtInNotification,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
@@ -90,6 +102,9 @@ class AppSettings extends Equatable {
         duckAudioOnNotification ?? this.duckAudioOnNotification,
     scanOnStartup: scanOnStartup ?? this.scanOnStartup,
     watchFolderChanges: watchFolderChanges ?? this.watchFolderChanges,
+    fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
+    fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
+    metadataWifiOnly: metadataWifiOnly ?? this.metadataWifiOnly,
     showAlbumArtInNotification:
         showAlbumArtInNotification ?? this.showAlbumArtInNotification,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
@@ -111,6 +126,9 @@ class AppSettings extends Equatable {
     duckAudioOnNotification,
     scanOnStartup,
     watchFolderChanges,
+    fetchOnlineMetadata,
+    fetchArtistArtwork,
+    metadataWifiOnly,
     showAlbumArtInNotification,
     hapticFeedbackEnabled,
     glassQuality,

@@ -22,6 +22,10 @@ abstract final class _K {
   // Library
   static const scanOnStartup = 'scan_on_startup';
   static const watchFolderChanges = 'watch_folder_changes';
+  // Online Metadata & Artwork
+  static const fetchOnlineMetadata = 'fetch_online_metadata';
+  static const fetchArtistArtwork = 'fetch_artist_artwork';
+  static const metadataWifiOnly = 'metadata_wifi_only';
   // UI
   static const showAlbumArtInNotification = 'show_album_art_in_notification';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
@@ -94,6 +98,13 @@ class SettingsRepositoryImpl implements SettingsRepository {
         scanOnStartup: _prefs.getBool(_K.scanOnStartup) ?? d.scanOnStartup,
         watchFolderChanges:
             _prefs.getBool(_K.watchFolderChanges) ?? d.watchFolderChanges,
+        // Online Metadata & Artwork
+        fetchOnlineMetadata:
+            _prefs.getBool(_K.fetchOnlineMetadata) ?? d.fetchOnlineMetadata,
+        fetchArtistArtwork:
+            _prefs.getBool(_K.fetchArtistArtwork) ?? d.fetchArtistArtwork,
+        metadataWifiOnly:
+            _prefs.getBool(_K.metadataWifiOnly) ?? d.metadataWifiOnly,
         // UI
         showAlbumArtInNotification:
             _prefs.getBool(_K.showAlbumArtInNotification) ??
@@ -133,6 +144,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.duckAudioOnNotification, s.duckAudioOnNotification),
         _prefs.setBool(_K.scanOnStartup, s.scanOnStartup),
         _prefs.setBool(_K.watchFolderChanges, s.watchFolderChanges),
+        _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
+        _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
+        _prefs.setBool(_K.metadataWifiOnly, s.metadataWifiOnly),
         _prefs.setBool(
           _K.showAlbumArtInNotification,
           s.showAlbumArtInNotification,

@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
+import 'package:troona/features/metadata/presentation/widgets/album_wiki_section.dart';
 import 'package:troona/core/extensions/string_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -68,37 +71,64 @@ class AlbumDetailPage extends StatelessWidget {
                     AlbumDetailRequested(int.parse(id)),
                   ),
                 ),
-                AlbumDetailLoaded(:final data) => CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
+                AlbumDetailLoaded(:final data) => BlocProvider<AlbumMetadataCubit>(
+                  create: (_) => getIt<AlbumMetadataCubit>()
+                    ..loadAlbumMetadata(data.album),
+                  child: Builder(
+                    builder: (contentCtx) {
+                      return CustomScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        slivers: [
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _AlbumHeroDelegate(
+                              album: data.album,
+                              tracks: data.albumTracks,
+                              topPadding: MediaQuery.of(contentCtx).padding.top,
+                            ),
+                          ),
+                          _AlbumTracksView(tracks: data.albumTracks),
+
+                          // ── Chronique & Last.fm Wiki de l'album ──────────────
+                          BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
+                            builder: (context, metaState) {
+                              if (metaState is AlbumMetadataLoaded &&
+                                  (metaState.info.wiki != null ||
+                                      metaState.info.listeners != null ||
+                                      metaState.info.playCount != null)) {
+                                return SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: AppSpacing.lg),
+                                    child: AlbumWikiSection(info: metaState.info),
+                                  ),
+                                );
+                              }
+                              return const SliverToBoxAdapter(child: SizedBox.shrink());
+                            },
+                          ),
+
+                          if (data.artistAlbums.any((a) => a.id != data.album.id))
+                            _MoreByArtistView(
+                              artistName: data.album.artist,
+                              albums: data.artistAlbums
+                                  .where((a) => a.id != data.album.id)
+                                  .toList(),
+                            ),
+                          // Technical metadata card & storage footprint
+                          _AlbumMetadataFooter(tracks: data.albumTracks, album: data.album),
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSpacing.miniPlayerHeight +
+                                  MediaQuery.of(contentCtx).padding.bottom +
+                                  AppSpacing.xl,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  slivers: [
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _AlbumHeroDelegate(
-                        album: data.album,
-                        tracks: data.albumTracks,
-                        topPadding: MediaQuery.of(context).padding.top,
-                      ),
-                    ),
-                    _AlbumTracksView(tracks: data.albumTracks),
-                    if (data.artistAlbums.any((a) => a.id != data.album.id))
-                      _MoreByArtistView(
-                        artistName: data.album.artist,
-                        albums: data.artistAlbums
-                            .where((a) => a.id != data.album.id)
-                            .toList(),
-                      ),
-                    // Technical metadata card & storage footprint
-                    _AlbumMetadataFooter(tracks: data.albumTracks, album: data.album),
-                    SliverPadding(
-                      padding: EdgeInsets.only(
-                        bottom: AppSpacing.miniPlayerHeight +
-                            MediaQuery.of(context).padding.bottom +
-                            AppSpacing.xl,
-                      ),
-                    ),
-                  ],
                 ),
               },
             ),

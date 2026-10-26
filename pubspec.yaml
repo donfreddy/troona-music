@@ -23,6 +23,7 @@ dependencies:
   go_router: ^17.1.0
   path_provider: ^2.1.5
   logger: ^2.6.2
+  dio: ^5.7.0
 
   # --- AUDIO ENGINE ---
   just_audio: ^0.10.4

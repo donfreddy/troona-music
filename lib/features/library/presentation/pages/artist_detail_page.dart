@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
+import 'package:troona/features/metadata/presentation/widgets/artist_bio_section.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -74,44 +77,70 @@ class ArtistDetailPage extends StatelessWidget {
                     ArtistDetailRequested(int.parse(id)),
                   ),
                 ),
-                ArtistDetailLoaded(:final data) => CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
+                ArtistDetailLoaded(:final data) => BlocProvider<ArtistMetadataCubit>(
+                  create: (_) => getIt<ArtistMetadataCubit>()
+                    ..loadArtistMetadata(data.artist),
+                  child: Builder(
+                    builder: (contentCtx) {
+                      return CustomScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        slivers: [
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _ArtistHeroDelegate(
+                              artist: data.artist,
+                              tracks: data.topTracks,
+                              albums: data.albums,
+                              topPadding: MediaQuery.of(contentCtx).padding.top,
+                            ),
+                          ),
+
+                          // ── 1. Top Tracks FIRST for instant playback ───────────
+                          if (data.topTracks.isNotEmpty)
+                            _ArtistTopTracksList(tracks: data.topTracks),
+
+                          // ── 2. Discography Albums Carousel ─────────────────────
+                          if (data.albums.isNotEmpty)
+                            _ArtistAlbumsCarousel(albums: data.albums),
+
+                          // ── 3. Bio & Last.fm Info ─────────────────────────────
+                          BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
+                            builder: (context, metaState) {
+                              if (metaState is ArtistMetadataLoaded &&
+                                  (metaState.info.bio != null ||
+                                      metaState.info.listeners != null ||
+                                      metaState.info.playCount != null)) {
+                                return SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: AppSpacing.lg),
+                                    child: ArtistBioSection(info: metaState.info),
+                                  ),
+                                );
+                              }
+                              return const SliverToBoxAdapter(child: SizedBox.shrink());
+                            },
+                          ),
+
+                          // ── 4. Collection Stats Footer ─────────────────────────
+                          _ArtistCollectionFooter(
+                            artist: data.artist,
+                            tracks: data.topTracks,
+                            albums: data.albums,
+                          ),
+
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSpacing.miniPlayerHeight +
+                                  MediaQuery.of(contentCtx).padding.bottom +
+                                  AppSpacing.xl,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-                  slivers: [
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _ArtistHeroDelegate(
-                        artist: data.artist,
-                        tracks: data.topTracks,
-                        albums: data.albums,
-                        topPadding: MediaQuery.of(context).padding.top,
-                      ),
-                    ),
-
-                    // ── 1. Top Tracks FIRST for instant playback ───────────
-                    if (data.topTracks.isNotEmpty)
-                      _ArtistTopTracksList(tracks: data.topTracks),
-
-                    // ── 2. Discography Albums Carousel ─────────────────────
-                    if (data.albums.isNotEmpty)
-                      _ArtistAlbumsCarousel(albums: data.albums),
-
-                    // ── 3. Collection Stats Footer ─────────────────────────
-                    _ArtistCollectionFooter(
-                      artist: data.artist,
-                      tracks: data.topTracks,
-                      albums: data.albums,
-                    ),
-
-                    SliverPadding(
-                      padding: EdgeInsets.only(
-                        bottom: AppSpacing.miniPlayerHeight +
-                            MediaQuery.of(context).padding.bottom +
-                            AppSpacing.xl,
-                      ),
-                    ),
-                  ],
                 ),
               },
             ),
@@ -161,6 +190,30 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
     }
     return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  Widget _buildMonogram(AppColors colors) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [
+            colors.accent.withValues(alpha: 0.8),
+            Color.lerp(colors.accent, Colors.black, 0.6)!,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(artist.name),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 42,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1.0,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -229,33 +282,39 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             ),
                           ),
                           child: ClipOval(
-                            child: artist.artworkPath != null
-                                ? ArtworkImage(
-                                    artist.artworkPath!,
+                            child: Builder(
+                              builder: (avatarCtx) {
+                                final metaState = avatarCtx
+                                    .watch<ArtistMetadataCubit?>()
+                                    ?.state;
+                                final localArt = artist.artworkPath ??
+                                    (metaState is ArtistMetadataLoaded
+                                        ? metaState.localImagePath
+                                        : null);
+                                final onlineUrl = metaState is ArtistMetadataLoaded
+                                    ? metaState.info.imageUrl
+                                    : null;
+
+                                if (localArt != null && localArt.isNotEmpty) {
+                                  return ArtworkImage(
+                                    localArt,
                                     width: 130,
                                     height: 130,
-                                  )
-                                : Container(
-                                    decoration: BoxDecoration(
-                                      gradient: RadialGradient(
-                                        colors: [
-                                          colors.accent.withValues(alpha: 0.8),
-                                          Color.lerp(colors.accent, Colors.black, 0.6)!,
-                                        ],
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        _getInitials(artist.name),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 42,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: -1.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  );
+                                }
+                                if (onlineUrl != null && onlineUrl.isNotEmpty) {
+                                  return Image.network(
+                                    onlineUrl,
+                                    width: 130,
+                                    height: 130,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, _, _) =>
+                                        _buildMonogram(colors),
+                                  );
+                                }
+                                return _buildMonogram(colors);
+                              },
+                            ),
                           ),
                         ),
                         0,
