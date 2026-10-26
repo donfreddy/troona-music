@@ -21,7 +21,7 @@ class TrendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Vérifie si ce track est en cours de lecture
+    // Whether this track is the one playing
     final isActive = context.select<PlayerBloc, bool>(
       (b) =>
           b.state is PlayerActive &&
@@ -38,7 +38,7 @@ class TrendingRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Artwork ou visualiseur si actif
+            // Artwork, or the visualizer when active
             SizedBox.square(
               dimension: 50,
               child: Stack(
@@ -59,7 +59,7 @@ class TrendingRow extends StatelessWidget {
                             ),
                           ),
                   ),
-                  // Overlay lecture en cours
+                  // Now playing overlay
                   if (isActive)
                     Positioned.fill(
                       child: DecoratedBox(

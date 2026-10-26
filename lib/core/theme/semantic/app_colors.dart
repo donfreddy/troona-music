@@ -4,10 +4,10 @@ import 'package:troona/core/theme/primitives/color_primitives.dart';
 @immutable
 final class AppColors extends ThemeExtension<AppColors> {
   // ── Backgrounds ──────────────────────────────────────────
-  final Color bgPrimary; // fond de page
-  final Color bgSecondary; // surfaces élevées (cards, sheets)
-  final Color bgTertiary; // surfaces encore plus élevées
-  final Color bgElevated; // alertes, menus flottants
+  final Color bgPrimary; // page background
+  final Color bgSecondary; // raised surfaces (cards, sheets)
+  final Color bgTertiary; // surfaces raised further
+  final Color bgElevated; // alerts, floating menus
 
   // ── Labels ───────────────────────────────────────────────
   final Color labelPrimary;
@@ -15,23 +15,23 @@ final class AppColors extends ThemeExtension<AppColors> {
   final Color labelTertiary;
   final Color labelQuaternary;
 
-  // ── Séparateurs ──────────────────────────────────────────
+  // ── Separators ──────────────────────────────────────────
   final Color separator;
   final Color separatorOpaque;
 
   // ── Accent ───────────────────────────────────────────────
-  final Color accent; // lilas
-  final Color accentForeground; // texte sur fond accent
-  final Color accentGlow; // lueur sous l'onglet actif
+  final Color accent; // lilac
+  final Color accentForeground; // text on the accent colour
+  final Color accentGlow; // glow under the active tab
 
   // ── Progress ─────────────────────────────────────────────
-  final Color progressStart; // début de l'arc (bleu glacé)
-  final Color progressEnd; // tête de l'arc (blanc)
+  final Color progressStart; // start of the arc (icy blue)
+  final Color progressEnd; // head of the arc (white)
 
   // ── Glass ────────────────────────────────────────────────
-  final Color glassFill; // fond du verre
-  final Color glassBorder; // bordure supérieure lumineuse
-  final Color glassHighlight; // reflet diagonal
+  final Color glassFill; // glass fill
+  final Color glassBorder; // bright top border
+  final Color glassHighlight; // diagonal sheen
 
   // ── Vibrancy ─────────────────────────────────────────────
   final Color vibrancyLabel;
@@ -60,7 +60,7 @@ final class AppColors extends ThemeExtension<AppColors> {
     required this.vibrancySecondary,
   });
 
-  // ── Instances statiques ──────────────────────────────────
+  // ── Static instances ──────────────────────────────────
 
   static const light = AppColors(
     bgPrimary: ColorPrimitives.bgPrimaryLight,
@@ -108,7 +108,7 @@ final class AppColors extends ThemeExtension<AppColors> {
     vibrancySecondary: ColorPrimitives.vibrancySecondaryDark,
   );
 
-  // ── ThemeExtension (pour lerp lors des transitions) ──────
+  // ── ThemeExtension (lerp during transitions) ──────
 
   @override
   AppColors copyWith({
@@ -191,7 +191,7 @@ final class AppColors extends ThemeExtension<AppColors> {
   }
 }
 
-// Extension de contexte: accès propre dans les widgets
+// Context extension: clean access from widgets
 extension AppColorsX on BuildContext {
   AppColors get colors => Theme.of(this).extension<AppColors>()!;
 }

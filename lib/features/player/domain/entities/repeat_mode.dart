@@ -1,5 +1,5 @@
 enum RepeatMode {
-  off, // pas de répétition
-  all, // répète toute la queue
-  one, // répète le track courant
+  off, // no repeat
+  all, // repeats the whole queue
+  one, // repeats the current track
 }

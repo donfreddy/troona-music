@@ -53,11 +53,11 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid ID format'));
       }
 
-      // On récupère tous les morceaux de cet artiste depuis le cache Isar
+      // Every song by this artist, from the Isar cache
       final tracks = await _cache.getTracksByArtistId(targetId);
 
-      // Ici tu pourrais trier par nombre d'écoutes si tu avais l'info,
-      // pour l'instant on prend les morceaux de l'artiste.
+      // Could be sorted by play count once that is available;
+      // for now it is the artist's songs.
       return right(tracks.map((t) => t.toEntity()).toList());
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));

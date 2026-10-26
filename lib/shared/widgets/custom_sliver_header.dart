@@ -5,8 +5,8 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 
-/// Large title iOS-style : grand titre en haut, qui se réduit
-/// en navigation bar compacte au scroll, avec blur glassmorphism.
+/// iOS-style large title: a big title at the top that shrinks
+/// into a compact navigation bar on scroll, with a glass blur.
 class CustomSliverHeader extends StatelessWidget {
   final String title;
   final List<Widget> actions;
@@ -64,7 +64,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
   @override
   double get minExtent => topPadding + _navBarHeight + bottomHeight;
 
-  // Hauteur maximale = large title déplié
+  // Maximum height: large title expanded
   @override
   double get maxExtent => topPadding + expandedHeight + bottomHeight;
 
@@ -81,7 +81,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    // 0.0 = complètement déplié, 1.0 = complètement replié
+    // 0.0 fully expanded, 1.0 fully collapsed
     final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
     final currentHeight = (maxExtent - shrinkOffset).clamp(
       minExtent,
@@ -108,7 +108,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            // ── Compact nav bar (toujours présente) ──────────
+            // ── Compact nav bar (always present) ──────────
             Positioned(
               top: topPadding,
               left: 0,
@@ -117,7 +117,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Titre compact: apparaît en fadant au collapse
+                  // Compact title: fades in on collapse
                   Opacity(
                     opacity: collapse,
                     child: Text(
@@ -128,7 +128,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
                     ),
                   ),
 
-                  // Actions à droite
+                  // Trailing actions
                   if (actions.isNotEmpty)
                     Positioned(
                       right: AppSpacing.lg,
@@ -141,7 +141,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Large title: disparaît en fadant au collapse ──
+            // ── Large title: fades out on collapse ──
             Positioned(
               left: AppSpacing.lg,
               right: AppSpacing.lg,
@@ -149,7 +149,7 @@ class _LargeTitleDelegate extends SliverPersistentHeaderDelegate {
               child: Opacity(
                 opacity: (1 - collapse * 2).clamp(0.0, 1.0),
                 child: Transform.translate(
-                  // Glisse vers le haut en se repliant
+                  // Slides up while collapsing
                   offset: Offset(0, -shrinkOffset * 0.3),
                   child: Text(
                     title,

@@ -4,7 +4,7 @@ sealed class PlayerEvent {
   const PlayerEvent();
 }
 
-// ── Commandes utilisateur ─────────────────────────────────────────────────────
+// ── User commands ─────────────────────────────────────────────────────
 
 final class PlayTrackRequested extends PlayerEvent {
   final Track track;
@@ -131,7 +131,7 @@ final class QueueItemMoved extends QueueEditEvent {
   });
 }
 
-// ── Streams entrants (internal, never sent by the UI) ────────────────────────
+// ── Incoming streams (internal, never sent by the UI) ────────────────────────
 
 final class _DurationUpdated extends PlayerEvent {
   final Duration duration;

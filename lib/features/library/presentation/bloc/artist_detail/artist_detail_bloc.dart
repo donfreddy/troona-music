@@ -34,7 +34,7 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
 
     final id = event.id.toString();
 
-    // On lance les 3 requêtes en parallèle pour la performance
+    // The three reads run in parallel
     final results = await Future.wait([
       _repo.getArtistById(id),
       _repo.getTopTracksByArtistId(id),

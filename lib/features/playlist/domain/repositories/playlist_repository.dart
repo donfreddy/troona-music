@@ -9,7 +9,7 @@ abstract interface class PlaylistRepository {
   Future<Either<Failure, Playlist>> getPlaylistById(String id);
   Future<Either<Failure, List<Track>>> getTracksByPlaylistId(String id);
 
-  // Écriture (CRUD)
+  // Writes (CRUD)
   Future<Either<Failure, Playlist>> createPlaylist({
     required String title,
     String? description,
@@ -19,7 +19,7 @@ abstract interface class PlaylistRepository {
   Future<Either<Failure, Unit>> updatePlaylist(Playlist playlist);
   Future<Either<Failure, Unit>> deletePlaylist(String id);
 
-  // Gestion des morceaux
+  // Songs
   Future<Either<Failure, Unit>> addTrackToPlaylist(
     String playlistId,
     String trackId,

@@ -15,7 +15,7 @@ final class HomeFeed {
   /// Top played tracks this week, ordered by play count descending.
   final List<TrackPlayCount> topWeekly;
 
-  /// Liked tracks the user hasn't listened to in a while: "redécouvrez".
+  /// Liked tracks the user hasn't listened to in a while: "rediscover".
   final List<Track> hiddenGems;
 
   /// Number of liked tracks (badge on the Quick Access chip).

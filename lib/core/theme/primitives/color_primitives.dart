@@ -5,7 +5,7 @@ abstract final class ColorPrimitives {
   static const black = Color(0xFF000000);
   static const white = Color(0xFFFFFFFF);
 
-  // systemGray scale: identiques à iOS
+  // systemGray scale: same as iOS
   static const gray1 = Color(0xFF8E8E93);
   static const gray2 = Color(0xFFAEAEB2);
   static const gray3 = Color(0xFFC7C7CC);
@@ -29,7 +29,7 @@ abstract final class ColorPrimitives {
 
   // ── Text iOS ─────────────────────────────────────────────
   static const labelPrimaryLight = Color(0xFF000000);
-  static const labelSecondaryLight = Color(0x993C3C43); // 60% opacité
+  static const labelSecondaryLight = Color(0x993C3C43); // 60% opacity
   static const labelTertiaryLight = Color(0x4D3C3C43); // 30%
   static const labelQuaternaryLight = Color(0x2E3C3C43); // 18%
 
@@ -44,7 +44,7 @@ abstract final class ColorPrimitives {
   static const separatorOpaqueLight = Color(0xFFC6C6C8);
   static const separatorOpaqueDark = Color(0xFF38383A);
 
-  // ── Accent (lilas / indigo) ──────────────────────────────
+  // ── Accent (lilac / indigo) ──────────────────────────────
   static const accent = Color(0xFFB79CFF); // lilac, readable on black
   static const accentForeground = Color(0xFF12081F); // dark text on lilac
   static const accentGlow = Color(0xFF261548); // active tab glow (sampled)
@@ -58,20 +58,20 @@ abstract final class ColorPrimitives {
   static const ambientEdge = Color(0xFF644573); // glow edges (sampled)
 
   // ── Glass primitives (DEEP GLASS STYLE) ──────────────────
-  // Light : fond blanc semi-transparent
+  // Light: translucent white fill
   static const glassFillLight = Color(0x8DFFFFFF); // 55%
   static const glassBorderLight = Color(0x99FFFFFF); // 60%
   static const glassHighlightLight = Color(0x33FFFFFF); // 20%
 
-  // Dark : "Deep Glass": beaucoup plus sombre et transparent
+  // Dark: "Deep Glass", much darker and more transparent
   static const glassFillDark = Color(
     0x08FFFFFF,
   ); // 3% - Ultra thin for deep look
   static const glassBorderDark = Color(0x28FFFFFF); // 16% - Sharper highlight
   static const glassHighlightDark = Color(0x0FFFFFFF); // 6%
 
-  // ── Vibrancy (texte sur glass) ───────────────────────────
-  // Apple Vibrancy = texte blanc/noir adapté selon le fond derrière le verre
+  // ── Vibrancy (text on glass) ───────────────────────────
+  // Apple vibrancy: white or black text depending on what is behind the glass
   static const vibrancyLabelLight = Color(0xFF000000);
   static const vibrancyLabelDark = Color(0xFFFFFFFF);
   static const vibrancySecondaryLight = Color(0x993C3C43);

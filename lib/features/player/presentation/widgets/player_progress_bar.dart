@@ -69,7 +69,7 @@ class PlayerProgressBar extends StatelessWidget {
           ),
         ),
 
-        // ── Labels position / durée ───────────────────────────────────
+        // ── Position and duration labels ───────────────────────────────────
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(

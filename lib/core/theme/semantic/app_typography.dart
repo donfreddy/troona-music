@@ -17,10 +17,10 @@ abstract final class AppTypography {
     height: 1.3,
   );
 
-  // Flutter n'a pas SF Pro en natif.
-  // Sur iOS : le système utilise SF Pro automatiquement si fontFamily est null.
-  // Sur Android : on embarque une Google Font proche (Nunito ou DM Sans).
-  //static const _fontFamily = null; // null = SF Pro sur iOS
+  // Flutter does not ship SF Pro.
+  // On iOS the system uses SF Pro when fontFamily is null.
+  // On Android a close Google Font is bundled (Nunito or DM Sans).
+  //static const _fontFamily = null; // null means SF Pro on iOS
 
   static TextTheme get textTheme => const TextTheme(
     // Large Title: page title (scroll collapse). Thin, as in the reference.
@@ -31,7 +31,7 @@ abstract final class AppTypography {
       height: 1.21,
     ),
 
-    // Title 1: titres de section
+    // Title 1: section titles
     displayMedium: TextStyle(
       fontSize: 28,
       fontWeight: FontWeight.w700,
@@ -63,7 +63,7 @@ abstract final class AppTypography {
       height: 1.29,
     ),
 
-    // Body: texte principal
+    // Body: main text
     bodyLarge: TextStyle(
       fontSize: 17,
       fontWeight: FontWeight.w400,

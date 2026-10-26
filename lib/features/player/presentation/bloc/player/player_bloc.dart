@@ -120,7 +120,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        _sessionStore = sessionStore,
        _getTracksByIds = getTracksByIds,
        super(const PlayerIdle()) {
-    // ── Branchement des streams entrants ──────────────────────────────────
+    // ── Incoming streams ──────────────────────────────────
     _positionSub = audioServicePort.positionStream.listen(
       _onPositionTick,
       onError: (e) => add(_AudioErrorOccurred(e.toString())),
@@ -148,7 +148,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       (f) => add(_AudioErrorOccurred(f.message)),
     );
 
-    // ── Enregistrement des handlers ───────────────────────────────────────
+    // ── Handler registration ───────────────────────────────────────
     on<PlayTrackRequested>(_onPlayTrackRequested, transformer: droppable());
     on<PauseRequested>(_onPauseRequested, transformer: droppable());
     on<ResumeRequested>(_onResumeRequested, transformer: droppable());
@@ -175,7 +175,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // within a single handler.
     on<QueueEditEvent>(_onQueueEdit, transformer: sequential());
 
-    // Streams internes: toujours concurrent
+    // Internal streams: always concurrent
     on<_DurationUpdated>(_onDurationUpdated, transformer: concurrent());
     on<_StatusChanged>(_onStatusChanged, transformer: concurrent());
     on<_TrackChanged>(_onTrackChanged, transformer: concurrent());
@@ -185,7 +185,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // HANDLERS: commandes utilisateur
+  // HANDLERS: user commands
   // ════════════════════════════════════════════════════════════════════════════
 
   Future<void> _onPlayTrackRequested(
@@ -224,7 +224,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         );
       }
     }
-    // État Active arrive via _onTrackChanged + _onStatusChanged
+    // The active state arrives through _onTrackChanged and _onStatusChanged
   }
 
   Future<void> _onPauseRequested(
@@ -252,11 +252,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     if (state is! PlayerActive) return;
     _isManualSeeking = true;
     try {
-      // Mise à jour optimiste
+      // Optimistic update
       _setPosition(event.position);
       await _seek(SeekParams(position: event.position));
     } finally {
-      // Petit délai pour ignorer les derniers évènements de position obsolètes du stream
+      // Short delay to ignore the last stale position events from the stream
       await Future<void>.delayed(const Duration(milliseconds: 150));
       _isManualSeeking = false;
     }
@@ -317,7 +317,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     VolumeChangeRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    // Mise à jour optimiste du volume dans l'UI
+    // Optimistic volume update in the UI
     if (state is PlayerActive) {
       emit((state as PlayerActive).copyWith(volume: event.volume));
     }
@@ -341,7 +341,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     await _audioServicePort
-        .stop(); // On arrête concrètement l'engin audio (ex: swipe en cours de lecture)
+        .stop(); // Actually stops the audio engine (e.g. swiped away while playing)
     await _clearPersistedSession();
     emit(const PlayerIdle());
   }
@@ -526,7 +526,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   }
 
   // ════════════════════════════════════════════════════════════════════════════
-  // HANDLERS: streams entrants
+  // HANDLERS: incoming streams
   // ════════════════════════════════════════════════════════════════════════════
 
   /// Position ticks bypass the event queue entirely: no event, no emit.

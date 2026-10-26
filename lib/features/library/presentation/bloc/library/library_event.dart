@@ -7,7 +7,7 @@ sealed class LibraryEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// ── Commandes utilisateur ────────────────────────────────
+// ── User commands ────────────────────────────────
 final class LibraryBootstrapRequested extends LibraryEvent {
   const LibraryBootstrapRequested();
 }

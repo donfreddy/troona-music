@@ -9,14 +9,14 @@ class VolumeSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
-      // Ne rebuild que si le volume change
+      // Rebuilds only when the volume changes
       buildWhen: (prev, curr) => _volume(prev) != _volume(curr),
       builder: (context, state) {
         final volume = _volume(state) ?? 1.0;
 
         return Row(
           children: [
-            // Icône volume ba
+            // Low volume icon
             Icon(
               CupertinoIcons.volume_down,
               color: Colors.white.withValues(alpha: .6),
@@ -52,7 +52,7 @@ class VolumeSlider extends StatelessWidget {
             ),
 
             const SizedBox(width: 8),
-            // Icône volume haut
+            // High volume icon
             Icon(
               CupertinoIcons.volume_up,
               color: Colors.white.withValues(alpha: .6),

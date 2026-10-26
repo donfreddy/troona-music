@@ -30,7 +30,7 @@ abstract final class AppTheme {
         onSurface: colors.labelPrimary,
         error: const Color(0xFFFF3B30), // systemRed iOS
         onError: ColorPrimitives.white,
-        // ... autres rôles
+        // ... other roles
       ),
 
       scaffoldBackgroundColor: colors.bgPrimary,

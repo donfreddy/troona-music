@@ -1,7 +1,7 @@
 final class Playlist {
   final String id;
   final String name;
-  final List<String> trackIds; // IDs des pistes dans la playlist
+  final List<String> trackIds; // ids of the tracks in the playlist
   final String? artworkPath;
 
   const Playlist({

@@ -128,7 +128,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       _lastActiveState = null;
       return null;
     }
-    // Pour PlayerError, on garde le dernier état valide pour ne pas faire disparaître le player
+    // On PlayerError the last valid state is kept so the mini player does not vanish
     return _lastActiveState;
   }
 }

@@ -12,12 +12,12 @@ sealed class PlayerState {
   const PlayerState();
 }
 
-/// Aucune piste n'a encore été jouée: état initial.
+/// Initial state: nothing has been played yet.
 final class PlayerIdle extends PlayerState {
   const PlayerIdle();
 }
 
-/// Chargement en cours: on connaît déjà le track cible.
+/// Loading; the target track is already known.
 final class PlayerLoading extends PlayerState with EquatableMixin {
   final Track track;
   const PlayerLoading(this.track);
@@ -26,7 +26,7 @@ final class PlayerLoading extends PlayerState with EquatableMixin {
   List<Object?> get props => [track];
 }
 
-/// État principal : une piste est chargée, active ou en pause.
+/// Main state: a track is loaded, playing or paused.
 ///
 /// Position and buffering are not part of this state: they live in
 /// [PlayerBloc.progress] so playback ticks never trigger a rebuild.
@@ -52,7 +52,7 @@ final class PlayerActive extends PlayerState with EquatableMixin {
     this.speed = 1.0,
   });
 
-  // ── Helpers dérivés: jamais calculés dans les widgets ──────────────────
+  // ── Derived helpers, never computed in widgets ──────────────────
 
   bool get isPlaying => status == PlaybackStatus.playing;
   bool get isBuffering => status == PlaybackStatus.buffering;
@@ -94,7 +94,7 @@ final class PlayerActive extends PlayerState with EquatableMixin {
   ];
 }
 
-/// Erreur récupérable: l'utilisateur peut retenter.
+/// Recoverable error: the user can try again.
 final class PlayerError extends PlayerState {
   final String message;
   final Track? lastTrack;

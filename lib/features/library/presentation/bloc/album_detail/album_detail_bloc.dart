@@ -13,7 +13,7 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
   AlbumDetailBloc({required AlbumDetailRepository repo})
     : _repo = repo,
       super(AlbumDetailInitial()) {
-    // On utilise droppable pour ignorer les nouveaux événements si un chargement est déjà en cours
+    // droppable: new events are ignored while a load is running
     on<AlbumDetailRequested>(_onAlbumDetailRequested, transformer: droppable());
   }
 
@@ -21,7 +21,7 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
     AlbumDetailRequested event,
     Emitter<AlbumDetailState> emit,
   ) async {
-    // Si on est déjà chargé, on ne remet pas l'écran de chargement complet (optionnel selon ton UX)
+    // Already loaded: keep the content instead of showing the full loading screen
     if (state is! AlbumDetailLoaded) {
       emit(const AlbumDetailLoading());
     }
@@ -31,7 +31,7 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
     await result.fold(
       (failure) async => emit(AlbumDetailError(failure.message)),
       (album) async {
-        // Une fois l'album chargé, on récupère les pistes et les autres albums de l'artiste
+        // Once the album is loaded, fetch its tracks and the artist's other albums
         final tracksResult = await _repo.getTracksByAlbumId(event.id);
 
         await tracksResult.fold(

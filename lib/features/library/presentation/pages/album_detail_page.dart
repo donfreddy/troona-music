@@ -99,7 +99,7 @@ class AlbumDetailPage extends StatelessWidget {
                             ),
                             _AlbumTracksView(tracks: data.albumTracks),
 
-                            // ── Chronique & Last.fm Wiki de l'album ──────────────
+                            // ── Album review and Last.fm wiki ──────────────
                             BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
                               builder: (context, metaState) {
                                 if (metaState is AlbumMetadataLoaded &&
@@ -562,7 +562,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
               ),
             ),
 
-            // ── Twin Action Buttons (Lecture + Aléatoire 50/50) ──────────────
+            // ── Twin Action Buttons (Play + Shuffle 50/50) ──────────────
             Positioned(
               left: 0,
               right: 0,

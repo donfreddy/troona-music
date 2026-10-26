@@ -7,36 +7,36 @@ import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 abstract interface class LibraryRepository {
-  /// Lance un scan de la librairie locale et renvoie la progression.
+  /// Starts a scan of the local library and streams its progress.
   Future<Either<Failure, Stream<ScanProgress>>> scanLibrary();
 
-  /// Annule le scan en cours.
+  /// Cancels the running scan.
   void cancelScan();
 
-  /// Récupère tous les tracks indexés localement.
+  /// Every locally indexed track.
   Future<Either<Failure, List<Track>>> getTracks();
 
   /// The tracks with these ids, in the same order; unknown ids are skipped.
   Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids);
 
-  /// Récupère les albums agrégés.
+  /// Albums aggregated from the tracks.
   Future<Either<Failure, List<Album>>> getAlbums();
 
-  /// Récupère les artistes agrégés.
+  /// Artists aggregated from the tracks.
   Future<Either<Failure, List<Artist>>> getArtists();
 
-  /// Recherche les tracks correspondant à [query].
+  /// Tracks matching [query].
   Future<Either<Failure, List<Track>>> searchTracks(String query);
 
-  /// Playlist "Likes" (façon Spotify): créée si absente.
+  /// The "Likes" playlist (Spotify style), created when missing.
   Future<Either<Failure, Playlist>> getLikesPlaylist();
 
-  /// Ajoute un track à la playlist Likes (idempotent).
+  /// Adds a track to Likes (idempotent).
   Future<Either<Failure, Unit>> addTrackToLikes(String trackId);
 
-  /// Retire un track de la playlist Likes.
+  /// Removes a track from Likes.
   Future<Either<Failure, Unit>> removeTrackFromLikes(String trackId);
 
-  /// Indique si le track est déjà dans Likes.
+  /// Whether the track is already in Likes.
   Future<Either<Failure, bool>> isTrackInLikes(String trackId);
 }

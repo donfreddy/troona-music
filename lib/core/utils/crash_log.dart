@@ -8,8 +8,8 @@ import 'package:path_provider/path_provider.dart';
 ///
 /// Writes are asynchronous and queued, so a burst of warnings never blocks
 /// the UI; the file is trimmed back to [_maxLines] when it is opened and
-/// then once that many lines have been appended, not on every write. Stays silent on all write failures so
-/// it never causes a secondary crash.
+/// then once that many lines have been appended, not on every write. Stays
+/// silent on all write failures so it never causes a secondary crash.
 final class CrashLog {
   CrashLog._();
 
