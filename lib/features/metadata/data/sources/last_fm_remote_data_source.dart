@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:troona/core/network/api_client.dart';
@@ -17,6 +18,9 @@ abstract interface class LastFmRemoteDataSource {
     required String albumName,
     String? language,
   });
+
+  Future<String?> fetchDeezerArtistImage(String artistName);
+  Future<String?> fetchDeezerAlbumCover(String artistName, String albumName);
 }
 
 class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
@@ -39,6 +43,7 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
     required String artistName,
     String? language,
   }) async {
+    if (LastFmArtistData.isUnknownName(artistName)) return null;
     try {
       final lang = _resolveLanguage(language);
       final response = await _client.get(
@@ -53,16 +58,22 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
         },
       );
 
-      final data = response.data;
+      var data = response.data;
+      if (data is String) {
+        try {
+          data = jsonDecode(data);
+        } catch (_) {}
+      }
+
       LastFmArtistDto? dto;
-      if (data is Map<String, dynamic> && !data.containsKey('error')) {
-        dto = LastFmArtistDto.fromJson(data);
+      if (data is Map && !data.containsKey('error')) {
+        dto = LastFmArtistDto.fromJson(Map<String, dynamic>.from(data));
       }
 
       // If Last.fm returns no image or the known placeholder star (2a96cbd8b46e442fc41c2b86b821562f),
       // seamlessly fallback to Deezer HD artist photo
       if (dto == null || dto.artist?.bestImageUrl == null) {
-        final deezerImg = await _fetchDeezerArtistImage(artistName);
+        final deezerImg = await fetchDeezerArtistImage(artistName);
         if (deezerImg != null && deezerImg.isNotEmpty) {
           if (dto != null && dto.artist != null) {
             dto = dto.copyWith(
@@ -79,9 +90,8 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
       return dto;
     } catch (e) {
       appLogger.w('LastFmRemoteDataSource.getArtistInfo failed silently: $e');
-      // If Last.fm network request failed completely, try Deezer image lookup as last resort
       try {
-        final deezerImg = await _fetchDeezerArtistImage(artistName);
+        final deezerImg = await fetchDeezerArtistImage(artistName);
         if (deezerImg != null && deezerImg.isNotEmpty) {
           return LastFmArtistDto(
             artist: LastFmArtistData(customImageUrl: deezerImg),
@@ -98,6 +108,7 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
     required String albumName,
     String? language,
   }) async {
+    if (LastFmArtistData.isUnknownName(artistName)) return null;
     try {
       final lang = _resolveLanguage(language);
       final response = await _client.get(
@@ -113,15 +124,21 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
         },
       );
 
-      final data = response.data;
+      var data = response.data;
+      if (data is String) {
+        try {
+          data = jsonDecode(data);
+        } catch (_) {}
+      }
+
       LastFmAlbumDto? dto;
-      if (data is Map<String, dynamic> && !data.containsKey('error')) {
-        dto = LastFmAlbumDto.fromJson(data);
+      if (data is Map && !data.containsKey('error')) {
+        dto = LastFmAlbumDto.fromJson(Map<String, dynamic>.from(data));
       }
 
       // Fallback to Deezer for album cover if Last.fm has no cover or placeholder
       if (dto == null || dto.album?.bestImageUrl == null) {
-        final deezerCover = await _fetchDeezerAlbumCover(artistName, albumName);
+        final deezerCover = await fetchDeezerAlbumCover(artistName, albumName);
         if (deezerCover != null && deezerCover.isNotEmpty) {
           if (dto != null && dto.album != null) {
             dto = dto.copyWith(
@@ -142,14 +159,21 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
     }
   }
 
-  Future<String?> _fetchDeezerArtistImage(String artistName) async {
+  @override
+  Future<String?> fetchDeezerArtistImage(String artistName) async {
+    if (LastFmArtistData.isUnknownName(artistName)) return null;
     try {
       final response = await _client.dio.get(
         'https://api.deezer.com/search/artist',
-        queryParameters: {'q': artistName, 'limit': 1},
+        queryParameters: {'q': artistName.trim(), 'limit': 1},
       );
-      final data = response.data;
-      if (data is Map<String, dynamic> && data['data'] is List) {
+      var data = response.data;
+      if (data is String) {
+        try {
+          data = jsonDecode(data);
+        } catch (_) {}
+      }
+      if (data is Map && data['data'] is List) {
         final list = data['data'] as List;
         if (list.isNotEmpty && list.first is Map) {
           final first = list.first as Map;
@@ -165,17 +189,27 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
     return null;
   }
 
-  Future<String?> _fetchDeezerAlbumCover(
+  @override
+  Future<String?> fetchDeezerAlbumCover(
     String artistName,
     String albumName,
   ) async {
+    if (LastFmArtistData.isUnknownName(artistName)) return null;
     try {
       final response = await _client.dio.get(
         'https://api.deezer.com/search/album',
-        queryParameters: {'q': '$artistName $albumName', 'limit': 1},
+        queryParameters: {
+          'q': '${artistName.trim()} ${albumName.trim()}',
+          'limit': 1,
+        },
       );
-      final data = response.data;
-      if (data is Map<String, dynamic> && data['data'] is List) {
+      var data = response.data;
+      if (data is String) {
+        try {
+          data = jsonDecode(data);
+        } catch (_) {}
+      }
+      if (data is Map && data['data'] is List) {
         final list = data['data'] as List;
         if (list.isNotEmpty && list.first is Map) {
           final first = list.first as Map;

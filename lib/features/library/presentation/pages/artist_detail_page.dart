@@ -218,6 +218,18 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
+  Widget _fallbackLocalOrMonogram(String? path, AppColors colors) {
+    if (path != null && path.isNotEmpty) {
+      return ArtworkImage(
+        path,
+        width: 130,
+        height: 130,
+        errorBuilder: (_, _, _) => _buildMonogram(colors),
+      );
+    }
+    return _buildMonogram(colors);
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -286,17 +298,18 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                           child: ClipOval(
                             child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
                               builder: (context, metaState) {
-                                final localArt = artist.artworkPath ??
-                                    (metaState is ArtistMetadataLoaded
-                                        ? metaState.localImagePath
-                                        : null);
+                                final downloaded = metaState is ArtistMetadataLoaded
+                                    ? metaState.localImagePath
+                                    : null;
                                 final onlineUrl = metaState is ArtistMetadataLoaded
                                     ? metaState.info.imageUrl
                                     : null;
+                                final localAlbumArt = artist.artworkPath;
 
-                                if (localArt != null && localArt.isNotEmpty) {
+                                // 1. Prefer downloaded HD artist photo
+                                if (downloaded != null && downloaded.isNotEmpty) {
                                   return ArtworkImage(
-                                    localArt,
+                                    downloaded,
                                     width: 130,
                                     height: 130,
                                     errorBuilder: (_, _, _) =>
@@ -307,11 +320,13 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                                 height: 130,
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (_, _, _) =>
-                                                    _buildMonogram(colors),
+                                                    _fallbackLocalOrMonogram(localAlbumArt, colors),
                                               )
-                                            : _buildMonogram(colors),
+                                            : _fallbackLocalOrMonogram(localAlbumArt, colors),
                                   );
                                 }
+
+                                // 2. Next prefer online HD artist photo (Deezer/Last.fm)
                                 if (onlineUrl != null && onlineUrl.isNotEmpty) {
                                   return Image.network(
                                     onlineUrl,
@@ -319,10 +334,12 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                     height: 130,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, _, _) =>
-                                        _buildMonogram(colors),
+                                        _fallbackLocalOrMonogram(localAlbumArt, colors),
                                   );
                                 }
-                                return _buildMonogram(colors);
+
+                                // 3. Fallback to local track album art or monogram
+                                return _fallbackLocalOrMonogram(localAlbumArt, colors);
                               },
                             ),
                           ),

@@ -44,6 +44,17 @@ class MetadataRepositoryImpl implements MetadataRepository {
       if (!forceRefresh) {
         final cached = await _cache.getArtist(artistName);
         if (cached != null) {
+          if (cached.artist?.bestImageUrl != null) {
+            return cached.toDomain();
+          }
+          final deezerImg = await _remote.fetchDeezerArtistImage(artistName);
+          if (deezerImg != null && deezerImg.isNotEmpty) {
+            final updated = cached.copyWith(
+              artist: cached.artist?.copyWith(customImageUrl: deezerImg),
+            );
+            await _cache.saveArtist(artistName, updated);
+            return updated.toDomain();
+          }
           return cached.toDomain();
         }
       }
@@ -76,6 +87,18 @@ class MetadataRepositoryImpl implements MetadataRepository {
       if (!forceRefresh) {
         final cached = await _cache.getAlbum(artistName, albumName);
         if (cached != null) {
+          if (cached.album?.bestImageUrl != null) {
+            return cached.toDomain();
+          }
+          final deezerCover =
+              await _remote.fetchDeezerAlbumCover(artistName, albumName);
+          if (deezerCover != null && deezerCover.isNotEmpty) {
+            final updated = cached.copyWith(
+              album: cached.album?.copyWith(customImageUrl: deezerCover),
+            );
+            await _cache.saveAlbum(artistName, albumName, updated);
+            return updated.toDomain();
+          }
           return cached.toDomain();
         }
       }

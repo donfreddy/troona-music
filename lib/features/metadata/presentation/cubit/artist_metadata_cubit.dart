@@ -66,10 +66,8 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
     }
 
     String? localImagePath;
-    // If the local artist has no artwork, attempt to download and cache the online image
-    if ((artist.artworkPath == null || artist.artworkPath!.isEmpty) &&
-        info.imageUrl != null &&
-        info.imageUrl!.isNotEmpty) {
+    // Download and cache the online artist image locally for offline access
+    if (info.imageUrl != null && info.imageUrl!.isNotEmpty) {
       localImagePath = await _repo.downloadAndCacheArtistArtwork(
         artistId: artist.id,
         imageUrl: info.imageUrl!,

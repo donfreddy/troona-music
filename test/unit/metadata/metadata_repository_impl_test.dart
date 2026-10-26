@@ -135,6 +135,22 @@ void main() {
       );
     });
 
+    test('returns null bio for [unknown] and eliminates residual dots from CC boilerplate', () {
+      final json = {
+        'artist': {
+          'name': '[unknown]',
+          'bio': {
+            'summary':
+                ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>',
+            'content':
+                ' <a href="https://www.last.fm/music/%5Bunknown%5D">Read more on Last.fm</a>. User-contributed text is available under the Creative Commons By-SA License; additional terms may apply.',
+          },
+        },
+      };
+      final dto = LastFmArtistDto.fromJson(json);
+      expect(dto.toDomain().bio, isNull);
+    });
+
     test('cleans HTML anchor tags and boilerplate from album wiki', () {
       final json = {
         'album': {

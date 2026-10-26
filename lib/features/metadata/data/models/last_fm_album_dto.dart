@@ -186,6 +186,11 @@ class LastFmWikiDto {
       '',
     );
     text = text.trim();
+    // If only punctuation, dots, or symbols remain, treat as empty
+    final alphanumeric = text.replaceAll(RegExp(r'[\s\.\,\;\:\-\–\—\(\)\[\]\/\\]'), '');
+    if (alphanumeric.isEmpty) {
+      return null;
+    }
     text = text.replaceAll(RegExp(r'(\s*\.)+$'), '.');
     text = text.trim();
     return text.isEmpty ? null : text;

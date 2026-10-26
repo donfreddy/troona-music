@@ -135,6 +135,17 @@ class LastFmArtistData {
     if (customImageUrl != null) 'customImageUrl': customImageUrl,
   };
 
+  /// Returns true if the artist name is unknown/untagged.
+  static bool isUnknownName(String? name) {
+    if (name == null || name.trim().isEmpty) return true;
+    final clean = name.trim().toLowerCase();
+    return clean == '[unknown]' ||
+        clean == '<unknown>' ||
+        clean == 'unknown' ||
+        clean == 'unknown artist' ||
+        clean == 'artiste inconnu';
+  }
+
   /// Returns true if the Last.fm URL is empty or points to the known placeholder star.
   static bool isPlaceholderUrl(String? url) {
     if (url == null || url.trim().isEmpty) return true;
@@ -322,6 +333,11 @@ class LastFmBioDto {
       '',
     );
     text = text.trim();
+    // If only punctuation, dots, or symbols remain, treat as empty
+    final alphanumeric = text.replaceAll(RegExp(r'[\s\.\,\;\:\-\–\—\(\)\[\]\/\\]'), '');
+    if (alphanumeric.isEmpty) {
+      return null;
+    }
     text = text.replaceAll(RegExp(r'(\s*\.)+$'), '.');
     text = text.trim();
     return text.isEmpty ? null : text;
@@ -347,6 +363,12 @@ class LastFmBioDto {
     final hasLink = (summary != null && summary!.contains('<a href')) ||
         (content != null && content!.contains('<a href'));
     if (hasLink) {
+      final link = lastFmUrl;
+      if (link != null &&
+          (link.contains('%5Bunknown%5D') ||
+              link.toLowerCase().contains('unknown'))) {
+        return null;
+      }
       return 'Consulter la page complète sur Last.fm.';
     }
 
