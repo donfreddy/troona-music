@@ -141,7 +141,10 @@ Same API (`GlassTheme.header(context)` returns sigma 0 on low, and so on), so ca
 |---|---|
 | F2 (G1) | Done: `GlassCard` flat by default. |
 | F3 (G2) | Done, in `DynamicBackground.fitForText` rather than the cubit, so the fallback glow is covered too. Bound: the brightest painted pixel of either glow in either tone. Yellow and green covers drop from HSL lightness .25 to about .06, blue to .20. |
-| F1, F4, F5, G7, G8 | Open. |
+| F1 (G3) | Done: `GlassFilter.of(sigma)`, blur plus 1.6x saturation that keeps luminance, used by all eight backdrop filters. |
+| F4 (G6) | Done: one gradient stroke; the light comes from above on both sides now (the right edge used to be invisible). |
+| G7 | Done: tier detection doc, preset comments, mini player low highlight (was alpha 0). |
+| F5, G8 | Open: F5 waits for profiler numbers, G8 for a decision on the light theme. |
 
 ## Recommendations
 

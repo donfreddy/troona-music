@@ -74,6 +74,8 @@ Three-level token hierarchy in `lib/core/theme/`:
 2. **Semantic**: `bgPrimary`, `glassFill`, `glassBorder`, `accent`
 3. **Components**: `GlassConfig` presets per surface and quality tier (high, low, off). `GlassCard` is flat by default: blur is for chrome (tab bar, header, sheets, Now Playing), never for cards in scrolling content.
 
+Every `BackdropFilter` takes `GlassFilter.of(sigma)` (blur plus the saturation boost of iOS materials), never a bare `ImageFilter.blur`.
+
 `BackdropFilter` performance rules (enforced throughout):
 - Always wrap in a `RepaintBoundary`.
 - Never place inside an `AnimatedBuilder` that rebuilds on audio position.
