@@ -581,6 +581,7 @@ class _TabItem extends StatelessWidget {
       label: label,
       button: true,
       selected: isActive,
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

@@ -522,6 +522,7 @@ class _TopBar extends StatelessWidget {
               Semantics(
                 button: true,
                 label: context.l10n.playerClose,
+                onTap: () => _dismissFullPlayer(context),
                 excludeSemantics: true,
                 child: CupertinoButton(
                   padding: EdgeInsets.zero,
@@ -537,6 +538,7 @@ class _TopBar extends StatelessWidget {
               Semantics(
                 button: true,
                 label: context.l10n.detailMore,
+                onTap: () => _showOptionsSheet(context),
                 excludeSemantics: true,
                 child: CupertinoButton(
                   padding: EdgeInsets.zero,

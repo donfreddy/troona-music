@@ -40,6 +40,9 @@ class RepeatButton extends StatelessWidget {
         final mode = _repeat(state) ?? RepeatMode.off;
 
         final l10n = context.l10n;
+        void cycle() => context.read<PlayerBloc>().add(
+          RepeatModeChangeRequested(_nextMode(mode)),
+        );
         return Semantics(
           button: true,
           label: switch (mode) {
@@ -47,11 +50,10 @@ class RepeatButton extends StatelessWidget {
             RepeatMode.all => l10n.playerRepeatAll,
             RepeatMode.one => l10n.playerRepeatOne,
           },
+          onTap: cycle,
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: () => context.read<PlayerBloc>().add(
-              RepeatModeChangeRequested(_nextMode(mode)),
-            ),
+            onTap: cycle,
             child: SizedBox(
               width: 44,
               height: 44,
@@ -129,6 +131,7 @@ class _ControlButton extends StatelessWidget {
       button: true,
       toggled: active,
       label: label,
+      onTap: onPressed,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onPressed,

@@ -44,14 +44,17 @@ class _PlayPauseButton extends StatelessWidget {
         final isPlaying = _isPlaying(state);
         final isBuffering = _isBuffering(state);
 
+        void toggle() => context.read<PlayerBloc>().add(
+          isPlaying ? const PauseRequested() : const ResumeRequested(),
+        );
+        // excludeSemantics drops the child's tap action: hand it back here.
         return Semantics(
           button: true,
           label: isPlaying ? context.l10n.playerPause : context.l10n.actionPlay,
+          onTap: toggle,
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: () => context.read<PlayerBloc>().add(
-              isPlaying ? const PauseRequested() : const ResumeRequested(),
-            ),
+            onTap: toggle,
             child: Container(
               width: 72,
               height: 72,
@@ -96,17 +99,18 @@ class _SkipPreviousButton extends StatelessWidget {
       buildWhen: (prev, curr) => _hasPrevious(prev) != _hasPrevious(curr),
       builder: (context, state) {
         final enabled = _hasPrevious(state);
+        final VoidCallback? onTap = enabled
+            ? () =>
+                  context.read<PlayerBloc>().add(const SkipPreviousRequested())
+            : null;
         return Semantics(
           button: true,
           enabled: enabled,
           label: context.l10n.playerPrevious,
+          onTap: onTap,
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: enabled
-                ? () => context.read<PlayerBloc>().add(
-                    const SkipPreviousRequested(),
-                  )
-                : null,
+            onTap: onTap,
             child: SizedBox(
               width: 52,
               height: 52,
@@ -140,16 +144,17 @@ class _SkipNextButton extends StatelessWidget {
       buildWhen: (prev, curr) => _hasNext(prev) != _hasNext(curr),
       builder: (context, state) {
         final enabled = _hasNext(state);
+        final VoidCallback? onTap = enabled
+            ? () => context.read<PlayerBloc>().add(const SkipNextRequested())
+            : null;
         return Semantics(
           button: true,
           enabled: enabled,
           label: context.l10n.playerNext,
+          onTap: onTap,
           excludeSemantics: true,
           child: GestureDetector(
-            onTap: enabled
-                ? () =>
-                      context.read<PlayerBloc>().add(const SkipNextRequested())
-                : null,
+            onTap: onTap,
             child: SizedBox(
               width: 52,
               height: 52,
