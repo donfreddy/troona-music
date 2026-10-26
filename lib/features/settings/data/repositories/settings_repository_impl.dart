@@ -37,6 +37,24 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   const SettingsRepositoryImpl(this._prefs);
 
+  T _loadEnum<T extends Enum>({
+    required String key,
+    required List<T> values,
+    required T defaultValue,
+  }) {
+    final raw = _prefs.get(key);
+    if (raw is String) {
+      return values.firstWhere(
+        (e) => e.name == raw,
+        orElse: () => defaultValue,
+      );
+    }
+    if (raw is int && raw >= 0 && raw < values.length) {
+      return values[raw];
+    }
+    return defaultValue;
+  }
+
   // ── Interface ────────────────────────────────────────────────────────────────
 
   @override
@@ -45,17 +63,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
       const d = AppSettings(); // valeurs par défaut
       final settings = AppSettings(
         // Appearance
-        themeMode: AppThemeMode.values.firstWhere(
-          (e) => e.name == _prefs.getString(_K.themeMode),
-          orElse: () {
-            final oldIdx = _prefs.getInt(_K.themeMode);
-            if (oldIdx != null &&
-                oldIdx >= 0 &&
-                oldIdx < AppThemeMode.values.length) {
-              return AppThemeMode.values[oldIdx];
-            }
-            return d.themeMode;
-          },
+        themeMode: _loadEnum(
+          key: _K.themeMode,
+          values: AppThemeMode.values,
+          defaultValue: d.themeMode,
         ),
         useDynamicColor:
             _prefs.getBool(_K.useDynamicColor) ?? d.useDynamicColor,
@@ -66,17 +77,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _prefs.getBool(_K.crossfadeEnabled) ?? d.crossfadeEnabled,
         crossfadeDurationMs:
             _prefs.getInt(_K.crossfadeDurationMs) ?? d.crossfadeDurationMs,
-        crossfadeStyle: CrossfadeStyle.values.firstWhere(
-          (e) => e.name == _prefs.getString(_K.crossfadeStyle),
-          orElse: () {
-            final oldIdx = _prefs.getInt(_K.crossfadeStyle);
-            if (oldIdx != null &&
-                oldIdx >= 0 &&
-                oldIdx < CrossfadeStyle.values.length) {
-              return CrossfadeStyle.values[oldIdx];
-            }
-            return d.crossfadeStyle;
-          },
+        crossfadeStyle: _loadEnum(
+          key: _K.crossfadeStyle,
+          values: CrossfadeStyle.values,
+          defaultValue: d.crossfadeStyle,
         ),
         stopOnCallEnabled:
             _prefs.getBool(_K.stopOnCallEnabled) ?? d.stopOnCallEnabled,
@@ -96,17 +100,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
             d.showAlbumArtInNotification,
         hapticFeedbackEnabled:
             _prefs.getBool(_K.hapticFeedbackEnabled) ?? d.hapticFeedbackEnabled,
-        glassQuality: GlassQuality.values.firstWhere(
-          (e) => e.name == _prefs.getString(_K.glassQuality),
-          orElse: () {
-            final oldIdx = _prefs.getInt(_K.glassQuality);
-            if (oldIdx != null &&
-                oldIdx >= 0 &&
-                oldIdx < GlassQuality.values.length) {
-              return GlassQuality.values[oldIdx];
-            }
-            return d.glassQuality;
-          },
+        glassQuality: _loadEnum(
+          key: _K.glassQuality,
+          values: GlassQuality.values,
+          defaultValue: d.glassQuality,
         ),
         // Sleep timer
         sleepTimerEnabled:

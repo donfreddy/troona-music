@@ -48,9 +48,11 @@ void main() {
     });
 
     test('migrates legacy integer enum index', () async {
+      // themeMode: [system, light, dark] -> index 2 is dark
       // GlassQuality: [auto, high, low, off] -> index 1 is high
       // CrossfadeStyle: [equalPower, linear] -> index 1 is linear
       SharedPreferences.setMockInitialValues({
+        'theme_mode': 2,
         'glass_quality': 1,
         'crossfade_style': 1,
       });
@@ -63,6 +65,7 @@ void main() {
       result.fold(
         (_) => fail('Expected right'),
         (settings) {
+          expect(settings.themeMode, equals(AppThemeMode.dark));
           expect(settings.glassQuality, equals(GlassQuality.high));
           expect(settings.crossfadeStyle, equals(CrossfadeStyle.linear));
         },
