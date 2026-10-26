@@ -1,4 +1,5 @@
 import 'package:isar_plus/isar_plus.dart';
+import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
@@ -236,7 +237,7 @@ class IsarLibraryDataSource {
 
   // ── Likes playlist (Spotify-style) ─────────────────────────────────────────
 
-  static const likesPlaylistId = 'likes';
+  static const likesPlaylistId = Playlist.likesId;
   static const likesPlaylistName = 'Titres likés';
 
   /// Ensures the Likes playlist exists and returns it.

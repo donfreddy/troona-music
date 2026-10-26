@@ -10,4 +10,9 @@ final class Playlist {
     this.trackIds = const [],
     this.artworkPath,
   });
+
+  /// Id of the built-in liked songs playlist.
+  static const likesId = 'likes';
+
+  bool get isLikes => id == likesId;
 }

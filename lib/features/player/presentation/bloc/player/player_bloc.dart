@@ -4,13 +4,12 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
@@ -47,7 +46,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final SkipToIndexUseCase _skipToIndex;
   final AudioServicePort _audioServicePort;
   final PlaybackSessionStore _sessionStore;
-  final IsarLibraryDataSource _libraryCache;
+  final GetTracksByIdsUseCase _getTracksByIds;
 
   // ── Stream subscriptions ────────────────────────────────────────────────────
   late final StreamSubscription<Duration> _positionSub;
@@ -101,7 +100,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required SkipToIndexUseCase skipToIndex,
     required AudioServicePort audioServicePort,
     required PlaybackSessionStore sessionStore,
-    required IsarLibraryDataSource libraryCache,
+    required GetTracksByIdsUseCase getTracksByIds,
   }) : _playTrack = playTrack,
        _pause = pause,
        _resume = resume,
@@ -119,7 +118,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        _skipToIndex = skipToIndex,
        _audioServicePort = audioServicePort,
        _sessionStore = sessionStore,
-       _libraryCache = libraryCache,
+       _getTracksByIds = getTracksByIds,
        super(const PlayerIdle()) {
     // ── Branchement des streams entrants ──────────────────────────────────
     _positionSub = audioServicePort.positionStream.listen(
@@ -258,7 +257,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       await _seek(SeekParams(position: event.position));
     } finally {
       // Petit délai pour ignorer les derniers évènements de position obsolètes du stream
-      await Future.delayed(150.ms);
+      await Future<void>.delayed(const Duration(milliseconds: 150));
       _isManualSeeking = false;
     }
   }
@@ -286,7 +285,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         _setPosition(Duration.zero);
         await _seek(SeekParams(position: Duration.zero));
       } finally {
-        await Future.delayed(150.ms);
+        await Future<void>.delayed(const Duration(milliseconds: 150));
         _isManualSeeking = false;
       }
     } else {
@@ -361,15 +360,17 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       ...snapshot.playbackTrackIds,
       snapshot.currentTrackId,
     }.toList(growable: false);
-    final cachedTracks = await _libraryCache.getTracksByIds(ids);
+    final cachedTracks = (await _getTracksByIds(
+      ids,
+    )).fold((_) => null, (tracks) => tracks);
+    // A failed read is not a lost session: keep it for the next launch.
+    if (cachedTracks == null) return;
     if (cachedTracks.isEmpty) {
       await _sessionStore.clear();
       return;
     }
 
-    final trackById = {
-      for (final model in cachedTracks) model.deviceId: model.toEntity(),
-    };
+    final trackById = {for (final track in cachedTracks) track.id: track};
     final originalTracks = snapshot.originalTrackIds
         .map((id) => trackById[id])
         .whereType<Track>()
@@ -419,7 +420,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     final result = await _audioServicePort.restoreQueue(
       queue,
-      position: snapshot.positionMs.ms,
+      position: Duration(milliseconds: snapshot.positionMs),
       play: false,
       volume: snapshot.volume,
       speed: snapshot.speed,
@@ -588,7 +589,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             currentTrack: track,
             status: event.status,
             duration: _audioServicePort.currentDuration == Duration.zero
-                ? track.durationMs.ms
+                ? Duration(milliseconds: track.durationMs)
                 : _audioServicePort.currentDuration,
             queue: queue,
             shuffleEnabled: queue.shuffleEnabled,

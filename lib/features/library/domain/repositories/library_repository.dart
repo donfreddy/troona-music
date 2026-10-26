@@ -16,6 +16,9 @@ abstract interface class LibraryRepository {
   /// Récupère tous les tracks indexés localement.
   Future<Either<Failure, List<Track>>> getTracks();
 
+  /// The tracks with these ids, in the same order; unknown ids are skipped.
+  Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids);
+
   /// Récupère les albums agrégés.
   Future<Either<Failure, List<Album>>> getAlbums();
 

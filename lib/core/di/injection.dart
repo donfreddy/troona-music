@@ -32,6 +32,7 @@ import 'package:troona/features/library/domain/repositories/library_repository.d
 import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
@@ -250,6 +251,9 @@ Future<void> configureDependencies() async {
       () => ScanLibraryUseCase(getIt()),
     )
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
+    ..registerLazySingleton<GetTracksByIdsUseCase>(
+      () => GetTracksByIdsUseCase(getIt()),
+    )
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
     ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))
     ..registerLazySingleton<SearchTracksUseCase>(
@@ -339,7 +343,7 @@ Future<void> configureDependencies() async {
       skipToIndex: getIt(),
       audioServicePort: getIt(),
       sessionStore: getIt(),
-      libraryCache: getIt(),
+      getTracksByIds: getIt(),
     ),
   );
 

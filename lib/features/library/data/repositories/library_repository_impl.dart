@@ -33,6 +33,16 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   void cancelScan() => _scanner.cancel();
 
   @override
+  Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids) async {
+    try {
+      final tracks = await _cache.getTracksByIds(ids);
+      return right(tracks.map((t) => t.toEntity()).toList());
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<Track>>> getTracks() async {
     try {
       final tracks = await _cache.getAllTracks();

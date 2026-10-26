@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
@@ -31,8 +32,9 @@ Track testTrack(String id, {required int durationMs}) => Track(
 
 PlayerBloc buildTestPlayerBloc(
   AudioServicePort port,
-  PlaybackSessionStore store,
-) {
+  PlaybackSessionStore store, {
+  LibraryRepository? library,
+}) {
   final repo = PortRepository(port);
   return PlayerBloc(
     playTrack: PlayTrackUseCase(repo),
@@ -52,7 +54,7 @@ PlayerBloc buildTestPlayerBloc(
     skipToIndex: SkipToIndexUseCase(repo),
     audioServicePort: port,
     sessionStore: store,
-    libraryCache: UnusedLibraryCache(),
+    getTracksByIds: GetTracksByIdsUseCase(library ?? UnusedLibrary()),
   );
 }
 
@@ -247,7 +249,7 @@ final class PortRepository implements PlayerRepository {
       Future<Either<Failure, Unit>>.value(const Right(unit));
 }
 
-final class UnusedLibraryCache implements IsarLibraryDataSource {
+final class UnusedLibrary implements LibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
