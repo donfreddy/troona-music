@@ -16,6 +16,7 @@ final class _Port implements AudioServicePort {
   final volumeCtrl = StreamController<double>.broadcast(sync: true);
   final volumes = <double>[];
   int pauses = 0;
+  int fadedPauses = 0;
   Track? playing;
 
   @override
@@ -26,8 +27,9 @@ final class _Port implements AudioServicePort {
   Track? get currentTrack => playing;
 
   @override
-  Future<Either<Failure, Unit>> pause() async {
+  Future<Either<Failure, Unit>> pause({bool fade = true}) async {
     pauses++;
+    if (fade) fadedPauses++;
     return right(unit);
   }
 
@@ -68,6 +70,7 @@ void main() {
 
       async.elapse(const Duration(seconds: 11));
       expect(port.pauses, 1);
+      expect(port.fadedPauses, 0, reason: 'its own fade is enough');
       expect(cubit.state, const SleepTimerOff());
       // Fades down to silence, then back to the user's level.
       expect(port.volumes.first, lessThan(0.8));

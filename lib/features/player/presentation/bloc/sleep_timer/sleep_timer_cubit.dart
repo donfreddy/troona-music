@@ -81,7 +81,8 @@ final class SleepTimerCubit extends Cubit<SleepTimerState> {
     final restore = _volumeBeforeFade;
     _reset();
     emit(const SleepTimerOff());
-    await _port.pause();
+    // The timer's own fade is over: the player's would only add a delay.
+    await _port.pause(fade: false);
     if (restore != null) await _port.setVolume(restore);
   }
 

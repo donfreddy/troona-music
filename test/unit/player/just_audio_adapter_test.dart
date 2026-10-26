@@ -463,6 +463,49 @@ void main() {
       });
     });
 
+    test('a pause without fade pauses at once', () {
+      fakeAsync((async) {
+        playing(async);
+
+        adapter.pause(fade: false);
+        async.flushMicrotasks();
+
+        expect(player.pauses, 1);
+        expect(player.volumes, isEmpty);
+      });
+    });
+
+    test('a pause without fade cuts a fade-out short', () {
+      fakeAsync((async) {
+        playing(async);
+        adapter.pause();
+        async.elapse(fade ~/ 3);
+        final steps = player.volumes.length;
+
+        adapter.pause(fade: false);
+        async.flushMicrotasks();
+        expect(player.pauses, 1);
+
+        async.elapse(fade);
+        expect(player.pauses, 1);
+        expect(player.volumes, hasLength(steps));
+      });
+    });
+
+    test('resume after a cut pause starts from silence and fades in', () {
+      fakeAsync((async) {
+        playing(async);
+        adapter.pause(fade: false);
+        async.flushMicrotasks();
+
+        adapter.resume();
+        async.elapse(fade);
+
+        expect(player.volumes.first, 0);
+        expect(player.volumes.last, 1);
+      });
+    });
+
     test('resume during the fade-out takes the volume back up', () {
       fakeAsync((async) {
         playing(async);

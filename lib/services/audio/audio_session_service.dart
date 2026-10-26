@@ -36,8 +36,9 @@ final class AudioSessionService {
     _volumeSub = _audio.volumeStream.listen((v) => _currentVolume = v);
 
     // Pause when headphones are unplugged / audio route changes to speaker.
+    // At once: a fade-out would play on the speaker.
     _noisySub = _session.becomingNoisyEventStream.listen((_) async {
-      await _audio.pause();
+      await _audio.pause(fade: false);
       appLogger.i('AudioSessionService: becoming noisy → pause');
     });
 
@@ -72,7 +73,8 @@ final class AudioSessionService {
         case AudioInterruptionType.pause:
         case AudioInterruptionType.unknown:
           if (_settings.stopOnCallEnabled) {
-            await _audio.pause();
+            // At once: the call or the app taking over is already sounding.
+            await _audio.pause(fade: false);
             appLogger.i('AudioSessionService: pause interruption');
           }
           break;

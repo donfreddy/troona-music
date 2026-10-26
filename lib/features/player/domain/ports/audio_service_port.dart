@@ -55,8 +55,10 @@ abstract interface class AudioServicePort {
   /// Loads and plays [track]. Initialises the queue when [queue] is provided.
   Future<Either<Failure, Unit>> playTrack(Track track, {Queue? queue});
 
-  /// Pauses playback.
-  Future<Either<Failure, Unit>> pause();
+  /// Pauses playback, after a short fade-out unless [fade] is false: for a
+  /// pause that must be immediate (headphones unplugged) or that comes after
+  /// its own fade (sleep timer).
+  Future<Either<Failure, Unit>> pause({bool fade = true});
 
   /// Resumes playback.
   Future<Either<Failure, Unit>> resume();

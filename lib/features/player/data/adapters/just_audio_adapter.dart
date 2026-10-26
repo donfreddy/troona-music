@@ -198,13 +198,17 @@ class JustAudioAdapter implements AudioServicePort {
 
   /// Fades out, then pauses. A resume during the fade cancels the pause,
   /// and of several pauses only the latest one pauses the player, once its
-  /// fade is over.
+  /// fade is over. Without [fade], pauses at once, cutting any fade short.
   @override
-  Future<Either<Failure, Unit>> pause() async {
+  Future<Either<Failure, Unit>> pause({bool fade = true}) async {
     try {
       final request = ++_pauseRequest;
       _playIntent.add(false);
-      if (_player.playing) await _fade.to(0, fadeDuration);
+      if (!fade) {
+        _fade.stop();
+      } else if (_player.playing) {
+        await _fade.to(0, fadeDuration);
+      }
       if (!_playIntent.value && request == _pauseRequest) {
         await _player.pause();
       }
