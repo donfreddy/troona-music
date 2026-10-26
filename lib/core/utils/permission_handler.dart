@@ -19,15 +19,19 @@ abstract final class AppPermissionHandler {
   /// call re-queries the OS. Call on AppLifecycleState.resumed.
   static void invalidateCache() => _cachedPermission = null;
 
+  /// Returns the Android SDK version, or 0 on non-Android platforms.
+  static Future<int> _androidSdkInt() async {
+    if (!Platform.isAndroid) return 0;
+    final info = await DeviceInfoPlugin().androidInfo;
+    return info.version.sdkInt;
+  }
+
   /// Resolves the correct [Permission] for the running platform/SDK.
-  /// Async because Android SDK version requires a device info call.
-  static Future<Permission> _resolvePermission() async {
+  static Future<Permission> _resolvePermission(int sdkInt) async {
     if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-      return androidInfo.version.sdkInt >= 33
-          ? Permission
-                .audio // READ_MEDIA_AUDIO  (API 33+)
-          : Permission.storage; // READ_EXTERNAL_STORAGE (API ≤ 32)
+      return sdkInt >= 33
+          ? Permission.audio // READ_MEDIA_AUDIO  (API 33+)
+          : Permission.storage; // READ_EXTERNAL_STORAGE (API <= 32)
     }
     return Permission.mediaLibrary; // iOS
   }
@@ -35,13 +39,17 @@ abstract final class AppPermissionHandler {
   /// Requests audio permission and returns `true` if granted.
   /// Throws [PermissionException] on denial or permanent denial.
   static Future<bool> requestAudioPermission() async {
-    final permission = await _resolvePermission();
+    final sdkInt = await _androidSdkInt();
+    final permission = await _resolvePermission(sdkInt);
     final status = await permission.request();
 
     switch (status) {
       case PermissionStatus.granted:
       case PermissionStatus.limited: // iOS limited library access
-        if (Platform.isAndroid) {
+        // on_audio_query uses READ_EXTERNAL_STORAGE internally.
+        // On API 33+, that permission is deprecated and not requestable, so
+        // skip the plugin check entirely: READ_MEDIA_AUDIO is sufficient.
+        if (Platform.isAndroid && sdkInt < 33) {
           final pluginGranted =
               await _audioQuery.permissionsStatus() ||
               await _audioQuery.permissionsRequest();
@@ -72,7 +80,8 @@ abstract final class AppPermissionHandler {
   static Future<bool> hasAudioPermission() async {
     if (_cachedPermission != null) return _cachedPermission!;
 
-    final permission = await _resolvePermission();
+    final sdkInt = await _androidSdkInt();
+    final permission = await _resolvePermission(sdkInt);
     final status = await permission.status;
     final granted =
         status == PermissionStatus.granted ||
@@ -82,8 +91,13 @@ abstract final class AppPermissionHandler {
       return false;
     }
 
+    // On API 33+, READ_MEDIA_AUDIO being granted is sufficient — skip the
+    // plugin's internal READ_EXTERNAL_STORAGE check which returns false on
+    // API 33+ and would incorrectly report "not granted".
     final result =
-        Platform.isAndroid ? await _audioQuery.permissionsStatus() : true;
+        Platform.isAndroid && sdkInt < 33
+            ? await _audioQuery.permissionsStatus()
+            : true;
     _cachedPermission = result;
     return result;
   }
