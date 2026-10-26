@@ -1104,4 +1104,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get playerOpen => 'Open player';
+
+  @override
+  String get whatsNewTitle => 'What\'s new';
+
+  @override
+  String whatsNewVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get whatsNewAdded => 'New';
+
+  @override
+  String get whatsNewImproved => 'Improved';
+
+  @override
+  String get whatsNewFixed => 'Fixed';
+
+  @override
+  String get whatsNewContinue => 'Continue';
+
+  @override
+  String get whatsNew100WeekTitle => 'Your week in music';
+
+  @override
+  String get whatsNew100WeekBody =>
+      'Every Monday on Home: listening time, top artist and top song, with a calendar of the days you listened.';
+
+  @override
+  String get whatsNew100ReplayTitle => 'Monthly Replay';
+
+  @override
+  String get whatsNew100ReplayBody =>
+      'At the start of each month, your 25 most played songs of the month before become a playlist.';
+
+  @override
+  String get whatsNew100SleepTitle => 'Sleep timer and speed';
+
+  @override
+  String get whatsNew100SleepBody =>
+      'Stop the music after 15, 30 or 45 minutes or at the end of the song, and play from 0.75x to 2x.';
+
+  @override
+  String get whatsNew100QueueTitle => 'Queue';
+
+  @override
+  String get whatsNew100QueueBody =>
+      'See what played and what comes next. Drag to reorder, swipe to remove, undo in one tap.';
+
+  @override
+  String get whatsNew100ExtrasTitle => 'Artist photos and bios, your call';
+
+  @override
+  String get whatsNew100ExtrasBody =>
+      'Two switches in Settings, off by default. Your music files never leave your phone.';
+
+  @override
+  String get whatsNew100LibraryTitle => 'Library';
+
+  @override
+  String get whatsNew100LibraryBody =>
+      'Faster scans with live progress. Your library stays on screen while it updates.';
+
+  @override
+  String get whatsNew100ShuffleTitle => 'Shuffle';
+
+  @override
+  String get whatsNew100ShuffleBody =>
+      'Every Shuffle button starts on a random song, and turning shuffle off brings back the original order.';
+
+  @override
+  String get whatsNew100LanguageTitle => 'English and French';
+
+  @override
+  String get whatsNew100LanguageBody =>
+      'The whole app follows your phone\'s language.';
+
+  @override
+  String get whatsNew100LockTitle => 'Lock screen';
+
+  @override
+  String get whatsNew100LockBody =>
+      'The position stays right after a skip, a seek or a queue change.';
+
+  @override
+  String get whatsNew100ToastTitle => 'Messages';
+
+  @override
+  String get whatsNew100ToastBody =>
+      'Confirmations now appear right above the player bar.';
 }

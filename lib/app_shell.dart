@@ -18,6 +18,9 @@ import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
+import 'package:troona/features/whats_new/presentation/release_notes.dart';
+import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
@@ -85,6 +88,24 @@ class _AppShellState extends State<AppShell> {
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showWhatsNew());
+  }
+
+  /// "What's new", once after an update that ships notes.
+  Future<void> _showWhatsNew() async {
+    if (!mounted) return;
+    final l10n = context.l10n;
+    final String? version;
+    try {
+      version = await getIt<CheckWhatsNewUseCase>()(
+        hasNotes: (v) => releaseNotes(l10n).any((r) => r.version == v),
+      );
+    } catch (e, st) {
+      appLogger.w('What\'s new check failed', error: e, stackTrace: st);
+      return;
+    }
+    if (version == null || !mounted) return;
+    await showWhatsNewSheet(context, releaseFor(l10n, version));
   }
 
   /// Last month's Replay playlist, made once on the first run of a month.

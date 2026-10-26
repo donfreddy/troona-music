@@ -1115,4 +1115,95 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get playerOpen => 'Ouvrir le lecteur';
+
+  @override
+  String get whatsNewTitle => 'Nouveautés';
+
+  @override
+  String whatsNewVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get whatsNewAdded => 'Nouveau';
+
+  @override
+  String get whatsNewImproved => 'Amélioré';
+
+  @override
+  String get whatsNewFixed => 'Corrigé';
+
+  @override
+  String get whatsNewContinue => 'Continuer';
+
+  @override
+  String get whatsNew100WeekTitle => 'Votre semaine en musique';
+
+  @override
+  String get whatsNew100WeekBody =>
+      'Chaque lundi sur l\'accueil : temps d\'écoute, artiste et morceau phares, avec un calendrier de vos jours d\'écoute.';
+
+  @override
+  String get whatsNew100ReplayTitle => 'Replay du mois';
+
+  @override
+  String get whatsNew100ReplayBody =>
+      'En début de mois, vos 25 morceaux les plus écoutés du mois précédent deviennent une playlist.';
+
+  @override
+  String get whatsNew100SleepTitle => 'Minuterie et vitesse';
+
+  @override
+  String get whatsNew100SleepBody =>
+      'Arrêtez la musique après 15, 30 ou 45 minutes ou à la fin du morceau, et écoutez de 0,75x à 2x.';
+
+  @override
+  String get whatsNew100QueueTitle => 'File d\'attente';
+
+  @override
+  String get whatsNew100QueueBody =>
+      'Voyez ce qui est passé et ce qui suit. Glissez pour réorganiser, balayez pour retirer, annulez d\'un geste.';
+
+  @override
+  String get whatsNew100ExtrasTitle =>
+      'Photos et biographies, à vous de choisir';
+
+  @override
+  String get whatsNew100ExtrasBody =>
+      'Deux interrupteurs dans les Réglages, désactivés par défaut. Vos fichiers ne quittent jamais votre téléphone.';
+
+  @override
+  String get whatsNew100LibraryTitle => 'Bibliothèque';
+
+  @override
+  String get whatsNew100LibraryBody =>
+      'Analyse plus rapide avec progression en direct. Votre bibliothèque reste affichée pendant la mise à jour.';
+
+  @override
+  String get whatsNew100ShuffleTitle => 'Lecture aléatoire';
+
+  @override
+  String get whatsNew100ShuffleBody =>
+      'Chaque bouton Aléatoire démarre sur un morceau au hasard, et désactiver l\'aléatoire rétablit l\'ordre d\'origine.';
+
+  @override
+  String get whatsNew100LanguageTitle => 'Anglais et français';
+
+  @override
+  String get whatsNew100LanguageBody =>
+      'Toute l\'application suit la langue de votre téléphone.';
+
+  @override
+  String get whatsNew100LockTitle => 'Écran de verrouillage';
+
+  @override
+  String get whatsNew100LockBody =>
+      'La position reste juste après un saut, un déplacement ou une modification de la file.';
+
+  @override
+  String get whatsNew100ToastTitle => 'Messages';
+
+  @override
+  String get whatsNew100ToastBody =>
+      'Les confirmations s\'affichent désormais juste au-dessus de la barre de lecture.';
 }

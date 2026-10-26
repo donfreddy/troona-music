@@ -1861,6 +1861,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open player'**
   String get playerOpen;
+
+  /// No description provided for @whatsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new'**
+  String get whatsNewTitle;
+
+  /// No description provided for @whatsNewVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String whatsNewVersion(String version);
+
+  /// No description provided for @whatsNewAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get whatsNewAdded;
+
+  /// No description provided for @whatsNewImproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Improved'**
+  String get whatsNewImproved;
+
+  /// No description provided for @whatsNewFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed'**
+  String get whatsNewFixed;
+
+  /// No description provided for @whatsNewContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get whatsNewContinue;
+
+  /// No description provided for @whatsNew100WeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your week in music'**
+  String get whatsNew100WeekTitle;
+
+  /// No description provided for @whatsNew100WeekBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every Monday on Home: listening time, top artist and top song, with a calendar of the days you listened.'**
+  String get whatsNew100WeekBody;
+
+  /// No description provided for @whatsNew100ReplayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Replay'**
+  String get whatsNew100ReplayTitle;
+
+  /// No description provided for @whatsNew100ReplayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'At the start of each month, your 25 most played songs of the month before become a playlist.'**
+  String get whatsNew100ReplayBody;
+
+  /// No description provided for @whatsNew100SleepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep timer and speed'**
+  String get whatsNew100SleepTitle;
+
+  /// No description provided for @whatsNew100SleepBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the music after 15, 30 or 45 minutes or at the end of the song, and play from 0.75x to 2x.'**
+  String get whatsNew100SleepBody;
+
+  /// No description provided for @whatsNew100QueueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get whatsNew100QueueTitle;
+
+  /// No description provided for @whatsNew100QueueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'See what played and what comes next. Drag to reorder, swipe to remove, undo in one tap.'**
+  String get whatsNew100QueueBody;
+
+  /// No description provided for @whatsNew100ExtrasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist photos and bios, your call'**
+  String get whatsNew100ExtrasTitle;
+
+  /// No description provided for @whatsNew100ExtrasBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two switches in Settings, off by default. Your music files never leave your phone.'**
+  String get whatsNew100ExtrasBody;
+
+  /// No description provided for @whatsNew100LibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get whatsNew100LibraryTitle;
+
+  /// No description provided for @whatsNew100LibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Faster scans with live progress. Your library stays on screen while it updates.'**
+  String get whatsNew100LibraryBody;
+
+  /// No description provided for @whatsNew100ShuffleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get whatsNew100ShuffleTitle;
+
+  /// No description provided for @whatsNew100ShuffleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every Shuffle button starts on a random song, and turning shuffle off brings back the original order.'**
+  String get whatsNew100ShuffleBody;
+
+  /// No description provided for @whatsNew100LanguageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'English and French'**
+  String get whatsNew100LanguageTitle;
+
+  /// No description provided for @whatsNew100LanguageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The whole app follows your phone\'s language.'**
+  String get whatsNew100LanguageBody;
+
+  /// No description provided for @whatsNew100LockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock screen'**
+  String get whatsNew100LockTitle;
+
+  /// No description provided for @whatsNew100LockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The position stays right after a skip, a seek or a queue change.'**
+  String get whatsNew100LockBody;
+
+  /// No description provided for @whatsNew100ToastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get whatsNew100ToastTitle;
+
+  /// No description provided for @whatsNew100ToastBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmations now appear right above the player bar.'**
+  String get whatsNew100ToastBody;
 }
 
 class _AppLocalizationsDelegate

@@ -71,6 +71,8 @@ import 'package:troona/features/settings/data/repositories/maintenance_repositor
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
+import 'package:troona/features/whats_new/data/shared_prefs_whats_new_repository.dart';
+import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
@@ -262,6 +264,9 @@ Future<void> configureDependencies() async {
       metadata: getIt(),
       coverDir: artworkCache,
     ),
+  );
+  getIt.registerLazySingleton<CheckWhatsNewUseCase>(
+    () => CheckWhatsNewUseCase(SharedPrefsWhatsNewRepository(getIt()), getIt()),
   );
   getIt.registerLazySingleton<ArtistArtworkPrefetchService>(
     () => ArtistArtworkPrefetchService(repo: getIt()),

@@ -613,5 +613,38 @@
   "playerRepeatAll": "Repeat all",
   "playerRepeatOne": "Repeat this song",
   "playerClose": "Close player",
-  "playerOpen": "Open player"
+  "playerOpen": "Open player",
+  "whatsNewTitle": "What's new",
+  "whatsNewVersion": "Version {version}",
+  "@whatsNewVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "whatsNewAdded": "New",
+  "whatsNewImproved": "Improved",
+  "whatsNewFixed": "Fixed",
+  "whatsNewContinue": "Continue",
+  "whatsNew100WeekTitle": "Your week in music",
+  "whatsNew100WeekBody": "Every Monday on Home: listening time, top artist and top song, with a calendar of the days you listened.",
+  "whatsNew100ReplayTitle": "Monthly Replay",
+  "whatsNew100ReplayBody": "At the start of each month, your 25 most played songs of the month before become a playlist.",
+  "whatsNew100SleepTitle": "Sleep timer and speed",
+  "whatsNew100SleepBody": "Stop the music after 15, 30 or 45 minutes or at the end of the song, and play from 0.75x to 2x.",
+  "whatsNew100QueueTitle": "Queue",
+  "whatsNew100QueueBody": "See what played and what comes next. Drag to reorder, swipe to remove, undo in one tap.",
+  "whatsNew100ExtrasTitle": "Artist photos and bios, your call",
+  "whatsNew100ExtrasBody": "Two switches in Settings, off by default. Your music files never leave your phone.",
+  "whatsNew100LibraryTitle": "Library",
+  "whatsNew100LibraryBody": "Faster scans with live progress. Your library stays on screen while it updates.",
+  "whatsNew100ShuffleTitle": "Shuffle",
+  "whatsNew100ShuffleBody": "Every Shuffle button starts on a random song, and turning shuffle off brings back the original order.",
+  "whatsNew100LanguageTitle": "English and French",
+  "whatsNew100LanguageBody": "The whole app follows your phone's language.",
+  "whatsNew100LockTitle": "Lock screen",
+  "whatsNew100LockBody": "The position stays right after a skip, a seek or a queue change.",
+  "whatsNew100ToastTitle": "Messages",
+  "whatsNew100ToastBody": "Confirmations now appear right above the player bar."
 }

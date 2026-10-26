@@ -13,6 +13,8 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
+import 'package:troona/features/whats_new/presentation/release_notes.dart';
+import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
@@ -196,6 +198,18 @@ class _SettingsList extends StatelessWidget {
         SettingsSection(
           title: l10n.settingsSupport,
           children: [
+            SettingsTile.navigation(
+              icon: LucideIcons.sparkles,
+              iconColor: const Color(0xFF8B5CF6),
+              title: l10n.whatsNewTitle,
+              subtitle: maintenance.version == null
+                  ? null
+                  : l10n.whatsNewVersion(maintenance.version!.version),
+              onTap: () => showWhatsNewSheet(
+                context,
+                releaseFor(l10n, maintenance.version?.version),
+              ),
+            ),
             SettingsTile.navigation(
               icon: LucideIcons.messageSquareWarning,
               iconColor: const Color(0xFF6366F1),
