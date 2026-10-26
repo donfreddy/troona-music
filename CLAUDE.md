@@ -63,7 +63,8 @@ One Isar database (`isar_plus`), opened by `AppDatabase.open()` in `lib/core/dat
 - Library: tracks and playlists (`IsarLibraryDataSource`).
 - Play history: `PlayEventModel`, capped at 500 events (`lib/features/history/`). `PlayHistoryRecorder` records a play after 30 s of listening, or half a track shorter than a minute (`PlayCounter`). Home "Recently Played" reads it.
 - Playback session (queue, position) is saved to `SharedPreferences` by `PlaybackSessionStore`.
-- Artwork files are cached in the app cache directory under `troona_artwork_cache`.
+- Covers extracted from local files are cached in the app cache directory under `troona_artwork_cache`.
+- Online extras are opt-in, behind two switches: bios (Last.fm) and photos (Deezer). `MetadataRepositoryImpl` contacts each source only when its switch is on. Their JSON and downloaded photos live under `troona_metadata_cache` (photos in `photos/`), so "clear online info" removes and measures both. Turning photos off deletes the downloaded ones.
 
 ### Design System (Glassmorphism)
 Three-level token hierarchy in `lib/core/theme/`:

@@ -12,6 +12,7 @@ import 'package:troona/features/metadata/data/models/last_fm_artist_dto.dart';
 import 'package:troona/features/metadata/data/repositories/metadata_repository_impl.dart';
 import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
 import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
+import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 
@@ -42,7 +43,15 @@ class _Remote implements LastFmRemoteDataSource {
   }) async {
     calls.add('lastfm:artist');
     return const LastFmArtistDto(
-      artist: LastFmArtistData(bio: LastFmBioDto(content: 'A bio')),
+      artist: LastFmArtistData(
+        bio: LastFmBioDto(content: 'A bio'),
+        similar: [
+          LastFmSimilarArtistDto(
+            name: 'Justice',
+            imageUrl: 'https://lastfm.test/justice.jpg',
+          ),
+        ],
+      ),
     );
   }
 
@@ -154,6 +163,7 @@ void main() {
 
     expect(artist?.bio, 'A bio');
     expect(artist?.imageUrl, isNull);
+    expect(artist?.similarArtists.single.imageUrl, isNull);
     expect(album?.name, 'An album');
     expect(album?.imageUrl, isNull);
     expect(remote.calls, ['lastfm:artist', 'lastfm:album']);
@@ -279,5 +289,78 @@ void main() {
 
     expect(await photo.exists(), isFalse);
     expect(repo.getCachedArtistArtworkPath('1'), isNull);
+  });
+
+  test('photos only: one Deezer search per artist per session', () async {
+    settings.value = switches(info: false, photos: true);
+    await repo.getArtistInfo('Daft Punk');
+    await repo.getArtistInfo('Daft Punk');
+    expect(remote.calls, ['deezer:artist']);
+  });
+
+  test('forgetting photos keeps bios and tells every artist card', () async {
+    settings.value = switches(info: true, photos: true);
+    await repo.getArtistInfo('Daft Punk');
+    final photo = File('${tempDir.path}/photos/artists/1.jpg');
+    await photo.create(recursive: true);
+    await photo.writeAsBytes([1]);
+    final updates = <String>[];
+    final sub = repo.onArtistArtworkUpdated.listen(updates.add);
+
+    await repo.forgetPhotos();
+    await pumpEventQueue();
+    await sub.cancel();
+
+    expect(await photo.exists(), isFalse);
+    expect(updates, [MetadataRepository.allArtists]);
+    remote.calls.clear();
+    expect((await repo.getArtistInfo('Daft Punk'))?.bio, 'A bio');
+    expect(remote.calls, isNot(contains('lastfm:artist')));
+  });
+
+  test(
+    'a download finishing after photos were turned off is dropped',
+    () async {
+      late MetadataRepositoryImpl repo;
+      repo = MetadataRepositoryImpl(
+        cache: cache,
+        remote: remote,
+        settingsRepo: settings,
+        client: ApiClient(
+          customDio: Dio()
+            ..httpClientAdapter = _Adapter(
+              [
+                [1, 2],
+              ],
+              midway: () async =>
+                  settings.value = switches(info: false, photos: false),
+            ),
+        ),
+        artworkCacheDir: Directory('${tempDir.path}/photos'),
+      );
+      settings.value = switches(info: false, photos: true);
+
+      final path = await repo.downloadAndCacheArtistArtwork(
+        artistId: '1',
+        imageUrl: 'https://deezer.test/artist.jpg',
+      );
+
+      expect(path, isNull);
+      expect(repo.getCachedArtistArtworkPath('1'), isNull);
+    },
+  );
+
+  test('unfinished downloads are removed at boot', () async {
+    final part = File('${tempDir.path}/photos/artists/1.jpg.123.part');
+    final done = File('${tempDir.path}/photos/artists/2.jpg');
+    await part.create(recursive: true);
+    await done.create(recursive: true);
+
+    await MetadataRepositoryImpl.removeUnfinishedDownloads(
+      Directory('${tempDir.path}/photos'),
+    );
+
+    expect(await part.exists(), isFalse);
+    expect(await done.exists(), isTrue);
   });
 }

@@ -30,7 +30,10 @@ class _ArtistCardState extends State<ArtistCard> {
     _artworkSub = getIt<MetadataRepository>().onArtistArtworkUpdated.listen((
       updatedId,
     ) {
-      if (updatedId == widget.artist.id && mounted) {
+      final mine =
+          updatedId == widget.artist.id ||
+          updatedId == MetadataRepository.allArtists;
+      if (mine && mounted) {
         _resolveArtwork();
       }
     });

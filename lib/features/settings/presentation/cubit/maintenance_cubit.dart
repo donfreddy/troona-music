@@ -34,6 +34,10 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
   Future<bool> clearOnlineInfo() async {
     emit(state.copyWith(busy: true));
     final result = await _repo.clearOnlineInfo();
+    // Deleted photos may still be decoded in memory.
+    PaintingBinding.instance.imageCache
+      ..clear()
+      ..clearLiveImages();
     _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
     return result.isRight();
   }

@@ -135,8 +135,11 @@ Future<void> configureDependencies() async {
   // Older builds kept them in the local covers folder.
   for (final legacy in ['artists', 'albums']) {
     final dir = Directory('${artworkCache.path}/$legacy');
-    if (await dir.exists()) unawaited(dir.delete(recursive: true));
+    if (await dir.exists()) {
+      unawaited(dir.delete(recursive: true).then((_) {}, onError: (_) {}));
+    }
   }
+  unawaited(MetadataRepositoryImpl.removeUnfinishedDownloads(onlinePhotos));
   final metadataCacheDataSource = MetadataCacheDataSourceImpl(
     cacheDir: metadataCache,
   );
@@ -299,7 +302,11 @@ Future<void> configureDependencies() async {
   // AudioSessionService is injected so runtime setting changes (call handling,
   // ducking) are propagated immediately without an app restart.
   getIt.registerLazySingleton<SettingsCubit>(
-    () => SettingsCubit(getIt(), getIt<AudioSessionService>())..load(),
+    () => SettingsCubit(
+      getIt(),
+      getIt<AudioSessionService>(),
+      getIt<MetadataRepository>(),
+    )..load(),
   );
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
 

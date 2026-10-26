@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/components/glass_theme.dart' as glass;
 import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
@@ -18,8 +19,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   /// (call ducking, headphone unplug behaviour, etc.) without an app restart.
   final AudioSessionService? _audioSession;
 
-  SettingsCubit(this._repo, [this._audioSession])
+  /// Optional: forgets downloaded photos when the photos switch goes off.
+  final MetadataRepository? _metadata;
+
+  SettingsCubit(this._repo, [this._audioSession, this._metadata])
     : super(const SettingsState.loading());
+
+  /// The cubit outlives every screen: a failed first load must not leave
+  /// Settings on its error state for the whole session.
+  void retryIfFailed() {
+    if (state is SettingsError) load();
+  }
 
   // Init
   Future<void> load() async {
@@ -76,18 +86,29 @@ class SettingsCubit extends Cubit<SettingsState> {
     (s) => s.copyWith(fetchOnlineMetadata: value, onlineExtrasOffered: true),
   );
 
-  Future<void> setFetchArtistArtwork(bool value) => _update(
-    (s) => s.copyWith(fetchArtistArtwork: value, onlineExtrasOffered: true),
-  );
+  Future<void> setFetchArtistArtwork(bool value) async {
+    await _update(
+      (s) => s.copyWith(fetchArtistArtwork: value, onlineExtrasOffered: true),
+    );
+    await _forgetPhotosIfOff();
+  }
 
   /// Turns both online extras on or off at once (Home offer card).
-  Future<void> setOnlineExtras(bool enabled) => _update(
-    (s) => s.copyWith(
-      fetchOnlineMetadata: enabled,
-      fetchArtistArtwork: enabled,
-      onlineExtrasOffered: true,
-    ),
-  );
+  Future<void> setOnlineExtras(bool enabled) async {
+    await _update(
+      (s) => s.copyWith(
+        fetchOnlineMetadata: enabled,
+        fetchArtistArtwork: enabled,
+        onlineExtrasOffered: true,
+      ),
+    );
+    await _forgetPhotosIfOff();
+  }
+
+  // Off means no online photo on screen, including ones already downloaded.
+  Future<void> _forgetPhotosIfOff() async {
+    if (_current?.fetchArtistArtwork == false) await _metadata?.forgetPhotos();
+  }
 
   Future<void> dismissOnlineExtrasOffer() =>
       _update((s) => s.copyWith(onlineExtrasOffered: true));
@@ -111,5 +132,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _repo.resetSettings();
     await load();
     if (_current case final settings?) _applyRuntime(settings);
+    await _forgetPhotosIfOff();
   }
 }

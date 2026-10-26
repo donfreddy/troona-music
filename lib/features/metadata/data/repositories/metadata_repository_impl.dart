@@ -21,6 +21,10 @@ class MetadataRepositoryImpl implements MetadataRepository {
   final Directory _artworkCacheDir;
   final _artistArtworkUpdatedController = StreamController<String>.broadcast();
 
+  /// Deezer answers for this session, misses included: without bios there is
+  /// no cache entry to keep them, and each page visit searched again.
+  final _deezerLookups = <String, String?>{};
+
   MetadataRepositoryImpl({
     required MetadataCacheDataSource cache,
     required LastFmRemoteDataSource remote,
@@ -47,6 +51,11 @@ class MetadataRepositoryImpl implements MetadataRepository {
       }
     } catch (_) {}
     return null;
+  }
+
+  Future<String?> _deezer(String key, Future<String?> Function() fetch) async {
+    if (_deezerLookups.containsKey(key)) return _deezerLookups[key];
+    return _deezerLookups[key] = await fetch();
   }
 
   /// The two opt-in switches. Unreadable settings count as both off: the
@@ -85,7 +94,10 @@ class MetadataRepositoryImpl implements MetadataRepository {
       if (!online.photos) return dto?.toDomain(withImage: false);
       if (dto?.artist?.bestImageUrl != null) return dto!.toDomain();
 
-      final deezerImg = await _remote.fetchDeezerArtistImage(artistName);
+      final deezerImg = await _deezer(
+        'artist:$artistName',
+        () => _remote.fetchDeezerArtistImage(artistName),
+      );
       if (deezerImg == null || deezerImg.isEmpty) return dto?.toDomain();
       final artist = dto?.artist;
       if (artist == null) return ArtistOnlineInfo(imageUrl: deezerImg);
@@ -126,9 +138,9 @@ class MetadataRepositoryImpl implements MetadataRepository {
       if (!online.photos) return dto?.toDomain(withImage: false);
       if (dto?.album?.bestImageUrl != null) return dto!.toDomain();
 
-      final deezerCover = await _remote.fetchDeezerAlbumCover(
-        artistName,
-        albumName,
+      final deezerCover = await _deezer(
+        'album:$artistName\u0000$albumName',
+        () => _remote.fetchDeezerAlbumCover(artistName, albumName),
       );
       if (deezerCover == null || deezerCover.isEmpty) return dto?.toDomain();
       final album = dto?.album;
@@ -245,6 +257,8 @@ class MetadataRepositoryImpl implements MetadataRepository {
         options: Options(receiveTimeout: const Duration(seconds: 10)),
       );
       if (await part.length() == 0) return false;
+      // The switch may have been turned off while this was downloading.
+      if (!(await _onlineSwitches()).photos) return false;
       await part.rename(target.path);
       return true;
     } finally {
@@ -261,5 +275,30 @@ class MetadataRepositoryImpl implements MetadataRepository {
   Future<void> clearMetadataCache() async {
     // Also removes the downloaded photos: they live inside that cache.
     await _cache.clearCache();
+    _deezerLookups.clear();
+    _artistArtworkUpdatedController.add(MetadataRepository.allArtists);
+  }
+
+  @override
+  Future<void> forgetPhotos() async {
+    try {
+      if (await _artworkCacheDir.exists()) {
+        await _artworkCacheDir.delete(recursive: true);
+      }
+    } catch (e) {
+      appLogger.w('MetadataRepositoryImpl.forgetPhotos failed: $e');
+    }
+    _deezerLookups.clear();
+    _artistArtworkUpdatedController.add(MetadataRepository.allArtists);
+  }
+
+  /// Removes `.part` files an app kill left mid-download.
+  static Future<void> removeUnfinishedDownloads(Directory photos) async {
+    try {
+      if (!await photos.exists()) return;
+      await for (final f in photos.list(recursive: true)) {
+        if (f is File && f.path.endsWith('.part')) await f.delete();
+      }
+    } catch (_) {}
   }
 }

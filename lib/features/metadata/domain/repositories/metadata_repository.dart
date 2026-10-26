@@ -25,7 +25,15 @@ abstract interface class MetadataRepository {
 
   String? getCachedArtistArtworkPath(String artistId);
 
+  /// Emits an artist id when its photo changes, or [allArtists] after photos
+  /// were removed in bulk.
   Stream<String> get onArtistArtworkUpdated;
+
+  static const allArtists = '*';
+
+  /// Deletes every downloaded artist photo and album cover, keeping bios.
+  /// Called when the photos switch is turned off.
+  Future<void> forgetPhotos();
 
   Future<String?> prefetchArtistPhoto({
     required String artistId,
@@ -33,5 +41,7 @@ abstract interface class MetadataRepository {
   });
 
   Future<int> getMetadataCacheSizeBytes();
+
+  /// Deletes all downloaded online info, photos included.
   Future<void> clearMetadataCache();
 }

@@ -31,7 +31,10 @@ class LastFmArtistDto {
       imageUrl: withImage ? artist?.bestImageUrl : null,
       tags: artist?.tags ?? const [],
       similarArtists:
-          artist?.similar.map((s) => s.toDomain()).toList() ?? const [],
+          artist?.similar
+              .map((s) => s.toDomain(withImage: withImage))
+              .toList() ??
+          const [],
       isOnTour: artist?.isOnTour ?? false,
       lastFmUrl: artist?.bio?.lastFmUrl,
     );
@@ -262,8 +265,11 @@ class LastFmSimilarArtistDto {
     if (imageUrl != null) 'imageUrl': imageUrl,
   };
 
-  SimilarArtistInfo toDomain() =>
-      SimilarArtistInfo(name: name, url: url, imageUrl: imageUrl);
+  SimilarArtistInfo toDomain({bool withImage = true}) => SimilarArtistInfo(
+    name: name,
+    url: url,
+    imageUrl: withImage ? imageUrl : null,
+  );
 }
 
 class LastFmStatsDto {
@@ -365,21 +371,7 @@ class LastFmBioDto {
       return cleanSummaryText;
     }
 
-    // When summary or content only had the Last.fm wiki link
-    final hasLink =
-        (summary != null && summary!.contains('<a href')) ||
-        (content != null && content!.contains('<a href'));
-    if (hasLink) {
-      final link = lastFmUrl;
-      if (link != null &&
-          (link.contains('%5Bunknown%5D') ||
-              link.toLowerCase().contains('unknown'))) {
-        return null;
-      }
-      // Only a link to Last.fm: nothing worth showing as text.
-      return null;
-    }
-
+    // Nothing but the Last.fm link: no text worth showing.
     return null;
   }
 
