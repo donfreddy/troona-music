@@ -58,7 +58,9 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
         (info.bio == null &&
             info.listeners == null &&
             info.playCount == null &&
-            info.imageUrl == null)) {
+            info.imageUrl == null &&
+            info.tags.isEmpty &&
+            info.similarArtists.isEmpty)) {
       emit(const ArtistMetadataEmpty());
       return;
     }

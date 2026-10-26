@@ -18,6 +18,11 @@ abstract interface class MetadataRepository {
     required String imageUrl,
   });
 
+  Future<String?> downloadAndCacheAlbumArtwork({
+    required int albumId,
+    required String imageUrl,
+  });
+
   Future<int> getMetadataCacheSizeBytes();
   Future<void> clearMetadataCache();
 }

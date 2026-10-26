@@ -97,7 +97,8 @@ class AlbumDetailPage extends StatelessWidget {
                               if (metaState is AlbumMetadataLoaded &&
                                   (metaState.info.wiki != null ||
                                       metaState.info.listeners != null ||
-                                      metaState.info.playCount != null)) {
+                                      metaState.info.playCount != null ||
+                                      metaState.info.tags.isNotEmpty)) {
                                 return SliverToBoxAdapter(
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: AppSpacing.lg),
@@ -297,16 +298,56 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: album.artworkPath != null
-                                        ? ArtworkImage(album.artworkPath!)
-                                        : Container(
-                                            color: Colors.white.withValues(alpha: .08),
-                                            child: const Icon(
-                                              LucideIcons.disc,
-                                              color: Colors.white30,
-                                              size: 64,
-                                            ),
+                                    child: BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
+                                      builder: (context, metaState) {
+                                        final localArt = album.artworkPath ??
+                                            (metaState is AlbumMetadataLoaded
+                                                ? metaState.localImagePath
+                                                : null);
+                                        final onlineUrl = metaState is AlbumMetadataLoaded
+                                            ? metaState.info.imageUrl
+                                            : null;
+
+                                        Widget fallbackIcon() => Container(
+                                          color: Colors.white.withValues(alpha: .08),
+                                          child: const Icon(
+                                            LucideIcons.disc,
+                                            color: Colors.white30,
+                                            size: 64,
                                           ),
+                                        );
+
+                                        if (localArt != null && localArt.isNotEmpty) {
+                                          return ArtworkImage(
+                                            localArt,
+                                            width: 180,
+                                            height: 180,
+                                            errorBuilder: (_, _, _) =>
+                                                onlineUrl != null && onlineUrl.isNotEmpty
+                                                    ? Image.network(
+                                                        onlineUrl,
+                                                        width: 180,
+                                                        height: 180,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (_, _, _) =>
+                                                            fallbackIcon(),
+                                                      )
+                                                    : fallbackIcon(),
+                                          );
+                                        }
+                                        if (onlineUrl != null && onlineUrl.isNotEmpty) {
+                                          return Image.network(
+                                            onlineUrl,
+                                            width: 180,
+                                            height: 180,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) =>
+                                                fallbackIcon(),
+                                          );
+                                        }
+                                        return fallbackIcon();
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),

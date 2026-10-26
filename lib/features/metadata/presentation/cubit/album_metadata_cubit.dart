@@ -20,11 +20,23 @@ final class AlbumMetadataLoading extends AlbumMetadataState {
 
 final class AlbumMetadataLoaded extends AlbumMetadataState {
   final AlbumOnlineInfo info;
+  final String? localImagePath;
 
-  const AlbumMetadataLoaded({required this.info});
+  const AlbumMetadataLoaded({
+    required this.info,
+    this.localImagePath,
+  });
+
+  AlbumMetadataLoaded copyWith({
+    AlbumOnlineInfo? info,
+    String? localImagePath,
+  }) => AlbumMetadataLoaded(
+    info: info ?? this.info,
+    localImagePath: localImagePath ?? this.localImagePath,
+  );
 
   @override
-  List<Object?> get props => [info];
+  List<Object?> get props => [info, localImagePath];
 }
 
 final class AlbumMetadataEmpty extends AlbumMetadataState {
@@ -45,11 +57,23 @@ class AlbumMetadataCubit extends Cubit<AlbumMetadataState> {
     if (info == null ||
         (info.wiki == null &&
             info.listeners == null &&
-            info.playCount == null)) {
+            info.playCount == null &&
+            info.imageUrl == null &&
+            info.tags.isEmpty)) {
       emit(const AlbumMetadataEmpty());
       return;
     }
 
-    emit(AlbumMetadataLoaded(info: info));
+    String? localImagePath;
+    if ((album.artworkPath == null || album.artworkPath!.isEmpty) &&
+        info.imageUrl != null &&
+        info.imageUrl!.isNotEmpty) {
+      localImagePath = await _repo.downloadAndCacheAlbumArtwork(
+        albumId: album.id,
+        imageUrl: info.imageUrl!,
+      );
+    }
+
+    emit(AlbumMetadataLoaded(info: info, localImagePath: localImagePath));
   }
 }

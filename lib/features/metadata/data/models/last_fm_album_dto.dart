@@ -14,6 +14,10 @@ class LastFmAlbumDto {
     return const LastFmAlbumDto();
   }
 
+  LastFmAlbumDto copyWith({LastFmAlbumData? album}) {
+    return LastFmAlbumDto(album: album ?? this.album);
+  }
+
   Map<String, dynamic> toJson() => {
     if (album != null) 'album': album!.toJson(),
   };
@@ -26,6 +30,7 @@ class LastFmAlbumDto {
       listeners: album?.listeners,
       playCount: album?.playCount,
       imageUrl: album?.bestImageUrl,
+      tags: album?.tags ?? const [],
     );
   }
 }
@@ -36,6 +41,8 @@ class LastFmAlbumData {
   final String? playCount;
   final LastFmWikiDto? wiki;
   final List<LastFmImageDto> images;
+  final List<String> tags;
+  final String? customImageUrl;
 
   const LastFmAlbumData({
     this.name,
@@ -43,11 +50,15 @@ class LastFmAlbumData {
     this.playCount,
     this.wiki,
     this.images = const [],
+    this.tags = const [],
+    this.customImageUrl,
   });
 
   factory LastFmAlbumData.fromJson(Map<String, dynamic> json) {
     final rawWiki = json['wiki'];
     final rawImages = json['image'];
+    final rawTags = json['tags'];
+    final customImg = json['customImageUrl'] as String?;
 
     List<LastFmImageDto> imagesList = [];
     if (rawImages is List) {
@@ -57,12 +68,36 @@ class LastFmAlbumData {
           .toList();
     }
 
+    final parsedTags = LastFmArtistData.parseTags(rawTags);
+
     return LastFmAlbumData(
       name: json['name'] as String?,
       listeners: json['listeners']?.toString(),
       playCount: json['playcount']?.toString(),
       wiki: rawWiki is Map<String, dynamic> ? LastFmWikiDto.fromJson(rawWiki) : null,
       images: imagesList,
+      tags: parsedTags,
+      customImageUrl: customImg,
+    );
+  }
+
+  LastFmAlbumData copyWith({
+    String? name,
+    String? listeners,
+    String? playCount,
+    LastFmWikiDto? wiki,
+    List<LastFmImageDto>? images,
+    List<String>? tags,
+    String? customImageUrl,
+  }) {
+    return LastFmAlbumData(
+      name: name ?? this.name,
+      listeners: listeners ?? this.listeners,
+      playCount: playCount ?? this.playCount,
+      wiki: wiki ?? this.wiki,
+      images: images ?? this.images,
+      tags: tags ?? this.tags,
+      customImageUrl: customImageUrl ?? this.customImageUrl,
     );
   }
 
@@ -72,24 +107,29 @@ class LastFmAlbumData {
     if (playCount != null) 'playcount': playCount,
     if (wiki != null) 'wiki': wiki!.toJson(),
     'image': images.map((i) => i.toJson()).toList(),
+    if (tags.isNotEmpty) 'tags': {'tag': tags.map((t) => {'name': t}).toList()},
+    if (customImageUrl != null) 'customImageUrl': customImageUrl,
   };
 
   String? get bestImageUrl {
+    if (customImageUrl != null && customImageUrl!.isNotEmpty) {
+      return customImageUrl;
+    }
     if (images.isEmpty) return null;
     for (final size in ['mega', 'extralarge', 'large', 'medium', 'small']) {
       final match = images.firstWhere(
-        (img) => img.size == size && (img.url?.isNotEmpty ?? false),
+        (img) => img.size == size && !LastFmArtistData.isPlaceholderUrl(img.url),
         orElse: () => const LastFmImageDto(),
       );
-      if (match.url != null && match.url!.isNotEmpty) {
+      if (match.url != null && !LastFmArtistData.isPlaceholderUrl(match.url)) {
         return match.url;
       }
     }
     final firstValid = images.firstWhere(
-      (img) => img.url?.isNotEmpty ?? false,
+      (img) => !LastFmArtistData.isPlaceholderUrl(img.url),
       orElse: () => const LastFmImageDto(),
     );
-    return firstValid.url;
+    return LastFmArtistData.isPlaceholderUrl(firstValid.url) ? null : firstValid.url;
   }
 }
 

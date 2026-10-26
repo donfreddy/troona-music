@@ -111,7 +111,9 @@ class ArtistDetailPage extends StatelessWidget {
                               if (metaState is ArtistMetadataLoaded &&
                                   (metaState.info.bio != null ||
                                       metaState.info.listeners != null ||
-                                      metaState.info.playCount != null)) {
+                                      metaState.info.playCount != null ||
+                                      metaState.info.tags.isNotEmpty ||
+                                      metaState.info.similarArtists.isNotEmpty)) {
                                 return SliverToBoxAdapter(
                                   child: Padding(
                                     padding: const EdgeInsets.only(top: AppSpacing.lg),
@@ -282,11 +284,8 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             ),
                           ),
                           child: ClipOval(
-                            child: Builder(
-                              builder: (avatarCtx) {
-                                final metaState = avatarCtx
-                                    .watch<ArtistMetadataCubit?>()
-                                    ?.state;
+                            child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
+                              builder: (context, metaState) {
                                 final localArt = artist.artworkPath ??
                                     (metaState is ArtistMetadataLoaded
                                         ? metaState.localImagePath
@@ -300,6 +299,17 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                     localArt,
                                     width: 130,
                                     height: 130,
+                                    errorBuilder: (_, _, _) =>
+                                        onlineUrl != null && onlineUrl.isNotEmpty
+                                            ? Image.network(
+                                                onlineUrl,
+                                                width: 130,
+                                                height: 130,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, _, _) =>
+                                                    _buildMonogram(colors),
+                                              )
+                                            : _buildMonogram(colors),
                                   );
                                 }
                                 if (onlineUrl != null && onlineUrl.isNotEmpty) {

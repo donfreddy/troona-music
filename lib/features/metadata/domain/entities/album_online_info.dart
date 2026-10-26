@@ -8,6 +8,7 @@ class AlbumOnlineInfo extends Equatable {
   final String? listeners;
   final String? playCount;
   final String? imageUrl;
+  final List<String> tags;
 
   const AlbumOnlineInfo({
     this.name,
@@ -16,6 +17,7 @@ class AlbumOnlineInfo extends Equatable {
     this.listeners,
     this.playCount,
     this.imageUrl,
+    this.tags = const [],
   });
 
   /// Human-readable listeners count.
@@ -56,5 +58,6 @@ class AlbumOnlineInfo extends Equatable {
     listeners,
     playCount,
     imageUrl,
+    tags,
   ];
 }

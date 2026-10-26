@@ -17,6 +17,7 @@ class ApiClient {
                 sendTimeout: const Duration(seconds: 4),
                 headers: const {
                   'Accept': 'application/json',
+                  'User-Agent': 'TroonaMusic/1.0.0 (troona.music.app)',
                 },
                 responseType: ResponseType.json,
               ),

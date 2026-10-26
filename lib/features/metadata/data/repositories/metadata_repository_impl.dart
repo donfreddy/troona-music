@@ -139,6 +139,48 @@ class MetadataRepositoryImpl implements MetadataRepository {
   }
 
   @override
+  Future<String?> downloadAndCacheAlbumArtwork({
+    required int albumId,
+    required String imageUrl,
+  }) async {
+    try {
+      final settingsRes = await _settingsRepo.loadSettings();
+      final settings = settingsRes.fold((_) => null, (s) => s);
+      if (settings != null && !settings.fetchArtistArtwork) {
+        return null;
+      }
+
+      if (imageUrl.isEmpty) return null;
+
+      final albumDir = Directory('${_artworkCacheDir.path}/albums');
+      await albumDir.create(recursive: true);
+
+      final targetFile = File('${albumDir.path}/album_$albumId.jpg');
+
+      if (await targetFile.exists() && (await targetFile.length()) > 0) {
+        return targetFile.path;
+      }
+
+      await _client.dio.download(
+        imageUrl,
+        targetFile.path,
+        options: Options(
+          receiveTimeout: const Duration(seconds: 10),
+        ),
+      );
+
+      if (await targetFile.exists() && (await targetFile.length()) > 0) {
+        appLogger.d('Downloaded album artwork: ${targetFile.path}');
+        return targetFile.path;
+      }
+      return null;
+    } catch (e) {
+      appLogger.w('MetadataRepositoryImpl.downloadAndCacheAlbumArtwork failed: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<int> getMetadataCacheSizeBytes() async {
     return _cache.getCacheSizeBytes();
   }

@@ -7,6 +7,9 @@ class ArtistOnlineInfo extends Equatable {
   final String? listeners;
   final String? playCount;
   final String? imageUrl;
+  final List<String> tags;
+  final List<SimilarArtistInfo> similarArtists;
+  final bool isOnTour;
 
   const ArtistOnlineInfo({
     this.bio,
@@ -14,6 +17,9 @@ class ArtistOnlineInfo extends Equatable {
     this.listeners,
     this.playCount,
     this.imageUrl,
+    this.tags = const [],
+    this.similarArtists = const [],
+    this.isOnTour = false,
   });
 
   /// Human-readable listeners count (e.g. "1.2 M auditeurs" or "450 k auditeurs").
@@ -47,5 +53,29 @@ class ArtistOnlineInfo extends Equatable {
   }
 
   @override
-  List<Object?> get props => [bio, published, listeners, playCount, imageUrl];
+  List<Object?> get props => [
+    bio,
+    published,
+    listeners,
+    playCount,
+    imageUrl,
+    tags,
+    similarArtists,
+    isOnTour,
+  ];
+}
+
+class SimilarArtistInfo extends Equatable {
+  final String name;
+  final String? url;
+  final String? imageUrl;
+
+  const SimilarArtistInfo({
+    required this.name,
+    this.url,
+    this.imageUrl,
+  });
+
+  @override
+  List<Object?> get props => [name, url, imageUrl];
 }
