@@ -473,11 +473,7 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
       ),
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        //padding: const EdgeInsets.only(top: AppSpacing.xs),
         children: [
-          // ── Header Bêta Banner ────────────────────────────────────────────
-          //_buildBetaHeaderBanner(colors),
-
           // ── SECTION 1 : Lecture & Audio ───────────────────────────────────
           SettingsSection(
             title: 'Lecture & Audio',
@@ -836,82 +832,6 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
     );
   }
 
-  /// Compact informative banner at the top of the settings page.
-  Widget _buildBetaHeaderBanner(AppColors colors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      child: GlassCard(
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.accent.withValues(alpha: 0.25),
-                ),
-              ),
-              child: Icon(LucideIcons.sparkles, color: colors.accent, size: 22),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Troona Music',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.accent,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          SettingsPage.betaChannel.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Version ${SettingsPage.appVersion} • Moteur Haute Fidélité',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colors.labelSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// Elegant signature footer at the bottom of settings.
   Widget _buildAppFooter(AppColors colors) {
     return Column(
@@ -919,7 +839,7 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
         Icon(LucideIcons.music, size: 20, color: colors.labelTertiary),
         const SizedBox(height: 6),
         Text(
-          'Troona Music  •  Version ${SettingsPage.appVersion} •  Build ${SettingsPage.appBuild}',
+          'Troona Music • Version ${SettingsPage.appVersion} • Build ${SettingsPage.appBuild}',
 
           style: TextStyle(
             fontSize: 12,
