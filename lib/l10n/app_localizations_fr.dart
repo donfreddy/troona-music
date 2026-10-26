@@ -409,6 +409,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get libraryRescanFailed =>
+      'Impossible de rechercher de la nouvelle musique. Votre bibliothèque est inchangée.';
+
+  @override
   String get libraryLoadErrorTitle => 'Impossible d\'ouvrir votre bibliothèque';
 
   @override

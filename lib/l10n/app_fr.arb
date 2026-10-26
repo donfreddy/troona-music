@@ -107,6 +107,7 @@
   "scanProgress": "{count} sur {total}",
   "scanNewSongs": "{count, plural, =1{1 nouveau morceau ajouté} other{{count} nouveaux morceaux ajoutés}}",
   "scanRemovedSongs": "{count, plural, =1{1 morceau n'est plus sur votre téléphone} other{{count} morceaux ne sont plus sur votre téléphone}}",
+  "libraryRescanFailed": "Impossible de rechercher de la nouvelle musique. Votre bibliothèque est inchangée.",
   "libraryLoadErrorTitle": "Impossible d'ouvrir votre bibliothèque",
   "libraryLoadErrorBody": "Vérifiez que Troona a toujours accès à votre musique, puis réessayez.",
   "errorTitle": "Un problème est survenu",

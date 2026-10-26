@@ -405,6 +405,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get libraryRescanFailed =>
+      'Couldn\'t check for new music. Your library is as it was.';
+
+  @override
   String get libraryLoadErrorTitle => 'We couldn\'t open your library';
 
   @override

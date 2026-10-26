@@ -80,8 +80,9 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     // Cancel a previous scan if still running
     await _cancelScan();
 
-    // Keep the cached data visible during the scan
-    final cached = state is LibraryLoaded ? state as LibraryLoaded : null;
+    // Keep the cached data visible during the scan, including when a scan
+    // restarts over a running one or retries after a failure.
+    final cached = _loadedSnapshotOf(state);
 
     emit(
       LibraryScanning(

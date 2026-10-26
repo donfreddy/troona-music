@@ -740,6 +740,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 song is no longer on your phone} other{{count} songs are no longer on your phone}}'**
   String scanRemovedSongs(int count);
 
+  /// No description provided for @libraryRescanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for new music. Your library is as it was.'**
+  String get libraryRescanFailed;
+
   /// No description provided for @libraryLoadErrorTitle.
   ///
   /// In en, this message translates to:

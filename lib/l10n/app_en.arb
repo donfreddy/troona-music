@@ -176,6 +176,7 @@
       }
     }
   },
+  "libraryRescanFailed": "Couldn't check for new music. Your library is as it was.",
   "libraryLoadErrorTitle": "We couldn't open your library",
   "libraryLoadErrorBody": "Check that Troona can still access your music, then try again.",
   "errorTitle": "Something went wrong",

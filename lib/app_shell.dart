@@ -146,18 +146,19 @@ class _AppShellState extends State<AppShell> {
           // worth a toast. listener only sees the new state, so the
           // baseline is captured here.
           listenWhen: (previous, current) {
-            if (previous case LibraryScanning(
-              :final cached?,
-            ) when current is LibraryLoaded) {
-              _rescanBaseline = cached;
-              return true;
+            if (previous case LibraryScanning(:final cached?)) {
+              if (current is LibraryLoaded) _rescanBaseline = cached;
+              return current is LibraryLoaded || current is LibraryError;
             }
             return false;
           },
           listener: (context, state) {
             final before = _rescanBaseline;
             _rescanBaseline = null;
-            if (before != null && state is LibraryLoaded) {
+            if (state is LibraryError) {
+              // The library stays on screen as it was; say it is not fresh.
+              AppToast.show(context, context.l10n.libraryRescanFailed);
+            } else if (before != null && state is LibraryLoaded) {
               _announceRescan(before, state);
             }
           },
