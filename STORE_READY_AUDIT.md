@@ -20,14 +20,14 @@ Note on the brief: it mentions Riverpod and isolates. The project uses `flutter_
 
 ## Implementation status (updated 2026-10-26, branch `chore/store-ready`)
 
-The findings below are kept as written during the audit. This section records what changed since, checked against the code. Two fresh-context adversarial reviews were run on the fixes; every finding they raised is fixed and covered by a test, or listed as open below.
+The findings below are kept as written during the audit. This section records what changed since, checked against the code. Each fix is covered by a test; what is not done is listed under Open.
 
 **Updated verdict: Go for Android internal testing once S1 and S8 are done** (they need the owner's keystore and logo). Not yet Go for production: run section 5 on real devices first. iOS stays a separate milestone.
 
 | Check | Now |
 |---|---|
 | `flutter analyze` | No issues |
-| `flutter test` | 270 passed, 0 failed (CI workflow in `.github/workflows/ci.yml`) |
+| `flutter test` | 289 passed, 0 failed (CI workflow in `.github/workflows/ci.yml`) |
 | UI language | English source, French translation, gen-l10n (277 keys) |
 | Merged manifest | `INTERNET`, `READ_MEDIA_AUDIO`, `READ_EXTERNAL_STORAGE` (max SDK 32), playback and notification permissions only |
 
@@ -37,16 +37,16 @@ The findings below are kept as written during the audit. This section records wh
 |---|---|
 | T1 | Stale tests fixed; CI runs analyze and test on every push. |
 | C1 to C5, P0.1, P0.2 | Lyrics, EQ and cast removed; real sleep timer and speed; fake settings removed; no "100%", "audiophile" or "Bêta" text left; "Lossless" only when every song is FLAC or WAV, otherwise the shared format, and no badge with an unknown file. |
-| P0.3, S2, T11 | Online extras shipped opt-in, off by default, with two switches: bios (Last.fm) and photos (Deezer, plus Last.fm image servers). Each switch gates its own service; unreadable settings count as off. Turning photos off deletes downloaded photos. Downloads go to a side file and are renamed into place; leftovers are removed at boot. |
+| P0.3, S2, T11 | Online extras shipped opt-in, off by default, with two switches: bios (Last.fm) and photos (Deezer, plus Last.fm image servers). Each switch gates its own service; unreadable settings count as off. Turning photos off deletes downloaded photos, and artist or album pages already open reload without their online pictures; a photo that survives the delete stays hidden. Downloads go to a side file and are renamed into place; leftovers are removed at boot. A Deezer answer, match or miss, is remembered for the session; a network failure is not, so the next visit asks again. |
 | S3, S4, S5, T6 (first half) | Photo, video and write permissions removed, read capped at API 32, backup off. **Correction to S3:** removing the permissions was not enough. `on_audio_query_plus_android` refused every query without `READ_MEDIA_IMAGES` and `WRITE_EXTERNAL_STORAGE`, so the plugin is vendored in `third_party/` with a two-line patch (see `TROONA_PATCH.md`). |
 | S7, S13 (Android part) | Privacy policy in `docs/privacy-policy.md` and in Settings. Data Safety answers below. |
 | S10 | Version read with `package_info_plus`. |
 | P0.7, U2 | gen-l10n, EN and FR, sentence case; data and domain no longer produce UI text (failure messages are for logs only). French plurals use `one{}` so zero reads "0 morceau". |
 | T2, T3, T4, T5, T7, T8 | Pure filter and sort on copies, accent and "The" aware; one Isar read per load; albums by id; 10 s floor, no size floor; no playlist cap; rows select only what they show. |
 | T9, T10, U7 | Artwork checked once per track, written in batches of 50, progress streamed; silent rescans with a toast for added or removed songs, and a toast when a rescan fails. A rescan that restarts or fails keeps the library on screen; events of a superseded scan are dropped. |
-| T12 | Crash log writes are queued and asynchronous, trimmed once per 500 lines. A fatal error followed by an immediate process death can lose its last entry. |
-| T13 | Session stored in two keys: the queue, written only when it changes, and the small playback state. The old key still loads and is migrated. |
-| T14 | Lock screen position re-anchored on every track change and after in-app seeks; `queueIndex` published. **Open:** playback speed is not forwarded to the OS (the port exposes no speed stream), so at 1.5x the lock screen drifts until the next 2 s correction. |
+| T12 | Crash log writes are queued and asynchronous; the file is trimmed to 500 lines when opened and after every 500 lines appended. A fatal error followed by an immediate process death can lose its last entry. |
+| T13 | Session stored in two keys: the queue, written only when it changes, and the small playback state. Both carry a queue revision, so a session cut between the two writes is dropped instead of restored with the wrong queue. The old key still loads and is migrated. |
+| T14 | Lock screen position re-anchored on every track change and after in-app seeks; `queueIndex` published; a queue edit no longer rewinds the position. **Open:** playback speed is not forwarded to the OS (the port exposes no speed stream), so at 1.5x the lock screen drifts until the next 2 s correction. |
 | T15 | Permission state cached; no automatic jump to system settings. |
 | G1, G2, G3 | Permission page without blur; Now Playing keeps two blurs (lens and dock), dock sheets opaque; headers read the sigma from `GlassTheme` and skip the filter at 0. |
 | U1, U3, U4, U5, U9, U10 | One toast (`AppToast`, also usable after its route closes) and one dialog; `EmptyState` with title, body and action; Home in three states without repeating the song count; late-night greeting; one `SectionHeader`; leftover comment gone. |
@@ -55,6 +55,8 @@ The findings below are kept as written during the audit. This section records wh
 | Accessibility | Labelled controls keep their tap action for screen readers; the nav bar is icon only with labels and selection exposed. |
 | Notification | Channel name localized from the device languages. |
 | Android launch | Dark launch window and Android 12 splash background instead of a white flash. |
+| T16 | `PlayerBloc` restores the session through `GetTracksByIdsUseCase`, without Isar or `flutter_animate`; playlist widgets go through use cases, and the Likes id lives on the domain entity. |
+| T17 | No em dash and no French left in code comments (the two RegExp character classes in the Last.fm DTOs keep theirs on purpose). |
 
 ### Open
 
@@ -63,10 +65,7 @@ The findings below are kept as written during the audit. This section records wh
 | S1 | Signing is wired (`key.properties`, example in `android/key.properties.example`). The owner still has to create the upload key and enroll in Play App Signing. |
 | S8, S14, P0.6 | Needs the Troona logo. The launcher icon is still Flutter's; the splash will pick up the real icon automatically. Adaptive (foreground, background) and monochrome layers to add once the artwork exists. |
 | S9 | Store screenshots, feature graphic, listing text. |
-| T16 | `PlayerBloc` still imports `IsarLibraryDataSource` and `flutter_animate`. Low, planned with a `GetTracksByIdsUseCase`. |
-| T17 | Em dashes and French comments remain in older code comments (85 occurrences, all in comments or RegExp classes; none in UI text). |
 | U6, T6 (second half), 1.4 | P2: personal artist ranking, stable track identity, weekly recap and calendar. |
-| Online extras | Bios and photos share one cache folder. A Deezer miss is remembered for the session only. |
 | S11, S12, S15 | iOS milestone, postponed by the owner. |
 
 ### Data Safety answers (Google Play)
