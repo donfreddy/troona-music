@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 /// Base class for all domain-level failures.
 /// Use subtypes to carry context without leaking exceptions to the UI.
+/// [message] is for logs and problem reports only; screens show their own
+/// localized text.
 abstract class Failure extends Equatable {
   final String message;
   const Failure(this.message);
@@ -47,4 +49,11 @@ class CacheFailure extends Failure {
 
 class DatabaseFailure extends Failure {
   const DatabaseFailure([super.message = 'Database operation failed.']);
+}
+
+// ── Other ─────────────────────────────────────────────────────────────────────
+
+/// An error no layer anticipated. Keeps the original for the logs.
+class UnexpectedFailure extends Failure {
+  const UnexpectedFailure(super.message);
 }

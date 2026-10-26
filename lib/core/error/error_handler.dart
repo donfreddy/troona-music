@@ -19,8 +19,8 @@ abstract final class ErrorHandler {
 
   /// Maps [error] to a typed [Failure] and logs the event.
   ///
-  /// Unknown errors are mapped to [CacheFailure] with the raw message so they
-  /// surface in the UI rather than being swallowed silently.
+  /// Unknown errors become an [UnexpectedFailure] carrying the raw error for
+  /// the logs; the UI never displays it.
   static Failure handle(Object error, StackTrace stackTrace) {
     appLogger.w(
       '[ErrorHandler] ${error.runtimeType}: $error',
@@ -34,7 +34,7 @@ abstract final class ErrorHandler {
       PlaybackException() => const PlaybackFailure(),
       DatabaseException() => const DatabaseFailure(),
       ArtworkException() => const CacheFailure('Artwork cache error.'),
-      _ => CacheFailure('Unexpected error: $error'),
+      _ => UnexpectedFailure('${error.runtimeType}: $error'),
     };
   }
 }
