@@ -66,6 +66,7 @@ final class FakeAudioPort implements AudioServicePort {
   final durationCtrl = StreamController<Duration>.broadcast(sync: true);
   final queueCtrl = StreamController<Queue>.broadcast(sync: true);
   final volume = StreamController<double>.broadcast(sync: true);
+  final speed = StreamController<double>.broadcast(sync: true);
   final errorsCtrl = StreamController<Failure>.broadcast(sync: true);
 
   Queue? queue;
@@ -85,6 +86,7 @@ final class FakeAudioPort implements AudioServicePort {
     durationCtrl.close(),
     queueCtrl.close(),
     volume.close(),
+    speed.close(),
     errorsCtrl.close(),
   ]);
 
@@ -102,6 +104,8 @@ final class FakeAudioPort implements AudioServicePort {
   Stream<Queue> get queueStream => queueCtrl.stream;
   @override
   Stream<double> get volumeStream => volume.stream;
+  @override
+  Stream<double> get speedStream => speed.stream;
   @override
   Stream<Failure> get errorStream => errorsCtrl.stream;
 

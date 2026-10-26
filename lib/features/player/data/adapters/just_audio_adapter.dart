@@ -135,6 +135,9 @@ class JustAudioAdapter implements AudioServicePort {
   Stream<double> get volumeStream => _volumeSubject.stream;
 
   @override
+  Stream<double> get speedStream => _player.speedStream;
+
+  @override
   Stream<Failure> get errorStream => _player.errorStream.map(
     (e) =>
         PlaybackFailure(e.message ?? 'This file cannot be played (${e.code})'),

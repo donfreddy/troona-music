@@ -69,6 +69,17 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     });
 
+    // The OS extrapolates the position at this speed from the last
+    // snapshot, so a new speed starts a new snapshot.
+    _port.speedStream.distinct().listen((speed) {
+      playbackState.add(
+        playbackState.value.copyWith(
+          speed: speed,
+          updatePosition: _port.currentPosition,
+        ),
+      );
+    });
+
     // The OS extrapolates the position from the last snapshot. Only a jump
     // away from that estimate (a seek made in the app) needs a new one, so
     // regular ticks are not forwarded.

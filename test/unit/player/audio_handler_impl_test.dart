@@ -121,4 +121,48 @@ void main() {
       const Duration(seconds: 90),
     );
   });
+
+  group('playback speed', () {
+    test('a new speed reaches the OS with a fresh position anchor', () {
+      port.currentPositionValue = const Duration(minutes: 1);
+      handler.playbackState.add(
+        PlaybackState(
+          playing: true,
+          processingState: AudioProcessingState.ready,
+          updateTime: DateTime.now().subtract(const Duration(minutes: 1)),
+        ),
+      );
+
+      port.speed.add(1.5);
+
+      final state = handler.playbackState.value;
+      expect(state.speed, 1.5);
+      expect(state.updatePosition, const Duration(minutes: 1));
+      expect(
+        DateTime.now().difference(state.updateTime),
+        lessThan(const Duration(seconds: 1)),
+      );
+    });
+
+    test('at double speed, regular ticks are not taken for a seek', () {
+      // Ten seconds of playback at 2x, as the OS extrapolates it.
+      handler.playbackState.add(
+        PlaybackState(
+          playing: true,
+          processingState: AudioProcessingState.ready,
+          speed: 2,
+          updateTime: DateTime.now().subtract(const Duration(seconds: 10)),
+        ),
+      );
+
+      port.position.add(const Duration(seconds: 20));
+      expect(handler.playbackState.value.updatePosition, Duration.zero);
+
+      port.position.add(const Duration(seconds: 50));
+      expect(
+        handler.playbackState.value.updatePosition,
+        const Duration(seconds: 50),
+      );
+    });
+  });
 }
