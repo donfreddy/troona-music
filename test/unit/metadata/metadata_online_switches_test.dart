@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/network/api_client.dart';
@@ -67,6 +70,37 @@ class _Remote implements LastFmRemoteDataSource {
     calls.add('deezer:album');
     return 'https://deezer.test/album.jpg';
   }
+}
+
+/// Serves [chunks], then fails if [cut] is set: a dropped connection.
+/// [midway] runs between chunks, while the transfer is still open.
+class _Adapter implements HttpClientAdapter {
+  final List<List<int>> chunks;
+  final bool cut;
+  final Future<void> Function()? midway;
+  _Adapter(this.chunks, {this.cut = false, this.midway});
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    final controller = StreamController<Uint8List>();
+    () async {
+      for (final c in chunks) {
+        controller.add(Uint8List.fromList(c));
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        await midway?.call();
+      }
+      if (cut) controller.addError(const SocketException('connection reset'));
+      await controller.close();
+    }();
+    return ResponseBody(controller.stream, 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
 
 void main() {
@@ -165,6 +199,73 @@ void main() {
     final second = await repo.getArtistInfo('Daft Punk');
     expect(second, first);
     expect(remote.calls, isEmpty);
+  });
+
+  group('photo download', () {
+    MetadataRepositoryImpl withAdapter(_Adapter adapter) {
+      settings.value = switches(info: false, photos: true);
+      return MetadataRepositoryImpl(
+        cache: cache,
+        remote: remote,
+        settingsRepo: settings,
+        client: ApiClient(customDio: Dio()..httpClientAdapter = adapter),
+        artworkCacheDir: Directory('${tempDir.path}/photos'),
+      );
+    }
+
+    List<String> leftovers() => Directory(
+      '${tempDir.path}/photos/artists',
+    ).listSync().map((e) => e.path.split('/').last).toList();
+
+    test('lands complete under its final name', () async {
+      final repo = withAdapter(
+        _Adapter([
+          [1, 2],
+          [3, 4],
+        ]),
+      );
+      final path = await repo.downloadAndCacheArtistArtwork(
+        artistId: '1',
+        imageUrl: 'https://deezer.test/artist.jpg',
+      );
+      expect(path, isNotNull);
+      expect(await File(path!).readAsBytes(), [1, 2, 3, 4]);
+      expect(leftovers(), ['1.jpg']);
+    });
+
+    // If the app is killed mid-transfer, whatever sits under the final name
+    // would pass the "already cached" check on the next launch.
+    test('nothing appears under the final name before it completes', () async {
+      final seenMidway = <bool>[];
+      final target = File('${tempDir.path}/photos/artists/1.jpg');
+      final repo = withAdapter(
+        _Adapter([
+          [1, 2],
+          [3, 4],
+        ], midway: () async => seenMidway.add(await target.exists())),
+      );
+      await repo.downloadAndCacheArtistArtwork(
+        artistId: '1',
+        imageUrl: 'https://deezer.test/artist.jpg',
+      );
+      expect(seenMidway, [false, false]);
+      expect(await target.readAsBytes(), [1, 2, 3, 4]);
+    });
+
+    test('a cut connection leaves nothing behind', () async {
+      final repo = withAdapter(
+        _Adapter([
+          [1, 2],
+        ], cut: true),
+      );
+      final path = await repo.downloadAndCacheArtistArtwork(
+        artistId: '1',
+        imageUrl: 'https://deezer.test/artist.jpg',
+      );
+      expect(path, isNull);
+      expect(leftovers(), isEmpty);
+      expect(repo.getCachedArtistArtworkPath('1'), isNull);
+    });
   });
 
   test('clearing online info removes downloaded photos too', () async {

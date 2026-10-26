@@ -164,13 +164,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
         return targetFile.path;
       }
 
-      await _client.dio.download(
-        imageUrl,
-        targetFile.path,
-        options: Options(receiveTimeout: const Duration(seconds: 10)),
-      );
-
-      if (await targetFile.exists() && (await targetFile.length()) > 0) {
+      if (await _download(imageUrl, targetFile)) {
         appLogger.d('Downloaded artist artwork: ${targetFile.path}');
         _artistArtworkUpdatedController.add(artistId);
         return targetFile.path;
@@ -224,13 +218,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
         return targetFile.path;
       }
 
-      await _client.dio.download(
-        imageUrl,
-        targetFile.path,
-        options: Options(receiveTimeout: const Duration(seconds: 10)),
-      );
-
-      if (await targetFile.exists() && (await targetFile.length()) > 0) {
+      if (await _download(imageUrl, targetFile)) {
         appLogger.d('Downloaded album artwork: ${targetFile.path}');
         return targetFile.path;
       }
@@ -240,6 +228,27 @@ class MetadataRepositoryImpl implements MetadataRepository {
         'MetadataRepositoryImpl.downloadAndCacheAlbumArtwork failed: $e',
       );
       return null;
+    }
+  }
+
+  /// Downloads into a side file, then renames it into place: a cut
+  /// connection never leaves a truncated picture behind that the next
+  /// "already cached" check would accept.
+  Future<bool> _download(String url, File target) async {
+    final part = File(
+      '${target.path}.${DateTime.now().microsecondsSinceEpoch}.part',
+    );
+    try {
+      await _client.dio.download(
+        url,
+        part.path,
+        options: Options(receiveTimeout: const Duration(seconds: 10)),
+      );
+      if (await part.length() == 0) return false;
+      await part.rename(target.path);
+      return true;
+    } finally {
+      if (await part.exists()) await part.delete();
     }
   }
 
