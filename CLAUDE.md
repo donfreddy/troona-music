@@ -78,6 +78,7 @@ Three-level token hierarchy in `lib/core/theme/`:
 - Always wrap in a `RepaintBoundary`.
 - Never place inside an `AnimatedBuilder` that rebuilds on audio position.
 - Maximum two `BackdropFilter`s on screen at once (the Now Playing page already uses both, so sheets over it are opaque).
+- One exception: a short-lived modal sheet over the shell (the tab bar blurs below it, a collapsed header may too) may add a third blur on high-tier devices only. Its quality comes from `GlassTheme.aboveGlass(context)`, which is opaque on low-tier devices and when the user turns glass down. Used by "What's new"; not for anything that stays on screen.
 
 Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`).
 
