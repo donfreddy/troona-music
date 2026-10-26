@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/widgets.dart' show basicLocaleListResolution;
+
 import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
@@ -33,7 +35,7 @@ final class AudioServiceInitializer {
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
         androidNotificationChannelName: channelName(
-          PlatformDispatcher.instance.locale,
+          PlatformDispatcher.instance.locales,
         ),
         androidNotificationOngoing: true,
         androidShowNotificationBadge: true,
@@ -45,12 +47,12 @@ final class AudioServiceInitializer {
   }
 
   /// Shown by Android in the app's notification settings, outside any widget
-  /// tree, so it follows the device language directly.
-  static String channelName(Locale device) {
-    final supported = AppLocalizations.supportedLocales.any(
-      (l) => l.languageCode == device.languageCode,
+  /// tree: resolved from the device languages the way the app resolves them.
+  static String channelName(List<Locale> device) {
+    final locale = basicLocaleListResolution(
+      device,
+      AppLocalizations.supportedLocales,
     );
-    final locale = Locale(supported ? device.languageCode : 'en');
     return lookupAppLocalizations(locale).notificationChannelName;
   }
 }
