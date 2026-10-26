@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 
-/// Opens "What's new" for [release] in a glass sheet.
+/// Opens "What's new" for [release] above the mini player and the tab bar.
+/// Opaque: the tab bar and a collapsed page header already blur.
 Future<void> showWhatsNewSheet(BuildContext context, Release release) =>
     showGlassBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useRootNavigator: true,
+      quality: GlassQuality.off,
       builder: (_) => WhatsNewSheet(release: release),
     );
 

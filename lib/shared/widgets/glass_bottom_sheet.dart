@@ -18,12 +18,19 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 ///
 /// Set [isScrollControlled] to true when the child may be taller than half the
 /// screen (e.g. a full-height queue list).
+///
+/// Opened from a shell page, the sheet lives in that branch's navigator, under
+/// the mini player and the tab bar: [useRootNavigator] puts it above them.
+/// Over glass that already blurs, pass [GlassQuality.off] as [quality] to keep
+/// to two blurs on screen.
 Future<T?> showGlassBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isDismissible = true,
   bool enableDrag = true,
   bool isScrollControlled = false,
+  bool useRootNavigator = false,
+  GlassQuality? quality,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -32,7 +39,8 @@ Future<T?> showGlassBottomSheet<T>({
     isDismissible: isDismissible,
     enableDrag: enableDrag,
     isScrollControlled: isScrollControlled,
-    builder: (ctx) => GlassBottomSheet(child: builder(ctx)),
+    useRootNavigator: useRootNavigator,
+    builder: (ctx) => GlassBottomSheet(quality: quality, child: builder(ctx)),
   );
 }
 
@@ -56,16 +64,20 @@ class GlassBottomSheet extends StatelessWidget {
   /// Horizontal padding applied to [child].  Defaults to [AppSpacing.lg].
   final double horizontalPadding;
 
+  /// Overrides the user's glass quality; [GlassQuality.off] is opaque.
+  final GlassQuality? quality;
+
   const GlassBottomSheet({
     super.key,
     required this.child,
     this.showHandle = true,
     this.horizontalPadding = AppSpacing.lg,
+    this.quality,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cfg = GlassTheme.sheet(context);
+    final cfg = GlassTheme.sheet(context, quality: quality);
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final content = _SheetContent(
       config: cfg,

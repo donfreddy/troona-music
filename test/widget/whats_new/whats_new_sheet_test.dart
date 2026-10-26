@@ -48,6 +48,48 @@ void main() {
     expect(find.text("What's new"), findsNothing);
   });
 
+  testWidgets('opened from a shell branch, it covers the mini player', (
+    tester,
+  ) async {
+    final branch = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      _app(
+        (_) => Stack(
+          children: [
+            // A shell branch: its own navigator, the mini player above it.
+            Navigator(
+              key: branch,
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (context) => TextButton(
+                  onPressed: () => showWhatsNewSheet(context, release),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Text('Mini player'),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(WhatsNewSheet), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(branch),
+        matching: find.byType(WhatsNewSheet),
+      ),
+      findsNothing,
+    );
+    expect(find.text('Mini player').hitTestable(), findsNothing);
+  });
+
   testWidgets('the 1.0.0 notes fit on a small phone and scroll', (
     tester,
   ) async {
