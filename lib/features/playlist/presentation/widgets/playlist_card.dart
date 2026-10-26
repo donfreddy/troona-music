@@ -28,14 +28,14 @@ class PlaylistCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isLikes
-                ? const Color(0xFFFA2D48).withValues(alpha: 0.3)
+                ? const Color(0xFFB79CFF).withValues(alpha: 0.3)
                 : Colors.white.withValues(alpha: 0.08),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
               color: isLikes
-                  ? const Color(0xFFFA2D48).withValues(alpha: 0.18)
+                  ? const Color(0xFFB79CFF).withValues(alpha: 0.18)
                   : Colors.black.withValues(alpha: 0.35),
               blurRadius: 14,
               offset: const Offset(0, 5),
@@ -54,9 +54,9 @@ class PlaylistCard extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF9E1427),
-                        Color(0xFFFA2D48),
-                        Color(0xFF45060F),
+                        Color(0xFF382366),
+                        Color(0xFF1F133B),
+                        Color(0xFF0D0819),
                       ],
                     ),
                   ),
@@ -64,10 +64,10 @@ class PlaylistCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.14),
+                        color: Colors.white.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.22),
+                          color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
                           width: 1,
                         ),
                         boxShadow: [
@@ -79,7 +79,7 @@ class PlaylistCard extends StatelessWidget {
                       ),
                       child: const Icon(
                         LucideIcons.heart,
-                        color: Colors.white,
+                        color: Color(0xFFB79CFF),
                         size: 32,
                       ),
                     ),
@@ -161,7 +161,7 @@ class PlaylistCard extends StatelessWidget {
           isLikes ? 'Coups de cœur' : 'Playlist',
           style: TextStyle(
             color: isLikes
-                ? const Color(0xFFFF5E79)
+                ? const Color(0xFFD4C4FF)
                 : colors.labelSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w500,

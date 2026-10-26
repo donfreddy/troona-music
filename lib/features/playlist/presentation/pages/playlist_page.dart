@@ -535,12 +535,12 @@ class _PlaylistTile extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.sm),
         decoration: BoxDecoration(
           color: isLikes
-              ? const Color(0xFFFA2D48).withValues(alpha: 0.12)
+              ? const Color(0xFFB79CFF).withValues(alpha: 0.10)
               : colors.glassFill,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           border: Border.all(
             color: isLikes
-                ? const Color(0xFFFA2D48).withValues(alpha: 0.3)
+                ? const Color(0xFFB79CFF).withValues(alpha: 0.28)
                 : Colors.white.withValues(alpha: 0.08),
           ),
         ),
@@ -558,14 +558,14 @@ class _PlaylistTile extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFF8E1122),
-                              Color(0xFFFA2D48),
+                              Color(0xFF382366),
+                              Color(0xFF1B1133),
                             ],
                           ),
                         ),
                         child: const Icon(
                           LucideIcons.heart,
-                          color: Colors.white,
+                          color: Color(0xFFB79CFF),
                           size: 26,
                         ),
                       )
@@ -611,7 +611,7 @@ class _PlaylistTile extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       color: isLikes
-                          ? const Color(0xFFFF5E79)
+                          ? const Color(0xFFD4C4FF)
                           : colors.labelSecondary,
                       fontSize: 12.5,
                     ),

@@ -106,18 +106,18 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2E0911),
-              Color(0xFF1A050A),
-              Color(0xFF0F0306),
+              Color(0xFF1B122E),
+              Color(0xFF100B1D),
+              Color(0xFF07050D),
             ],
           ),
           border: Border.all(
-            color: const Color(0xFFFA2D48).withValues(alpha: 0.28),
+            color: const Color(0xFFB79CFF).withValues(alpha: 0.28),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFA2D48).withValues(alpha: 0.16),
+              color: const Color(0xFFB79CFF).withValues(alpha: 0.16),
               blurRadius: 24,
               spreadRadius: -4,
               offset: const Offset(0, 8),
@@ -139,10 +139,10 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFA2D48).withValues(alpha: 0.18),
+                      color: const Color(0xFFB79CFF).withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFFA2D48).withValues(alpha: 0.35),
+                        color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
                         width: 0.8,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                         Icon(
                           LucideIcons.heart,
                           size: 11,
-                          color: Color(0xFFFF5E79),
+                          color: Color(0xFFB79CFF),
                         ),
                         SizedBox(width: 4),
                         Text(
@@ -161,7 +161,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.1,
-                            color: Color(0xFFFF6984),
+                            color: Color(0xFFD8C7FF),
                           ),
                         ),
                       ],
@@ -209,13 +209,13 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                           vertical: 7,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFA2D48),
+                          color: const Color(0xFFB79CFF),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
                               color: const Color(
-                                0xFFFA2D48,
-                              ).withValues(alpha: 0.45),
+                                0xFFB79CFF,
+                              ).withValues(alpha: 0.40),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -227,7 +227,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                             Icon(
                               LucideIcons.play,
                               size: 14,
-                              color: Colors.white,
+                              color: Color(0xFF12081F),
                             ),
                             SizedBox(width: 6),
                             Text(
@@ -235,7 +235,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: Color(0xFF12081F),
                               ),
                             ),
                           ],
@@ -268,18 +268,18 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFA2D48), Color(0xFF941223)],
+            colors: [Color(0xFFB79CFF), Color(0xFF5A3FA3)],
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFA2D48).withValues(alpha: 0.35),
+              color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
               blurRadius: 18,
               offset: const Offset(0, 6),
             ),
           ],
         ),
         child: const Center(
-          child: Icon(LucideIcons.heart, color: Colors.white, size: 34),
+          child: Icon(LucideIcons.heart, color: Color(0xFF12081F), size: 34),
         ),
       );
     }
@@ -337,7 +337,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(
-                        color: Color(0xFFFA2D48),
+                        color: Color(0xFFB79CFF),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -349,7 +349,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                       ),
                       child: const Icon(
                         LucideIcons.heart,
-                        color: Colors.white,
+                        color: Color(0xFF12081F),
                         size: 11,
                       ),
                     ),
@@ -389,7 +389,7 @@ class _DeckCover extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: hasGlow
-                ? const Color(0xFFFA2D48).withValues(alpha: 0.3)
+                ? const Color(0xFFB79CFF).withValues(alpha: 0.32)
                 : Colors.black.withValues(alpha: 0.4),
             blurRadius: hasGlow ? 14 : 8,
             offset: const Offset(0, 4),
