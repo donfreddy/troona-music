@@ -7,8 +7,8 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -56,12 +56,14 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
       return;
     }
 
-    final isar = getIt<IsarLibraryDataSource>();
+    final tracks = (await getIt<GetTracksByIdsUseCase>()(
+      ids.take(15).toList(),
+    )).getOrElse(() => const []);
     final artworks = <String>[];
     final seen = <String>{};
 
-    for (final id in ids.take(15)) {
-      final path = await isar.getArtworkPathById(id);
+    for (final track in tracks) {
+      final path = track.artworkPath;
       if (path != null && path.isNotEmpty && seen.add(path)) {
         artworks.add(path);
         if (artworks.length >= 3) break;
@@ -79,9 +81,9 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
   Future<void> _playLikes(BuildContext context) async {
     if (widget.playlist.trackIds.isEmpty) return;
 
-    final isar = getIt<IsarLibraryDataSource>();
-    final models = await isar.getTracksByIds(widget.playlist.trackIds);
-    final tracks = models.map((m) => m.toEntity()).toList();
+    final tracks = (await getIt<GetTracksByIdsUseCase>()(
+      widget.playlist.trackIds,
+    )).getOrElse(() => const []);
 
     if (tracks.isNotEmpty && context.mounted) {
       context.read<PlayerBloc>().add(

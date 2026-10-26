@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
 /// Intelligent mosaic cover for playlists.
@@ -46,12 +46,14 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
       return;
     }
 
-    final isar = getIt<IsarLibraryDataSource>();
+    final tracks = (await getIt<GetTracksByIdsUseCase>()(
+      ids.take(16).toList(),
+    )).getOrElse(() => const []);
     final found = <String>[];
     final seen = <String>{};
 
-    for (final id in ids.take(16)) {
-      final path = await isar.getArtworkPathById(id);
+    for (final track in tracks) {
+      final path = track.artworkPath;
       if (path != null && path.isNotEmpty && seen.add(path)) {
         found.add(path);
         if (found.length >= 4) break;

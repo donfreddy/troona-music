@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -26,8 +26,7 @@ class PlaylistDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<LikesCubit, LikesState>(
       listenWhen: (prev, curr) =>
-          id == IsarLibraryDataSource.likesPlaylistId &&
-          prev.likedTrackIds != curr.likedTrackIds,
+          id == Playlist.likesId && prev.likedTrackIds != curr.likedTrackIds,
       listener: (context, _) {
         // Automatically sync Likes playlist when a track is liked/unliked
         context.read<PlaylistDetailBloc>().add(PlaylistDetailRequested(id));
@@ -42,7 +41,7 @@ class PlaylistDetailPage extends StatelessWidget {
 
             if (state is PlaylistDetailLoaded) {
               final data = state.data;
-              final isLikes = id == IsarLibraryDataSource.likesPlaylistId;
+              final isLikes = id == Playlist.likesId;
 
               return CustomScrollView(
                 slivers: [

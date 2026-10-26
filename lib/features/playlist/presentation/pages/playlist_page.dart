@@ -4,7 +4,6 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
@@ -73,7 +72,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
                 final customPlaylists = <Playlist>[];
 
                 for (final p in playlists) {
-                  if (p.id == IsarLibraryDataSource.likesPlaylistId) {
+                  if (p.id == Playlist.likesId) {
                     likesPlaylist = p;
                   } else {
                     customPlaylists.add(p);
@@ -503,7 +502,7 @@ class _PlaylistTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLikes = playlist.id == IsarLibraryDataSource.likesPlaylistId;
+    final isLikes = playlist.id == Playlist.likesId;
     final trackCount = playlist.trackIds.length;
     final subtitle = context.l10n.songCount(trackCount);
 

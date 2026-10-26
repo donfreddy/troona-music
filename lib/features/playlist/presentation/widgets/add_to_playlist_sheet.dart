@@ -4,7 +4,6 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
@@ -43,9 +42,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     _playlistsFuture = getIt<PlaylistRepository>().getPlaylists().then((res) {
       return res.fold(
         (_) => <Playlist>[],
-        (list) => list
-            .where((p) => p.id != IsarLibraryDataSource.likesPlaylistId)
-            .toList(),
+        (list) => list.where((p) => p.id != Playlist.likesId).toList(),
       );
     });
   }

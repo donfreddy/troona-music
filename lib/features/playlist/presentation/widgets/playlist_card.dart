@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
-import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -18,7 +17,7 @@ class PlaylistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLikes = playlist.id == IsarLibraryDataSource.likesPlaylistId;
+    final isLikes = playlist.id == Playlist.likesId;
     final count = playlist.trackIds.length;
     final countLabel = context.l10n.songCount(count);
 
