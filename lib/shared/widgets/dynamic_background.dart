@@ -4,8 +4,9 @@ import 'package:troona/core/theme/primitives/color_primitives.dart';
 enum DynamicBackgroundTone { ambient, immersive }
 
 /// Paints a two-color glow background, cross-fading when [colorA]/[colorB]
-/// change. Colors are computed externally (e.g. by [TrackPaletteCubit]) so
-/// this widget does no palette extraction and never touches the UI isolate.
+/// change. Colors are computed externally (e.g. by [TrackPaletteCubit]), so
+/// this widget does no palette extraction. It darkens them, if needed, so
+/// text stays readable over the glow ([fitForText]).
 ///
 /// The glow is deliberately static between track changes: a continuously
 /// animated background forces every [BackdropFilter] above it to re-blur
@@ -23,6 +24,31 @@ class DynamicBackground extends StatefulWidget {
     required this.child,
     this.tone = DynamicBackgroundTone.ambient,
   });
+
+  /// Brightest a glow may paint: secondary labels (60 % white) keep 4.5:1
+  /// over it. Measured as relative luminance: by HSL lightness, a yellow
+  /// cover comes out five times brighter than a blue one.
+  static const maxGlowLuminance = 0.032;
+
+  /// [color] with its hue kept, darkened until its glow paints at most
+  /// [maxGlowLuminance]. Dark colours come back unchanged.
+  static Color fitForText(Color color) {
+    var hsl = HSLColor.fromColor(color);
+    while (peakOf(hsl.toColor()).computeLuminance() > maxGlowLuminance &&
+        hsl.lightness > 0) {
+      hsl = hsl.withLightness((hsl.lightness - .01).clamp(0.0, 1.0));
+    }
+    return hsl.toColor();
+  }
+
+  /// The brightest pixel a glow of [color] paints on black: an upper bound
+  /// of both glows in both tones (at most 12 % towards white, 92 % alpha).
+  /// Where the glows overlap, each is well below its peak.
+  @visibleForTesting
+  static Color peakOf(Color color) => Color.alphaBlend(
+    Color.lerp(color, Colors.white, .12)!.withValues(alpha: .92),
+    Colors.black,
+  );
 
   @override
   State<DynamicBackground> createState() => _DynamicBackgroundState();
@@ -46,8 +72,8 @@ class _DynamicBackgroundState extends State<DynamicBackground>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     )..value = 1;
-    final a = widget.colorA ?? _defaultColorA;
-    final b = widget.colorB ?? _defaultColorB;
+    final a = DynamicBackground.fitForText(widget.colorA ?? _defaultColorA);
+    final b = DynamicBackground.fitForText(widget.colorB ?? _defaultColorB);
     _fromA = a;
     _fromB = b;
     _toA = a;
@@ -62,7 +88,10 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     final oldA = old.colorA ?? _defaultColorA;
     final oldB = old.colorB ?? _defaultColorB;
     if (newA != oldA || newB != oldB) {
-      _animateTo(newA, newB);
+      _animateTo(
+        DynamicBackground.fitForText(newA),
+        DynamicBackground.fitForText(newB),
+      );
     }
   }
 
