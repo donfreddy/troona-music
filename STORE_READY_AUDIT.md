@@ -27,7 +27,7 @@ The findings below are kept as written during the audit. This section records wh
 | Check | Now |
 |---|---|
 | `flutter analyze` | No issues |
-| `flutter test` | 317 passed, 0 failed (CI workflow in `.github/workflows/ci.yml`) |
+| `flutter test` | 325 passed, 0 failed (CI workflow in `.github/workflows/ci.yml`) |
 | UI language | English source, French translation, gen-l10n (277 keys) |
 | Merged manifest | `INTERNET`, `READ_MEDIA_AUDIO`, `READ_EXTERNAL_STORAGE` (max SDK 32), playback and notification permissions only |
 
@@ -56,6 +56,7 @@ The findings below are kept as written during the audit. This section records wh
 | Notification | Channel name localized from the device languages. |
 | Android launch | Dark launch window and Android 12 splash background instead of a white flash. |
 | T16 | `PlayerBloc` restores the session through `GetTracksByIdsUseCase`, without Isar or `flutter_animate`; playlist widgets go through use cases, and the Likes id lives on the domain entity. |
+| 1.4 item 3 | Monthly "Replay": on the first run of a month (the app may not run on the 1st), last month's 25 most played songs still on the device become a normal playlist named after the month, announced by a toast. Handled once per month, even if the user deletes it; skipped below five songs. |
 | 1.4 (items 1 and 2), plan item 23 | Daily totals that outlive the 500-event cap, built once from the stored events. "Your week in music" card on Home (last finished week, refreshed on Mondays) and its page: listening time, plays, top song, top artist, first listens, and the month as dots. First listens are shown only once the history reaches four weeks before the week, so an old favourite is not taken for a discovery. Weeks rebuilt from old events have no listening time and show plays instead. |
 | T17 | No em dash and no French left in code comments (the two RegExp character classes in the Last.fm DTOs keep theirs on purpose). |
 
@@ -66,7 +67,7 @@ The findings below are kept as written during the audit. This section records wh
 | S1 | Signing is wired (`key.properties`, example in `android/key.properties.example`). The owner still has to create the upload key and enroll in Play App Signing. |
 | S8, S14, P0.6 | Needs the Troona logo. The launcher icon is still Flutter's; the splash will pick up the real icon automatically. Adaptive (foreground, background) and monochrome layers to add once the artwork exists. |
 | S9 | Store screenshots, feature graphic, listing text. |
-| U6, T6 (second half), 1.4 item 3 | P2: personal artist ranking, stable track identity, monthly "Replay" playlist. |
+| U6, T6 (second half) | P2: personal artist ranking, stable track identity. |
 | S11, S12, S15 | iOS milestone, postponed by the owner. |
 
 ### Data Safety answers (Google Play)
