@@ -15,7 +15,7 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
-import 'package:troona/features/library/presentation/widgets/track_context_menu.dart';
+import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
@@ -322,10 +322,7 @@ class _TracksView extends StatelessWidget {
   }
 
   void _showContextMenu(BuildContext context, Track track) {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (_) => TrackContextMenu(track: track),
-    );
+    showTrackActions(context, track, origin: TrackActionOrigin.library);
   }
 }
 
@@ -503,6 +500,7 @@ class _ScanBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isIndeterminate = progress.phase == ScanPhase.scanning;
+    final baseConfig = GlassTheme.card(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -511,7 +509,15 @@ class _ScanBanner extends StatelessWidget {
         0,
       ),
       child: GlassCard(
-        config: GlassTheme.card(context),
+        config: GlassConfig(
+          blurSigma: 0,
+          fill: baseConfig.fill,
+          border: baseConfig.border,
+          highlight: baseConfig.highlight,
+          borderWidth: baseConfig.borderWidth,
+          borderRadius: baseConfig.borderRadius,
+          padding: baseConfig.padding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

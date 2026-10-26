@@ -59,6 +59,26 @@ final class GlassConfig {
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.padding = const EdgeInsets.all(16),
   });
+
+  GlassConfig copyWith({
+    double? blurSigma,
+    Color? fill,
+    Color? border,
+    Color? highlight,
+    double? borderWidth,
+    BorderRadius? borderRadius,
+    EdgeInsets? padding,
+  }) {
+    return GlassConfig(
+      blurSigma: blurSigma ?? this.blurSigma,
+      fill: fill ?? this.fill,
+      border: border ?? this.border,
+      highlight: highlight ?? this.highlight,
+      borderWidth: borderWidth ?? this.borderWidth,
+      borderRadius: borderRadius ?? this.borderRadius,
+      padding: padding ?? this.padding,
+    );
+  }
 }
 
 /// Typedef so consumers use a single [GlassQuality] symbol without a manual
@@ -118,6 +138,10 @@ abstract final class GlassTheme {
     if (_override != null && _override != GlassQuality.auto) return _override!;
     return _detectedTier;
   }
+
+  /// Resolves the effective [GlassQuality] for [ctx].
+  static GlassQuality resolveQuality(BuildContext ctx, [GlassQuality? q]) =>
+      _resolveQuality(ctx, q);
 
   // ── Public surface accessors ─────────────────────────────────────────────
 

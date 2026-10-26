@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -8,7 +7,6 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
-import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 
 Future<void> showAddToPlaylistSheet(BuildContext context, Track track) {
   return showModalBottomSheet<void>(

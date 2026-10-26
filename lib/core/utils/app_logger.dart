@@ -24,13 +24,26 @@ import 'package:logger/logger.dart';
 /// with a `Logger(output: CrashlyticsOutput())` that forwards warning/error
 /// events to Firebase Crashlytics or Sentry. The `LogOutput` interface takes
 /// a single `output(LogEvent)` method — no other changes required.
+import 'package:troona/core/utils/crash_log.dart';
+
 final Logger appLogger = _buildLogger();
+
+class _CrashLogOutput extends LogOutput {
+  @override
+  void output(OutputEvent event) {
+    for (final line in event.lines) {
+      CrashLog.record(line, null);
+    }
+  }
+}
 
 Logger _buildLogger() {
   if (kReleaseMode) {
-    // Completely silent — no string formatting, no I/O, zero overhead.
-    // Swap LogOutput here when crash reporting is wired up.
-    return Logger(level: Level.off);
+    return Logger(
+      level: Level.warning,
+      printer: SimplePrinter(colors: false, printTime: true),
+      output: _CrashLogOutput(),
+    );
   }
 
   if (kProfileMode) {

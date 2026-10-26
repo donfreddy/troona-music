@@ -1,15 +1,13 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
 class TrackListTile extends StatefulWidget {
@@ -29,39 +27,10 @@ class TrackListTile extends StatefulWidget {
 }
 
 class _TrackListTileState extends State<TrackListTile> {
-  void _showContextMenu(BuildContext context) {
-    final isLiked =
-        context.read<LikesCubit>().state.isTrackLiked(widget.track.id);
+  bool _pressed = false;
 
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: Text(widget.track.title),
-        message: Text(widget.track.artist),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<LikesCubit>().toggle(widget.track);
-            },
-            child: Text(
-              isLiked ? 'Retirer des Titres likés' : 'Ajouter aux Titres likés',
-            ),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              showAddToPlaylistSheet(context, widget.track);
-            },
-            child: const Text('Ajouter à une playlist…'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Annuler'),
-        ),
-      ),
-    );
+  void _showContextMenu(BuildContext context) {
+    showTrackActions(context, widget.track, origin: TrackActionOrigin.library);
   }
 
   @override
@@ -78,15 +47,19 @@ class _TrackListTileState extends State<TrackListTile> {
 
     return InkWell(
       onTap: widget.onTap,
+      onHighlightChanged: (value) => setState(() => _pressed = value),
       onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
       highlightColor: colors.glassHighlight,
       splashColor: colors.glassHighlight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
-        child: Row(
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
           children: [
             // Artwork
             SizedBox.square(
@@ -180,6 +153,7 @@ class _TrackListTileState extends State<TrackListTile> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

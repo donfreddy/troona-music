@@ -117,10 +117,14 @@ final class MediaScannerService {
     }
 
     // ── Phase 3: artwork extraction ─────────────────────────────────────────
-    yield const ScanProgress(phase: ScanPhase.artworks, progress: 0);
-
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     final artworkTotal = tracksWithoutArtwork.length;
+
+    yield ScanProgress(
+      phase: ScanPhase.artworks,
+      progress: 0,
+      total: artworkTotal,
+    );
     var done = 0;
 
     await for (final updated in _artworkExtractor.extractArtworks(

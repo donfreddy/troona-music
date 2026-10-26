@@ -30,6 +30,9 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   }
 
   @override
+  void cancelScan() => _scanner.cancel();
+
+  @override
   Future<Either<Failure, List<Track>>> getTracks() async {
     try {
       final tracks = await _cache.getAllTracks();

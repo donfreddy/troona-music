@@ -24,20 +24,23 @@ class AlbumCard extends StatelessWidget {
         width: size,
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              child: SizedBox.square(
-                dimension: size,
-                child: album.artworkPath != null
-                    ? ArtworkImage(album.artworkPath!)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: Icon(
-                          LucideIcons.disc,
-                          color: Colors.white30,
-                          size: 64,
+            Hero(
+              tag: 'album-art-${album.id}',
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                child: SizedBox.square(
+                  dimension: size,
+                  child: album.artworkPath != null
+                      ? ArtworkImage(album.artworkPath!)
+                      : Container(
+                          color: Colors.white.withValues(alpha: .08),
+                          child: const Icon(
+                            LucideIcons.disc,
+                            color: Colors.white30,
+                            size: 64,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
             const SizedBox(height: 3),

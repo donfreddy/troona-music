@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
@@ -111,7 +112,15 @@ class _YourArtistsView extends StatelessWidget {
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
         SliverToBoxAdapter(
           child: _animatedHomeItem(
-            SectionHeader(title: 'Your Artists', onViewAll: () {}),
+            SectionHeader(
+              title: 'Your Artists',
+              onViewAll: () {
+                context.read<LibraryBloc>().add(
+                  const LibraryFilterChanged(LibraryFilter.artists),
+                );
+                context.go(AppRoute.library);
+              },
+            ),
             0,
             slideY: 0.05,
           ),
@@ -150,7 +159,15 @@ class _NewAlbumsView extends StatelessWidget {
         const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
         SliverToBoxAdapter(
           child: _animatedHomeItem(
-            SectionHeader(title: 'New Albums', onViewAll: () {}),
+            SectionHeader(
+              title: 'New Albums',
+              onViewAll: () {
+                context.read<LibraryBloc>().add(
+                  const LibraryFilterChanged(LibraryFilter.albums),
+                );
+                context.go(AppRoute.library);
+              },
+            ),
             0,
             slideY: 0.05,
           ),

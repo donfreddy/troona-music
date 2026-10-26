@@ -52,7 +52,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     '/ringtones/',
     '/ui/',
     '/system/',
-    '/media/audio/',
+    '/system/media/audio/',
     '/recordings/call/',
     '/whatsapp voice notes/',
     '/telegram/audio/',
@@ -81,18 +81,28 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
       ignoreCase: true,
     );
 
-    // Drop corrupted files and tracks shorter than 30 s (ringtones, SFX, …).
-    final validSongs = songs.where(_isValidTrack).toList();
+    // Filter valid tracks safely item-by-item so a single malformed model
+    // doesn't fail the whole scan.
+    final validTracks = <TrackModel>[];
+    for (final song in songs) {
+      try {
+        if (_isValidTrack(song)) {
+          validTracks.add(TrackModel.fromSongModel(song));
+        }
+      } catch (_) {
+        // Skip malformed track
+      }
+    }
 
     // Emit in chunks of 50 so the UI can update progressively on large
     // libraries without blocking the UI thread.
     const chunkSize = 50;
-    for (var i = 0; i < validSongs.length; i += chunkSize) {
-      final chunk = validSongs.skip(i).take(chunkSize);
-      yield chunk.map(TrackModel.fromSongModel).toList();
+    for (var i = 0; i < validTracks.length; i += chunkSize) {
+      final chunk = validTracks.skip(i).take(chunkSize).toList();
+      yield chunk;
 
       // Brief yield point to avoid starving the UI isolate on large libraries.
-      if (i + chunkSize < validSongs.length) {
+      if (i + chunkSize < validTracks.length) {
         await Future.delayed(const Duration(milliseconds: 8));
       }
     }
@@ -168,10 +178,6 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
       return false;
     }
     if (_blockedPathFragments.any(lowerPath.contains)) return false;
-    if (lowerPath.contains('/record') &&
-        (song.duration ?? 0) < 10 * 60 * 1000) {
-      return false;
-    }
     if (title.toLowerCase() == 'audio') return false;
 
     return true;

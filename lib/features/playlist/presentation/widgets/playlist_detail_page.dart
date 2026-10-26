@@ -334,8 +334,7 @@ class _TrackList extends StatelessWidget {
 
     return SliverReorderableList(
       itemCount: tracks.length,
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) newIndex -= 1;
+      onReorderItem: (oldIndex, newIndex) {
         context.read<PlaylistDetailBloc>().add(
           PlaylistReorderTracksRequested(playlistId, oldIndex, newIndex),
         );

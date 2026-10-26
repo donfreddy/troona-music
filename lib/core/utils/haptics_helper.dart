@@ -4,15 +4,30 @@ import 'package:flutter/services.dart';
 class AppHaptics {
   const AppHaptics._();
 
+  /// Static flag reflecting user preference. When false, all calls are no-ops.
+  static bool enabled = true;
+
   /// Very light tap for subtle actions (e.g., play/pause).
-  static Future<void> lightImpact() => HapticFeedback.lightImpact();
+  static Future<void> lightImpact() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.lightImpact();
+  }
 
   /// Medium impact for more significant actions (e.g., skip).
-  static Future<void> mediumImpact() => HapticFeedback.mediumImpact();
+  static Future<void> mediumImpact() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.mediumImpact();
+  }
 
   /// Heavy impact for destructive or major actions.
-  static Future<void> heavyImpact() => HapticFeedback.heavyImpact();
+  static Future<void> heavyImpact() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.heavyImpact();
+  }
 
   /// Selection click feedback.
-  static Future<void> selectionClick() => HapticFeedback.selectionClick();
+  static Future<void> selectionClick() {
+    if (!enabled) return Future.value();
+    return HapticFeedback.selectionClick();
+  }
 }

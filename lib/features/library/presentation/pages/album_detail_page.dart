@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/string_ext.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
@@ -144,14 +146,9 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     final colors = context.colors;
     final theme = Theme.of(context);
 
-    return RepaintBoundary(
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: collapse * 20,
-            sigmaY: collapse * 20,
-          ),
-          child: DecoratedBox(
+    final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+
+    final content = DecoratedBox(
             decoration: BoxDecoration(
               color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
               border: Border(
@@ -180,24 +177,27 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                           children: [
                             const SizedBox(height: AppSpacing.xl),
                             _animatedAlbumItem(
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusMd,
-                                ),
-                                child: SizedBox.square(
-                                  dimension: 180,
-                                  child: album.artworkPath != null
-                                      ? ArtworkImage(album.artworkPath!)
-                                      : Container(
-                                          color: Colors.white.withValues(
-                                            alpha: .08,
+                              Hero(
+                                tag: 'album-art-${album.id}',
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusMd,
+                                  ),
+                                  child: SizedBox.square(
+                                    dimension: 180,
+                                    child: album.artworkPath != null
+                                        ? ArtworkImage(album.artworkPath!)
+                                        : Container(
+                                            color: Colors.white.withValues(
+                                              alpha: .08,
+                                            ),
+                                            child: const Icon(
+                                              LucideIcons.disc,
+                                              color: Colors.white30,
+                                              size: 64,
+                                            ),
                                           ),
-                                          child: const Icon(
-                                            LucideIcons.disc,
-                                            color: Colors.white30,
-                                            size: 64,
-                                          ),
-                                        ),
+                                  ),
                                 ),
                               ),
                               0,
@@ -287,7 +287,9 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                             right: 0,
                             child: GlassIconButton(
                               icon: LucideIcons.ellipsisVertical,
-                              onTap: null,
+                              onTap: tracks.isEmpty
+                                  ? null
+                                  : () => _showAlbumOptions(context),
                             ),
                           ),
                         ],
@@ -349,7 +351,50 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                 ],
               ),
             ),
+          );
+
+    return RepaintBoundary(
+      child: ClipRect(
+        child: blurSigma > 0
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+                child: content,
+              )
+            : content,
+      ),
+    );
+  }
+
+  void _showAlbumOptions(BuildContext context) {
+    if (tracks.isEmpty) return;
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (ctx) => CupertinoActionSheet(
+        title: Text(album.name),
+        message: Text('${album.artist} • ${tracks.length} tracks'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              for (final track in tracks.reversed) {
+                context.read<PlayerBloc>().add(TrackQueuedNext(track));
+              }
+            },
+            child: const Text('Play Next'),
           ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(ctx);
+              for (final track in tracks) {
+                context.read<PlayerBloc>().add(TrackAddedToQueue(track));
+              }
+            },
+            child: const Text('Add to Queue'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
         ),
       ),
     );

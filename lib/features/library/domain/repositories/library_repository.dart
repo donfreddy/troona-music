@@ -10,6 +10,9 @@ abstract interface class LibraryRepository {
   /// Lance un scan de la librairie locale et renvoie la progression.
   Future<Either<Failure, Stream<ScanProgress>>> scanLibrary();
 
+  /// Annule le scan en cours.
+  void cancelScan();
+
   /// Récupère tous les tracks indexés localement.
   Future<Either<Failure, List<Track>>> getTracks();
 

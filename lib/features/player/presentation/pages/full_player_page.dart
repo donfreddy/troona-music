@@ -19,7 +19,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/features/player/presentation/widgets/track_title_switcher.dart';
-import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
+import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
@@ -555,37 +555,10 @@ class _TopBar extends StatelessWidget {
     final state = context.read<PlayerBloc>().state;
     if (state is! PlayerActive) return;
 
-    final isLiked = context
-        .read<LikesCubit>()
-        .state
-        .isTrackLiked(state.currentTrack.id);
-
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (_) => CupertinoActionSheet(
-        title: Text(state.currentTrack.title),
-        message: Text(state.currentTrack.artist),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<LikesCubit>().toggle(state.currentTrack);
-            },
-            child: Text(isLiked ? 'Unlike' : 'Like'),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-              showAddToPlaylistSheet(context, state.currentTrack);
-            },
-            child: const Text('Add to Playlist...'),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-      ),
+    showTrackActions(
+      context,
+      state.currentTrack,
+      origin: TrackActionOrigin.nowPlaying,
     );
   }
 }

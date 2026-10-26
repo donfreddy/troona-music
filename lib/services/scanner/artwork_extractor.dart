@@ -46,6 +46,9 @@ final class ArtworkExtractor {
   /// current batch of up to [_maxConcurrent] tasks completes.
   void cancel() => _cancelRequested = true;
 
+  /// The root directory where extracted artwork JPEG files are stored.
+  Directory get cacheDir => _cacheDir;
+
   /// Extracts artwork for each track in [tracks] and yields each [TrackModel]
   /// (with [TrackModel.artworkPath] populated if artwork was found) as soon as
   /// its extraction finishes.
@@ -73,8 +76,11 @@ final class ArtworkExtractor {
 
       // Acquire semaphore slot (suspends when _maxConcurrent slots are busy).
       await semaphore.acquire();
-
-      // Schedule the extraction without awaiting — results arrive via the
+      if (_cancelRequested) {
+        semaphore.release();
+        if (!controller.isClosed) await controller.close();
+        break;
+      }
       // controller as each Future resolves.
       _extractForTrack(track)
           .then((updated) {

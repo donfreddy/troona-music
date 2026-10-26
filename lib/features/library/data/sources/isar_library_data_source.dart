@@ -408,4 +408,14 @@ class IsarLibraryDataSource {
         track.artworkPath = artworkPath;
         isar.trackModels.put(track);
       });
+
+  /// Clears the cached [artworkPath] for all tracks in the database.
+  Future<void> clearAllArtworkPaths() async =>
+      _isar.write((isar) {
+        final tracks = isar.trackModels.where().findAll();
+        for (final t in tracks) {
+          t.artworkPath = null;
+        }
+        isar.trackModels.putAll(tracks);
+      });
 }

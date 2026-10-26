@@ -84,9 +84,7 @@ final class LikesCubit extends Cubit<LikesState> {
     if (track == null) return;
 
     final previousLiked =
-        _knownLikes[track.id] ??
-        state.likedTrackIds.contains(track.id) ??
-        (state.id == track.id ? state.isLiked : false);
+        _knownLikes[track.id] ?? state.isTrackLiked(track.id);
     final nextLiked = !previousLiked;
 
     _knownLikes[track.id] = nextLiked;

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:troona/core/theme/components/glass_theme.dart' as glass;
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
@@ -26,7 +27,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     final result = await _repo.loadSettings();
     result.fold(
       (failure) => emit(SettingsState.error(failure.message)),
-      (settings) => emit(SettingsState.loaded(settings)),
+      (settings) {
+        AppHaptics.enabled = settings.hapticFeedbackEnabled;
+        emit(SettingsState.loaded(settings));
+      },
     );
   }
 
@@ -39,7 +43,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(SettingsState.loaded(updated)); // optimistic
     final result = await _repo.saveSettings(updated);
     result.fold(
-      (_) => emit(SettingsState.loaded(current)), // rollback on error
+      (_) {
+        AppHaptics.enabled = current.hapticFeedbackEnabled;
+        emit(SettingsState.loaded(current)); // rollback on error
+      },
       (_) => _audioSession?.updateSettings(updated), // sync audio session
     );
   }
@@ -87,8 +94,10 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setShowAlbumArtInNotification(bool value) =>
       _update((s) => s.copyWith(showAlbumArtInNotification: value));
 
-  Future<void> setHapticFeedback(bool value) =>
-      _update((s) => s.copyWith(hapticFeedbackEnabled: value));
+  Future<void> setHapticFeedback(bool value) {
+    AppHaptics.enabled = value;
+    return _update((s) => s.copyWith(hapticFeedbackEnabled: value));
+  }
 
   Future<void> setGlassQuality(GlassQuality quality) {
     glass.GlassTheme.overrideQuality(
