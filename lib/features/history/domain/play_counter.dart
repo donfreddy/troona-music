@@ -20,8 +20,13 @@ final class PlayCounter {
   Duration _listened = Duration.zero;
   Duration? _last;
   bool _counted = false;
+  Duration _heard = Duration.zero;
 
   String? get trackId => _trackId;
+
+  /// Listening between the last two positions: zero after a seek, a
+  /// restart or the first position of a listen. Counted plays included.
+  Duration get heard => _heard;
 
   /// Starts a listen of [trackId]. A zero [trackDuration] means unknown.
   void start(String trackId, Duration trackDuration) {
@@ -40,6 +45,7 @@ final class PlayCounter {
   /// Returns the track id on the position that makes the listen count,
   /// once per listen; null otherwise.
   String? onPosition(Duration position) {
+    _heard = Duration.zero;
     final id = _trackId;
     if (id == null) return null;
     final last = _last;
@@ -54,7 +60,9 @@ final class PlayCounter {
       }
       return null;
     }
-    if (_counted || step > maxStep) return null;
+    if (step > maxStep) return null;
+    _heard = step;
+    if (_counted) return null;
 
     _listened += step;
     if (_listened < _threshold) return null;

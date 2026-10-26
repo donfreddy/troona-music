@@ -3,6 +3,7 @@ import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
+import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 
@@ -19,6 +20,43 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
     try {
       await _source.add(PlayEventModel.fromEntity(event));
       return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> recordListening(
+    int day,
+    Duration listened,
+  ) async {
+    try {
+      await _source.addListening(day, listened.inMilliseconds);
+      return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ListeningStats>> listeningStats({
+    required int firstDay,
+    required int lastDay,
+  }) async {
+    try {
+      return right(_source.listeningStats(firstDay, lastDay));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Set<int>>> activeDays({
+    required int firstDay,
+    required int lastDay,
+  }) async {
+    try {
+      return right(_source.activeDays(firstDay, lastDay));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

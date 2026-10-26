@@ -5,6 +5,7 @@ import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/database/app_database.dart';
 import 'package:troona/core/network/api_client.dart';
 import 'package:troona/features/metadata/data/repositories/metadata_repository_impl.dart';
@@ -16,7 +17,11 @@ import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubi
 import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
+import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
+import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
+import 'package:troona/features/history/domain/use_cases/record_listening_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/record_play_use_case.dart';
+import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
@@ -106,11 +111,17 @@ Future<void> configureDependencies() async {
     ...IsarLibraryDataSource.schemas,
     ...IsarPlayHistoryDataSource.schemas,
   ]);
+  final historySource = IsarPlayHistoryDataSource(isar);
   getIt
     ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
-    ..registerSingleton<IsarPlayHistoryDataSource>(
-      IsarPlayHistoryDataSource(isar),
-    );
+    ..registerSingleton<IsarPlayHistoryDataSource>(historySource);
+  // Before the recorder starts: it only runs while the daily totals are
+  // empty, and the first play would make them non-empty.
+  try {
+    await historySource.backfillDays();
+  } catch (e, st) {
+    appLogger.e('Daily listening backfill failed', error: e, stackTrace: st);
+  }
 
   getIt.registerLazySingleton<LocalAudioDataSource>(
     () => OnAudioQueryDataSource(query: getIt()),
@@ -197,6 +208,7 @@ Future<void> configureDependencies() async {
       PlayHistoryRecorder(
         port: audioPort,
         recordPlay: RecordPlayUseCase(historyRepo),
+        recordListening: RecordListeningUseCase(historyRepo),
       )..start(),
     );
 
@@ -313,6 +325,12 @@ Future<void> configureDependencies() async {
     )..load(),
   );
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
+  getIt.registerFactory<WeeklyRecapCubit>(
+    () => WeeklyRecapCubit(
+      recap: GetWeeklyRecapUseCase(getIt(), getIt()),
+      calendar: GetListeningCalendarUseCase(getIt()),
+    ),
+  );
 
   getIt.registerSingleton<TrackPaletteCubit>(TrackPaletteCubit());
 

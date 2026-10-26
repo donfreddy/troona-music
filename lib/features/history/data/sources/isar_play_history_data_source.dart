@@ -1,8 +1,15 @@
 import 'package:isar_plus/isar_plus.dart';
+import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
+import 'package:troona/features/history/domain/entities/listening_stats.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 
 /// Play events in the shared Isar database, capped at [maxEvents]: each
 /// insert drops the oldest events beyond the cap in the same transaction.
+///
+/// Every event is also counted in daily totals that are never pruned (see
+/// `listening_models.dart`), so weeks and months stay readable long after
+/// their events are gone.
 final class IsarPlayHistoryDataSource {
   final Isar _isar;
   final int maxEvents;
@@ -10,18 +17,104 @@ final class IsarPlayHistoryDataSource {
   IsarPlayHistoryDataSource(this._isar, {this.maxEvents = 500});
 
   /// The collections this data source reads and writes.
-  static final schemas = [PlayEventModelSchema];
+  static final schemas = [
+    PlayEventModelSchema,
+    ListeningDayModelSchema,
+    TrackDayModelSchema,
+    TrackFirstPlayModelSchema,
+  ];
 
   Future<void> add(PlayEventModel event) async => _isar.write((isar) {
     final events = isar.playEventModels;
     event.id = events.autoIncrement();
     events.put(event);
+    _count(isar, event.trackId, ListeningDay.of(event.playedAt));
     final excess = events.count() - maxEvents;
     if (excess > 0) {
       final oldest = events.where().sortByPlayedAt().findAll(limit: excess);
       events.deleteAll([for (final e in oldest) e.id]);
     }
   });
+
+  static void _count(Isar isar, String trackId, int day) {
+    final days = isar.listeningDayModels;
+    days.put((days.get(day) ?? (ListeningDayModel()..id = day))..plays += 1);
+
+    final trackDays = isar.trackDayModels;
+    final key = '$day:$trackId';
+    trackDays.put(
+      (trackDays.get(key) ??
+            (TrackDayModel()
+              ..id = key
+              ..day = day
+              ..trackId = trackId))
+        ..plays += 1,
+    );
+
+    final firstPlays = isar.trackFirstPlayModels;
+    if (firstPlays.get(trackId) == null) {
+      firstPlays.put(
+        TrackFirstPlayModel()
+          ..id = trackId
+          ..day = day,
+      );
+    }
+  }
+
+  Future<void> addListening(int day, int ms) async => _isar.write((isar) {
+    final days = isar.listeningDayModels;
+    days.put(
+      (days.get(day) ?? (ListeningDayModel()..id = day))..listenedMs += ms,
+    );
+  });
+
+  /// Builds the daily totals from the events still stored, once: the
+  /// history kept before them only has its last [maxEvents] plays.
+  /// Listening time before that is unknown and stays at zero.
+  Future<void> backfillDays() async => _isar.write((isar) {
+    if (isar.listeningDayModels.count() > 0) return;
+    for (final e in isar.playEventModels.where().sortByPlayedAt().findAll()) {
+      _count(isar, e.trackId, ListeningDay.of(e.playedAt));
+    }
+  });
+
+  ListeningStats listeningStats(int firstDay, int lastDay) {
+    final days = _isar.listeningDayModels
+        .where()
+        .idBetween(firstDay, lastDay)
+        .findAll();
+    final trackPlays = <String, int>{};
+    for (final t
+        in _isar.trackDayModels
+            .where()
+            .dayBetween(firstDay, lastDay)
+            .findAll()) {
+      trackPlays[t.trackId] = (trackPlays[t.trackId] ?? 0) + t.plays;
+    }
+    return ListeningStats(
+      plays: days.fold(0, (sum, d) => sum + d.plays),
+      listened: Duration(
+        milliseconds: days.fold(0, (sum, d) => sum + d.listenedMs),
+      ),
+      trackPlays: trackPlays,
+      discoveries: _isar.trackFirstPlayModels
+          .where()
+          .dayBetween(firstDay, lastDay)
+          .count(),
+      historyStart: _isar.listeningDayModels.where().sortById().findFirst()?.id,
+    );
+  }
+
+  Set<int> activeDays(int firstDay, int lastDay) => {
+    for (final d
+        in _isar.listeningDayModels
+            .where()
+            .idBetween(firstDay, lastDay)
+            .and()
+            .playsGreaterThan(0)
+            .findAll())
+      d.id,
+  };
 
   /// Fires after every write to the play events.
   Stream<void> watch() => _isar.playEventModels.watchLazy();

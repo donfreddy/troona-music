@@ -92,6 +92,9 @@ final class _History implements PlayHistoryRepository {
 
   @override
   Future<Either<Failure, int>> totalPlays({int days = 7}) async => right(0);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {

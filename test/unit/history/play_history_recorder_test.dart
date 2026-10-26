@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
+import 'package:troona/features/history/domain/use_cases/record_listening_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/record_play_use_case.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
@@ -12,6 +14,19 @@ import '../../helpers/fake_player.dart';
 
 final class _MemoryHistory implements PlayHistoryRepository {
   final events = <PlayEvent>[];
+  final listening = <int, Duration>{};
+
+  @override
+  Future<Either<Failure, Unit>> recordListening(
+    int day,
+    Duration listened,
+  ) async {
+    listening[day] = (listening[day] ?? Duration.zero) + listened;
+    return right(unit);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   Future<Either<Failure, Unit>> record(PlayEvent event) async {
@@ -47,18 +62,20 @@ final class _MemoryHistory implements PlayHistoryRepository {
 void main() {
   final a = testTrack('a', durationMs: 240000);
   final b = testTrack('b', durationMs: 240000);
-  final at = DateTime(2026, 10, 24, 9);
+  var at = DateTime(2026, 10, 24, 9);
 
   late FakeAudioPort port;
   late _MemoryHistory history;
   late PlayHistoryRecorder recorder;
 
   setUp(() {
+    at = DateTime(2026, 10, 24, 9);
     port = FakeAudioPort();
     history = _MemoryHistory();
     recorder = PlayHistoryRecorder(
       port: port,
       recordPlay: RecordPlayUseCase(history),
+      recordListening: RecordListeningUseCase(history),
       now: () => at,
     );
   });
@@ -159,5 +176,71 @@ void main() {
     await pumpEventQueue();
 
     expect(history.events, isEmpty);
+  });
+
+  group('listening time', () {
+    int dayOf(DateTime t) => ListeningDay.of(t);
+
+    test('is written every 30 s of listening', () async {
+      recorder.start();
+      playing([a]);
+
+      listen(0, 29);
+      await pumpEventQueue();
+      expect(history.listening, isEmpty, reason: 'kept in memory until 30 s');
+
+      listen(29, 60);
+      await pumpEventQueue();
+      expect(history.listening, {dayOf(at): const Duration(seconds: 60)});
+    });
+
+    test('a seek forward adds no time', () async {
+      recorder.start();
+      playing([a]);
+
+      listen(0, 10);
+      listen(100, 110);
+      await recorder.dispose();
+      await pumpEventQueue();
+
+      expect(history.listening, {dayOf(at): const Duration(seconds: 20)});
+    });
+
+    test('a track change writes what was heard', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 10);
+      playing([b]);
+      await pumpEventQueue();
+
+      expect(history.listening, {dayOf(at): const Duration(seconds: 10)});
+    });
+
+    test('listening across midnight counts on both days', () async {
+      at = DateTime(2026, 10, 24, 23, 59, 50);
+      final first = dayOf(at);
+      recorder.start();
+      playing([a]);
+
+      listen(0, 10);
+      at = DateTime(2026, 10, 25, 0, 0, 1);
+      listen(10, 25);
+      await recorder.dispose();
+      await pumpEventQueue();
+
+      expect(history.listening, {
+        first: const Duration(seconds: 10),
+        first + 1: const Duration(seconds: 15),
+      });
+    });
+
+    test('plays still count once time is being written', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 65);
+      await pumpEventQueue();
+
+      expect(history.events.single.trackId, 'a');
+    });
   });
 }
