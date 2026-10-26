@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
-import 'package:troona/core/error/failures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
-import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
@@ -17,12 +15,11 @@ import 'package:troona/services/scanner/media_scanner_service.dart';
 
 part 'library_event.dart';
 part 'library_state.dart';
+part 'library_view.dart';
 
 final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   final ScanLibraryUseCase _scanLibrary;
   final GetTracksUseCase _getTracks;
-  final GetAlbumsUseCase _getAlbums;
-  final GetArtistsUseCase _getArtists;
   final ArtistArtworkPrefetchService? _prefetchService;
 
   StreamSubscription<ScanProgress>? _scanSub;
@@ -30,13 +27,9 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   LibraryBloc({
     required ScanLibraryUseCase scanLibrary,
     required GetTracksUseCase getTracks,
-    required GetAlbumsUseCase getAlbums,
-    required GetArtistsUseCase getArtists,
     ArtistArtworkPrefetchService? prefetchService,
   }) : _scanLibrary = scanLibrary,
        _getTracks = getTracks,
-       _getAlbums = getAlbums,
-       _getArtists = getArtists,
        _prefetchService = prefetchService,
        super(const LibraryInitial()) {
     on<LibraryBootstrapRequested>(
@@ -83,10 +76,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     LibraryScanRequested event,
     Emitter<LibraryState> emit,
   ) async {
-    // Annule un scan précédent si toujours en cours
+    // Cancel a previous scan if still running
     await _cancelScan();
 
-    // Garde les données en cache visibles pendant le scan
+    // Keep the cached data visible during the scan
     final cached = state is LibraryLoaded ? state as LibraryLoaded : null;
 
     emit(
@@ -103,7 +96,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
         (progress) => add(_ScanProgressReceived(progress)),
         onError: (e) => add(_ScanFailed(e.toString())),
         onDone: () {
-          // Le scan est terminé — charge les données depuis Isar
+          // Scan finished: load the data from Isar
           add(
             const _ScanProgressReceived(
               ScanProgress(phase: ScanPhase.done, progress: 1),
@@ -127,7 +120,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final scanning = state as LibraryScanning;
 
     if (event.progress.phase == ScanPhase.done) {
-      // Scan terminé — charge tout depuis le cache Isar
+      // Scan finished: load everything from the Isar cache
       await _loadFromCache(emit);
       return;
     }
@@ -148,11 +141,12 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   }
 
   // ══════════════════════════════════════════════════════════
-  // CHARGEMENT DEPUIS ISAR
+  // LOADING FROM ISAR
   // ══════════════════════════════════════════════════════════
 
   Future<void> _loadFromCache(Emitter<LibraryState> emit) async {
-    final loaded = await _readLoadedState();
+    // A rescan must not reset the user's filter, sort or query.
+    final loaded = await _readLoadedState(view: _loadedSnapshotOf(state));
     if (loaded == null) {
       emit(const LibraryError(message: 'Unable to load cached library.'));
       return;
@@ -166,36 +160,37 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     }
   }
 
-  Future<LibraryLoaded?> _readLoadedState() async {
-    final results = await Future.wait([
-      _getTracks(),
-      _getAlbums(),
-      _getArtists(),
-    ]);
+  /// One read of the tracks; albums and artists are derived from it, so the
+  /// three lists always describe the same snapshot.
+  Future<LibraryLoaded?> _readLoadedState({LibraryLoaded? view}) async {
+    final result = await _getTracks();
+    final tracks = result.fold((_) => null, (t) => t);
+    if (tracks == null) return null;
+    return _loaded(
+      tracks: tracks,
+      albums: LibraryGrouping.albumsOf(tracks),
+      artists: LibraryGrouping.artistsOf(tracks),
+      view: view,
+    );
+  }
 
-    final tracksResult = results[0] as Either<Failure, List<Track>>;
-    final albumsResult = results[1] as Either<Failure, List<Album>>;
-    final artistsResult = results[2] as Either<Failure, List<Artist>>;
-
-    if (tracksResult.isLeft() ||
-        albumsResult.isLeft() ||
-        artistsResult.isLeft()) {
-      return null;
-    }
-
-    final tracks = tracksResult.getOrElse(() => []);
-    final albums = albumsResult.getOrElse(() => []);
-    final artists = artistsResult.getOrElse(() => []);
-
-    final visible = _applyFilterAndSort(
+  LibraryLoaded _loaded({
+    required List<Track> tracks,
+    required List<Album> albums,
+    required List<Artist> artists,
+    LibraryLoaded? view,
+  }) {
+    final query = view?.searchQuery ?? '';
+    final filter = view?.filter ?? LibraryFilter.all;
+    final sort = view?.sort ?? LibrarySort.title;
+    final visible = applyLibraryView(
       tracks: tracks,
       albums: albums,
       artists: artists,
-      query: '',
-      filter: LibraryFilter.all,
-      sort: LibrarySort.title,
+      query: query,
+      filter: filter,
+      sort: sort,
     );
-
     return LibraryLoaded(
       allTracks: tracks,
       allAlbums: albums,
@@ -203,40 +198,19 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       visibleTracks: visible.$1,
       visibleAlbums: visible.$2,
       visibleArtists: visible.$3,
+      searchQuery: query,
+      filter: filter,
+      sort: sort,
     );
   }
 
   void _onTracksLoaded(_TracksLoaded event, Emitter<LibraryState> emit) {
-    // État courant : récupère les préférences filter/sort si déjà Loaded
-    final (filter, sort, query) = switch (state) {
-      LibraryLoaded(:final filter, :final sort, :final searchQuery) => (
-        filter,
-        sort,
-        searchQuery,
-      ),
-      _ => (LibraryFilter.all, LibrarySort.title, ''),
-    };
-
-    final visible = _applyFilterAndSort(
-      tracks: event.tracks,
-      albums: event.albums,
-      artists: event.artists,
-      query: query,
-      filter: filter,
-      sort: sort,
-    );
-
     emit(
-      LibraryLoaded(
-        allTracks: event.tracks,
-        allAlbums: event.albums,
-        allArtists: event.artists,
-        visibleTracks: visible.$1,
-        visibleAlbums: visible.$2,
-        visibleArtists: visible.$3,
-        searchQuery: query,
-        filter: filter,
-        sort: sort,
+      _loaded(
+        tracks: event.tracks,
+        albums: event.albums,
+        artists: event.artists,
+        view: _loadedSnapshotOf(state),
       ),
     );
 
@@ -248,7 +222,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   }
 
   // ══════════════════════════════════════════════════════════
-  // SEARCH / FILTER / SORT — calcul synchrone, pas d'async
+  // SEARCH / FILTER / SORT: synchronous, in memory
   // ══════════════════════════════════════════════════════════
 
   void _onSearchChanged(
@@ -258,8 +232,8 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final current = _loadedSnapshotOf(state);
     if (current == null) return;
 
-    // Recalcule en mémoire — le transformer sequential() garantit l'ordre
-    final visible = _applyFilterAndSort(
+    // Recomputed in memory; the sequential() transformer keeps the order
+    final visible = applyLibraryView(
       tracks: current.allTracks,
       albums: current.allAlbums,
       artists: current.allArtists,
@@ -286,7 +260,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final current = _loadedSnapshotOf(state);
     if (current == null) return;
 
-    final visible = _applyFilterAndSort(
+    final visible = applyLibraryView(
       tracks: current.allTracks,
       albums: current.allAlbums,
       artists: current.allArtists,
@@ -310,7 +284,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final current = _loadedSnapshotOf(state);
     if (current == null) return;
 
-    final visible = _applyFilterAndSort(
+    final visible = applyLibraryView(
       tracks: current.allTracks,
       albums: current.allAlbums,
       artists: current.allArtists,
@@ -351,87 +325,6 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
       default:
         emit(updated);
     }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // FILTRE + TRI — pur, sans side effects
-  // ══════════════════════════════════════════════════════════
-
-  (List<Track>, List<Album>, List<Artist>) _applyFilterAndSort({
-    required List<Track> tracks,
-    required List<Album> albums,
-    required List<Artist> artists,
-    required String query,
-    required LibraryFilter filter,
-    required LibrarySort sort,
-  }) {
-    final q = query.toLowerCase().trim();
-
-    // ── Filtrage textuel ────────────────────────────────────
-    var filteredTracks = q.isEmpty
-        ? tracks
-        : tracks
-              .where(
-                (t) =>
-                    t.title.toLowerCase().contains(q) ||
-                    t.artist.toLowerCase().contains(q) ||
-                    t.album.toLowerCase().contains(q),
-              )
-              .toList();
-
-    var filteredAlbums = q.isEmpty
-        ? albums
-        : albums
-              .where(
-                (a) =>
-                    a.name.toLowerCase().contains(q) ||
-                    a.artist.toLowerCase().contains(q),
-              )
-              .toList();
-
-    var filteredArtists = q.isEmpty
-        ? artists
-        : artists.where((a) => a.name.toLowerCase().contains(q)).toList();
-
-    switch (filter) {
-      case LibraryFilter.tracks:
-        filteredAlbums = <Album>[];
-        filteredArtists = <Artist>[];
-        break;
-      case LibraryFilter.albums:
-        filteredTracks = <Track>[];
-        filteredArtists = <Artist>[];
-        break;
-      case LibraryFilter.artists:
-        filteredTracks = <Track>[];
-        filteredAlbums = <Album>[];
-        break;
-      case LibraryFilter.all:
-        break;
-    }
-
-    // ── Tri ─────────────────────────────────────────────────
-    switch (sort) {
-      case LibrarySort.title:
-        filteredTracks.sort((a, b) => a.title.compareTo(b.title));
-        filteredAlbums.sort((a, b) => a.name.compareTo(b.name));
-        filteredArtists.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case LibrarySort.artist:
-        filteredTracks.sort((a, b) => a.artist.compareTo(b.artist));
-        filteredAlbums.sort((a, b) => a.artist.compareTo(b.artist));
-        filteredArtists.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case LibrarySort.album:
-        filteredTracks.sort((a, b) => a.album.compareTo(b.album));
-        filteredAlbums.sort((a, b) => a.name.compareTo(b.name));
-        break;
-      case LibrarySort.dateAdded:
-        // Isar retourne déjà dans l'ordre d'insertion — pas de tri nécessaire
-        break;
-    }
-
-    return (filteredTracks, filteredAlbums, filteredArtists);
   }
 
   // ══════════════════════════════════════════════════════════

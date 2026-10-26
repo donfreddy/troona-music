@@ -6,8 +6,8 @@ import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 final class LibraryRepositoryImpl implements LibraryRepository {
@@ -45,28 +45,10 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   @override
   Future<Either<Failure, List<Album>>> getAlbums() async {
     try {
-      //TODO: immolement this proprely later
-
       final tracks = await _cache.getAllTracks();
-
-      final albumGroups = <String, List<TrackModel>>{};
-      for (final t in tracks) {
-        albumGroups.putIfAbsent(t.album, () => []).add(t);
-      }
-
-      final albums = albumGroups.values.map((group) {
-        final firstTrack = group.first;
-        return Album(
-          id: firstTrack.albumId.toString(),
-          name: firstTrack.album,
-          artist: firstTrack.artist,
-          artworkPath: firstTrack.artworkPath,
-          artistId: firstTrack.artistId,
-          trackCount: group.length,
-        );
-      }).toList();
-
-      return right(albums);
+      return right(
+        LibraryGrouping.albumsOf(tracks.map((t) => t.toEntity()).toList()),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -76,26 +58,9 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   Future<Either<Failure, List<Artist>>> getArtists() async {
     try {
       final tracks = await _cache.getAllTracks();
-
-      final artistGroups = <String, List<TrackModel>>{};
-      for (final t in tracks) {
-        artistGroups.putIfAbsent(t.artist, () => []).add(t);
-      }
-
-      final artists = artistGroups.values.map((group) {
-        final firstTrack = group.first;
-        final albumCount = group.map((t) => t.albumId).toSet().length;
-
-        return Artist(
-          id: firstTrack.artistId.toString(),
-          name: firstTrack.artist,
-          albumCount: albumCount,
-          trackCount: group.length,
-          artworkPath: firstTrack.artworkPath,
-        );
-      }).toList();
-
-      return right(artists);
+      return right(
+        LibraryGrouping.artistsOf(tracks.map((t) => t.toEntity()).toList()),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

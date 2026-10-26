@@ -368,8 +368,6 @@ Future<void> configureDependencies() async {
     () => LibraryBloc(
       scanLibrary: getIt(),
       getTracks: getIt(),
-      getAlbums: getIt(),
-      getArtists: getIt(),
       prefetchService: getIt(),
     ),
   );
