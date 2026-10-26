@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Store readiness
+
+- English and French UI (gen-l10n), sentence case, one toast and one dialog component, empty states with an action.
+- Online extras are opt-in and off by default, with separate switches for bios (Last.fm) and photos (Deezer). Each switch gates its own service; turning photos off deletes downloaded photos. Privacy policy in `docs/privacy-policy.md` and in Settings.
+- Real sleep timer and playback speed; demo lyrics, equalizer and cast removed. Fake settings removed.
+- "Lossless" only when every song of an album is FLAC or WAV.
+- Android: audio-only permissions (vendored `on_audio_query_plus_android` patched), `INTERNET` for the online extras, release signing from `key.properties`, backup off, label "Troona", dark launch window.
+- Library: pure, accent-aware filter and sort; albums grouped by id; one read per load; short songs kept; no playlist cap; artwork checked once, written in batches, with live progress; silent rescans with a toast when songs were added or removed; a restarted or failed scan keeps the library on screen.
+- Player: every Shuffle button turns shuffle mode on and keeps the source order; lock screen position and queue index stay right after auto-advance and in-app seeks; labelled controls keep their tap action for screen readers.
+- Persistence: the session queue is written only when it changes; the crash log writes asynchronously; downloaded pictures are written atomically.
+- Settings: one shared settings state, maintenance actions (clear covers, clear online info, report a problem) that finish even if the page is left.
+
 ### Added
 
 - Queue sheet over the Now Playing page: session history, now playing and up next in one list. It opens on now playing; the history is above, reached by scrolling up or with the history button. Tap to jump, drag the handle to reorder, swipe to remove with a 4 s undo. Opens from the top bar button or a flick up.
