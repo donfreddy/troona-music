@@ -228,4 +228,8 @@ extension NavigationContextExt on BuildContext {
       push('${AppRoute.library}/artists/$artistId');
     }
   }
+
+  void pushPlaylist(String playlistId) {
+    push('${AppRoute.playlists}/$playlistId');
+  }
 }

@@ -148,8 +148,8 @@ class _SliverHeader extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: isLikes
                       ? [
-                          const Color(0xFF450AF5).withValues(alpha: 0.45),
-                          const Color(0xFF1E076B).withValues(alpha: 0.25),
+                          const Color(0xFFFA2D48).withValues(alpha: 0.35),
+                          const Color(0xFF45060F).withValues(alpha: 0.20),
                           Colors.black,
                         ]
                       : [
@@ -176,7 +176,7 @@ class _SliverHeader extends StatelessWidget {
                       boxShadow: [
                         BoxShadow(
                           color: isLikes
-                              ? const Color(0xFF450AF5).withValues(alpha: 0.4)
+                              ? const Color(0xFFFA2D48).withValues(alpha: 0.35)
                               : Colors.black.withValues(alpha: 0.6),
                           blurRadius: 24,
                           spreadRadius: 2,
@@ -192,8 +192,9 @@ class _SliverHeader extends StatelessWidget {
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Color(0xFF450AF5),
-                                    Color(0xFF8E8EE5),
+                                    Color(0xFF9E1427),
+                                    Color(0xFFFA2D48),
+                                    Color(0xFF45060F),
                                   ],
                                 ),
                               ),
