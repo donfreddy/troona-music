@@ -675,12 +675,11 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  /// "Lossless" only when every song is FLAC or WAV, else the single
-  /// format; a mixed album gets no badge.
+  /// "Lossless" only when every song is FLAC or WAV, else the format all
+  /// songs share; a mixed album, or one with an unknown file, gets no badge.
   String? _formatBadge(BuildContext context) {
     if (AudioFormat.allLossless(tracks)) return context.l10n.formatLossless;
-    final formats = AudioFormat.allOf(tracks);
-    return formats.length == 1 ? formats.single.label : null;
+    return AudioFormat.sharedBy(tracks)?.label;
   }
 
   void _showAlbumOptions(BuildContext context) {

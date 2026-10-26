@@ -59,4 +59,14 @@ void main() {
       [AudioFormat.mp3, AudioFormat.flac],
     );
   });
+
+  test('sharedBy needs one known format across every track', () {
+    expect(AudioFormat.sharedBy([]), isNull);
+    expect(
+      AudioFormat.sharedBy([_track('a.mp3'), _track('b.MP3')]),
+      AudioFormat.mp3,
+    );
+    expect(AudioFormat.sharedBy([_track('a.mp3'), _track('b.flac')]), isNull);
+    expect(AudioFormat.sharedBy([_track('a.mp3'), _track('b.wma')]), isNull);
+  });
 }

@@ -39,6 +39,14 @@ enum AudioFormat {
     return AudioFormat.values.where(found.contains).toList();
   }
 
+  /// The one format every track shares, or null when they differ or one of
+  /// them is unknown: a badge must hold for the whole album.
+  static AudioFormat? sharedBy(Iterable<Track> tracks) {
+    final found = {for (final t in tracks) of(t)};
+    if (found.length != 1 || found.single == AudioFormat.unknown) return null;
+    return found.single;
+  }
+
   /// True only when there is at least one track and every track is lossless.
   static bool allLossless(Iterable<Track> tracks) =>
       tracks.isNotEmpty && tracks.every((t) => of(t).lossless);
