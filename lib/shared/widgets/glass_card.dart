@@ -63,7 +63,7 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Draws the glass fill, three-layer border, and optional highlight sheen.
+/// Draws the glass fill and its edge.
 ///
 /// Kept as a separate widget so it can be composed inside or outside a
 /// [BackdropFilter] without duplicating decoration logic.
@@ -76,16 +76,11 @@ class _GlassDecoration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      foregroundPainter: _GlassBorderPainter(
+      foregroundPainter: _GlassEdgePainter(
         borderRadius: config.borderRadius,
-        topColor: config.border,
-        leftColor: config.highlight,
-        bottomColor: config.highlight.withValues(alpha: .05),
-        rightColor: config.highlight.withValues(alpha: .05),
-        topWidth: config.borderWidth,
-        leftWidth: config.borderWidth,
-        bottomWidth: 0.5,
-        rightWidth: 0.5,
+        top: config.border,
+        sides: config.highlight,
+        width: config.borderWidth,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -98,96 +93,45 @@ class _GlassDecoration extends StatelessWidget {
   }
 }
 
-class _GlassBorderPainter extends CustomPainter {
+/// Light from above: a bright top edge fading down the sides to nothing at
+/// the bottom. One gradient stroke.
+class _GlassEdgePainter extends CustomPainter {
   final BorderRadius borderRadius;
-  final Color topColor;
-  final Color leftColor;
-  final Color bottomColor;
-  final Color rightColor;
-  final double topWidth;
-  final double leftWidth;
-  final double bottomWidth;
-  final double rightWidth;
+  final Color top;
+  final Color sides;
+  final double width;
 
-  const _GlassBorderPainter({
+  const _GlassEdgePainter({
     required this.borderRadius,
-    required this.topColor,
-    required this.leftColor,
-    required this.bottomColor,
-    required this.rightColor,
-    required this.topWidth,
-    required this.leftWidth,
-    required this.bottomWidth,
-    required this.rightWidth,
+    required this.top,
+    required this.sides,
+    required this.width,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (width <= 0 || (top.a == 0 && sides.a == 0)) return;
     final rect = Offset.zero & size;
-
-    _paintEdge(
-      canvas,
-      rect,
-      Rect.fromLTWH(0, 0, size.width, size.height / 2),
-      topColor,
-      topWidth,
+    final stroke = rect.deflate(width / 2);
+    if (stroke.isEmpty) return;
+    canvas.drawRRect(
+      borderRadius.toRRect(stroke),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = width
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [top, sides, sides.withValues(alpha: 0)],
+          stops: const [0, .45, 1],
+        ).createShader(rect),
     );
-    _paintEdge(
-      canvas,
-      rect,
-      Rect.fromLTWH(0, 0, size.width / 2, size.height),
-      leftColor,
-      leftWidth,
-    );
-    _paintEdge(
-      canvas,
-      rect,
-      Rect.fromLTWH(0, size.height / 2, size.width, size.height / 2),
-      bottomColor,
-      bottomWidth,
-    );
-    _paintEdge(
-      canvas,
-      rect,
-      Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height),
-      rightColor,
-      rightWidth,
-    );
-  }
-
-  void _paintEdge(
-    Canvas canvas,
-    Rect rect,
-    Rect clipRect,
-    Color color,
-    double width,
-  ) {
-    if (width <= 0 || color.a == 0) return;
-
-    final strokeRect = rect.deflate(width / 2);
-    if (strokeRect.width <= 0 || strokeRect.height <= 0) return;
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = width
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = true;
-
-    canvas.save();
-    canvas.clipRect(clipRect);
-    canvas.drawRRect(borderRadius.toRRect(strokeRect), paint);
-    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _GlassBorderPainter oldDelegate) =>
+  bool shouldRepaint(_GlassEdgePainter oldDelegate) =>
       oldDelegate.borderRadius != borderRadius ||
-      oldDelegate.topColor != topColor ||
-      oldDelegate.leftColor != leftColor ||
-      oldDelegate.bottomColor != bottomColor ||
-      oldDelegate.rightColor != rightColor ||
-      oldDelegate.topWidth != topWidth ||
-      oldDelegate.leftWidth != leftWidth ||
-      oldDelegate.bottomWidth != bottomWidth ||
-      oldDelegate.rightWidth != rightWidth;
+      oldDelegate.top != top ||
+      oldDelegate.sides != sides ||
+      oldDelegate.width != width;
 }
