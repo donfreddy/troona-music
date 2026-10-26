@@ -80,10 +80,12 @@ class AlbumDetailPage extends StatelessWidget {
                       ),
                     ),
                     _AlbumTracksView(tracks: data.albumTracks),
-                    if (data.artistAlbums.isNotEmpty)
+                    if (data.artistAlbums.any((a) => a.id != data.album.id))
                       _MoreByArtistView(
                         artistName: data.album.artist,
-                        albums: data.artistAlbums,
+                        albums: data.artistAlbums
+                            .where((a) => a.id != data.album.id)
+                            .toList(),
                       ),
                     SliverPadding(
                       padding: EdgeInsets.only(
@@ -177,27 +179,24 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                           children: [
                             const SizedBox(height: AppSpacing.xl),
                             _animatedAlbumItem(
-                              Hero(
-                                tag: 'album-art-${album.id}',
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusMd,
-                                  ),
-                                  child: SizedBox.square(
-                                    dimension: 180,
-                                    child: album.artworkPath != null
-                                        ? ArtworkImage(album.artworkPath!)
-                                        : Container(
-                                            color: Colors.white.withValues(
-                                              alpha: .08,
-                                            ),
-                                            child: const Icon(
-                                              LucideIcons.disc,
-                                              color: Colors.white30,
-                                              size: 64,
-                                            ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusMd,
+                                ),
+                                child: SizedBox.square(
+                                  dimension: 180,
+                                  child: album.artworkPath != null
+                                      ? ArtworkImage(album.artworkPath!)
+                                      : Container(
+                                          color: Colors.white.withValues(
+                                            alpha: .08,
                                           ),
-                                  ),
+                                          child: const Icon(
+                                            LucideIcons.disc,
+                                            color: Colors.white30,
+                                            size: 64,
+                                          ),
+                                        ),
                                 ),
                               ),
                               0,
@@ -234,12 +233,23 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     2,
                                   ),
                                   _animatedAlbumItem(
-                                    Text(
-                                      '2024 • ${album.trackCount} tracks',
-                                      style: TextStyle(
-                                        color: colors.labelTertiary,
-                                        fontSize: 14,
-                                      ),
+                                    Builder(
+                                      builder: (_) {
+                                        final year = tracks
+                                            .map((t) => t.year)
+                                            .where((y) => y != null && y > 0)
+                                            .firstOrNull;
+                                        final subtitle = year != null
+                                            ? '$year • ${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}'
+                                            : '${album.trackCount} ${album.trackCount > 1 ? 'titres' : 'titre'}';
+                                        return Text(
+                                          subtitle,
+                                          style: TextStyle(
+                                            color: colors.labelTertiary,
+                                            fontSize: 14,
+                                          ),
+                                        );
+                                      },
                                     ),
                                     3,
                                   ),

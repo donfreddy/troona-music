@@ -23,8 +23,12 @@ import 'package:troona/shared/widgets/custom_sliver_header.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/features/library/presentation/widgets/library_stats_banner.dart';
+import 'package:troona/features/library/presentation/widgets/shuffle_banner.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
+import 'package:troona/shared/widgets/glass_button.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
+import 'package:troona/shared/widgets/section_heater.dart';
 
 class LibraryPage extends StatefulWidget {
   const LibraryPage({super.key});
@@ -192,12 +196,25 @@ class _LibraryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return switch (loaded.filter) {
-      LibraryFilter.all => _AllView(loaded: loaded),
-      LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
-      LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
-      LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
-    };
+    final statsBanner = SliverToBoxAdapter(
+      child: LibraryStatsBanner(
+        trackCount: loaded.allTracks.length,
+        albumCount: loaded.allAlbums.length,
+        artistCount: loaded.allArtists.length,
+      ),
+    );
+
+    return SliverMainAxisGroup(
+      slivers: [
+        if (loaded.filter == LibraryFilter.all) statsBanner,
+        switch (loaded.filter) {
+          LibraryFilter.all => _AllView(loaded: loaded),
+          LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
+          LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
+          LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
+        },
+      ],
+    );
   }
 }
 
@@ -233,16 +250,18 @@ class _AllView extends StatelessWidget {
       slivers: [
         // Section Albums (grille horizontale scrollable)
         if (loaded.visibleAlbums.isNotEmpty) ...[
-          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-          _SectionHeader(
-            title: 'Albums',
-            onViewAll: () => context.read<LibraryBloc>().add(
-              const LibraryFilterChanged(LibraryFilter.albums),
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Albums',
+              onViewAll: () => context.read<LibraryBloc>().add(
+                const LibraryFilterChanged(LibraryFilter.albums),
+              ),
             ),
           ),
           SliverToBoxAdapter(
             child: SizedBox(
-              height: 200,
+              height: 225,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -250,23 +269,54 @@ class _AllView extends StatelessWidget {
                 separatorBuilder: (_, _) =>
                     const SizedBox(width: AppSpacing.md),
                 itemBuilder: (context, i) => _animatedLibraryItem(
-                  AlbumCard(album: loaded.visibleAlbums[i]),
+                  AlbumCard(album: loaded.visibleAlbums[i], size: 145),
                   i,
                   slideY: .04,
                 ),
               ),
             ),
           ),
-          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.sm)),
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.md)),
+        ],
+
+        // Section Artistes (grille horizontale scrollable)
+        if (loaded.visibleArtists.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Artistes',
+              onViewAll: () => context.read<LibraryBloc>().add(
+                const LibraryFilterChanged(LibraryFilter.artists),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 145,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: loaded.visibleArtists.take(10).length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, i) => _animatedLibraryItem(
+                  ArtistCard(artist: loaded.visibleArtists[i], size: 95),
+                  i,
+                  slideY: .04,
+                ),
+              ),
+            ),
+          ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.md)),
         ],
 
         // Section Titres
         if (loaded.visibleTracks.isNotEmpty) ...[
-          const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xl)),
-          _SectionHeader(
-            title: 'Titres',
-            onViewAll: () => context.read<LibraryBloc>().add(
-              const LibraryFilterChanged(LibraryFilter.tracks),
+          SliverToBoxAdapter(
+            child: SectionHeader(
+              title: 'Titres',
+              onViewAll: () => context.read<LibraryBloc>().add(
+                const LibraryFilterChanged(LibraryFilter.tracks),
+              ),
             ),
           ),
           _TracksView(
@@ -297,27 +347,32 @@ class _TracksView extends StatelessWidget {
         ),
       );
     }
-    return SliverList.separated(
-      itemCount: tracks.length,
-      separatorBuilder: (_, _) =>
-          Divider(height: 0.5, indent: 72, color: context.colors.separator),
-      itemBuilder: (context, i) => _animatedLibraryItem(
-        TrackListTile(
-          key: ValueKey(
-            'track-${tracks[i].id}-${compact ? 'compact' : 'full'}-$i',
-          ),
-          track: tracks[i],
-          onTap: () => context.read<PlayerBloc>().add(
-            PlayTrackRequested(
-              tracks[i],
-              contextQueue: tracks,
-              contextIndex: i,
+    return SliverMainAxisGroup(
+      slivers: [
+        if (!compact) SliverToBoxAdapter(child: ShuffleBanner(tracks: tracks)),
+        SliverList.separated(
+          itemCount: tracks.length,
+          separatorBuilder: (_, _) =>
+              Divider(height: 0.5, indent: 72, color: context.colors.separator),
+          itemBuilder: (context, i) => _animatedLibraryItem(
+            TrackListTile(
+              key: ValueKey(
+                'track-${tracks[i].id}-${compact ? 'compact' : 'full'}-$i',
+              ),
+              track: tracks[i],
+              onTap: () => context.read<PlayerBloc>().add(
+                PlayTrackRequested(
+                  tracks[i],
+                  contextQueue: tracks,
+                  contextIndex: i,
+                ),
+              ),
+              onLongPress: () => _showContextMenu(context, tracks[i]),
             ),
+            i,
           ),
-          onLongPress: () => _showContextMenu(context, tracks[i]),
         ),
-        i,
-      ),
+      ],
     );
   }
 
@@ -347,14 +402,12 @@ class _AlbumsView extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.lg) +
           const EdgeInsets.only(top: AppSpacing.lg),
-
-      //todo: Also check when miniPlayer is not showing
       sliver: SliverGrid.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          // crossAxisSpacing: AppSpacing.md,
-          // mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.86,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.lg,
+          childAspectRatio: 0.72,
         ),
         itemCount: albums.length,
         itemBuilder: (context, i) => _animatedLibraryItem(
@@ -382,7 +435,7 @@ class _ArtistsView extends StatelessWidget {
     if (artists.isEmpty) {
       return const SliverFillRemaining(
         child: EmptyState(
-          message: 'Aucune artiste trouvée',
+          message: 'Aucun artiste trouvé',
           icon: Icons.person,
         ),
       );
@@ -391,13 +444,12 @@ class _ArtistsView extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.lg) +
           const EdgeInsets.only(top: AppSpacing.lg),
-      //todo: Also check when miniPlayer is not showing
       sliver: SliverGrid.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          // crossAxisSpacing: AppSpacing.md,
-          // mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 0.86,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.lg,
+          childAspectRatio: 0.78,
         ),
         itemCount: artists.length,
         itemBuilder: (context, i) => _animatedLibraryItem(
@@ -408,83 +460,6 @@ class _ArtistsView extends StatelessWidget {
           i,
           slideY: .06,
         ),
-      ),
-    );
-  }
-}
-
-// ── Section header ────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final VoidCallback? onViewAll;
-
-  const _SectionHeader({required this.title, this.onViewAll});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: _animatedLibraryItem(
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            0,
-            AppSpacing.lg,
-            AppSpacing.md,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.4,
-                  color: context.colors.labelPrimary,
-                ),
-              ),
-              if (onViewAll != null)
-                GestureDetector(
-                  onTap: onViewAll,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: .15),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: const Text(
-                      'View All',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              // CupertinoButton(
-              //   padding: EdgeInsets.zero,
-              //   onPressed: onViewAll,
-              //   child: Text(
-              //     'View all',
-              //     style: context.textTheme.labelLarge?.copyWith(
-              //       color: context.colors.accent,
-              //     ),
-              //   ),
-              // ),
-            ],
-          ),
-        ),
-        0,
-        slideY: .05,
       ),
     );
   }
@@ -655,10 +630,11 @@ class _FirstLaunchEmpty extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xl2),
-          CupertinoButton.filled(
-            onPressed: () =>
+          GlassButton.filled(
+            label: 'Scanner la bibliothèque',
+            leading: const Icon(LucideIcons.scanLine, size: 18),
+            onTap: () =>
                 context.read<LibraryBloc>().add(const LibraryScanRequested()),
-            child: const Text('Scanner la bibliothèque'),
           ),
         ],
       ),

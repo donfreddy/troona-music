@@ -70,6 +70,7 @@ final appRouter = GoRouter(
             GoRoute(path: '/', redirect: (_, _) => AppRoute.home),
             GoRoute(
               path: AppRoute.home,
+              name: AppRoute.home,
               builder: (context, _) => BlocProvider(
                 create: (_) => getIt<HomeBloc>()..add(HomeRefreshRequested()),
                 child: const HomePage(),
@@ -92,13 +93,15 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoute.library,
-              builder: (_, _) => LibraryPage(),
+              name: AppRoute.library,
+              builder: (_, _) => const LibraryPage(),
               routes: [
                 GoRoute(
                   path: 'albums/:id',
                   name: AppRoute.albumDetail,
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
-                    final id = int.parse(state.pathParameters['id']!);
+                    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     return BlocProvider(
                       create: (_) =>
                           getIt<AlbumDetailBloc>()
@@ -110,8 +113,9 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: 'artists/:id',
                   name: AppRoute.artistDetail,
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
-                    final id = int.parse(state.pathParameters['id']!);
+                    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     return BlocProvider(
                       create: (_) =>
                           getIt<ArtistDetailBloc>()
@@ -129,6 +133,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoute.search,
+              name: AppRoute.search,
               builder: (context, _) => BlocProvider(
                 create: (_) => getIt<SearchBloc>(),
                 child: const SearchPage(),
@@ -141,6 +146,7 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: AppRoute.playlists,
+              name: AppRoute.playlists,
               builder: (context, _) => BlocProvider(
                 create: (_) =>
                     getIt<PlaylistBloc>()..add(PlaylistListRequested()),
@@ -150,6 +156,7 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
+                  parentNavigatorKey: _rootNavigatorKey,
                   builder: (context, state) {
                     final id = state.pathParameters['id']!;
                     return BlocProvider(

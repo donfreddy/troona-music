@@ -74,6 +74,22 @@ final class _History implements PlayHistoryRepository {
 
   @override
   Future<Either<Failure, Unit>> record(PlayEvent event) async => right(unit);
+
+  @override
+  Future<Either<Failure, Map<String, int>>> topTrackIds({
+    int days = 7,
+    int limit = 5,
+  }) async => right({});
+
+  @override
+  Future<Either<Failure, List<String>>> forgottenTrackIds(
+    Set<String> likedIds, {
+    int staleDays = 14,
+    int limit = 5,
+  }) async => right([]);
+
+  @override
+  Future<Either<Failure, int>> totalPlays({int days = 7}) async => right(0);
 }
 
 void main() {
