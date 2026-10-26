@@ -65,8 +65,9 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     )).toOption().toNullable();
     if (!mounted) return;
     if (created == null) {
+      final overlay = Overlay.of(context, rootOverlay: true);
       Navigator.pop(context);
-      AppToast.show(context, l10n.errorGeneric);
+      AppToast.showOn(overlay, l10n.errorGeneric);
       return;
     }
     await _addTrackTo(created);
@@ -78,14 +79,14 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     final trackId = widget.track.id;
     final res = await repo.addTrackToPlaylist(playlist.id, trackId);
     if (!mounted) return;
-    // The toast outlives the sheet: show it from the caller's context.
-    final host = Navigator.of(context).context;
+    // The toast outlives the sheet: grab the root overlay before closing it.
+    final overlay = Overlay.of(context, rootOverlay: true);
     Navigator.pop(context);
 
     res.fold(
-      (_) => AppToast.show(host, l10n.errorGeneric),
-      (_) => AppToast.show(
-        host,
+      (_) => AppToast.showOn(overlay, l10n.errorGeneric),
+      (_) => AppToast.showOn(
+        overlay,
         l10n.playlistAddedTo(playlist.name),
         actionLabel: l10n.actionUndo,
         onAction: () => repo.removeTrackFromPlaylist(playlist.id, trackId),

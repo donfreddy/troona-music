@@ -23,10 +23,31 @@ abstract final class AppToast {
   }) {
     final overlay = Overlay.maybeOf(context, rootOverlay: true);
     if (overlay == null) return;
+    showOn(
+      overlay,
+      message,
+      actionLabel: actionLabel,
+      onAction: onAction,
+      duration: duration,
+    );
+  }
+
+  /// Same as [show], on an overlay captured earlier. Use it when the calling
+  /// route is about to close, since its context can no longer find one.
+  static void showOn(
+    OverlayState overlay,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    if (!overlay.mounted) return;
     dismiss();
 
     final bottom =
-        AppSpacing.bottomBlockHeight + MediaQuery.paddingOf(context).bottom + 8;
+        AppSpacing.bottomBlockHeight +
+        MediaQuery.paddingOf(overlay.context).bottom +
+        8;
     final entry = OverlayEntry(
       builder: (context) => Positioned(
         left: AppSpacing.lg,
