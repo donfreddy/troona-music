@@ -1,5 +1,5 @@
 // Bridge between audio_service (lock screen / notification controls) and
-// JustAudioAdapter. Delegates every command to the adapter — no business
+// JustAudioAdapter. Delegates every command to the adapter; no business
 // logic lives here.
 
 import 'package:audio_service/audio_service.dart';
@@ -15,7 +15,7 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 /// NOT registered in the DI container. The [AudioServicePort] adapter
 /// ([JustAudioAdapter]) is what gets injected elsewhere.
 ///
-/// All [BaseAudioHandler] overrides delegate to [_port] — state is owned by
+/// All [BaseAudioHandler] overrides delegate to [_port]; state is owned by
 /// [JustAudioAdapter] and surfaced via streams.
 class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioServicePort _port;
@@ -41,19 +41,45 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     });
 
-    // Forward the current track to the OS media-item metadata stream.
+    // Forward the current track to the OS media-item metadata stream. An
+    // automatic advance keeps the status at "playing", so the position is
+    // re-anchored here too.
     _port.currentTrackStream.listen((track) {
-      if (track != null) mediaItem.add(_trackToMediaItem(track));
+      if (track == null) return;
+      mediaItem.add(_trackToMediaItem(track));
+      playbackState.add(
+        playbackState.value.copyWith(
+          updatePosition: _port.currentPosition,
+          queueIndex: _port.currentQueue?.currentIndex,
+        ),
+      );
     });
 
     // Forward the queue so the OS notification can show track count.
     _port.queueStream.listen((q) {
       queue.add(q.playbackTracks.map(_trackToMediaItem).toList());
+      playbackState.add(
+        playbackState.value.copyWith(queueIndex: q.currentIndex),
+      );
+    });
+
+    // The OS extrapolates the position from the last snapshot. Only a jump
+    // away from that estimate (a seek made in the app) needs a new one, so
+    // regular ticks are not forwarded.
+    _port.positionStream.listen((position) {
+      final drift = position - playbackState.value.position;
+      if (drift.abs() > _maxDrift) {
+        playbackState.add(
+          playbackState.value.copyWith(updatePosition: position),
+        );
+      }
     });
   }
 
+  static const _maxDrift = Duration(seconds: 2);
+
   // ---------------------------------------------------------------------------
-  // BaseAudioHandler overrides — all delegate to _port
+  // BaseAudioHandler overrides: all delegate to _port
   // ---------------------------------------------------------------------------
 
   @override
