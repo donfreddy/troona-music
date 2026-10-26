@@ -105,24 +105,35 @@ final class PlaybackSessionStore {
   /// What the queue key holds, so an unchanged queue is not written again.
   int? _savedQueueSignature;
 
+  /// Written with the queue and with every state, so [load] can tell a state
+  /// from one queue apart from a queue that replaced it: a process killed
+  /// between the two writes leaves them mismatched.
+  int _queueRevision = 0;
+
   PlaybackSessionStore(this._prefs);
 
   Future<void> save(PlaybackSessionSnapshot snapshot) async {
     final json = snapshot.toJson();
     final queue = {for (final key in _queueFields) key: json.remove(key)};
     final signature = Object.hash(
+      snapshot.originalTrackIds.length,
+      snapshot.playbackTrackIds.length,
       Object.hashAll(snapshot.originalTrackIds),
       Object.hashAll(snapshot.playbackTrackIds),
     );
-    final writes = [_prefs.setString(_stateKey, jsonEncode(json))];
+    final writes = <Future<Object?>>[];
     if (signature != _savedQueueSignature) {
       // Set before writing: saves are not awaited by the caller, and
       // SharedPreferences applies writes in call order.
       _savedQueueSignature = signature;
+      _queueRevision = DateTime.now().microsecondsSinceEpoch;
+      queue[_revisionField] = _queueRevision;
       writes
         ..add(_prefs.setString(_queueKey, jsonEncode(queue)))
         ..add(_prefs.remove(_legacyKey));
     }
+    json[_revisionField] = _queueRevision;
+    writes.add(_prefs.setString(_stateKey, jsonEncode(json)));
     try {
       await Future.wait(writes);
     } catch (_) {
@@ -132,11 +143,14 @@ final class PlaybackSessionStore {
   }
 
   static const _queueFields = ['original_track_ids', 'playback_track_ids'];
+  static const _revisionField = 'queue_revision';
 
   PlaybackSessionSnapshot? load() {
     final queue = _decode(_prefs.getString(_queueKey));
     final state = _decode(_prefs.getString(_stateKey));
     if (queue != null && state != null) {
+      // Half of a save: restoring it would pair a track with the wrong queue.
+      if (queue[_revisionField] != state[_revisionField]) return null;
       return PlaybackSessionSnapshot.fromJson({...state, ...queue});
     }
     // Sessions saved before the split: one key with everything.

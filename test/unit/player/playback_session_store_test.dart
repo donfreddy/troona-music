@@ -23,6 +23,7 @@ PlaybackSessionSnapshot _snapshot({
 
 void main() {
   const queueKey = 'playback_session_queue_v2';
+  const stateKey = 'playback_session_state_v2';
   const legacyKey = 'playback_session_v1';
 
   late SharedPreferences prefs;
@@ -72,6 +73,26 @@ void main() {
 
     await store.save(_snapshot(positionMs: 1000));
     expect(store.load()?.positionMs, 1000);
+  });
+
+  group('a process killed between the two writes', () {
+    test('new queue with the old state loads as no session', () async {
+      await store.save(_snapshot());
+      final oldState = prefs.getString(stateKey);
+      await store.save(_snapshot(queue: ['x', 'y']));
+      await prefs.setString(stateKey, oldState!);
+
+      expect(PlaybackSessionStore(prefs).load(), isNull);
+    });
+
+    test('new state with the old queue loads as no session', () async {
+      await store.save(_snapshot());
+      final oldQueue = prefs.getString(queueKey);
+      await store.save(_snapshot(queue: ['x', 'y']));
+      await prefs.setString(queueKey, oldQueue!);
+
+      expect(PlaybackSessionStore(prefs).load(), isNull);
+    });
   });
 
   test('a session saved before the split still loads, then migrates', () async {
