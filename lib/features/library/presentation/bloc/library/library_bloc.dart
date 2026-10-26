@@ -417,7 +417,6 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   // ══════════════════════════════════════════════════════════
 
   Future<void> _cancelScan() async {
-    _scanLibrary.cancel();
     await _scanSub?.cancel();
     _scanSub = null;
   }

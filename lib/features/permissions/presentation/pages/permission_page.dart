@@ -24,36 +24,8 @@ class PermissionPage extends StatefulWidget {
 
 enum _PermissionState { idle, loading, denied, permanentlyDenied }
 
-class _PermissionPageState extends State<PermissionPage>
-    with WidgetsBindingObserver {
+class _PermissionPageState extends State<PermissionPage> {
   _PermissionState _state = _PermissionState.idle;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        _state == _PermissionState.permanentlyDenied) {
-      _checkIfNowGranted();
-    }
-  }
-
-  Future<void> _checkIfNowGranted() async {
-    AppPermissionHandler.invalidateCache();
-    final granted = await AppPermissionHandler.hasAudioPermission();
-    if (!mounted || !granted) return;
-    context.go('/home');
-  }
 
   Future<void> _requestPermission() async {
     setState(() => _state = _PermissionState.loading);
@@ -63,12 +35,14 @@ class _PermissionPageState extends State<PermissionPage>
       if (!mounted) return;
       // Permission granted — GoRouter redirect will now pass.
       context.go('/home');
-    } on PermissionPermanentlyDeniedException catch (_) {
+    } on PermissionException catch (e) {
       if (!mounted) return;
-      setState(() => _state = _PermissionState.permanentlyDenied);
-    } on PermissionException catch (_) {
-      if (!mounted) return;
-      setState(() => _state = _PermissionState.denied);
+      final isPermanent = e.message.contains('permanently');
+      setState(
+        () => _state = isPermanent
+            ? _PermissionState.permanentlyDenied
+            : _PermissionState.denied,
+      );
     } catch (_) {
       if (!mounted) return;
       setState(() => _state = _PermissionState.denied);

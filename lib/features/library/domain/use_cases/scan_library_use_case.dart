@@ -11,6 +11,4 @@ class ScanLibraryUseCase {
   const ScanLibraryUseCase(this._repo);
 
   Future<Either<Failure, Stream<ScanProgress>>> call() => _repo.scanLibrary();
-
-  void cancel() => _repo.cancelScan();
 }

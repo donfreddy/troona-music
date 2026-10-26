@@ -117,13 +117,10 @@ final class MediaScannerService {
     }
 
     // ── Phase 3: artwork extraction ─────────────────────────────────────────
-    // Load the list first so the initial progress event already carries total,
-    // preventing the UI from briefly showing the indeterminate spinner before
-    // jumping to a determinate bar.
+    yield const ScanProgress(phase: ScanPhase.artworks, progress: 0);
+
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     final artworkTotal = tracksWithoutArtwork.length;
-
-    yield ScanProgress(phase: ScanPhase.artworks, progress: 0, total: artworkTotal);
     var done = 0;
 
     await for (final updated in _artworkExtractor.extractArtworks(

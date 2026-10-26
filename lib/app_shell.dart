@@ -41,7 +41,7 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
+class _AppShellState extends State<AppShell> {
   bool _didRequestPlaybackRestore = false;
   bool _didRestoreFullPlayerRoute = false;
   String _currentLocation = '';
@@ -51,7 +51,6 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _currentLocation = widget.location;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -117,15 +116,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      AppPermissionHandler.invalidateCache();
-    }
-  }
-
-  @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _noticesSub?.cancel();
     _router?.routerDelegate.removeListener(_onRouteChanged);
     super.dispose();
