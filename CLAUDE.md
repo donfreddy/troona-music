@@ -74,7 +74,7 @@ Three-level token hierarchy in `lib/core/theme/`:
 2. **Semantic**: `bgPrimary`, `glassFill`, `glassBorder`, `accent`
 3. **Components**: `GlassConfig` presets per surface and quality tier (high, low, off). `GlassCard` is flat by default: blur is for chrome (tab bar, header, sheets, Now Playing), never for cards in scrolling content.
 
-Every `BackdropFilter` takes `GlassFilter.of(sigma, saturation: config.saturation)`, never a bare `ImageFilter.blur`. Surfaces that carry text are thick and keep colours as they are: `GlassTheme.bar` (tab bar, collapsed header) and `GlassTheme.sheet` (about 70 % dark fill, saturation 1), so covers behind them never show as coloured stains. The 1.6x saturation boost is for decorative glass over artwork (Now Playing lens and dock).
+Every `BackdropFilter` takes `GlassFilter.of(sigma, saturation: config.saturation)`, never a bare `ImageFilter.blur`. Surfaces that carry text keep colours as they are (saturation 1, thin glass): `GlassTheme.bar` (tab bar, collapsed header) and `GlassTheme.sheet`, so covers behind them never show as vivid stains. The 1.6x saturation boost is for decorative glass over artwork (Now Playing lens and dock).
 
 `BackdropFilter` performance rules (enforced throughout):
 - Always wrap in a `RepaintBoundary`.
