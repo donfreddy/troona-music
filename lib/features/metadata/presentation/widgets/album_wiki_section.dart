@@ -163,34 +163,36 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                     color: Colors.white.withValues(alpha: 0.85),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                GestureDetector(
-                  onTap: () => setState(() => _isExpanded = !_isExpanded),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          _isExpanded ? 'Moins' : 'Lire la suite',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                if (wiki.length > 200) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  GestureDetector(
+                    onTap: () => setState(() => _isExpanded = !_isExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _isExpanded ? 'Moins' : 'Lire la suite',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: colors.accent,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            _isExpanded
+                                ? LucideIcons.chevronUp
+                                : LucideIcons.chevronDown,
+                            size: 14,
                             color: colors.accent,
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Icon(
-                          _isExpanded
-                              ? LucideIcons.chevronUp
-                              : LucideIcons.chevronDown,
-                          size: 14,
-                          color: colors.accent,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ],
           ),

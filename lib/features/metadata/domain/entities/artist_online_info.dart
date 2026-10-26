@@ -10,6 +10,7 @@ class ArtistOnlineInfo extends Equatable {
   final List<String> tags;
   final List<SimilarArtistInfo> similarArtists;
   final bool isOnTour;
+  final String? lastFmUrl;
 
   const ArtistOnlineInfo({
     this.bio,
@@ -20,6 +21,7 @@ class ArtistOnlineInfo extends Equatable {
     this.tags = const [],
     this.similarArtists = const [],
     this.isOnTour = false,
+    this.lastFmUrl,
   });
 
   /// Human-readable listeners count (e.g. "1.2 M auditeurs" or "450 k auditeurs").
@@ -62,6 +64,7 @@ class ArtistOnlineInfo extends Equatable {
     tags,
     similarArtists,
     isOnTour,
+    lastFmUrl,
   ];
 }
 

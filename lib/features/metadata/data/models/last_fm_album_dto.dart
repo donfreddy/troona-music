@@ -31,6 +31,7 @@ class LastFmAlbumDto {
       playCount: album?.playCount,
       imageUrl: album?.bestImageUrl,
       tags: album?.tags ?? const [],
+      lastFmUrl: album?.wiki?.lastFmUrl,
     );
   }
 }
@@ -135,30 +136,53 @@ class LastFmAlbumData {
 
 class LastFmWikiDto {
   final String? content;
+  final String? summary;
   final String? published;
 
-  const LastFmWikiDto({this.content, this.published});
+  const LastFmWikiDto({
+    this.content,
+    this.summary,
+    this.published,
+  });
 
   factory LastFmWikiDto.fromJson(Map<String, dynamic> json) {
     return LastFmWikiDto(
-      content: json['content'] as String? ?? json['summary'] as String?,
+      content: json['content'] as String?,
+      summary: json['summary'] as String?,
       published: json['published'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
     if (content != null) 'content': content,
+    if (summary != null) 'summary': summary,
     if (published != null) 'published': published,
   };
 
+  /// Extracts the URL inside href="..." if present.
+  static String? extractLink(String? raw) {
+    if (raw == null) return null;
+    final match = RegExp(r'href="([^"]+)"', caseSensitive: false).firstMatch(raw);
+    return match?.group(1);
+  }
+
   /// Cleans Last.fm HTML links, license boilerplate, and trailing spaces.
-  String? get cleanContent {
-    if (content == null || content!.trim().isEmpty) return null;
-    var text = content!;
-    text = text.replaceAll(RegExp(r'<a\b[^>]*>(.*?)<\/a>', caseSensitive: false), '');
-    text = text.replaceAll(RegExp(r'Read more on Last\.fm.*', caseSensitive: false), '');
+  static String? _stripBoilerplate(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    var text = raw;
     text = text.replaceAll(
-      RegExp(r'User-contributed text is available under.*', caseSensitive: false),
+      RegExp(r'<a\b[^>]*>(.*?)<\/a>', caseSensitive: false),
+      '',
+    );
+    text = text.replaceAll(
+      RegExp(r'Read more on Last\.fm.*', caseSensitive: false),
+      '',
+    );
+    text = text.replaceAll(
+      RegExp(
+        r'User-contributed text is available under.*',
+        caseSensitive: false,
+      ),
       '',
     );
     text = text.trim();
@@ -166,4 +190,31 @@ class LastFmWikiDto {
     text = text.trim();
     return text.isEmpty ? null : text;
   }
+
+  /// Returns cleaned album wiki text:
+  /// 1. Tries `content` without boilerplate.
+  /// 2. If empty, falls back to `summary` without boilerplate.
+  /// 3. If both only contained the Last.fm link (e.g. `<a href="...">Read more on Last.fm</a>`),
+  ///    returns a clean user-facing fallback text without raw HTML.
+  String? get cleanContent {
+    final cleanContentText = _stripBoilerplate(content);
+    if (cleanContentText != null && cleanContentText.isNotEmpty) {
+      return cleanContentText;
+    }
+
+    final cleanSummaryText = _stripBoilerplate(summary);
+    if (cleanSummaryText != null && cleanSummaryText.isNotEmpty) {
+      return cleanSummaryText;
+    }
+
+    final hasLink = (summary != null && summary!.contains('<a href')) ||
+        (content != null && content!.contains('<a href'));
+    if (hasLink) {
+      return 'Consulter la page complète sur Last.fm.';
+    }
+
+    return null;
+  }
+
+  String? get lastFmUrl => extractLink(summary) ?? extractLink(content);
 }

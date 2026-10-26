@@ -32,6 +32,7 @@ class LastFmArtistDto {
       similarArtists:
           artist?.similar.map((s) => s.toDomain()).toList() ?? const [],
       isOnTour: artist?.isOnTour ?? false,
+      lastFmUrl: artist?.bio?.lastFmUrl,
     );
   }
 }
@@ -271,26 +272,40 @@ class LastFmStatsDto {
 
 class LastFmBioDto {
   final String? content;
+  final String? summary;
   final String? published;
 
-  const LastFmBioDto({this.content, this.published});
+  const LastFmBioDto({
+    this.content,
+    this.summary,
+    this.published,
+  });
 
   factory LastFmBioDto.fromJson(Map<String, dynamic> json) {
     return LastFmBioDto(
-      content: json['content'] as String? ?? json['summary'] as String?,
+      content: json['content'] as String?,
+      summary: json['summary'] as String?,
       published: json['published'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() => {
     if (content != null) 'content': content,
+    if (summary != null) 'summary': summary,
     if (published != null) 'published': published,
   };
 
+  /// Extracts the URL inside href="..." if present.
+  static String? extractLink(String? raw) {
+    if (raw == null) return null;
+    final match = RegExp(r'href="([^"]+)"', caseSensitive: false).firstMatch(raw);
+    return match?.group(1);
+  }
+
   /// Cleans Last.fm HTML links, license boilerplate, and trailing spaces.
-  String? get cleanContent {
-    if (content == null || content!.trim().isEmpty) return null;
-    var text = content!;
+  static String? _stripBoilerplate(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    var text = raw;
     text = text.replaceAll(
       RegExp(r'<a\b[^>]*>(.*?)<\/a>', caseSensitive: false),
       '',
@@ -311,6 +326,34 @@ class LastFmBioDto {
     text = text.trim();
     return text.isEmpty ? null : text;
   }
+
+  /// Returns cleaned bio text:
+  /// 1. Tries `content` without boilerplate.
+  /// 2. If empty, falls back to `summary` without boilerplate.
+  /// 3. If both only contained the Last.fm link (e.g. `<a href="...">Read more on Last.fm</a>`),
+  ///    returns a clean user-facing fallback text without raw HTML.
+  String? get cleanContent {
+    final cleanContentText = _stripBoilerplate(content);
+    if (cleanContentText != null && cleanContentText.isNotEmpty) {
+      return cleanContentText;
+    }
+
+    final cleanSummaryText = _stripBoilerplate(summary);
+    if (cleanSummaryText != null && cleanSummaryText.isNotEmpty) {
+      return cleanSummaryText;
+    }
+
+    // When summary or content only had the Last.fm wiki link
+    final hasLink = (summary != null && summary!.contains('<a href')) ||
+        (content != null && content!.contains('<a href'));
+    if (hasLink) {
+      return 'Consulter la page complète sur Last.fm.';
+    }
+
+    return null;
+  }
+
+  String? get lastFmUrl => extractLink(summary) ?? extractLink(content);
 }
 
 class LastFmImageDto {

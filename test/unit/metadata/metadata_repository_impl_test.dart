@@ -91,6 +91,50 @@ void main() {
       expect(domain.formattedPlayCount, equals('490.6 M écoutes'));
     });
 
+    test('falls back cleanly to summary when content is empty (Future & Zaytoven)', () {
+      // Case 1: summary has text before the link
+      final jsonWithText = {
+        'artist': {
+          'name': 'Future & Zaytoven',
+          'bio': {
+            'content': '',
+            'summary':
+                'Future & Zaytoven est un duo de trap américain. <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+          },
+        },
+      };
+      final dto1 = LastFmArtistDto.fromJson(jsonWithText);
+      expect(
+        dto1.toDomain().bio,
+        equals('Future & Zaytoven est un duo de trap américain.'),
+      );
+      expect(
+        dto1.toDomain().lastFmUrl,
+        equals('https://www.last.fm/music/Future+&+Zaytoven'),
+      );
+
+      // Case 2: summary only has the link "<a href="...">Read more on Last.fm</a>"
+      final jsonOnlyLink = {
+        'artist': {
+          'name': 'Future & Zaytoven',
+          'bio': {
+            'content': '',
+            'summary':
+                ' <a href="https://www.last.fm/music/Future+&+Zaytoven">Read more on Last.fm</a>',
+          },
+        },
+      };
+      final dto2 = LastFmArtistDto.fromJson(jsonOnlyLink);
+      expect(
+        dto2.toDomain().bio,
+        equals('Consulter la page complète sur Last.fm.'),
+      );
+      expect(
+        dto2.toDomain().lastFmUrl,
+        equals('https://www.last.fm/music/Future+&+Zaytoven'),
+      );
+    });
+
     test('cleans HTML anchor tags and boilerplate from album wiki', () {
       final json = {
         'album': {
