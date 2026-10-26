@@ -62,6 +62,7 @@ import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart'
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/history/play_history_recorder.dart';
+import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/core/theme/components/glass_theme.dart'
@@ -216,6 +217,9 @@ Future<void> configureDependencies() async {
       artworkCacheDir: artworkCache,
     ),
   );
+  getIt.registerLazySingleton<ArtistArtworkPrefetchService>(
+    () => ArtistArtworkPrefetchService(repo: getIt()),
+  );
 
   // ── Use cases ─────────────────────────────────────────────────────────────
   getIt
@@ -317,7 +321,9 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  getIt.registerFactory<HomeBloc>(() => HomeBloc(repo: getIt()));
+  getIt.registerFactory<HomeBloc>(
+    () => HomeBloc(repo: getIt(), prefetchService: getIt()),
+  );
 
   getIt.registerFactory<SearchBloc>(() => SearchBloc(repo: getIt()));
 
@@ -349,6 +355,7 @@ Future<void> configureDependencies() async {
       getTracks: getIt(),
       getAlbums: getIt(),
       getArtists: getIt(),
+      prefetchService: getIt(),
     ),
   );
 }

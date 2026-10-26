@@ -5,17 +5,22 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
+import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final HomeRepository _repo;
+  final ArtistArtworkPrefetchService? _prefetchService;
   late final StreamSubscription<void> _feedChangesSub;
 
-  HomeBloc({required HomeRepository repo})
-    : _repo = repo,
-      super(HomeInitial()) {
+  HomeBloc({
+    required HomeRepository repo,
+    ArtistArtworkPrefetchService? prefetchService,
+  })  : _repo = repo,
+        _prefetchService = prefetchService,
+        super(HomeInitial()) {
     on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
     on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
     // A recorded play reorders Recently Played. The reload keeps the loaded
@@ -46,8 +51,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final countResult = results[1];
 
     feedResult.fold((f) => emit(HomeError(f.message)), (feed) {
+      final homeFeed = feed as HomeFeed;
       final count = countResult.fold((_) => 0, (c) => c as int);
-      emit(HomeLoaded(feed as HomeFeed, totalTracks: count));
+      emit(HomeLoaded(homeFeed, totalTracks: count));
+
+      // Silently prefetch artist portrait photos in background for top artists
+      if (homeFeed.yourArtists.isNotEmpty) {
+        unawaited(_prefetchService?.prefetchArtists(homeFeed.yourArtists));
+      }
     });
   }
 }

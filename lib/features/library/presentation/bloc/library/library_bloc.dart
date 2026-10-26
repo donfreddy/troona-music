@@ -12,6 +12,7 @@ import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dar
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
+import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 part 'library_event.dart';
@@ -22,6 +23,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
   final GetTracksUseCase _getTracks;
   final GetAlbumsUseCase _getAlbums;
   final GetArtistsUseCase _getArtists;
+  final ArtistArtworkPrefetchService? _prefetchService;
 
   StreamSubscription<ScanProgress>? _scanSub;
 
@@ -30,10 +32,12 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     required GetTracksUseCase getTracks,
     required GetAlbumsUseCase getAlbums,
     required GetArtistsUseCase getArtists,
+    ArtistArtworkPrefetchService? prefetchService,
   }) : _scanLibrary = scanLibrary,
        _getTracks = getTracks,
        _getAlbums = getAlbums,
        _getArtists = getArtists,
+       _prefetchService = prefetchService,
        super(const LibraryInitial()) {
     on<LibraryBootstrapRequested>(
       _onBootstrapRequested,
@@ -63,6 +67,13 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final cached = await _readLoadedState();
     if (cached != null) {
       emit(cached);
+      if (cached.allArtists.isNotEmpty) {
+        unawaited(
+          _prefetchService?.prefetchArtists(
+            cached.allArtists.take(40).toList(),
+          ),
+        );
+      }
     }
 
     add(const LibraryScanRequested());
@@ -148,6 +159,13 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     }
 
     emit(loaded);
+    if (loaded.allArtists.isNotEmpty) {
+      unawaited(
+        _prefetchService?.prefetchArtists(
+          loaded.allArtists.take(40).toList(),
+        ),
+      );
+    }
   }
 
   Future<LibraryLoaded?> _readLoadedState() async {
@@ -223,6 +241,14 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
         sort: sort,
       ),
     );
+
+    if (event.artists.isNotEmpty) {
+      unawaited(
+        _prefetchService?.prefetchArtists(
+          event.artists.take(40).toList(),
+        ),
+      );
+    }
   }
 
   // ══════════════════════════════════════════════════════════

@@ -51,6 +51,7 @@ final class HomeRepositoryImpl implements HomeRepository {
               name: t.artist,
               trackCount: 0,
               albumCount: 0,
+              artworkPath: t.artworkPath,
             ),
           )
           .toList();

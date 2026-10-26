@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -16,6 +17,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
   final SettingsRepository _settingsRepo;
   final ApiClient _client;
   final Directory _artworkCacheDir;
+  final _artistArtworkUpdatedController = StreamController<String>.broadcast();
 
   MetadataRepositoryImpl({
     required MetadataCacheDataSource cache,
@@ -28,6 +30,22 @@ class MetadataRepositoryImpl implements MetadataRepository {
         _settingsRepo = settingsRepo,
         _client = client,
         _artworkCacheDir = artworkCacheDir;
+
+  @override
+  Stream<String> get onArtistArtworkUpdated =>
+      _artistArtworkUpdatedController.stream;
+
+  @override
+  String? getCachedArtistArtworkPath(String artistId) {
+    try {
+      final safeId = artistId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final targetFile = File('${_artworkCacheDir.path}/artists/$safeId.jpg');
+      if (targetFile.existsSync() && targetFile.lengthSync() > 0) {
+        return targetFile.path;
+      }
+    } catch (_) {}
+    return null;
+  }
 
   @override
   Future<ArtistOnlineInfo?> getArtistInfo(
@@ -152,6 +170,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
 
       if (await targetFile.exists() && (await targetFile.length()) > 0) {
         appLogger.d('Downloaded artist artwork: ${targetFile.path}');
+        _artistArtworkUpdatedController.add(artistId);
         return targetFile.path;
       }
       return null;
@@ -159,6 +178,25 @@ class MetadataRepositoryImpl implements MetadataRepository {
       appLogger.w('MetadataRepositoryImpl.downloadAndCacheArtistArtwork failed: $e');
       return null;
     }
+  }
+
+  @override
+  Future<String?> prefetchArtistPhoto({
+    required String artistId,
+    required String artistName,
+  }) async {
+    final cached = getCachedArtistArtworkPath(artistId);
+    if (cached != null) return cached;
+
+    final info = await getArtistInfo(artistName);
+    if (info == null || info.imageUrl == null || info.imageUrl!.isEmpty) {
+      return null;
+    }
+
+    return downloadAndCacheArtistArtwork(
+      artistId: artistId,
+      imageUrl: info.imageUrl!,
+    );
   }
 
   @override

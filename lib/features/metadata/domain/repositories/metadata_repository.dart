@@ -23,6 +23,15 @@ abstract interface class MetadataRepository {
     required String imageUrl,
   });
 
+  String? getCachedArtistArtworkPath(String artistId);
+
+  Stream<String> get onArtistArtworkUpdated;
+
+  Future<String?> prefetchArtistPhoto({
+    required String artistId,
+    required String artistName,
+  });
+
   Future<int> getMetadataCacheSizeBytes();
   Future<void> clearMetadataCache();
 }
