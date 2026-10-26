@@ -22,14 +22,15 @@ class LastFmAlbumDto {
     if (album != null) 'album': album!.toJson(),
   };
 
-  AlbumOnlineInfo toDomain() {
+  /// [withImage] false drops the picture, for when online photos are off.
+  AlbumOnlineInfo toDomain({bool withImage = true}) {
     return AlbumOnlineInfo(
       name: album?.name,
       wiki: album?.wiki?.cleanContent,
       published: album?.wiki?.published,
       listeners: album?.listeners,
       playCount: album?.playCount,
-      imageUrl: album?.bestImageUrl,
+      imageUrl: withImage ? album?.bestImageUrl : null,
       tags: album?.tags ?? const [],
       lastFmUrl: album?.wiki?.lastFmUrl,
     );

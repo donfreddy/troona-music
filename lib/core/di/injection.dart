@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:get_it/get_it.dart';
@@ -128,6 +129,14 @@ Future<void> configureDependencies() async {
   // ── Metadata cache directory & Remote Data Source ─────────────────────────
   final metadataCache = Directory('${cacheBase.path}/troona_metadata_cache');
   await metadataCache.create(recursive: true);
+  // Downloaded artist photos and album covers sit with the rest of the
+  // online info, so clearing it (or measuring it) covers them too.
+  final onlinePhotos = Directory('${metadataCache.path}/photos');
+  // Older builds kept them in the local covers folder.
+  for (final legacy in ['artists', 'albums']) {
+    final dir = Directory('${artworkCache.path}/$legacy');
+    if (await dir.exists()) unawaited(dir.delete(recursive: true));
+  }
   final metadataCacheDataSource = MetadataCacheDataSourceImpl(
     cacheDir: metadataCache,
   );
@@ -147,7 +156,7 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // Load settings once as a local variable — needed by AudioServiceInitializer
+  // Load settings once as a local variable: needed by AudioServiceInitializer
   // before DI is fully wired. SettingsRepository is registered as a lazy
   // singleton below (after all its own dependencies are ready).
   final settingsRepo = SettingsRepositoryImpl(sharedPrefs);
@@ -218,7 +227,7 @@ Future<void> configureDependencies() async {
       remote: getIt(),
       settingsRepo: getIt(),
       client: getIt(),
-      artworkCacheDir: artworkCache,
+      artworkCacheDir: onlinePhotos,
     ),
   );
   getIt.registerLazySingleton<MaintenanceRepository>(

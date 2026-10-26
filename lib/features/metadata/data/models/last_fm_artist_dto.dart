@@ -21,13 +21,14 @@ class LastFmArtistDto {
     if (artist != null) 'artist': artist!.toJson(),
   };
 
-  ArtistOnlineInfo toDomain() {
+  /// [withImage] false drops the picture, for when online photos are off.
+  ArtistOnlineInfo toDomain({bool withImage = true}) {
     return ArtistOnlineInfo(
       bio: artist?.bio?.cleanContent,
       published: artist?.bio?.published,
       listeners: artist?.stats?.listeners,
       playCount: artist?.stats?.playCount,
-      imageUrl: artist?.bestImageUrl,
+      imageUrl: withImage ? artist?.bestImageUrl : null,
       tags: artist?.tags ?? const [],
       similarArtists:
           artist?.similar.map((s) => s.toDomain()).toList() ?? const [],

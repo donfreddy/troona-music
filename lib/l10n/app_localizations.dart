@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlinePhotos.
   ///
   /// In en, this message translates to:
-  /// **'Artist photos'**
+  /// **'Artist photos and album covers'**
   String get settingsOnlinePhotos;
 
   /// No description provided for @settingsOnlineClear.
@@ -371,7 +371,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlineConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Bios and album notes will download again when you open an artist or an album.'**
+  /// **'Bios, album notes and photos will download again when you open an artist or an album, if they are still turned on.'**
   String get settingsOnlineConfirmBody;
 
   /// No description provided for @settingsOnlineCleared.

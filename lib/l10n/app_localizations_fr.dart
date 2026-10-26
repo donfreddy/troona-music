@@ -168,7 +168,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsOnlineBios => 'Biographies et notes d\'albums';
 
   @override
-  String get settingsOnlinePhotos => 'Photos d\'artistes';
+  String get settingsOnlinePhotos => 'Photos d\'artistes et pochettes';
 
   @override
   String get settingsOnlineClear => 'Effacer les infos téléchargées';
@@ -178,7 +178,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineConfirmBody =>
-      'Les biographies et notes d\'albums seront retéléchargées à l\'ouverture d\'un artiste ou d\'un album.';
+      'Les biographies, notes d\'albums et photos seront retéléchargées à l\'ouverture d\'un artiste ou d\'un album, si elles sont toujours activées.';
 
   @override
   String get settingsOnlineCleared => 'Infos téléchargées effacées';

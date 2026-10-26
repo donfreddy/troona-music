@@ -70,34 +70,9 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
         dto = LastFmArtistDto.fromJson(Map<String, dynamic>.from(data));
       }
 
-      // If Last.fm returns no image or the known placeholder star (2a96cbd8b46e442fc41c2b86b821562f),
-      // seamlessly fallback to Deezer HD artist photo
-      if (dto == null || dto.artist?.bestImageUrl == null) {
-        final deezerImg = await fetchDeezerArtistImage(artistName);
-        if (deezerImg != null && deezerImg.isNotEmpty) {
-          if (dto != null && dto.artist != null) {
-            dto = dto.copyWith(
-              artist: dto.artist!.copyWith(customImageUrl: deezerImg),
-            );
-          } else {
-            dto = LastFmArtistDto(
-              artist: LastFmArtistData(customImageUrl: deezerImg),
-            );
-          }
-        }
-      }
-
       return dto;
     } catch (e) {
       appLogger.w('LastFmRemoteDataSource.getArtistInfo failed silently: $e');
-      try {
-        final deezerImg = await fetchDeezerArtistImage(artistName);
-        if (deezerImg != null && deezerImg.isNotEmpty) {
-          return LastFmArtistDto(
-            artist: LastFmArtistData(customImageUrl: deezerImg),
-          );
-        }
-      } catch (_) {}
       return null;
     }
   }
@@ -134,22 +109,6 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
       LastFmAlbumDto? dto;
       if (data is Map && !data.containsKey('error')) {
         dto = LastFmAlbumDto.fromJson(Map<String, dynamic>.from(data));
-      }
-
-      // Fallback to Deezer for album cover if Last.fm has no cover or placeholder
-      if (dto == null || dto.album?.bestImageUrl == null) {
-        final deezerCover = await fetchDeezerAlbumCover(artistName, albumName);
-        if (deezerCover != null && deezerCover.isNotEmpty) {
-          if (dto != null && dto.album != null) {
-            dto = dto.copyWith(
-              album: dto.album!.copyWith(customImageUrl: deezerCover),
-            );
-          } else {
-            dto = LastFmAlbumDto(
-              album: LastFmAlbumData(customImageUrl: deezerCover),
-            );
-          }
-        }
       }
 
       return dto;

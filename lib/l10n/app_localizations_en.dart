@@ -166,7 +166,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsOnlineBios => 'Artist bios and album notes';
 
   @override
-  String get settingsOnlinePhotos => 'Artist photos';
+  String get settingsOnlinePhotos => 'Artist photos and album covers';
 
   @override
   String get settingsOnlineClear => 'Clear downloaded info';
@@ -176,7 +176,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineConfirmBody =>
-      'Bios and album notes will download again when you open an artist or an album.';
+      'Bios, album notes and photos will download again when you open an artist or an album, if they are still turned on.';
 
   @override
   String get settingsOnlineCleared => 'Downloaded info cleared';

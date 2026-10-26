@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:troona/core/network/api_client.dart';
 import 'package:troona/core/utils/app_logger.dart';
+import 'package:troona/features/metadata/data/models/last_fm_album_dto.dart';
+import 'package:troona/features/metadata/data/models/last_fm_artist_dto.dart';
 import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
 import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
@@ -47,42 +49,51 @@ class MetadataRepositoryImpl implements MetadataRepository {
     return null;
   }
 
+  /// The two opt-in switches. Unreadable settings count as both off: the
+  /// app stays offline unless the user said otherwise.
+  Future<({bool info, bool photos})> _onlineSwitches() async {
+    final settings = (await _settingsRepo.loadSettings()).fold(
+      (_) => null,
+      (s) => s,
+    );
+    return (
+      info: settings?.fetchOnlineMetadata ?? false,
+      photos: settings?.fetchArtistArtwork ?? false,
+    );
+  }
+
+  // Bios and stats come from Last.fm (info switch); pictures fall back to
+  // Deezer (photos switch). Each source is only contacted when its switch
+  // is on.
   @override
   Future<ArtistOnlineInfo?> getArtistInfo(
     String artistName, {
     bool forceRefresh = false,
   }) async {
     try {
-      final settingsRes = await _settingsRepo.loadSettings();
-      final settings = settingsRes.fold((_) => null, (s) => s);
-      if (settings != null && !settings.fetchOnlineMetadata) {
-        return null;
-      }
+      final online = await _onlineSwitches();
+      if (!online.info && !online.photos) return null;
 
-      if (!forceRefresh) {
-        final cached = await _cache.getArtist(artistName);
-        if (cached != null) {
-          if (cached.artist?.bestImageUrl != null) {
-            return cached.toDomain();
-          }
-          final deezerImg = await _remote.fetchDeezerArtistImage(artistName);
-          if (deezerImg != null && deezerImg.isNotEmpty) {
-            final updated = cached.copyWith(
-              artist: cached.artist?.copyWith(customImageUrl: deezerImg),
-            );
-            await _cache.saveArtist(artistName, updated);
-            return updated.toDomain();
-          }
-          return cached.toDomain();
+      LastFmArtistDto? dto;
+      if (online.info) {
+        dto = forceRefresh ? null : await _cache.getArtist(artistName);
+        if (dto == null) {
+          dto = await _remote.getArtistInfo(artistName: artistName);
+          if (dto != null) await _cache.saveArtist(artistName, dto);
         }
       }
+      if (!online.photos) return dto?.toDomain(withImage: false);
+      if (dto?.artist?.bestImageUrl != null) return dto!.toDomain();
 
-      final dto = await _remote.getArtistInfo(artistName: artistName);
-      if (dto != null) {
-        await _cache.saveArtist(artistName, dto);
-        return dto.toDomain();
-      }
-      return null;
+      final deezerImg = await _remote.fetchDeezerArtistImage(artistName);
+      if (deezerImg == null || deezerImg.isEmpty) return dto?.toDomain();
+      final artist = dto?.artist;
+      if (artist == null) return ArtistOnlineInfo(imageUrl: deezerImg);
+      final updated = dto!.copyWith(
+        artist: artist.copyWith(customImageUrl: deezerImg),
+      );
+      await _cache.saveArtist(artistName, updated);
+      return updated.toDomain();
     } catch (e) {
       appLogger.w('MetadataRepositoryImpl.getArtistInfo failed silently: $e');
       return null;
@@ -96,42 +107,37 @@ class MetadataRepositoryImpl implements MetadataRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      final settingsRes = await _settingsRepo.loadSettings();
-      final settings = settingsRes.fold((_) => null, (s) => s);
-      if (settings != null && !settings.fetchOnlineMetadata) {
-        return null;
-      }
+      final online = await _onlineSwitches();
+      if (!online.info && !online.photos) return null;
 
-      if (!forceRefresh) {
-        final cached = await _cache.getAlbum(artistName, albumName);
-        if (cached != null) {
-          if (cached.album?.bestImageUrl != null) {
-            return cached.toDomain();
-          }
-          final deezerCover = await _remote.fetchDeezerAlbumCover(
-            artistName,
-            albumName,
+      LastFmAlbumDto? dto;
+      if (online.info) {
+        dto = forceRefresh
+            ? null
+            : await _cache.getAlbum(artistName, albumName);
+        if (dto == null) {
+          dto = await _remote.getAlbumInfo(
+            artistName: artistName,
+            albumName: albumName,
           );
-          if (deezerCover != null && deezerCover.isNotEmpty) {
-            final updated = cached.copyWith(
-              album: cached.album?.copyWith(customImageUrl: deezerCover),
-            );
-            await _cache.saveAlbum(artistName, albumName, updated);
-            return updated.toDomain();
-          }
-          return cached.toDomain();
+          if (dto != null) await _cache.saveAlbum(artistName, albumName, dto);
         }
       }
+      if (!online.photos) return dto?.toDomain(withImage: false);
+      if (dto?.album?.bestImageUrl != null) return dto!.toDomain();
 
-      final dto = await _remote.getAlbumInfo(
-        artistName: artistName,
-        albumName: albumName,
+      final deezerCover = await _remote.fetchDeezerAlbumCover(
+        artistName,
+        albumName,
       );
-      if (dto != null) {
-        await _cache.saveAlbum(artistName, albumName, dto);
-        return dto.toDomain();
-      }
-      return null;
+      if (deezerCover == null || deezerCover.isEmpty) return dto?.toDomain();
+      final album = dto?.album;
+      if (album == null) return AlbumOnlineInfo(imageUrl: deezerCover);
+      final updated = dto!.copyWith(
+        album: album.copyWith(customImageUrl: deezerCover),
+      );
+      await _cache.saveAlbum(artistName, albumName, updated);
+      return updated.toDomain();
     } catch (e) {
       appLogger.w('MetadataRepositoryImpl.getAlbumInfo failed silently: $e');
       return null;
@@ -144,11 +150,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
     required String imageUrl,
   }) async {
     try {
-      final settingsRes = await _settingsRepo.loadSettings();
-      final settings = settingsRes.fold((_) => null, (s) => s);
-      if (settings != null && !settings.fetchArtistArtwork) {
-        return null;
-      }
+      if (!(await _onlineSwitches()).photos) return null;
 
       if (imageUrl.isEmpty) return null;
 
@@ -189,6 +191,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
   }) async {
     final cached = getCachedArtistArtworkPath(artistId);
     if (cached != null) return cached;
+    if (!(await _onlineSwitches()).photos) return null;
 
     final info = await getArtistInfo(artistName);
     if (info == null || info.imageUrl == null || info.imageUrl!.isEmpty) {
@@ -207,11 +210,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
     required String imageUrl,
   }) async {
     try {
-      final settingsRes = await _settingsRepo.loadSettings();
-      final settings = settingsRes.fold((_) => null, (s) => s);
-      if (settings != null && !settings.fetchArtistArtwork) {
-        return null;
-      }
+      if (!(await _onlineSwitches()).photos) return null;
 
       if (imageUrl.isEmpty) return null;
 
@@ -251,6 +250,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
 
   @override
   Future<void> clearMetadataCache() async {
+    // Also removes the downloaded photos: they live inside that cache.
     await _cache.clearCache();
   }
 }
