@@ -473,10 +473,10 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
       ),
       body: ListView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.only(top: AppSpacing.xs),
+        //padding: const EdgeInsets.only(top: AppSpacing.xs),
         children: [
           // ── Header Bêta Banner ────────────────────────────────────────────
-          _buildBetaHeaderBanner(colors),
+          //_buildBetaHeaderBanner(colors),
 
           // ── SECTION 1 : Lecture & Audio ───────────────────────────────────
           SettingsSection(
@@ -919,7 +919,8 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
         Icon(LucideIcons.music, size: 20, color: colors.labelTertiary),
         const SizedBox(height: 6),
         Text(
-          'Troona Music  •  Build ${SettingsPage.appBuild}',
+          'Troona Music  •  Version ${SettingsPage.appVersion} •  Build ${SettingsPage.appBuild}',
+
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -931,7 +932,7 @@ Date: ${DateTime.now().toLocal().toString().split('.')[0]}
           'Lecteur audiophile 100% hors-ligne & respectueux de la vie privée',
           style: TextStyle(
             fontSize: 11,
-            color: colors.labelTertiary.withValues(alpha: 0.7),
+            color: colors.labelTertiary.withValues(alpha: 0.4),
           ),
         ),
       ],

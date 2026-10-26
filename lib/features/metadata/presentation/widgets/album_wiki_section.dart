@@ -29,173 +29,170 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: GlassCard(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header: Title & Last.fm badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        LucideIcons.disc,
-                        size: 18,
-                        color: colors.accent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: Title & Last.fm badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      LucideIcons.disc,
+                      size: 18,
+                      color: colors.accent,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    const Text(
+                      'À propos de l\'album',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.3,
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      const Text(
-                        'À propos de l\'album',
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD51007),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Last.fm',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.3,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: colors.labelSecondary,
                         ),
                       ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 3,
+                ),
+              ],
+            ),
+        
+            // Tags (Genres, Styles)
+            if (tags.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: tags.map((tag) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: colors.accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colors.accent.withValues(alpha: 0.28),
+                      width: 0.8,
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
+                  ),
+                  child: Text(
+                    '#$tag',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: colors.accent,
+                      letterSpacing: 0.2,
                     ),
+                  ),
+                )).toList(),
+              ),
+            ],
+        
+            // Stat chips & release info
+            if (listeners != null || playCount != null || published != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  if (listeners != null)
+                    _StatBadge(
+                      icon: LucideIcons.headphones,
+                      label: listeners,
+                    ),
+                  if (playCount != null)
+                    _StatBadge(
+                      icon: LucideIcons.play,
+                      label: playCount,
+                    ),
+                  if (published != null && published.isNotEmpty)
+                    _StatBadge(
+                      icon: LucideIcons.calendar,
+                      label: published,
+                    ),
+                ],
+              ),
+            ],
+        
+            // Wiki story content
+            if (wiki != null && wiki.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                wiki,
+                maxLines: _isExpanded ? null : 4,
+                overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+              ),
+              if (wiki.length > 200) ...[
+                const SizedBox(height: AppSpacing.xs),
+                GestureDetector(
+                  onTap: () => setState(() => _isExpanded = !_isExpanded),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFD51007),
-                            shape: BoxShape.circle,
+                        Text(
+                          _isExpanded ? 'Moins' : 'Lire la suite',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: colors.accent,
                           ),
                         ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'Last.fm',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: colors.labelSecondary,
-                          ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          _isExpanded
+                              ? LucideIcons.chevronUp
+                              : LucideIcons.chevronDown,
+                          size: 14,
+                          color: colors.accent,
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-
-              // Tags (Genres, Styles)
-              if (tags.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: tags.map((tag) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: colors.accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: colors.accent.withValues(alpha: 0.28),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Text(
-                      '#$tag',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.accent,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  )).toList(),
                 ),
-              ],
-
-              // Stat chips & release info
-              if (listeners != null || playCount != null || published != null) ...[
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    if (listeners != null)
-                      _StatBadge(
-                        icon: LucideIcons.headphones,
-                        label: listeners,
-                      ),
-                    if (playCount != null)
-                      _StatBadge(
-                        icon: LucideIcons.play,
-                        label: playCount,
-                      ),
-                    if (published != null && published.isNotEmpty)
-                      _StatBadge(
-                        icon: LucideIcons.calendar,
-                        label: published,
-                      ),
-                  ],
-                ),
-              ],
-
-              // Wiki story content
-              if (wiki != null && wiki.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  wiki,
-                  maxLines: _isExpanded ? null : 4,
-                  overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-                if (wiki.length > 200) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  GestureDetector(
-                    onTap: () => setState(() => _isExpanded = !_isExpanded),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _isExpanded ? 'Moins' : 'Lire la suite',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: colors.accent,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            _isExpanded
-                                ? LucideIcons.chevronUp
-                                : LucideIcons.chevronDown,
-                            size: 14,
-                            color: colors.accent,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ],
-          ),
+          ],
         ),
       ),
     );
