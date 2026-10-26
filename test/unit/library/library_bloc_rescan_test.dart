@@ -135,4 +135,27 @@ void main() {
       expect(bloc.state, isA<LibraryLoaded>());
     },
   );
+
+  test('a scan that reports done reads the library once', () async {
+    bloc.add(const LibraryBootstrapRequested());
+    await settle();
+    await settle();
+    final readsBefore = repo.reads;
+
+    // The scanner yields its own done, then its stream closes while the
+    // first read is still running.
+    final held = repo.gate = Completer<void>();
+    repo.scans.last.add(const ScanProgress(phase: ScanPhase.done, progress: 1));
+    await repo.scans.last.close();
+    for (var i = 0; i < 4; i++) {
+      await settle();
+    }
+    held.complete();
+    for (var i = 0; i < 4; i++) {
+      await settle();
+    }
+
+    expect(repo.reads, readsBefore + 1);
+    expect(bloc.state, isA<LibraryLoaded>());
+  });
 }

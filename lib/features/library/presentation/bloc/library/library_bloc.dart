@@ -27,6 +27,7 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
 
   /// Bumped by every scan start; results of an older scan are stale.
   int _scanId = 0;
+  int? _finishedScan;
 
   LibraryBloc({
     required ScanLibraryUseCase scanLibrary,
@@ -124,7 +125,10 @@ final class LibraryBloc extends Bloc<LibraryEvent, LibraryState> {
     final scanning = state as LibraryScanning;
 
     if (event.progress.phase == ScanPhase.done) {
-      // Scan finished: load everything from the Isar cache
+      // Scan finished: load everything from the Isar cache. The scanner's
+      // own done and the stream's end both land here; read once.
+      if (_finishedScan == event.scan) return;
+      _finishedScan = event.scan;
       await _loadFromCache(emit, scan: event.scan);
       return;
     }
