@@ -59,6 +59,11 @@ class TrackModel {
   /// Null until artwork has been extracted by [ArtworkExtractor].
   String? artworkPath;
 
+  /// True once [ArtworkExtractor] has looked at this track, whether or not it
+  /// found a cover. Without it, files with no embedded artwork were queried
+  /// again on every launch.
+  bool artworkChecked = false;
+
   // ---------------------------------------------------------------------------
   // Mapping
   // ---------------------------------------------------------------------------

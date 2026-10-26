@@ -83,13 +83,9 @@ class IsarLibraryDataSource {
     return tracks.where((t) => seen.add(t.album)).toList();
   }
 
-  /// Returns tracks that have no artwork cached yet (null or empty path).
-  Future<List<TrackModel>> getTracksWithoutArtwork() async => _isar.trackModels
-      .where()
-      .artworkPathIsNull()
-      .or()
-      .artworkPathEqualTo('')
-      .findAll();
+  /// Returns tracks the artwork extractor has not looked at yet.
+  Future<List<TrackModel>> getTracksWithoutArtwork() async =>
+      _isar.trackModels.where().artworkCheckedEqualTo(false).findAll();
 
   /// Returns the artwork path for a single track by [deviceId], or null.
   Future<String?> getArtworkPathById(String deviceId) async => _isar.trackModels
@@ -393,26 +389,37 @@ class IsarLibraryDataSource {
         isar.trackModels.deleteAll(isarIds);
       });
 
-  /// Updates the cached [artworkPath] for the track identified by [deviceId].
-  ///
-  /// Silently no-ops when the track is not found (e.g. deleted between scan
-  /// phases).
-  Future<void> updateArtworkPath(String deviceId, String artworkPath) async =>
-      _isar.write((isar) {
+  /// Records extraction results in one transaction: the cover path (null
+  /// when the file has none) and the checked flag. Tracks deleted between
+  /// scan phases are skipped.
+  Future<void> saveArtworkResults(Map<String, String?> pathsByDeviceId) async {
+    if (pathsByDeviceId.isEmpty) return;
+    _isar.write((isar) {
+      final updated = <TrackModel>[];
+      for (final MapEntry(key: deviceId, value: path)
+          in pathsByDeviceId.entries) {
         final track = isar.trackModels
             .where()
             .deviceIdEqualTo(deviceId)
             .findFirst();
-        if (track == null) return;
-        track.artworkPath = artworkPath;
-        isar.trackModels.put(track);
-      });
+        if (track == null) continue;
+        track
+          ..artworkPath = path
+          ..artworkChecked = true;
+        updated.add(track);
+      }
+      isar.trackModels.putAll(updated);
+    });
+  }
 
-  /// Clears the cached [artworkPath] for all tracks in the database.
+  /// Clears the cached [artworkPath] for all tracks, so the next scan
+  /// extracts them again.
   Future<void> clearAllArtworkPaths() async => _isar.write((isar) {
     final tracks = isar.trackModels.where().findAll();
     for (final t in tracks) {
-      t.artworkPath = null;
+      t
+        ..artworkPath = null
+        ..artworkChecked = false;
     }
     isar.trackModels.putAll(tracks);
   });

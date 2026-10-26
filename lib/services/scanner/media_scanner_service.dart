@@ -5,11 +5,11 @@ import 'package:troona/services/scanner/artwork_extractor.dart';
 
 /// Orchestrates a four-phase incremental library scan:
 ///
-/// 1. **Scanning** — query the device media store for all audio files.
-/// 2. **Indexing** — diff the results against the Isar cache, insert new
+/// 1. **Scanning**: query the device media store for all audio files.
+/// 2. **Indexing**: diff the results against the Isar cache, insert new
 ///    tracks in batches, and delete orphaned entries.
-/// 3. **Artworks** — extract and cache artwork for tracks that have none yet.
-/// 4. **Done** — emit a final [ScanProgress] with `progress == 1.0`.
+/// 3. **Artworks**: extract and cache artwork for tracks that have none yet.
+/// 4. **Done**: emit a final [ScanProgress] with `progress == 1.0`.
 ///
 /// Progress is reported via a [Stream<ScanProgress>] so the UI can display
 /// a live scan banner without coupling to implementation details.
@@ -21,6 +21,8 @@ final class MediaScannerService {
   final LocalAudioDataSource _source;
   final IsarLibraryDataSource _cache;
   final ArtworkExtractor _artworkExtractor;
+
+  static const _artworkBatchSize = 50;
 
   bool _cancelRequested = false;
 
@@ -126,16 +128,21 @@ final class MediaScannerService {
       total: artworkTotal,
     );
     var done = 0;
+    // One Isar transaction per batch instead of one per cover.
+    final pending = <String, String?>{};
 
-    await for (final updated in _artworkExtractor.extractArtworks(
+    await for (final result in _artworkExtractor.extractArtworks(
       tracksWithoutArtwork,
     )) {
+      if (result.checked) pending[result.deviceId] = result.artworkPath;
       if (_cancelRequested) {
+        await _cache.saveArtworkResults(pending);
         yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
         return;
       }
-      if (updated.artworkPath != null) {
-        await _cache.updateArtworkPath(updated.deviceId, updated.artworkPath!);
+      if (pending.length >= _artworkBatchSize) {
+        await _cache.saveArtworkResults(Map.of(pending));
+        pending.clear();
       }
       done++;
       yield ScanProgress(
@@ -145,6 +152,8 @@ final class MediaScannerService {
         count: done,
       );
     }
+
+    await _cache.saveArtworkResults(pending);
 
     // ── Phase 4: done ───────────────────────────────────────────────────────
     yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);

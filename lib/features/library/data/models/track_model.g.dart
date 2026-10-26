@@ -40,6 +40,7 @@ final TrackModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'dateModified', type: IsarType.dateTime),
       IsarPropertySchema(name: 'indexedAt', type: IsarType.dateTime),
       IsarPropertySchema(name: 'artworkPath', type: IsarType.string),
+      IsarPropertySchema(name: 'artworkChecked', type: IsarType.bool),
     ],
     indexes: [
       IsarIndexSchema(
@@ -112,6 +113,7 @@ int serializeTrackModel(IsarWriter writer, TrackModel object) {
       IsarCore.writeString(writer, 20, value);
     }
   }
+  IsarCore.writeBool(writer, 21, value: object.artworkChecked);
   return object.id;
 }
 
@@ -172,6 +174,7 @@ TrackModel deserializeTrackModel(IsarReader reader) {
     }
   }
   object.artworkPath = IsarCore.readString(reader, 20);
+  object.artworkChecked = IsarCore.readBool(reader, 21);
   return object;
 }
 
@@ -250,6 +253,8 @@ dynamic deserializeTrackModelProp(IsarReader reader, int property) {
       }
     case 20:
       return IsarCore.readString(reader, 20);
+    case 21:
+      return IsarCore.readBool(reader, 21);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -278,6 +283,7 @@ sealed class _TrackModelUpdate {
     DateTime? dateModified,
     DateTime? indexedAt,
     String? artworkPath,
+    bool? artworkChecked,
   });
 }
 
@@ -309,6 +315,7 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
     Object? dateModified = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? artworkChecked = ignore,
   }) {
     return collection.updateProperties(
           [id],
@@ -333,6 +340,7 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
             if (dateModified != ignore) 18: dateModified as DateTime?,
             if (indexedAt != ignore) 19: indexedAt as DateTime?,
             if (artworkPath != ignore) 20: artworkPath as String?,
+            if (artworkChecked != ignore) 21: artworkChecked as bool?,
           },
         ) >
         0;
@@ -362,6 +370,7 @@ sealed class _TrackModelUpdateAll {
     DateTime? dateModified,
     DateTime? indexedAt,
     String? artworkPath,
+    bool? artworkChecked,
   });
 }
 
@@ -393,6 +402,7 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
     Object? dateModified = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? artworkChecked = ignore,
   }) {
     return collection.updateProperties(id, {
       if (deviceId != ignore) 1: deviceId as String?,
@@ -415,6 +425,7 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
       if (dateModified != ignore) 18: dateModified as DateTime?,
       if (indexedAt != ignore) 19: indexedAt as DateTime?,
       if (artworkPath != ignore) 20: artworkPath as String?,
+      if (artworkChecked != ignore) 21: artworkChecked as bool?,
     });
   }
 }
@@ -447,6 +458,7 @@ sealed class _TrackModelQueryUpdate {
     DateTime? dateModified,
     DateTime? indexedAt,
     String? artworkPath,
+    bool? artworkChecked,
   });
 }
 
@@ -478,6 +490,7 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
     Object? dateModified = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? artworkChecked = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (deviceId != ignore) 1: deviceId as String?,
@@ -500,6 +513,7 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
       if (dateModified != ignore) 18: dateModified as DateTime?,
       if (indexedAt != ignore) 19: indexedAt as DateTime?,
       if (artworkPath != ignore) 20: artworkPath as String?,
+      if (artworkChecked != ignore) 21: artworkChecked as bool?,
     });
   }
 }
@@ -539,6 +553,7 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
     Object? dateModified = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? artworkChecked = ignore,
   }) {
     final q = query.build();
     try {
@@ -563,6 +578,7 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
         if (dateModified != ignore) 18: dateModified as DateTime?,
         if (indexedAt != ignore) 19: indexedAt as DateTime?,
         if (artworkPath != ignore) 20: artworkPath as String?,
+        if (artworkChecked != ignore) 21: artworkChecked as bool?,
       });
     } finally {
       q.close();
@@ -2820,6 +2836,15 @@ extension TrackModelQueryFilter
       );
     });
   }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  artworkCheckedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 21, value: value),
+      );
+    });
+  }
 }
 
 extension TrackModelQueryObject
@@ -3118,6 +3143,19 @@ extension TrackModelQuerySortBy
       return query.addSortBy(20, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByArtworkChecked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
+  sortByArtworkCheckedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
 }
 
 extension TrackModelQuerySortThenBy
@@ -3413,6 +3451,19 @@ extension TrackModelQuerySortThenBy
       return query.addSortBy(20, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByArtworkChecked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
+  thenByArtworkCheckedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
 }
 
 extension TrackModelQueryWhereDistinct
@@ -3557,6 +3608,13 @@ extension TrackModelQueryWhereDistinct
       return query.addDistinctBy(20, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct>
+  distinctByArtworkChecked() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(21);
+    });
+  }
 }
 
 extension TrackModelQueryProperty1
@@ -3684,6 +3742,12 @@ extension TrackModelQueryProperty1
   QueryBuilder<TrackModel, String?, QAfterProperty> artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
+    });
+  }
+
+  QueryBuilder<TrackModel, bool, QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
     });
   }
 }
@@ -3814,6 +3878,12 @@ extension TrackModelQueryProperty2<R>
   QueryBuilder<TrackModel, (R, String?), QAfterProperty> artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, bool), QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
     });
   }
 }
@@ -3947,6 +4017,13 @@ extension TrackModelQueryProperty3<R1, R2>
   artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R1, R2, bool), QOperations>
+  artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
     });
   }
 }

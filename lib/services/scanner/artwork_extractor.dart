@@ -4,6 +4,19 @@ import 'dart:io';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 
+/// Outcome of one extraction. [checked] is false when the extraction failed,
+/// so the track is tried again on the next scan.
+final class ArtworkResult {
+  final String deviceId;
+  final String? artworkPath;
+  final bool checked;
+
+  const ArtworkResult(this.deviceId, this.artworkPath) : checked = true;
+  const ArtworkResult.failed(this.deviceId)
+    : artworkPath = null,
+      checked = false;
+}
+
 /// Extracts and caches cover artwork for a list of [TrackModel]s.
 ///
 /// Artwork is fetched from the platform media store via [OnAudioQuery] and
@@ -49,56 +62,49 @@ final class ArtworkExtractor {
   /// The root directory where extracted artwork JPEG files are stored.
   Directory get cacheDir => _cacheDir;
 
-  /// Extracts artwork for each track in [tracks] and yields each [TrackModel]
-  /// (with [TrackModel.artworkPath] populated if artwork was found) as soon as
-  /// its extraction finishes.
+  /// Extracts artwork for each track in [tracks] and emits one
+  /// [ArtworkResult] per track as soon as its extraction finishes.
   ///
   /// Tracks are processed with up to [_maxConcurrent] concurrent operations.
-  /// Results arrive in **completion order**, not input order.
-  Stream<TrackModel> extractArtworks(List<TrackModel> tracks) async* {
+  /// Results arrive in **completion order**, not input order. The stream is
+  /// returned before any work is dispatched, so the first results reach the
+  /// listener while later tracks are still waiting for a slot.
+  Stream<ArtworkResult> extractArtworks(List<TrackModel> tracks) {
     _cancelRequested = false;
+    final controller = StreamController<ArtworkResult>();
+    unawaited(_dispatch(tracks, controller));
+    return controller.stream;
+  }
 
-    // StreamController lets us emit results as futures complete rather than
-    // waiting for each one in sequence.
-    final controller = StreamController<TrackModel>();
+  Future<void> _dispatch(
+    List<TrackModel> tracks,
+    StreamController<ArtworkResult> controller,
+  ) async {
     final semaphore = _Semaphore(_maxConcurrent);
-    var remaining = tracks.length;
-
-    if (remaining == 0) return;
+    final running = <Future<void>>[];
 
     for (final track in tracks) {
-      if (_cancelRequested) {
-        // Drain the counter for skipped tracks so the controller closes.
-        remaining--;
-        if (remaining == 0) await controller.close();
-        continue;
-      }
-
-      // Acquire semaphore slot (suspends when _maxConcurrent slots are busy).
       await semaphore.acquire();
       if (_cancelRequested) {
         semaphore.release();
-        if (!controller.isClosed) await controller.close();
         break;
       }
-      // controller as each Future resolves.
-      _extractForTrack(track)
-          .then((updated) {
-            semaphore.release();
-            if (!controller.isClosed) controller.add(updated);
-            remaining--;
-            if (remaining == 0) controller.close();
-          })
-          .catchError((Object e) {
-            semaphore.release();
-            // Emit the original track unchanged so callers can count progress.
-            if (!controller.isClosed) controller.add(track);
-            remaining--;
-            if (remaining == 0) controller.close();
-          });
+      running.add(
+        _extractForTrack(track)
+            .then<ArtworkResult>(
+              (updated) => ArtworkResult(track.deviceId, updated.artworkPath),
+            )
+            // A failure is not "no artwork": leave the track for next scan.
+            .catchError((Object _) => ArtworkResult.failed(track.deviceId))
+            .then((result) {
+              semaphore.release();
+              if (!controller.isClosed) controller.add(result);
+            }),
+      );
     }
 
-    yield* controller.stream;
+    await Future.wait(running);
+    await controller.close();
   }
 
   // ---------------------------------------------------------------------------
