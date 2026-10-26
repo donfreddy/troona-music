@@ -135,6 +135,14 @@ Redefine the tiers by what blurs rather than by how much:
 
 Same API (`GlassTheme.header(context)` returns sigma 0 on low, and so on), so call sites do not change.
 
+## Implementation status
+
+| Item | Status |
+|---|---|
+| F2 (G1) | Done: `GlassCard` flat by default. |
+| F3 (G2) | Done, in `DynamicBackground.fitForText` rather than the cubit, so the fallback glow is covered too. Bound: the brightest painted pixel of either glow in either tone. Yellow and green covers drop from HSL lightness .25 to about .06, blue to .20. |
+| F1, F4, F5, G7, G8 | Open. |
+
 ## Recommendations
 
 1. **Measure first, on the slowest tester phone**: `flutter run --profile`, performance overlay, DevTools raster thread. Scroll an album page with bios on, and open Now Playing while playing. Target raster time under 16 ms (8 ms on 120 Hz screens). Without these numbers G4 and G5 stay estimates.
