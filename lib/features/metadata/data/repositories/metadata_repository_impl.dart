@@ -22,8 +22,10 @@ class MetadataRepositoryImpl implements MetadataRepository {
   final _artistArtworkUpdatedController = StreamController<String>.broadcast();
 
   /// Deezer answers for this session, misses included: without bios there is
-  /// no cache entry to keep them, and each page visit searched again.
-  final _deezerLookups = <String, String?>{};
+  /// no cache entry to keep them, and each page visit searched again. A
+  /// lookup in flight is shared; one that could not reach Deezer is dropped
+  /// so the next visit asks again.
+  final _deezerLookups = <String, Future<String?>>{};
 
   MetadataRepositoryImpl({
     required MetadataCacheDataSource cache,
@@ -53,10 +55,12 @@ class MetadataRepositoryImpl implements MetadataRepository {
     return null;
   }
 
-  Future<String?> _deezer(String key, Future<String?> Function() fetch) async {
-    if (_deezerLookups.containsKey(key)) return _deezerLookups[key];
-    return _deezerLookups[key] = await fetch();
-  }
+  Future<String?> _deezer(String key, Future<String?> Function() fetch) =>
+      _deezerLookups[key] ??= fetch().catchError((Object e) {
+        _deezerLookups.remove(key);
+        appLogger.d('Deezer unreachable, will ask again later: $e');
+        return null;
+      });
 
   /// The two opt-in switches. Unreadable settings count as both off: the
   /// app stays offline unless the user said otherwise.

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:troona/core/network/api_client.dart';
 import 'package:troona/core/network/api_endpoints.dart';
 import 'package:troona/core/utils/app_logger.dart';
@@ -19,7 +20,11 @@ abstract interface class LastFmRemoteDataSource {
     String? language,
   });
 
+  /// Null when Deezer has no match. Throws a [DioException] when Deezer
+  /// could not be reached, so a network failure is not taken for a miss.
   Future<String?> fetchDeezerArtistImage(String artistName);
+
+  /// Same contract as [fetchDeezerArtistImage].
   Future<String?> fetchDeezerAlbumCover(String artistName, String albumName);
 }
 
@@ -142,6 +147,8 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
           return xl ?? big ?? med;
         }
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       appLogger.d('Deezer artist image lookup failed silently: $e');
     }
@@ -178,6 +185,8 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
           return xl ?? big ?? med;
         }
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       appLogger.d('Deezer album cover lookup failed silently: $e');
     }

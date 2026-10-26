@@ -65,9 +65,15 @@ class _Remote implements LastFmRemoteDataSource {
     return const LastFmAlbumDto(album: LastFmAlbumData(name: 'An album'));
   }
 
+  /// Thrown by the next Deezer artist lookup only: a dropped connection.
+  Object? deezerFailure;
+
   @override
   Future<String?> fetchDeezerArtistImage(String artistName) async {
     calls.add('deezer:artist');
+    final failure = deezerFailure;
+    deezerFailure = null;
+    if (failure != null) throw failure;
     return 'https://deezer.test/artist.jpg';
   }
 
@@ -295,6 +301,49 @@ void main() {
     settings.value = switches(info: false, photos: true);
     await repo.getArtistInfo('Daft Punk');
     await repo.getArtistInfo('Daft Punk');
+    expect(remote.calls, ['deezer:artist']);
+  });
+
+  test('an unreachable Deezer is asked again on the next visit', () async {
+    settings.value = switches(info: false, photos: true);
+    remote.deezerFailure = DioException.connectionError(
+      requestOptions: RequestOptions(),
+      reason: 'offline',
+    );
+
+    expect(await repo.getArtistInfo('Daft Punk'), isNull);
+    final online = await repo.getArtistInfo('Daft Punk');
+
+    expect(online?.imageUrl, 'https://deezer.test/artist.jpg');
+    expect(remote.calls, ['deezer:artist', 'deezer:artist']);
+  });
+
+  group('Deezer remote', () {
+    LastFmRemoteDataSourceImpl remoteWith(_Adapter adapter) =>
+        LastFmRemoteDataSourceImpl(
+          client: ApiClient(customDio: Dio()..httpClientAdapter = adapter),
+        );
+
+    test('throws when Deezer cannot be reached', () async {
+      final remote = remoteWith(_Adapter(const [], cut: true));
+      await expectLater(
+        remote.fetchDeezerArtistImage('Daft Punk'),
+        throwsA(isA<DioException>()),
+      );
+    });
+
+    test('answers null when Deezer has no match', () async {
+      final remote = remoteWith(_Adapter(['{"data":[]}'.codeUnits]));
+      expect(await remote.fetchDeezerArtistImage('Daft Punk'), isNull);
+    });
+  });
+
+  test('concurrent lookups for one artist share one search', () async {
+    settings.value = switches(info: false, photos: true);
+    await Future.wait([
+      repo.getArtistInfo('Daft Punk'),
+      repo.getArtistInfo('Daft Punk'),
+    ]);
     expect(remote.calls, ['deezer:artist']);
   });
 
