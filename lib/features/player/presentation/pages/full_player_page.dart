@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -15,6 +14,7 @@ import 'package:troona/features/player/presentation/bloc/palette/track_palette_c
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/player/presentation/widgets/player_utility_dock.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
@@ -431,11 +431,15 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                               else if (track != null)
                                 const SizedBox(height: AppSpacing.xl2),
 
-                              // Playback controls, centred between the ring
-                              // and the nav bar.
+                              // Secondary controls (Glass Utility Dock) and primary playback controls
                               Expanded(
-                                child: Center(
-                                  child: _fadeChrome(const PlayerControls()),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _fadeChrome(const PlayerUtilityDock()),
+                                    _fadeChrome(const PlayerControls()),
+                                  ],
                                 ),
                               ),
 
@@ -524,16 +528,6 @@ class _TopBar extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size.square(40),
-                onPressed: () => showQueueSheet(context),
-                child: const Icon(
-                  LucideIcons.listMusic,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
               CupertinoButton(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size.square(40),
