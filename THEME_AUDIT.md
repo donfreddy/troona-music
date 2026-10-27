@@ -141,7 +141,7 @@ Same API (`GlassTheme.header(context)` returns sigma 0 on low, and so on), so ca
 |---|---|
 | F2 (G1) | Done: `GlassCard` flat by default. |
 | F3 (G2) | Done, in `DynamicBackground.fitForText` rather than the cubit, so the fallback glow is covered too. Bound: the brightest painted pixel of either glow in either tone. Yellow and green covers drop from HSL lightness .25 to about .06, blue to .20. |
-| F1 (G3) | Done, then narrowed after an on-device check (Pixel 8): the 1.6x boost made covers and coloured icons show as vivid stains through the thin tab bar, header and sheets. Those are back to their thin glass, without boost (`GlassTheme.bar`, `GlassTheme.sheet`); a thick dark material was tried and judged too dark. The boost stays on Now Playing. |
+| F1 (G3) | Done, then narrowed after an on-device check (Pixel 8): the 1.6x boost made covers and coloured icons show as vivid stains through the thin tab bar, header and sheets. A thick dark material (65 to 70 % tint, no boost) was tried and judged too dark. Tuned on the device to a middle material for `GlassTheme.bar` and `GlassTheme.sheet`: blur 30, 15 % dark tint, 1.25x saturation, sheet barrier 35 %; the low tier keeps saturation 1. The full 1.6x boost stays on Now Playing. |
 | F4 (G6) | Done: one gradient stroke; the light comes from above on both sides now (the right edge used to be invisible). |
 | G7 | Done: tier detection doc, preset comments, mini player low highlight (was alpha 0). |
 | F5, G8 | Open: F5 waits for profiler numbers, G8 for a decision on the light theme. |
