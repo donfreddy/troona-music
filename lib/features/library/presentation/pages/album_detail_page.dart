@@ -200,7 +200,9 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
       maxExtent,
     );
     final colors = context.colors;
-    final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+    // Same glass as the Library's collapsed header.
+    final glass = GlassTheme.bar(context);
+    final blurSigma = glass.blurSigma * collapse;
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
@@ -211,7 +213,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        color: Color.lerp(Colors.transparent, glass.fill, collapse),
         border: Border(
           bottom: BorderSide(
             color: colors.separator.withValues(alpha: collapse),
@@ -310,6 +312,8 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                   height: 180,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
+                                    // Depth only: an accent glow would
+                                    // clash with the cover's own colours.
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withValues(
@@ -317,13 +321,6 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                         ),
                                         blurRadius: 24,
                                         offset: const Offset(0, 10),
-                                      ),
-                                      BoxShadow(
-                                        color: colors.accent.withValues(
-                                          alpha: 0.22,
-                                        ),
-                                        blurRadius: 36,
-                                        offset: const Offset(0, 14),
                                       ),
                                     ],
                                   ),
@@ -665,7 +662,10 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     return RepaintBoundary(
       child: ClipRect(
         child: blurSigma > 0
-            ? BackdropFilter(filter: GlassFilter.of(blurSigma), child: content)
+            ? BackdropFilter(
+                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
+                child: content,
+              )
             : content,
       ),
     );
@@ -928,7 +928,7 @@ class _AlbumMetadataFooter extends StatelessWidget {
               if (formats.isNotEmpty)
                 _MetaRow(
                   label: context.l10n.infoFormat,
-                  value: formats.map((f) => f.label).join(' · '),
+                  value: formats.map((f) => f.label).join(' • '),
                 ),
             ],
           ),

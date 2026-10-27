@@ -254,14 +254,16 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       maxExtent,
     );
     final colors = context.colors;
-    final blurSigma = GlassTheme.card(context).blurSigma * collapse;
+    // Same glass as the Library's collapsed header.
+    final glass = GlassTheme.bar(context);
+    final blurSigma = glass.blurSigma * collapse;
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
 
     final content = DecoratedBox(
       decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, colors.glassFill, collapse),
+        color: Color.lerp(Colors.transparent, glass.fill, collapse),
         border: Border(
           bottom: BorderSide(
             color: colors.separator.withValues(alpha: collapse),
@@ -288,7 +290,9 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                     children: [
                       const SizedBox(height: AppSpacing.sm),
 
-                      // Circular Artist Avatar with Glow Ring
+                      // Circular artist photo. Depth only, like the album
+                      // cover: an accent ring and glow would clash with the
+                      // photo's own colours.
                       _animatedArtistItem(
                         Container(
                           width: 130,
@@ -297,15 +301,11 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: colors.accent.withValues(alpha: 0.35),
-                                blurRadius: 28,
-                                offset: const Offset(0, 8),
+                                color: Colors.black.withValues(alpha: 0.45),
+                                blurRadius: 24,
+                                offset: const Offset(0, 10),
                               ),
                             ],
-                            border: Border.all(
-                              color: colors.accent.withValues(alpha: 0.5),
-                              width: 2.0,
-                            ),
                           ),
                           child: ClipOval(
                             child:
@@ -603,7 +603,10 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
     return RepaintBoundary(
       child: ClipRect(
         child: blurSigma > 0
-            ? BackdropFilter(filter: GlassFilter.of(blurSigma), child: content)
+            ? BackdropFilter(
+                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
+                child: content,
+              )
             : content,
       ),
     );
