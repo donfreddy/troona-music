@@ -141,9 +141,7 @@ void main() {
       expect(await openSheet(tester), findsOneWidget);
     });
 
-    testWidgets('sheets never boost colours, unlike Now Playing', (
-      tester,
-    ) async {
+    testWidgets('sheets boost colours less than Now Playing', (tester) async {
       late GlassConfig sheet;
       late GlassConfig nowPlaying;
       await tester.pumpWidget(
@@ -156,8 +154,7 @@ void main() {
           return const SizedBox();
         }),
       );
-      expect(sheet.saturation, 1);
-      expect(nowPlaying.saturation, greaterThan(1));
+      expect(sheet.saturation, lessThan(nowPlaying.saturation));
     });
 
     testWidgets('is opaque on a low-tier device', (tester) async {

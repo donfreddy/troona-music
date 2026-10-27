@@ -34,7 +34,7 @@ Future<T?> showGlassBottomSheet<T>({
   return showModalBottomSheet<T>(
     context: context,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: .50),
+    barrierColor: Colors.black.withValues(alpha: .35),
     isDismissible: isDismissible,
     enableDrag: enableDrag,
     isScrollControlled: isScrollControlled,

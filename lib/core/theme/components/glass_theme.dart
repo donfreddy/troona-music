@@ -175,9 +175,10 @@ abstract final class GlassTheme {
     };
   }
 
-  /// Config for chrome that carries text and controls: the tab bar and the
-  /// collapsed page header. The thin [card] glass without saturation boost,
-  /// so covers scrolling behind do not show as coloured stains.
+  /// Config for chrome that carries text and controls: the tab bar (with
+  /// the mini player inside it) and the collapsed page header. A light dark
+  /// tint and a mild saturation: covers behind stay rich without showing as
+  /// stains.
   static GlassConfig bar(BuildContext ctx, {GlassQuality? quality}) {
     final isDark = Theme.of(ctx).brightness == Brightness.dark;
     final q = _resolveQuality(ctx, quality);
@@ -313,14 +314,15 @@ abstract final class GlassTheme {
     padding: EdgeInsets.zero,
   );
 
-  // Same glass as [_cardDark] and [_cardLowDark], without the boost.
+  // Between the thin glass (stains) and a thick material (too dim): the
+  // blur spreads small shapes, the tint tempers what the boost revives.
   static const _barDark = GlassConfig(
-    blurSigma: 20,
-    fill: Color(0x0AFFFFFF), // 4 %
+    blurSigma: 30,
+    fill: Color(0x260C0E14), // 15 % tertiary background
     border: Color(0x22FFFFFF), // 13 %
     highlight: Color(0x0DFFFFFF), // 5 %
     borderRadius: BorderRadius.all(Radius.circular(24)),
-    saturation: 1,
+    saturation: 1.25,
   );
 
   static const _barLowDark = GlassConfig(
@@ -332,16 +334,15 @@ abstract final class GlassTheme {
     saturation: 1,
   );
 
-  // Thin glass; sheets carry text, so no saturation boost: small coloured
-  // shapes behind (icons) would show as stains.
+  // Same glass as [_barDark].
   static const _sheetDark = GlassConfig(
-    blurSigma: 24,
-    fill: Color(0x19FFFFFF), // 10 %
+    blurSigma: 30,
+    fill: Color(0x260C0E14), // 15 % tertiary background
     border: Color(0x16FFFFFF), // 9 %
     highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-    saturation: 1,
+    saturation: 1.25,
   );
 
   // ── Low quality: Light theme ────────────────────────────────────────────
