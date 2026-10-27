@@ -1,23 +1,32 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:troona/features/library/domain/entities/playlist.dart';
-import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
-import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
+import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/empty_state.dart';
+import 'package:troona/shared/widgets/entrance_fader.dart';
+import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
-import 'package:troona/core/extensions/context_ext.dart';
 
+/// A playlist, laid out like an album: the cover over the palette glow, a
+/// header that collapses into the glass bar, then the reorderable tracks.
 class PlaylistDetailPage extends StatelessWidget {
   final String id;
   const PlaylistDetailPage({super.key, required this.id});
@@ -32,229 +41,379 @@ class PlaylistDetailPage extends StatelessWidget {
         context.read<PlaylistDetailBloc>().add(PlaylistDetailRequested(id));
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
-        body: BlocBuilder<PlaylistDetailBloc, PlaylistDetailState>(
-          builder: (context, state) {
-            if (state is PlaylistDetailLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is PlaylistDetailLoaded) {
-              final data = state.data;
-              final isLikes = id == Playlist.likesId;
-
-              return CustomScrollView(
-                slivers: [
-                  _SliverHeader(
-                    id: id,
-                    name: isLikes
-                        ? context.l10n.likedSongs
-                        : data.playlist.name,
-                    tracks: data.tracks,
-                    artworkPath: data.playlist.artworkPath,
-                    isLikes: isLikes,
+        backgroundColor: Colors.transparent,
+        body: BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+          builder: (_, palette) => DynamicBackground(
+            colorA: palette.backgroundColorA,
+            colorB: palette.backgroundColorB,
+            tone: DynamicBackgroundTone.immersive,
+            child: BlocBuilder<PlaylistDetailBloc, PlaylistDetailState>(
+              builder: (context, state) => switch (state) {
+                PlaylistDetailLoaded(:final data) => CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  _TrackList(
-                    playlistId: id,
-                    tracks: data.tracks,
-                    isLikes: isLikes,
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                ],
-              );
-            }
-
-            if (state is PlaylistDetailError) {
-              return ErrorView(
-                body: context.l10n.playlistOpenError,
-                onRetry: () => context.read<PlaylistDetailBloc>().add(
-                  PlaylistDetailRequested(id),
+                  slivers: [
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _PlaylistHeroDelegate(
+                        playlist: data.playlist,
+                        name: id == Playlist.likesId
+                            ? context.l10n.likedSongs
+                            : data.playlist.name,
+                        tracks: data.tracks,
+                        topPadding: MediaQuery.of(context).padding.top,
+                      ),
+                    ),
+                    _TrackList(
+                      playlistId: id,
+                      tracks: data.tracks,
+                      isLikes: id == Playlist.likesId,
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                  ],
                 ),
-              );
-            }
-
-            return const SizedBox.shrink();
-          },
+                PlaylistDetailError() => ErrorView(
+                  body: context.l10n.playlistOpenError,
+                  onRetry: () => context.read<PlaylistDetailBloc>().add(
+                    PlaylistDetailRequested(id),
+                  ),
+                ),
+                _ => const Center(child: CircularProgressIndicator()),
+              },
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _SliverHeader extends StatelessWidget {
-  final String id;
+/// Same header as the album page: the expanded cover and titles fade out
+/// as it collapses into the glass bar, which takes the title.
+class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
+  final Playlist playlist;
   final String name;
   final List<Track> tracks;
-  final String? artworkPath;
-  final bool isLikes;
+  final double topPadding;
 
-  const _SliverHeader({
-    required this.id,
+  const _PlaylistHeroDelegate({
+    required this.playlist,
     required this.name,
     required this.tracks,
-    required this.artworkPath,
-    required this.isLikes,
+    required this.topPadding,
   });
 
-  void _onPlay(BuildContext context) {
-    if (tracks.isEmpty) return;
-    context.read<PlayerBloc>().add(
-      PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
-    );
-  }
-
-  void _onShuffle(BuildContext context) {
-    if (tracks.isEmpty) return;
-    playShuffled(context.read<PlayerBloc>(), tracks);
-  }
+  static const double _navBarHeight = 44.0;
+  static const double _actionsBarHeight = 64.0;
+  static const double _expandedExtra = 290.0;
+  static const double _coverSize = 180.0;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final trackCount = tracks.length;
-    final countLabel = context.l10n.songCount(trackCount);
+  double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
 
-    return SliverAppBar(
-      expandedHeight: 330,
-      pinned: true,
-      backgroundColor: Colors.black,
-      leadingWidth: 70,
-      leading: Center(
-        child: GlassIconButton(
-          icon: LucideIcons.chevronLeft,
-          onTap: () => context.pop(),
+  @override
+  double get maxExtent =>
+      topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+
+  @override
+  bool shouldRebuild(_PlaylistHeroDelegate old) =>
+      old.playlist != playlist ||
+      old.name != name ||
+      old.tracks != tracks ||
+      old.topPadding != topPadding;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
+    final colors = context.colors;
+    // Same glass as the Library's collapsed header.
+    final glass = GlassTheme.bar(context);
+    final blurSigma = glass.blurSigma * collapse;
+    final duration = Duration(
+      milliseconds: tracks.fold<int>(0, (sum, t) => sum + t.durationMs),
+    );
+
+    final content = DecoratedBox(
+      decoration: BoxDecoration(
+        color: Color.lerp(Colors.transparent, glass.fill, collapse),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.separator.withValues(alpha: collapse),
+            width: 0.5,
+          ),
         ),
       ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
+      child: SizedBox(
+        height: (maxExtent - shrinkOffset).clamp(minExtent, maxExtent),
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
           children: [
-            // Background gradient
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isLikes
-                      ? [
-                          const Color(0xFFB79CFF).withValues(alpha: 0.32),
-                          const Color(0xFF1E1338).withValues(alpha: 0.20),
-                          Colors.black,
-                        ]
-                      : [
-                          colors.accent.withValues(alpha: 0.25),
-                          Colors.black.withValues(alpha: 0.8),
-                          Colors.black,
-                        ],
+            // ── Expanded content: cover, title, counts ──────────────────
+            Positioned(
+              top: topPadding + _navBarHeight,
+              left: 0,
+              right: 0,
+              bottom: _actionsBarHeight,
+              child: Opacity(
+                opacity: (1 - collapse * 1.6).clamp(0.0, 1.0),
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: AppSpacing.sm),
+                      _staggered(
+                        Container(
+                          width: _coverSize,
+                          height: _coverSize,
+                          // Depth only, like the album cover.
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.45),
+                                blurRadius: 24,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: PlaylistCover(
+                              playlist: playlist,
+                              size: _coverSize,
+                            ),
+                          ),
+                        ),
+                        0,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _staggered(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                          ),
+                          child: Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.4,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        1,
+                      ),
+                      const SizedBox(height: 8),
+                      _staggered(
+                        _CountBadge(
+                          label: tracks.isEmpty
+                              ? context.l10n.songCount(0)
+                              : context.l10n.detailCountsSummary(
+                                  context.l10n.songCount(tracks.length),
+                                  duration.toHumanReadable(context.l10n),
+                                ),
+                        ),
+                        2,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
 
-            SafeArea(
-              bottom: false,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: AppSpacing.md),
-                  // Cover container
-                  Container(
-                    width: 140,
-                    height: 140,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isLikes
-                              ? const Color(0xFFB79CFF).withValues(alpha: 0.30)
-                              : Colors.black.withValues(alpha: 0.6),
-                          blurRadius: 24,
-                          spreadRadius: 2,
+            // ── Top navigation bar ──────────────────────────────────────
+            Positioned(
+              top: topPadding,
+              left: 0,
+              right: 0,
+              height: _navBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Opacity(
+                      opacity: collapse,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 60),
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                      ],
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                      child: isLikes
-                          ? Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF382366),
-                                    Color(0xFF1F133B),
-                                    Color(0xFF0D0819),
-                                  ],
-                                ),
-                              ),
-                              child: const Icon(
-                                LucideIcons.heart,
-                                color: Color(0xFFB79CFF),
-                                size: 64,
-                              ),
-                            )
-                          : artworkPath != null
-                          ? ArtworkImage(artworkPath!)
-                          : PlaylistMosaic(
-                              trackIds: tracks.map((t) => t.id).toList(),
-                            ),
+                    Positioned(
+                      left: 0,
+                      child: GlassIconButton(
+                        icon: LucideIcons.chevronLeft,
+                        tooltip: context.l10n.detailBack,
+                        onTap: () {
+                          AppHaptics.lightImpact();
+                          context.pop();
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    countLabel,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
+                  ],
+                ),
+              ),
+            ),
 
-                  // Actions row: Play and Shuffle
-                  if (tracks.isNotEmpty)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _onPlay(context),
+            // ── Play and shuffle ────────────────────────────────────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _actionsBarHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: 8,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: FilledButton.icon(
+                          onPressed: tracks.isEmpty
+                              ? null
+                              : () {
+                                  AppHaptics.mediumImpact();
+                                  context.read<PlayerBloc>().add(
+                                    PlayTrackRequested(
+                                      tracks[0],
+                                      contextQueue: tracks,
+                                      contextIndex: 0,
+                                    ),
+                                  );
+                                },
                           icon: const Icon(LucideIcons.play, size: 18),
-                          label: Text(context.l10n.actionPlay),
-                          style: ElevatedButton.styleFrom(
+                          label: Text(
+                            context.l10n.actionPlay,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                          style: FilledButton.styleFrom(
                             backgroundColor: colors.accent,
-                            foregroundColor: Colors.black,
-                            shape: const StadiumBorder(),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xl,
-                              vertical: AppSpacing.sm,
+                            foregroundColor: colors.accentForeground,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.md),
-                        IconButton.filledTonal(
-                          onPressed: () => _onShuffle(context),
-                          icon: const Icon(LucideIcons.shuffle, size: 20),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white12,
-                            foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: tracks.isEmpty
+                              ? null
+                              : () {
+                                  AppHaptics.mediumImpact();
+                                  playShuffled(
+                                    context.read<PlayerBloc>(),
+                                    tracks,
+                                  );
+                                },
+                          icon: Icon(
+                            LucideIcons.shuffle,
+                            size: 18,
+                            color: colors.accent,
+                          ),
+                          label: Text(
+                            context.l10n.actionShuffle,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.08,
+                            ),
+                            side: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.16),
+                              width: 0.8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+
+    return RepaintBoundary(
+      child: ClipRect(
+        child: blurSigma > 0
+            ? BackdropFilter(
+                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
+                child: content,
+              )
+            : content,
+      ),
+    );
+  }
+
+  static Widget _staggered(Widget child, int index) => EntranceFader.staggered(
+    index: index,
+    stepMs: 22,
+    slideY: 0.15,
+    child: child,
+  );
+}
+
+class _CountBadge extends StatelessWidget {
+  final String label;
+
+  const _CountBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.12),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: context.colors.labelSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -386,7 +545,7 @@ class _TrackTile extends StatelessWidget {
           splashColor: colors.glassHighlight,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
+              horizontal: AppSpacing.lg,
               vertical: AppSpacing.xs,
             ),
             child: Row(
@@ -453,7 +612,7 @@ class _TrackTile extends StatelessWidget {
                       Text(
                         track.artist,
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: .5),
+                          color: colors.labelSecondary,
                           fontSize: 13,
                         ),
                         maxLines: 1,
