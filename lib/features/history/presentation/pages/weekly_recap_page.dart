@@ -102,7 +102,7 @@ class WeeklyRecapPage extends StatelessWidget {
           ),
         ),
         Text(
-          '${l10n.recapListened} · ${l10n.recapPlays(recap.plays)}',
+          '${l10n.recapListened} • ${l10n.recapPlays(recap.plays)}',
           style: TextStyle(color: colors.labelSecondary, fontSize: 15),
         ),
       ] else
@@ -120,7 +120,7 @@ class WeeklyRecapPage extends StatelessWidget {
           caption: l10n.recapTopSong,
           title: topTrack.title,
           subtitle:
-              '${topTrack.artist} · ${l10n.recapPlays(recap.topTrackPlays)}',
+              '${topTrack.artist} • ${l10n.recapPlays(recap.topTrackPlays)}',
           leading: _Artwork(track: topTrack, round: false),
           onTap: () =>
               context.read<PlayerBloc>().add(PlayTrackRequested(topTrack)),

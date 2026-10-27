@@ -83,9 +83,11 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
         scale: _pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 120),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: 10,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.sm,
           ),
           child: Row(
             children: [
@@ -143,23 +145,7 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
                 ),
               ),
 
-              const SizedBox(width: AppSpacing.xs),
-
-              // ── Quick Like button ─────────────────────────────────────────
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                icon: Icon(
-                  isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                  size: 18,
-                  color: isLiked ? Colors.redAccent : Colors.white24,
-                ),
-                onPressed: () {
-                  AppHaptics.selectionClick();
-                  context.read<LikesCubit>().toggle(widget.track);
-                },
-              ),
+              const SizedBox(width: AppSpacing.sm),
 
               // ── More options button ───────────────────────────────────────
               IconButton(

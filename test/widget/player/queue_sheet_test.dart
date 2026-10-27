@@ -104,7 +104,7 @@ void main() {
 
     final now = tester.getTopLeft(find.text('NOW PLAYING')).dy;
     expect(find.text('Title c'), findsOneWidget);
-    expect(find.text('UP NEXT · 3'), findsOneWidget);
+    expect(find.text('UP NEXT • 3'), findsOneWidget);
     expect(tester.getTopLeft(find.text('Title d')).dy, greaterThan(now));
     // Now playing opens at the top of the list: no history in sight.
     final listTop = tester.getTopLeft(find.byType(CustomScrollView)).dy;
@@ -206,7 +206,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(port.queueEdits, contains('start add d@4'));
-    expect(find.text('UP NEXT · 2'), findsOneWidget);
+    expect(find.text('UP NEXT • 2'), findsOneWidget);
   });
 
   testWidgets('a rejected removal comes back and undo does not duplicate it', (
@@ -241,7 +241,7 @@ void main() {
 
     expect(playerOrder(), ['a', 'b', 'c', 'd', 'e', 'f']);
     expect(shownOrder(tester, ['d', 'e', 'f']), ['d', 'e', 'f']);
-    expect(find.text('UP NEXT · 3'), findsOneWidget);
+    expect(find.text('UP NEXT • 3'), findsOneWidget);
   });
 
   testWidgets('undo while a rejected removal is pending adds nothing', (
@@ -281,7 +281,7 @@ void main() {
 
     expect(port.queueEdits, isEmpty);
     expect(find.text('Undo'), findsNothing);
-    expect(find.text('UP NEXT · 2'), findsOneWidget);
+    expect(find.text('UP NEXT • 2'), findsOneWidget);
     // Every up next row is on screen, none left slid away.
     for (final id in ['e', 'f']) {
       expect(tester.getTopLeft(find.text('Title $id')).dx, lessThan(200));
@@ -300,7 +300,7 @@ void main() {
     // the list stay.
     expect(bloc.state, isA<PlayerActive>());
     expect(find.text('Title e'), findsOneWidget);
-    expect(find.text('UP NEXT · 3'), findsOneWidget);
+    expect(find.text('UP NEXT • 3'), findsOneWidget);
   });
 
   testWidgets('the empty up next header follows the repeat mode', (
@@ -394,6 +394,6 @@ void main() {
     port.queueCtrl.add(Queue.fromTracks(tracks, startIndex: 4));
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('UP NEXT · 1'), findsOneWidget);
+    expect(find.text('UP NEXT • 1'), findsOneWidget);
   });
 }

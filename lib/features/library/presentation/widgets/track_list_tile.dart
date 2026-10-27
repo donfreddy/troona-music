@@ -1,4 +1,3 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -72,9 +71,11 @@ class _TrackListTileState extends State<TrackListTile> {
         scale: _pressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 120),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: 8,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.sm,
           ),
           child: Row(
             children: [
@@ -170,23 +171,7 @@ class _TrackListTileState extends State<TrackListTile> {
                 ),
               ),
 
-              const SizedBox(width: AppSpacing.xs),
-
-              // ── Like button ───────────────────────────────────────────────
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                icon: Icon(
-                  isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                  size: 19,
-                  color: isLiked ? Colors.redAccent : Colors.white24,
-                ),
-                onPressed: () {
-                  AppHaptics.selectionClick();
-                  context.read<LikesCubit>().toggle(widget.track);
-                },
-              ),
+              const SizedBox(width: AppSpacing.sm),
 
               // ── More options button ───────────────────────────────────────
               IconButton(
