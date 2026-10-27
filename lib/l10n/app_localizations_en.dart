@@ -349,7 +349,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get permissionCheckAgain => 'I turned it on';
 
   @override
-  String get permissionFooter => 'Free · No ads · No account';
+  String get permissionFooter => 'Free • No ads • No account';
 
   @override
   String get scanTitle => 'Finding your music';
@@ -499,7 +499,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String albumByArtist(String artist, String songs) {
-    return '$artist · $songs';
+    return '$artist • $songs';
   }
 
   @override
@@ -575,7 +575,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String detailCountsSummary(String songs, String albums) {
-    return '$songs · $albums';
+    return '$songs • $albums';
   }
 
   @override
@@ -694,12 +694,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistsGridView => 'Grid view';
 
   @override
-  String get playlistsFilterAll => 'All';
-
-  @override
-  String get playlistsFilterMine => 'My playlists';
-
-  @override
   String get playlistsYours => 'Your playlists';
 
   @override
@@ -774,9 +768,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistOpenError => 'We couldn\'t open this playlist.';
 
   @override
-  String get playlistLabel => 'Playlist';
-
-  @override
   String get likesEmptyTitle => 'Songs you like will live here';
 
   @override
@@ -784,7 +775,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String likesSubtitle(String songs) {
-    return '$songs · Your favorites in one place';
+    return '$songs • Your favorites in one place';
   }
 
   @override
@@ -1013,7 +1004,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String queueUpNext(int count) {
-    return 'Up next · $count';
+    return 'Up next • $count';
   }
 
   @override

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -13,10 +14,11 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
-/// Hero banner for the liked songs playlist.
+/// Hero banner for the liked songs playlist: one-tap playback and a deck of
+/// recent favourite covers.
 ///
-/// Features a dark carmine/ruby glass aesthetic, direct one-tap playback,
-/// and an overlapping 3-card artwork deck displaying recent favorite covers.
+/// Same surface as the Home welcome card: a light accent wash under the
+/// glass edge, and no glow, so it sits on the background like the rest.
 class LikesHeroCard extends StatefulWidget {
   final Playlist playlist;
 
@@ -95,33 +97,26 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final glass = GlassTheme.card(context);
     final count = widget.playlist.trackIds.length;
     final l10n = context.l10n;
 
     return GestureDetector(
       onTap: () => context.pushPlaylist(widget.playlist.id),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: const LinearGradient(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF1B122E), Color(0xFF100B1D), Color(0xFF07050D)],
+            colors: [
+              colors.accent.withValues(alpha: .15),
+              colors.accent.withValues(alpha: .05),
+            ],
           ),
-          border: Border.all(
-            color: const Color(0xFFB79CFF).withValues(alpha: 0.28),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFB79CFF).withValues(alpha: 0.16),
-              blurRadius: 24,
-              spreadRadius: -4,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          border: Border.all(color: glass.border, width: glass.borderWidth),
         ),
         child: Row(
           children: [
@@ -138,29 +133,23 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFB79CFF).withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
-                        width: 0.8,
+                      color: colors.accent.withValues(alpha: .15),
+                      borderRadius: BorderRadius.circular(
+                        AppSpacing.radiusFull,
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          LucideIcons.heart,
-                          size: 11,
-                          color: Color(0xFFB79CFF),
-                        ),
+                        Icon(LucideIcons.heart, size: 11, color: colors.accent),
                         const SizedBox(width: 4),
                         Text(
                           l10n.likesBadge.toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.1,
-                            color: Color(0xFFD8C7FF),
+                            color: colors.accent,
                           ),
                         ),
                       ],
@@ -189,7 +178,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                         : l10n.likesSubtitle(l10n.songCount(count)),
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.65),
+                      color: colors.labelSecondary,
                       fontWeight: FontWeight.w400,
                     ),
                     maxLines: 1,
@@ -208,33 +197,26 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                           vertical: 7,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB79CFF),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFB79CFF,
-                              ).withValues(alpha: 0.40),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          color: colors.accent,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusFull,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               LucideIcons.play,
                               size: 14,
-                              color: Color(0xFF12081F),
+                              color: colors.accentForeground,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               l10n.actionPlay,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF12081F),
+                                color: colors.accentForeground,
                               ),
                             ),
                           ],
@@ -263,22 +245,11 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
         width: cardSize + 12,
         height: cardSize + 12,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFB79CFF), Color(0xFF5A3FA3)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFB79CFF).withValues(alpha: 0.35),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          color: colors.accent.withValues(alpha: .15),
         ),
-        child: const Center(
-          child: Icon(LucideIcons.heart, color: Color(0xFF12081F), size: 34),
+        child: Center(
+          child: Icon(LucideIcons.heart, color: colors.accent, size: 34),
         ),
       );
     }
@@ -325,26 +296,19 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  _DeckCover(path: list[0], size: cardSize, hasGlow: true),
+                  _DeckCover(path: list[0], size: cardSize),
                   Positioned(
                     right: -4,
                     bottom: -4,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFB79CFF),
+                      decoration: BoxDecoration(
+                        color: colors.accent,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black45,
-                            blurRadius: 6,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         LucideIcons.heart,
-                        color: Color(0xFF12081F),
+                        color: colors.accentForeground,
                         size: 11,
                       ),
                     ),
@@ -359,16 +323,13 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
   }
 }
 
+/// One cover of the deck. A soft neutral shadow separates it from the
+/// cover below; no border, like every other cover.
 class _DeckCover extends StatelessWidget {
   final String path;
   final double size;
-  final bool hasGlow;
 
-  const _DeckCover({
-    required this.path,
-    required this.size,
-    this.hasGlow = false,
-  });
+  const _DeckCover({required this.path, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -376,23 +337,17 @@ class _DeckCover extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.16),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         boxShadow: [
           BoxShadow(
-            color: hasGlow
-                ? const Color(0xFFB79CFF).withValues(alpha: 0.32)
-                : Colors.black.withValues(alpha: 0.4),
-            blurRadius: hasGlow ? 14 : 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: .35),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         child: ArtworkImage(path, width: size, height: size),
       ),
     );

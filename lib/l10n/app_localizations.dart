@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @permissionFooter.
   ///
   /// In en, this message translates to:
-  /// **'Free · No ads · No account'**
+  /// **'Free • No ads • No account'**
   String get permissionFooter;
 
   /// No description provided for @scanTitle.
@@ -917,7 +917,7 @@ abstract class AppLocalizations {
   /// No description provided for @albumByArtist.
   ///
   /// In en, this message translates to:
-  /// **'{artist} · {songs}'**
+  /// **'{artist} • {songs}'**
   String albumByArtist(String artist, String songs);
 
   /// No description provided for @statSongs.
@@ -1001,7 +1001,7 @@ abstract class AppLocalizations {
   /// No description provided for @detailCountsSummary.
   ///
   /// In en, this message translates to:
-  /// **'{songs} · {albums}'**
+  /// **'{songs} • {albums}'**
   String detailCountsSummary(String songs, String albums);
 
   /// No description provided for @albumAbout.
@@ -1178,18 +1178,6 @@ abstract class AppLocalizations {
   /// **'Grid view'**
   String get playlistsGridView;
 
-  /// No description provided for @playlistsFilterAll.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get playlistsFilterAll;
-
-  /// No description provided for @playlistsFilterMine.
-  ///
-  /// In en, this message translates to:
-  /// **'My playlists'**
-  String get playlistsFilterMine;
-
   /// No description provided for @playlistsYours.
   ///
   /// In en, this message translates to:
@@ -1322,12 +1310,6 @@ abstract class AppLocalizations {
   /// **'We couldn\'t open this playlist.'**
   String get playlistOpenError;
 
-  /// No description provided for @playlistLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Playlist'**
-  String get playlistLabel;
-
   /// No description provided for @likesEmptyTitle.
   ///
   /// In en, this message translates to:
@@ -1343,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @likesSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{songs} · Your favorites in one place'**
+  /// **'{songs} • Your favorites in one place'**
   String likesSubtitle(String songs);
 
   /// No description provided for @likesBadge.
@@ -1697,7 +1679,7 @@ abstract class AppLocalizations {
   /// No description provided for @queueUpNext.
   ///
   /// In en, this message translates to:
-  /// **'Up next · {count}'**
+  /// **'Up next • {count}'**
   String queueUpNext(int count);
 
   /// No description provided for @queueRemoved.

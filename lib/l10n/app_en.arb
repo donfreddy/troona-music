@@ -135,7 +135,7 @@
   "permissionBlockedBody": "Allow Troona to access your music in your phone's settings, then come back. We'll take it from there.",
   "permissionOpenSettings": "Open settings",
   "permissionCheckAgain": "I turned it on",
-  "permissionFooter": "Free · No ads · No account",
+  "permissionFooter": "Free • No ads • No account",
   "scanTitle": "Finding your music",
   "scanPhaseScanning": "Looking for songs on your phone…",
   "scanPhaseIndexing": "Building your library…",
@@ -212,7 +212,7 @@
   "librarySortRecent": "Recently added",
   "libraryUpdating": "Updating your library…",
   "libraryShuffleAll": "Shuffle all",
-  "albumByArtist": "{artist} · {songs}",
+  "albumByArtist": "{artist} • {songs}",
   "@albumByArtist": {
     "placeholders": {
       "artist": {
@@ -288,7 +288,7 @@
   },
   "detailMore": "More options",
   "detailBack": "Back",
-  "detailCountsSummary": "{songs} · {albums}",
+  "detailCountsSummary": "{songs} • {albums}",
   "@detailCountsSummary": {
     "placeholders": {
       "songs": {
@@ -351,8 +351,6 @@
   "playlistsCreate": "New",
   "playlistsListView": "List view",
   "playlistsGridView": "Grid view",
-  "playlistsFilterAll": "All",
-  "playlistsFilterMine": "My playlists",
   "playlistsYours": "Your playlists",
   "playlistsEmptyTitle": "Make your first playlist",
   "playlistsEmptyBody": "Group songs for a mood, a moment or a road trip.",
@@ -396,10 +394,9 @@
   "playlistRemove": "Remove from playlist",
   "playlistLoadError": "We couldn't load your playlists.",
   "playlistOpenError": "We couldn't open this playlist.",
-  "playlistLabel": "Playlist",
   "likesEmptyTitle": "Songs you like will live here",
   "likesEmptyBody": "Tap the heart on any song to save it.",
-  "likesSubtitle": "{songs} · Your favorites in one place",
+  "likesSubtitle": "{songs} • Your favorites in one place",
   "@likesSubtitle": {
     "placeholders": {
       "songs": {
@@ -548,7 +545,7 @@
   "queueRepeatOne": "Repeating this song",
   "queueRepeatAll": "Then back to the start",
   "queueNothingNext": "Nothing up next",
-  "queueUpNext": "Up next · {count}",
+  "queueUpNext": "Up next • {count}",
   "@queueUpNext": {
     "placeholders": {
       "count": {

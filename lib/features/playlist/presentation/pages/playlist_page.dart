@@ -2,25 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/router/app_router.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_editor_page.dart';
 import 'package:troona/features/playlist/presentation/widgets/likes_hero_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
-import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
+import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/custom_sliver_header.dart';
 import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
-enum _PlaylistFilter { all, likesOnly, customOnly }
-
-/// Redesigned Playlist Page with hero card for likes, grid/list toggle,
-/// quick filters, and glassmorphic styling.
+/// Playlists tab: the liked songs banner, then the user's playlists as a
+/// grid or a list. Laid out like the Library: large title header, same
+/// gutters, flat covers.
 class PlaylistPage extends StatefulWidget {
   const PlaylistPage({super.key});
 
@@ -30,7 +33,6 @@ class PlaylistPage extends StatefulWidget {
 
 class _PlaylistPageState extends State<PlaylistPage> {
   bool _isGrid = true;
-  _PlaylistFilter _filter = _PlaylistFilter.all;
 
   void _openCreateDialog(BuildContext context) {
     Navigator.of(context).push(
@@ -46,7 +48,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
+    final l10n = context.l10n;
 
     return BlocListener<LikesCubit, LikesState>(
       listenWhen: (prev, curr) => prev.likedTrackIds != curr.likedTrackIds,
@@ -56,354 +58,169 @@ class _PlaylistPageState extends State<PlaylistPage> {
       },
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: SafeArea(
-          bottom: false,
-          child: BlocBuilder<PlaylistBloc, PlaylistState>(
-            builder: (context, state) {
-              if (state is PlaylistLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (state is PlaylistLoaded) {
-                final playlists = state.playlists;
-
-                // Split into Likes and Custom playlists
-                Playlist? likesPlaylist;
-                final customPlaylists = <Playlist>[];
-
-                for (final p in playlists) {
-                  if (p.id == Playlist.likesId) {
-                    likesPlaylist = p;
-                  } else {
-                    customPlaylists.add(p);
-                  }
-                }
-
-                // Apply filter
-                final showHero =
-                    likesPlaylist != null &&
-                    _filter != _PlaylistFilter.customOnly;
-                final showCustom = _filter != _PlaylistFilter.likesOnly;
-
-                return CustomScrollView(
-                  slivers: [
-                    // ── Header Bar ───────────────────────────────────────────
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.md,
-                          AppSpacing.sm,
-                          AppSpacing.md,
-                          AppSpacing.sm,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    context.l10n.navPlaylists,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 28,
-                                      color: Colors.white,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Grid / List View Toggle
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  _isGrid
-                                      ? LucideIcons.layoutList
-                                      : LucideIcons.layoutGrid,
-                                  color: Colors.white70,
-                                  size: 19,
-                                ),
-                                tooltip: _isGrid
-                                    ? context.l10n.playlistsListView
-                                    : context.l10n.playlistsGridView,
-                                onPressed: () =>
-                                    setState(() => _isGrid = !_isGrid),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-
-                            // + Create Playlist Pill
-                            InkWell(
-                              onTap: () => _openCreateDialog(context),
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 9,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colors.accent,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colors.accent.withValues(
-                                        alpha: 0.35,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.plus,
-                                      size: 15,
-                                      color: Colors.black,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      context.l10n.playlistsCreate,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // ── Filter Chips ──────────────────────────────────────────
-                    SliverToBoxAdapter(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
-                        ),
-                        child: Row(
-                          children: [
-                            _FilterChip(
-                              label: context.l10n.playlistsFilterAll,
-                              isSelected: _filter == _PlaylistFilter.all,
-                              onTap: () =>
-                                  setState(() => _filter = _PlaylistFilter.all),
-                            ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: context.l10n.likedSongs,
-                              icon: LucideIcons.heart,
-                              isSelected: _filter == _PlaylistFilter.likesOnly,
-                              onTap: () => setState(
-                                () => _filter = _PlaylistFilter.likesOnly,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            _FilterChip(
-                              label: context.l10n.playlistsFilterMine,
-                              icon: LucideIcons.listMusic,
-                              isSelected: _filter == _PlaylistFilter.customOnly,
-                              onTap: () => setState(
-                                () => _filter = _PlaylistFilter.customOnly,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SliverToBoxAdapter(
-                      child: SizedBox(height: AppSpacing.md),
-                    ),
-
-                    // ── Hero banner: liked songs ──────────────────────────────
-                    if (showHero) ...[
-                      SliverToBoxAdapter(
-                        child: LikesHeroCard(playlist: likesPlaylist),
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: AppSpacing.lg),
-                      ),
-                    ],
-
-                    // ── Custom Playlists Section Header ───────────────────────
-                    if (showCustom && customPlaylists.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.xs,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                context.l10n.playlistsYours,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: -0.2,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '${customPlaylists.length}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // ── Playlists Body (Grid or List or Empty) ────────────────
-                    if (showCustom)
-                      if (customPlaylists.isEmpty)
-                        SliverToBoxAdapter(
-                          child: _EmptyPlaylistsView(
-                            onCreate: () => _openCreateDialog(context),
-                          ),
-                        )
-                      else if (_isGrid)
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.md,
-                            AppSpacing.sm,
-                            AppSpacing.md,
-                            AppSpacing.lg,
-                          ),
-                          sliver: SliverGrid(
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 14,
-                                  mainAxisSpacing: 18,
-                                  childAspectRatio: 0.77,
-                                ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) => PlaylistCard(
-                                playlist: customPlaylists[index],
-                              ),
-                              childCount: customPlaylists.length,
-                            ),
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.sm,
-                          ),
-                          sliver: SliverList.separated(
-                            itemCount: customPlaylists.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: AppSpacing.sm),
-                            itemBuilder: (context, index) =>
-                                _PlaylistTile(playlist: customPlaylists[index]),
-                          ),
-                        ),
-
-                    // Bottom padding for mini-player
-                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                  ],
-                );
-              }
-
-              if (state is PlaylistError) {
-                return ErrorView(body: context.l10n.playlistLoadError);
-              }
-
-              return const SizedBox.shrink();
-            },
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
+          slivers: [
+            CustomSliverHeader(
+              title: l10n.navPlaylists,
+              expandedHeight: 130,
+              actions: [
+                GlassIconButton(
+                  icon: _isGrid
+                      ? LucideIcons.layoutList
+                      : LucideIcons.layoutGrid,
+                  tooltip: _isGrid
+                      ? l10n.playlistsListView
+                      : l10n.playlistsGridView,
+                  onTap: () => setState(() => _isGrid = !_isGrid),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                GlassIconButton(
+                  icon: LucideIcons.plus,
+                  tooltip: l10n.playlistsCreate,
+                  onTap: () => _openCreateDialog(context),
+                ),
+              ],
+            ),
+            BlocBuilder<PlaylistBloc, PlaylistState>(
+              builder: (context, state) => switch (state) {
+                PlaylistLoaded(:final playlists) => _PlaylistsBody(
+                  playlists: playlists,
+                  isGrid: _isGrid,
+                  onCreate: () => _openCreateDialog(context),
+                ),
+                PlaylistError() => SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorView(body: l10n.playlistLoadError),
+                ),
+                _ => const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _PlaylistsBody extends StatelessWidget {
+  final List<Playlist> playlists;
+  final bool isGrid;
+  final VoidCallback onCreate;
 
-  const _FilterChip({
-    required this.label,
-    this.icon,
-    required this.isSelected,
-    required this.onTap,
+  const _PlaylistsBody({
+    required this.playlists,
+    required this.isGrid,
+    required this.onCreate,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
+    final likes = playlists.where((p) => p.id == Playlist.likesId).firstOrNull;
+    final custom = playlists.where((p) => p.id != Playlist.likesId).toList();
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colors.accent.withValues(alpha: 0.18)
-              : Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? colors.accent.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.08),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 13,
-                color: isSelected ? colors.accent : Colors.white60,
-              ),
-              const SizedBox(width: 5),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.white70,
-              ),
+    return SliverMainAxisGroup(
+      slivers: [
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.sm)),
+        if (likes != null) ...[
+          SliverToBoxAdapter(child: LikesHeroCard(playlist: likes)),
+          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
+        ],
+        if (custom.isEmpty)
+          SliverToBoxAdapter(child: _EmptyPlaylistsView(onCreate: onCreate))
+        else ...[
+          SliverToBoxAdapter(child: _SectionTitle(count: custom.length)),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
             ),
-          ],
-        ),
+            sliver: isGrid
+                ? SliverGrid.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: AppSpacing.md,
+                          mainAxisSpacing: AppSpacing.lg,
+                          childAspectRatio: 0.70,
+                        ),
+                    itemCount: custom.length,
+                    itemBuilder: (context, index) => PlaylistCard(
+                      playlist: custom[index],
+                      onLongPress: () => _confirmDelete(context, custom[index]),
+                    ),
+                  )
+                : SliverList.separated(
+                    itemCount: custom.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: AppSpacing.sm),
+                    itemBuilder: (context, index) =>
+                        _PlaylistTile(playlist: custom[index]),
+                  ),
+          ),
+        ],
+        // Room for the mini player and the tab bar.
+        const SliverToBoxAdapter(child: SizedBox(height: 120)),
+      ],
+    );
+  }
+}
+
+/// Asks before deleting [playlist]; reached by a long press on its card or
+/// row.
+Future<void> _confirmDelete(BuildContext context, Playlist playlist) async {
+  final l10n = context.l10n;
+  AppHaptics.lightImpact();
+  final confirmed = await showConfirmDialog(
+    context,
+    title: l10n.playlistDeleteTitle(playlist.name),
+    body: l10n.playlistDeleteBody,
+    confirmLabel: l10n.actionDelete,
+    destructive: true,
+  );
+  if (!confirmed || !context.mounted) return;
+  context.read<PlaylistBloc>().add(PlaylistDeleteRequested(playlist.id));
+  AppToast.show(context, l10n.playlistDeleted);
+}
+
+class _SectionTitle extends StatelessWidget {
+  final int count;
+
+  const _SectionTitle({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: Row(
+        children: [
+          Text(
+            context.l10n.playlistsYours,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.4,
+              color: colors.labelPrimary,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: colors.labelTertiary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -418,195 +235,126 @@ class _EmptyPlaylistsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.lg,
-      ),
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: colors.glassFill,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-          width: 1,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: GlassCard(
+        config: GlassTheme.card(context).copyWith(
+          blurSigma: 0,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          padding: const EdgeInsets.all(AppSpacing.xl),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              shape: BoxShape.circle,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colors.accent.withValues(alpha: .12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(LucideIcons.listPlus, color: colors.accent, size: 28),
             ),
-            child: const Icon(
-              LucideIcons.listPlus,
-              color: Colors.white70,
-              size: 32,
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              context.l10n.playlistsEmptyTitle,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: colors.labelPrimary,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            context.l10n.playlistsEmptyTitle,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+            const SizedBox(height: 6),
+            Text(
+              context.l10n.playlistsEmptyBody,
+              style: TextStyle(fontSize: 13, color: colors.labelSecondary),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            context.l10n.playlistsEmptyBody,
-            style: TextStyle(fontSize: 13, color: colors.labelSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ElevatedButton.icon(
-            onPressed: onCreate,
-            icon: const Icon(LucideIcons.plus, size: 16),
-            label: Text(context.l10n.playlistNew),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colors.accent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
-              shape: const StadiumBorder(),
+            const SizedBox(height: AppSpacing.lg),
+            ElevatedButton.icon(
+              onPressed: onCreate,
+              icon: const Icon(LucideIcons.plus, size: 16),
+              label: Text(context.l10n.playlistNew),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colors.accent,
+                foregroundColor: colors.accentForeground,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 11,
+                ),
+                shape: const StadiumBorder(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
+/// Row of the list view, on the same flat glass as Home's recent tiles.
 class _PlaylistTile extends StatelessWidget {
   final Playlist playlist;
-  const _PlaylistTile({required this.playlist});
 
-  Future<void> _showDeleteDialog(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.playlistDeleteTitle(playlist.name),
-      body: l10n.playlistDeleteBody,
-      confirmLabel: l10n.actionDelete,
-      destructive: true,
-    );
-    if (!confirmed || !context.mounted) return;
-    context.read<PlaylistBloc>().add(PlaylistDeleteRequested(playlist.id));
-    AppToast.show(context, l10n.playlistDeleted);
-  }
+  const _PlaylistTile({required this.playlist});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isLikes = playlist.id == Playlist.likesId;
-    final trackCount = playlist.trackIds.length;
-    final subtitle = context.l10n.songCount(trackCount);
 
-    return InkWell(
+    return GestureDetector(
       onTap: () => context.pushPlaylist(playlist.id),
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: isLikes
-              ? const Color(0xFFB79CFF).withValues(alpha: 0.10)
-              : colors.glassFill,
+      onLongPress: () => _confirmDelete(context, playlist),
+      child: GlassCard(
+        config: GlassTheme.card(context).copyWith(
+          blurSigma: 0,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(
-            color: isLikes
-                ? const Color(0xFFB79CFF).withValues(alpha: 0.28)
-                : Colors.white.withValues(alpha: 0.08),
-          ),
+          padding: const EdgeInsets.all(AppSpacing.sm),
         ),
         child: Row(
           children: [
-            // Artwork / Cover
             ClipRRect(
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: SizedBox.square(
-                dimension: 58,
-                child: isLikes
-                    ? Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF382366), Color(0xFF1B1133)],
-                          ),
-                        ),
-                        child: const Icon(
-                          LucideIcons.heart,
-                          color: Color(0xFFB79CFF),
-                          size: 26,
-                        ),
-                      )
-                    : playlist.artworkPath != null
-                    ? ArtworkImage(playlist.artworkPath!, width: 58, height: 58)
-                    : playlist.trackIds.isNotEmpty
-                    ? PlaylistMosaic(trackIds: playlist.trackIds, size: 58)
-                    : Container(
-                        color: Colors.white10,
-                        child: const Icon(
-                          LucideIcons.listMusic,
-                          color: Colors.white30,
-                        ),
-                      ),
+                dimension: 56,
+                child: PlaylistCover(playlist: playlist, size: 56),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-
-            // Info (Title & Track Count)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isLikes ? context.l10n.likedSongs : playlist.name,
+                    playlist.name,
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15.5,
-                      color: isLikes ? Colors.white : Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: colors.labelPrimary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
-                    subtitle,
+                    context.l10n.songCount(playlist.trackIds.length),
                     style: TextStyle(
-                      color: isLikes
-                          ? const Color(0xFFD4C4FF)
-                          : colors.labelSecondary,
+                      color: colors.labelSecondary,
                       fontSize: 12.5,
                     ),
                   ),
                 ],
               ),
             ),
-
-            // Trailing: Delete button for custom playlists, chevron for Likes
-            if (!isLikes)
-              IconButton(
-                icon: const Icon(
-                  LucideIcons.trash2,
-                  size: 18,
-                  color: Colors.white38,
-                ),
-                onPressed: () => _showDeleteDialog(context),
-              )
-            else
-              const Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Icon(
-                  LucideIcons.chevronRight,
-                  size: 20,
-                  color: Colors.white38,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: colors.labelTertiary,
               ),
+            ),
           ],
         ),
       ),
