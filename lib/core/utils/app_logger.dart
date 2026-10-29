@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
@@ -19,6 +21,7 @@ import 'package:logger/logger.dart';
 /// | Debug    | trace         | PrettyPrinter (coloured)  |
 /// | Profile  | warning       | SimplePrinter (no colour) |
 /// | Release  | off           | silent: zero overhead    |
+/// | `flutter test` | off     | silent: keeps test output readable |
 ///
 /// **Adding crash reporting**: in release mode, replace `Logger(level: off)`
 /// with a `Logger(output: CrashlyticsOutput())` that forwards warning/error
@@ -38,6 +41,14 @@ class _CrashLogOutput extends LogOutput {
 }
 
 Logger _buildLogger() {
+  // `flutter test` runs in neither release nor profile mode, so without this
+  // check every warning/error logged by the code under test (including the
+  // ones tests trigger on purpose, to verify error handling) would print in
+  // full PrettyPrinter verbosity and bury the actual test output.
+  if (Platform.environment['FLUTTER_TEST'] == 'true') {
+    return Logger(level: Level.off);
+  }
+
   if (kReleaseMode) {
     return Logger(
       level: Level.warning,
