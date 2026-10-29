@@ -1,4 +1,3 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -8,7 +7,6 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
-import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/mini_equalizer.dart';
 
@@ -56,10 +54,6 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
           state is PlayerActive && state.currentTrack.id == widget.track.id;
       return (active, active && state.isPlaying);
     });
-
-    final isLiked = context.select<LikesCubit, bool>(
-      (c) => c.state.isTrackLiked(widget.track.id),
-    );
 
     final trackNum = widget.track.trackNumber;
     final trackNumStr = trackNum != null && trackNum > 0

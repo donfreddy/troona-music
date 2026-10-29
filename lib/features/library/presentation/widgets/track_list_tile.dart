@@ -7,7 +7,6 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
-import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/mini_equalizer.dart';
@@ -49,10 +48,6 @@ class _TrackListTileState extends State<TrackListTile> {
           state is PlayerActive && state.currentTrack.id == widget.track.id;
       return (active, active && state.isPlaying);
     });
-
-    final isLiked = context.select<LikesCubit, bool>(
-      (c) => c.state.isTrackLiked(widget.track.id),
-    );
 
     final durationStr = Duration(
       milliseconds: widget.track.durationMs,
