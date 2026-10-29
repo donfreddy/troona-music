@@ -16,6 +16,7 @@
 </p>
 
 <p align="center">
+  <a href="#download">Download</a> •
   <a href="#features">Features</a> •
   <a href="#screenshots">Screenshots</a> •
   <a href="#tech-stack">Tech stack</a> •
@@ -24,6 +25,22 @@
   <a href="#contributing">Contributing</a> •
   <a href="#privacy">Privacy</a>
 </p>
+
+---
+
+## Download
+
+<!-- TODO(freddy): swap these once v1.0 is actually published. The GitHub Release badge
+     is live (shields.io queries the GitHub API), it will just show "none yet" until
+     you cut a release. The Play Store / App Store ones are static placeholders: point
+     them at the real listing URLs once they exist. -->
+<p align="center">
+  <a href="https://github.com/donfreddy/troona-music/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/donfreddy/troona-music?label=GitHub%20Release&include_prereleases"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.donfreddy.troona"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Google_Play-coming_soon-grey?logo=googleplay&logoColor=white"></a>
+  <a href="#"><img alt="Download on the App Store" src="https://img.shields.io/badge/App_Store-coming_soon-grey?logo=apple&logoColor=white"></a>
+</p>
+
+> Troona hasn't shipped v1.0 yet; see [Roadmap to v1.0](#roadmap-to-v10). Until then, build it yourself from source with [Getting started](#getting-started) below.
 
 ---
 
