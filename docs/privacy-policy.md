@@ -15,6 +15,12 @@ There are two separate switches. Bios sends artist and album names to Last.fm. P
 - Last.fm privacy policy: https://www.last.fm/legal/privacy
 - Deezer privacy policy: https://www.deezer.com/legal/personal-datas
 
+## Update check (off by default)
+
+When on, Troona asks GitHub once a day for the number of its latest version. "Check for updates now" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: "View" opens the release page in your browser.
+
+- GitHub privacy statement: https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement
+
 ## Problem reports
 
 Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.

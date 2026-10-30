@@ -11,7 +11,7 @@ void main() {
     return SettingsRepositoryImpl(await SharedPreferences.getInstance());
   }
 
-  test('defaults: online extras off, glass auto', () async {
+  test('defaults: online extras and update check off, glass auto', () async {
     final repo = await repoWith({});
     final settings = (await repo.loadSettings()).getOrElse(
       () => throw 'no settings',
@@ -19,6 +19,7 @@ void main() {
     expect(settings, const AppSettings());
     expect(settings.fetchOnlineMetadata, isFalse);
     expect(settings.fetchArtistArtwork, isFalse);
+    expect(settings.checkForUpdates, isFalse);
     expect(settings.glassQuality, GlassQuality.auto);
   });
 
@@ -62,6 +63,7 @@ void main() {
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
       onlineExtrasOffered: true,
+      checkForUpdates: true,
       hapticFeedbackEnabled: false,
       glassQuality: GlassQuality.off,
     );

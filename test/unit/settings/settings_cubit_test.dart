@@ -75,6 +75,16 @@ void main() {
     expect(settingsOf(cubit)?.onlineExtrasOffered, isTrue);
   });
 
+  test('the update check switch is saved and off by default', () async {
+    final cubit = SettingsCubit(repo, null, metadata);
+    await cubit.load();
+    expect(settingsOf(cubit)!.checkForUpdates, isFalse);
+    await cubit.setCheckForUpdates(true);
+    expect(settingsOf(cubit)!.checkForUpdates, isTrue);
+    final saved = (await repo.loadSettings()).getOrElse(() => throw 'none');
+    expect(saved.checkForUpdates, isTrue);
+  });
+
   test('changes are saved, so a second reader sees them', () async {
     final cubit = SettingsCubit(repo, null, metadata);
     await cubit.load();
@@ -97,7 +107,7 @@ void main() {
   });
 
   test(
-    'a restore keeps the glass quality and online extras of the phone',
+    'a restore keeps the glass quality and online choices of the phone',
     () async {
       final cubit = SettingsCubit(repo, null, metadata);
       await cubit.load();
@@ -109,6 +119,7 @@ void main() {
           hapticFeedbackEnabled: false,
           glassQuality: GlassQuality.off,
           fetchOnlineMetadata: true,
+          checkForUpdates: true,
         ),
       );
 
@@ -117,6 +128,7 @@ void main() {
       expect(restored.glassQuality, GlassQuality.low);
       expect(restored.fetchOnlineMetadata, isFalse);
       expect(restored.fetchArtistArtwork, isTrue);
+      expect(restored.checkForUpdates, isFalse);
       expect(metadata.forgets, 0);
     },
   );

@@ -40,7 +40,7 @@
   "settingsCoversConfirmBody": "Les pochettes se rechargent en arrière-plan. Votre musique, vos titres aimés et vos playlists ne sont pas touchés.",
   "settingsCoversCleared": "Cache des pochettes vidé",
   "settingsOnline": "Extras en ligne",
-  "settingsOnlineFooter": "Optionnel. Activé, Troona envoie les noms d'artistes et d'albums à Last.fm et Deezer pour récupérer photos et biographies. Vos fichiers ne quittent jamais cet appareil.",
+  "settingsOnlineFooter": "Optionnel. Biographies et photos envoient les noms d'artistes et d'albums à Last.fm et Deezer. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.",
   "settingsOnlineBios": "Biographies et notes d'albums",
   "settingsOnlinePhotos": "Photos d'artistes et pochettes",
   "settingsOnlineClear": "Effacer les infos téléchargées",
@@ -332,5 +332,17 @@
   "backupRestoreFound": "Morceaux retrouvés sur ce téléphone : {found} sur {total}.",
   "backupRestoreMissing": "{count, plural, =1{1 morceau n'est pas sur ce téléphone. Ajoutez-le, puis restaurez à nouveau le même fichier pour le relier.} other{{count} morceaux ne sont pas sur ce téléphone. Ajoutez-les, puis restaurez à nouveau le même fichier pour les relier.}}",
   "backupRestoreMore": "et {count} autres",
-  "backupRestoreOnline": "Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez."
+  "backupRestoreOnline": "Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez.",
+  "settingsUpdateCheck": "Rechercher les mises à jour",
+  "settingsUpdateCheckSubtitle": "Une fois par jour, sur GitHub",
+  "updateCheckNow": "Vérifier maintenant",
+  "updateUpToDate": "Troona est à jour",
+  "updateCheckFailed": "Impossible de vérifier les mises à jour. Réessayez plus tard.",
+  "updateAvailable": "Troona {version} est disponible",
+  "updateAvailableBody": "Elle se télécharge depuis la page de la version sur GitHub.",
+  "updateView": "Voir",
+  "updateSkip": "Ignorer cette version",
+  "updateOpenFailed": "Impossible d'ouvrir le navigateur",
+  "privacyUpdatesTitle": "Recherche de mises à jour (désactivée par défaut)",
+  "privacyUpdatesBody": "Activée, la recherche demande une fois par jour à GitHub le numéro de la dernière version de Troona. « Vérifier maintenant » ne le demande qu'une fois, quand vous appuyez dessus. GitHub voit votre adresse IP, comme pour toute requête web ; aucune donnée sur vous ou votre musique n'est envoyée. Troona ne télécharge ni n'installe jamais de mise à jour lui-même : « Voir » ouvre la page de la version dans votre navigateur."
 }

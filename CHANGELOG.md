@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Android 13 and later: a heart in the system media controls (notification and lock screen) likes or unlikes the current song.
 - Android 11 and later: after Troona is closed, the system media controls offer to resume the last song where it stopped. A headset play button does the same.
 - Backup and restore, in Settings: playlists, likes, listening history and settings go to a file you keep, and come back on this phone or another one. Songs are found again by file, then by title, artist and album; the ones missing are listed, and restoring the same file after adding them links them. Restoring adds to what is there and never doubles anything. Online extras keep this phone's choice.
+- Update check, off by default, in Settings: once a day Troona asks GitHub for its latest version and, when there is a newer one, shows a card on Home with View (opens the release page) and Skip this version. Check for updates now, in Support, works with the switch off. Troona never downloads or installs anything itself.
 
 ### Changed
 

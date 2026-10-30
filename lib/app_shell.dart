@@ -18,6 +18,7 @@ import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
@@ -89,6 +90,7 @@ class _AppShellState extends State<AppShell> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());
     WidgetsBinding.instance.addPostFrameCallback((_) => _showWhatsNew());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
   }
 
   /// "What's new", once after an update that ships notes.
@@ -106,6 +108,15 @@ class _AppShellState extends State<AppShell> {
     }
     if (version == null || !mounted) return;
     await showWhatsNewSheet(context, releaseFor(l10n, version));
+  }
+
+  /// The daily update check, when it is on. Silent: Home shows a card.
+  Future<void> _checkForUpdate() async {
+    try {
+      await getIt<UpdateCubit>().checkIfEnabled();
+    } catch (e, st) {
+      appLogger.w('Update check failed', error: e, stackTrace: st);
+    }
   }
 
   /// Last month's Replay playlist, made once on the first run of a month.

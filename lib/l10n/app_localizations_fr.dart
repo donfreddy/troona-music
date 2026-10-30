@@ -162,7 +162,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optionnel. Activé, Troona envoie les noms d\'artistes et d\'albums à Last.fm et Deezer pour récupérer photos et biographies. Vos fichiers ne quittent jamais cet appareil.';
+      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums à Last.fm et Deezer. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
 
   @override
   String get settingsOnlineBios => 'Biographies et notes d\'albums';
@@ -1266,4 +1266,46 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get backupRestoreOnline =>
       'Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu\'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez.';
+
+  @override
+  String get settingsUpdateCheck => 'Rechercher les mises à jour';
+
+  @override
+  String get settingsUpdateCheckSubtitle => 'Une fois par jour, sur GitHub';
+
+  @override
+  String get updateCheckNow => 'Vérifier maintenant';
+
+  @override
+  String get updateUpToDate => 'Troona est à jour';
+
+  @override
+  String get updateCheckFailed =>
+      'Impossible de vérifier les mises à jour. Réessayez plus tard.';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Troona $version est disponible';
+  }
+
+  @override
+  String get updateAvailableBody =>
+      'Elle se télécharge depuis la page de la version sur GitHub.';
+
+  @override
+  String get updateView => 'Voir';
+
+  @override
+  String get updateSkip => 'Ignorer cette version';
+
+  @override
+  String get updateOpenFailed => 'Impossible d\'ouvrir le navigateur';
+
+  @override
+  String get privacyUpdatesTitle =>
+      'Recherche de mises à jour (désactivée par défaut)';
+
+  @override
+  String get privacyUpdatesBody =>
+      'Activée, la recherche demande une fois par jour à GitHub le numéro de la dernière version de Troona. « Vérifier maintenant » ne le demande qu\'une fois, quand vous appuyez dessus. GitHub voit votre adresse IP, comme pour toute requête web ; aucune donnée sur vous ou votre musique n\'est envoyée. Troona ne télécharge ni n\'installe jamais de mise à jour lui-même : « Voir » ouvre la page de la version dans votre navigateur.';
 }

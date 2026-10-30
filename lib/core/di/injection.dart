@@ -5,6 +5,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/database/app_database.dart';
@@ -79,6 +80,10 @@ import 'package:troona/features/settings/data/repositories/maintenance_repositor
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
+import 'package:troona/features/updates/data/update_repository_impl.dart';
+import 'package:troona/features/updates/domain/repositories/update_repository.dart';
+import 'package:troona/features/updates/domain/use_cases/check_for_update_use_case.dart';
+import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/data/shared_prefs_whats_new_repository.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
@@ -295,6 +300,13 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<CheckWhatsNewUseCase>(
     () => CheckWhatsNewUseCase(SharedPrefsWhatsNewRepository(getIt()), getIt()),
   );
+  // Its own Dio: GitHub headers and a short timeout.
+  getIt.registerLazySingleton<UpdateRepository>(
+    () => UpdateRepositoryImpl(
+      dio: Dio(UpdateRepositoryImpl.options),
+      prefs: getIt(),
+    ),
+  );
   getIt.registerLazySingleton<ArtistArtworkPrefetchService>(
     () => ArtistArtworkPrefetchService(repo: getIt()),
   );
@@ -373,6 +385,14 @@ Future<void> configureDependencies() async {
     () => BackupCubit(
       export: ExportBackupUseCase(getIt()),
       restore: RestoreBackupUseCase(getIt(), getIt()),
+    ),
+  );
+  // Singleton: Home's card and Settings show the same check.
+  getIt.registerLazySingleton<UpdateCubit>(
+    () => UpdateCubit(
+      check: CheckForUpdateUseCase(getIt(), getIt()),
+      repo: getIt(),
+      settings: getIt(),
     ),
   );
   getIt.registerFactory<WeeklyRecapCubit>(

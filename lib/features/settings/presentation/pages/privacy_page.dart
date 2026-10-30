@@ -17,6 +17,7 @@ class PrivacyPage extends StatelessWidget {
     final sections = [
       (l10n.privacyLocalTitle, l10n.privacyLocalBody),
       (l10n.privacyOnlineTitle, l10n.privacyOnlineBody),
+      (l10n.privacyUpdatesTitle, l10n.privacyUpdatesBody),
       (l10n.privacyReportsTitle, l10n.privacyReportsBody),
       (l10n.privacyBackupTitle, l10n.privacyBackupBody),
       (l10n.privacyDeleteTitle, l10n.privacyDeleteBody),

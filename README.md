@@ -37,7 +37,7 @@ Troona is distributed as APKs on [GitHub Releases](https://github.com/donfreddy/
 
 ---
 
-Troona plays the music already on your phone. No account, no streaming catalogue, no ads, no analytics. Every byte of your library, your plays and your playlists stays on the device; the two online lookups it can make (artist bios, artist photos) are opt-in, off by default, and documented in plain English in the [privacy policy](docs/privacy-policy.md).
+Troona plays the music already on your phone. No account, no streaming catalogue, no ads, no analytics. Every byte of your library, your plays and your playlists stays on the device; the three online lookups it can make (artist bios, artist photos, update check) are opt-in, off by default, and documented in plain English in the [privacy policy](docs/privacy-policy.md).
 
 It is also an engineering showcase: a Clean Architecture Flutter codebase with a Flutter-free domain layer, an audio engine fully isolated behind a port/adapter boundary, and a disciplined glassmorphism design system built for real device performance, not just a demo reel.
 
@@ -91,6 +91,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Artist and album bios via Last.fm
 - Artist and album photos via Deezer
 - Each source has its own switch; turning photos off deletes what was downloaded; "Clear online info" wipes both caches
+- Update check: asks GitHub once a day for the latest release and shows a card on Home; "Check for updates now" works with the switch off. Troona never downloads or installs anything: "View" opens the release page
 
 ### 🎨 Design
 - Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
@@ -176,7 +177,7 @@ flutter run
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.WAKE_LOCK" />
-<!-- Only used for the opt-in online bios/photos, never for playback -->
+<!-- Only used for the opt-in online bios/photos and update check, never for playback -->
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
@@ -212,7 +213,7 @@ Troona's glassmorphism direction started from a concept by **[Shimon Bar Yacov](
 
 ## Privacy
 
-Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The two online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer) are opt-in, independently toggled, and send nothing beyond an artist/album name. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
+Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The three online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer, the latest release number via GitHub) are opt-in and independently toggled. Bios and photos send only an artist/album name; the update check sends nothing about you or your music. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
 
 ## License
 

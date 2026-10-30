@@ -64,6 +64,13 @@ class BackupTooNewFailure extends Failure {
     : super('Backup version $version is newer than this app.');
 }
 
+// ── Updates ───────────────────────────────────────────────────────────────────
+
+/// GitHub could not be reached, or gave no release this app can read.
+class UpdateCheckFailure extends Failure {
+  const UpdateCheckFailure([super.message = 'Update check failed.']);
+}
+
 // ── Other ─────────────────────────────────────────────────────────────────────
 
 /// An error no layer anticipated. Keeps the original for the logs.

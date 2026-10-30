@@ -68,7 +68,7 @@
   "settingsCoversConfirmBody": "Covers reload in the background. Your music, likes and playlists aren't affected.",
   "settingsCoversCleared": "Cover cache cleared",
   "settingsOnline": "Online extras",
-  "settingsOnlineFooter": "Optional. When on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. Your music files never leave this device.",
+  "settingsOnlineFooter": "Optional. Bios and photos send artist and album names to Last.fm and Deezer. The update check asks GitHub for Troona's latest version. Your music files never leave this device.",
   "settingsOnlineBios": "Artist bios and album notes",
   "settingsOnlinePhotos": "Artist photos and album covers",
   "settingsOnlineClear": "Clear downloaded info",
@@ -683,5 +683,24 @@
       }
     }
   },
-  "backupRestoreOnline": "Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them."
+  "backupRestoreOnline": "Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.",
+  "settingsUpdateCheck": "Check for updates",
+  "settingsUpdateCheckSubtitle": "Once a day, on GitHub",
+  "updateCheckNow": "Check for updates now",
+  "updateUpToDate": "Troona is up to date",
+  "updateCheckFailed": "Couldn't check for updates. Try again later.",
+  "updateAvailable": "Troona {version} is available",
+  "@updateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableBody": "Download it from its release page on GitHub.",
+  "updateView": "View",
+  "updateSkip": "Skip this version",
+  "updateOpenFailed": "Couldn't open the browser",
+  "privacyUpdatesTitle": "Update check (off by default)",
+  "privacyUpdatesBody": "When on, Troona asks GitHub once a day for the number of its latest version. \"Check for updates now\" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: \"View\" opens the release page in your browser."
 }

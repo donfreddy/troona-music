@@ -13,6 +13,7 @@ import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
 import 'package:troona/features/home/presentation/widgets/home_hero_banner.dart';
 import 'package:troona/features/home/presentation/widgets/online_extras_offer.dart';
+import 'package:troona/features/updates/presentation/widgets/update_card.dart';
 import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/features/home/presentation/widgets/recently_played_grid.dart';
 import 'package:troona/features/home/presentation/widgets/top_weekly_row.dart';
@@ -146,6 +147,7 @@ class _HomeBody extends StatelessWidget {
         ),
         const _SectionGap(),
 
+        const SliverToBoxAdapter(child: UpdateCard()),
         if (state.totalTracks > 0)
           const SliverToBoxAdapter(child: OnlineExtrasOffer()),
 

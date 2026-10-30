@@ -160,7 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optional. When on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. Your music files never leave this device.';
+      'Optional. Bios and photos send artist and album names to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
 
   @override
   String get settingsOnlineBios => 'Artist bios and album notes';
@@ -1253,4 +1253,45 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get backupRestoreOnline =>
       'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.';
+
+  @override
+  String get settingsUpdateCheck => 'Check for updates';
+
+  @override
+  String get settingsUpdateCheckSubtitle => 'Once a day, on GitHub';
+
+  @override
+  String get updateCheckNow => 'Check for updates now';
+
+  @override
+  String get updateUpToDate => 'Troona is up to date';
+
+  @override
+  String get updateCheckFailed =>
+      'Couldn\'t check for updates. Try again later.';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Troona $version is available';
+  }
+
+  @override
+  String get updateAvailableBody =>
+      'Download it from its release page on GitHub.';
+
+  @override
+  String get updateView => 'View';
+
+  @override
+  String get updateSkip => 'Skip this version';
+
+  @override
+  String get updateOpenFailed => 'Couldn\'t open the browser';
+
+  @override
+  String get privacyUpdatesTitle => 'Update check (off by default)';
+
+  @override
+  String get privacyUpdatesBody =>
+      'When on, Troona asks GitHub once a day for the number of its latest version. \"Check for updates now\" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: \"View\" opens the release page in your browser.';
 }

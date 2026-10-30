@@ -341,7 +341,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlineFooter.
   ///
   /// In en, this message translates to:
-  /// **'Optional. When on, Troona sends artist and album names to Last.fm and Deezer to fetch photos and bios. Your music files never leave this device.'**
+  /// **'Optional. Bios and photos send artist and album names to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
   String get settingsOnlineFooter;
 
   /// No description provided for @settingsOnlineBios.
@@ -2095,6 +2095,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.'**
   String get backupRestoreOnline;
+
+  /// No description provided for @settingsUpdateCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get settingsUpdateCheck;
+
+  /// No description provided for @settingsUpdateCheckSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once a day, on GitHub'**
+  String get settingsUpdateCheckSubtitle;
+
+  /// No description provided for @updateCheckNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates now'**
+  String get updateCheckNow;
+
+  /// No description provided for @updateUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona is up to date'**
+  String get updateUpToDate;
+
+  /// No description provided for @updateCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t check for updates. Try again later.'**
+  String get updateCheckFailed;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona {version} is available'**
+  String updateAvailable(String version);
+
+  /// No description provided for @updateAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Download it from its release page on GitHub.'**
+  String get updateAvailableBody;
+
+  /// No description provided for @updateView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get updateView;
+
+  /// No description provided for @updateSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this version'**
+  String get updateSkip;
+
+  /// No description provided for @updateOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the browser'**
+  String get updateOpenFailed;
+
+  /// No description provided for @privacyUpdatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update check (off by default)'**
+  String get privacyUpdatesTitle;
+
+  /// No description provided for @privacyUpdatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, Troona asks GitHub once a day for the number of its latest version. \"Check for updates now\" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: \"View\" opens the release page in your browser.'**
+  String get privacyUpdatesBody;
 }
 
 class _AppLocalizationsDelegate

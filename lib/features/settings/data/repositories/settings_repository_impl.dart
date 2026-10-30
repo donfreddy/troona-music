@@ -15,6 +15,7 @@ abstract final class _K {
   static const fetchOnlineMetadata = 'online_bios_enabled';
   static const fetchArtistArtwork = 'online_photos_enabled';
   static const onlineExtrasOffered = 'online_extras_offered';
+  static const checkForUpdates = 'update_check_enabled';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
   static const glassQuality = 'glass_quality';
 
@@ -25,6 +26,7 @@ abstract final class _K {
     fetchOnlineMetadata,
     fetchArtistArtwork,
     onlineExtrasOffered,
+    checkForUpdates,
     hapticFeedbackEnabled,
     glassQuality,
   ];
@@ -86,6 +88,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _K.onlineExtrasOffered,
             d.onlineExtrasOffered,
           ),
+          checkForUpdates: _bool(_K.checkForUpdates, d.checkForUpdates),
           hapticFeedbackEnabled: _bool(
             _K.hapticFeedbackEnabled,
             d.hapticFeedbackEnabled,
@@ -112,6 +115,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
         _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
         _prefs.setBool(_K.onlineExtrasOffered, s.onlineExtrasOffered),
+        _prefs.setBool(_K.checkForUpdates, s.checkForUpdates),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
         _prefs.setString(_K.glassQuality, s.glassQuality.name),
       ]);

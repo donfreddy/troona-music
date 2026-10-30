@@ -26,6 +26,8 @@ import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart'
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
+import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
+import 'package:troona/features/updates/presentation/open_release.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
@@ -84,6 +86,7 @@ class _SettingsList extends StatelessWidget {
     final maintenance = context.watch<MaintenanceCubit>().state;
     final sizes = maintenance.sizes;
     final backupBusy = context.watch<BackupCubit>().state;
+    final update = context.watch<UpdateCubit>().state;
 
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -168,6 +171,14 @@ class _SettingsList extends StatelessWidget {
               value: settings.fetchArtistArtwork,
               onChanged: cubit.setFetchArtistArtwork,
             ),
+            SettingsTile.switchTile(
+              icon: LucideIcons.circleArrowUp,
+              iconColor: const Color(0xFF8B5CF6),
+              title: l10n.settingsUpdateCheck,
+              subtitle: l10n.settingsUpdateCheckSubtitle,
+              value: settings.checkForUpdates,
+              onChanged: (on) => _setCheckForUpdates(context, on),
+            ),
             SettingsTile(
               icon: LucideIcons.eraser,
               iconColor: const Color(0xFFF97316),
@@ -239,6 +250,19 @@ class _SettingsList extends StatelessWidget {
                 context,
                 releaseFor(l10n, maintenance.version?.version),
               ),
+            ),
+            SettingsTile(
+              icon: LucideIcons.refreshCw,
+              iconColor: const Color(0xFF14B8A6),
+              title: l10n.updateCheckNow,
+              subtitle: switch (update.available) {
+                final release? => l10n.updateAvailable(release.version),
+                null => null,
+              },
+              trailing: update.checking
+                  ? const CupertinoActivityIndicator()
+                  : null,
+              onTap: update.checking ? null : () => _checkForUpdate(context),
             ),
             SettingsTile.navigation(
               icon: LucideIcons.messageSquareWarning,
@@ -332,6 +356,37 @@ class _SettingsList extends StatelessWidget {
       overlay,
       ok ? l10n.settingsOnlineCleared : l10n.errorGeneric,
     );
+  }
+
+  Future<void> _setCheckForUpdates(BuildContext context, bool on) async {
+    final updates = context.read<UpdateCubit>();
+    await context.read<SettingsCubit>().setCheckForUpdates(on);
+    on ? await updates.checkIfEnabled() : updates.clear();
+  }
+
+  /// Asks GitHub; a newer release is offered in a dialog, even a skipped
+  /// one, since the user asked.
+  Future<void> _checkForUpdate(BuildContext context) async {
+    final l10n = context.l10n;
+    final overlay = Overlay.of(context, rootOverlay: true);
+    final result = await context.read<UpdateCubit>().checkNow();
+    final release = result.fold((_) => null, (release) => release);
+    if (release == null) {
+      final failed = result.isLeft();
+      AppToast.showOn(
+        overlay,
+        failed ? l10n.updateCheckFailed : l10n.updateUpToDate,
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    final view = await showConfirmDialog(
+      context,
+      title: l10n.updateAvailable(release.version),
+      body: l10n.updateAvailableBody,
+      confirmLabel: l10n.updateView,
+    );
+    if (view && context.mounted) await openRelease(context, release);
   }
 
   Future<void> _exportBackup(BuildContext context) async {
@@ -454,7 +509,9 @@ class _SettingsList extends StatelessWidget {
       destructive: true,
     );
     if (!confirmed || !context.mounted) return;
+    final updates = context.read<UpdateCubit>();
     await context.read<SettingsCubit>().resetToDefaults();
+    updates.clear();
   }
 }
 
