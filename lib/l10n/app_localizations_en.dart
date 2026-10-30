@@ -713,9 +713,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistNameHint => 'Playlist name';
 
   @override
-  String get playlistDescriptionHint => 'Description (optional)';
-
-  @override
   String get playlistAddCover => 'Add a cover';
 
   @override

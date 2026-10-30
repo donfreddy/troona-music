@@ -19,35 +19,30 @@ class PlaylistEditorPage extends StatefulWidget {
 
 class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
   late final TextEditingController _titleController;
-  late final TextEditingController _descController;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.playlist?.name);
-    _descController = TextEditingController();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _descController.dispose();
     super.dispose();
   }
 
   void _onSave() {
-    if (_titleController.text.trim().isEmpty) return;
+    final name = _titleController.text.trim();
+    if (name.isEmpty) return;
 
-    if (widget.playlist == null) {
+    final playlist = widget.playlist;
+    if (playlist == null) {
+      context.read<PlaylistBloc>().add(PlaylistCreateRequested(title: name));
+    } else if (name != playlist.name) {
       context.read<PlaylistBloc>().add(
-        PlaylistCreateRequested(
-          title: _titleController.text.trim(),
-          description: _descController.text.trim(),
-        ),
+        PlaylistRenameRequested(playlist.id, name),
       );
-    } else {
-      // TODO: add PlaylistUpdateRequested; nothing opens the editor on an
-      // existing playlist yet.
     }
     context.pop();
   }
@@ -105,15 +100,6 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
               ),
             ),
             const Divider(color: Colors.white12),
-            TextField(
-              controller: _descController,
-              style: const TextStyle(color: Colors.white70),
-              decoration: InputDecoration(
-                hintText: context.l10n.playlistDescriptionHint,
-                border: InputBorder.none,
-              ),
-              maxLines: 3,
-            ),
           ],
         ),
       ),

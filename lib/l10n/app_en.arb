@@ -357,7 +357,6 @@
   "playlistNew": "New playlist",
   "playlistEdit": "Edit playlist",
   "playlistNameHint": "Playlist name",
-  "playlistDescriptionHint": "Description (optional)",
   "playlistAddCover": "Add a cover",
   "playlistCreateAndAdd": "Create and add",
   "playlistCreate": "Create",

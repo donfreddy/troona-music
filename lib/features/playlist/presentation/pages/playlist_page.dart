@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -34,17 +35,7 @@ class PlaylistPage extends StatefulWidget {
 class _PlaylistPageState extends State<PlaylistPage> {
   bool _isGrid = true;
 
-  void _openCreateDialog(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (ctx) => BlocProvider.value(
-          value: context.read<PlaylistBloc>(),
-          child: const PlaylistEditorPage(),
-        ),
-      ),
-    );
-  }
+  void _openCreateDialog(BuildContext context) => _openEditor(context);
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +145,7 @@ class _PlaylistsBody extends StatelessWidget {
                     itemCount: custom.length,
                     itemBuilder: (context, index) => PlaylistCard(
                       playlist: custom[index],
-                      onLongPress: () => _confirmDelete(context, custom[index]),
+                      onLongPress: () => _showActions(context, custom[index]),
                     ),
                   )
                 : SliverList.separated(
@@ -173,11 +164,55 @@ class _PlaylistsBody extends StatelessWidget {
   }
 }
 
-/// Asks before deleting [playlist]; reached by a long press on its card or
-/// row.
-Future<void> _confirmDelete(BuildContext context, Playlist playlist) async {
+/// Creates a playlist, or renames [playlist].
+void _openEditor(BuildContext context, [Playlist? playlist]) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      fullscreenDialog: true,
+      builder: (ctx) => BlocProvider.value(
+        value: context.read<PlaylistBloc>(),
+        child: PlaylistEditorPage(playlist: playlist),
+      ),
+    ),
+  );
+}
+
+/// Long press on a playlist card or row: edit or delete it.
+void _showActions(BuildContext context, Playlist playlist) {
   final l10n = context.l10n;
   AppHaptics.lightImpact();
+  showCupertinoModalPopup<void>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(playlist.name),
+      actions: [
+        CupertinoActionSheetAction(
+          onPressed: () {
+            Navigator.pop(ctx);
+            _openEditor(context, playlist);
+          },
+          child: Text(l10n.playlistEdit),
+        ),
+        CupertinoActionSheetAction(
+          isDestructiveAction: true,
+          onPressed: () {
+            Navigator.pop(ctx);
+            _confirmDelete(context, playlist);
+          },
+          child: Text(l10n.actionDelete),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(ctx),
+        child: Text(l10n.actionCancel),
+      ),
+    ),
+  );
+}
+
+/// Asks before deleting [playlist].
+Future<void> _confirmDelete(BuildContext context, Playlist playlist) async {
+  final l10n = context.l10n;
   final confirmed = await showConfirmDialog(
     context,
     title: l10n.playlistDeleteTitle(playlist.name),
@@ -305,7 +340,7 @@ class _PlaylistTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.pushPlaylist(playlist.id),
-      onLongPress: () => _confirmDelete(context, playlist),
+      onLongPress: () => _showActions(context, playlist),
       child: GlassCard(
         config: GlassTheme.card(context).copyWith(
           blurSigma: 0,

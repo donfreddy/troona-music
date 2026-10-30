@@ -16,6 +16,14 @@ final class PlaylistCreateRequested extends PlaylistEvent {
   List<Object?> get props => [title, description];
 }
 
+final class PlaylistRenameRequested extends PlaylistEvent {
+  final String id;
+  final String name;
+  const PlaylistRenameRequested(this.id, this.name);
+  @override
+  List<Object?> get props => [id, name];
+}
+
 final class PlaylistDeleteRequested extends PlaylistEvent {
   final String id;
   const PlaylistDeleteRequested(this.id);

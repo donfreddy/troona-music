@@ -1214,12 +1214,6 @@ abstract class AppLocalizations {
   /// **'Playlist name'**
   String get playlistNameHint;
 
-  /// No description provided for @playlistDescriptionHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Description (optional)'**
-  String get playlistDescriptionHint;
-
   /// No description provided for @playlistAddCover.
   ///
   /// In en, this message translates to:
