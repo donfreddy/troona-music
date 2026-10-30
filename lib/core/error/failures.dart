@@ -51,6 +51,19 @@ class DatabaseFailure extends Failure {
   const DatabaseFailure([super.message = 'Database operation failed.']);
 }
 
+// ── Backup ────────────────────────────────────────────────────────────────────
+
+/// The file is not a Troona backup, or it is damaged.
+class BackupFormatFailure extends Failure {
+  const BackupFormatFailure([super.message = 'Not a valid backup file.']);
+}
+
+/// The backup was made by a newer version of Troona.
+class BackupTooNewFailure extends Failure {
+  const BackupTooNewFailure(int version)
+    : super('Backup version $version is newer than this app.');
+}
+
 // ── Other ─────────────────────────────────────────────────────────────────────
 
 /// An error no layer anticipated. Keeps the original for the logs.

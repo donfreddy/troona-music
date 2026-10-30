@@ -65,6 +65,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 ### 🎧 Playback
 - Gapless offline playback (`just_audio`) behind an `AudioServicePort` abstraction: the domain never imports `just_audio` directly
 - Lock-screen and notification controls, backgrounded playback (`audio_service`)
+- A like button in the system media controls (Android 13+), and the last session offered back there after the app is closed (Android 11+)
 - Audio focus handling: ducks or pauses on notifications and calls, pauses instantly on headphone unplug, resumes after a call
 - Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
 - Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
@@ -101,6 +102,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Clear cached covers / clear cached online info, each showing the size reclaimed
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
 - Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
+- Backup and restore: playlists, likes, listening history and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`

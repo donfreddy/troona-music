@@ -35,6 +35,30 @@ Future<bool> showConfirmDialog(
   return confirmed ?? false;
 }
 
+/// The app's single message dialog, closed by Done.
+Future<void> showMessageDialog(
+  BuildContext context, {
+  required String title,
+  required String body,
+}) => showCupertinoDialog<void>(
+  context: context,
+  barrierDismissible: true,
+  builder: (dialogContext) => CupertinoTheme(
+    data: const CupertinoThemeData(brightness: Brightness.dark),
+    child: CupertinoAlertDialog(
+      title: Text(title),
+      content: Text(body),
+      actions: [
+        CupertinoDialogAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.pop(dialogContext),
+          child: Text(context.l10n.actionDone),
+        ),
+      ],
+    ),
+  ),
+);
+
 /// The app's single text prompt. Returns the trimmed text, or null when
 /// cancelled or left empty.
 Future<String?> showTextInputDialog(

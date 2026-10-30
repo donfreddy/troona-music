@@ -118,8 +118,10 @@
   "privacyOnlineBody": "There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded.",
   "privacyReportsTitle": "Problem reports",
   "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
+  "privacyBackupTitle": "Backups",
+  "privacyBackupBody": "Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
   "privacyDeleteTitle": "Deleting your data",
-  "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files are never touched.",
+  "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.",
   "permissionHeadline": "All your music.\nNothing in the way.",
   "permissionSubhead": "Troona plays the songs already on your phone. No account, no ads, no streaming.",
   "permissionQualityTitle": "Plays what you own",
@@ -640,5 +642,46 @@
   "whatsNew100PlaylistsTitle": "Playlists and likes",
   "whatsNew100PlaylistsBody": "Create playlists, reorder their songs, and find every song you like in one place.",
   "whatsNew100LanguageTitle": "English and French",
-  "whatsNew100LanguageBody": "The whole app follows your phone's language."
+  "whatsNew100LanguageBody": "The whole app follows your phone's language.",
+  "settingsBackup": "Backup",
+  "settingsBackupFooter": "The file holds your playlists, likes, listening history and settings, unencrypted. Keep it somewhere private.",
+  "backupExport": "Export a backup",
+  "backupExportSubtitle": "Save it to Files, Drive or another app.",
+  "backupShareSubject": "Troona backup",
+  "backupRestore": "Restore a backup",
+  "backupRestoreSubtitle": "Adds its playlists, likes and history to yours.",
+  "backupRestoreConfirmTitle": "Restore a backup?",
+  "backupRestoreConfirmBody": "Its playlists, likes and listening history are added to yours. Its settings replace yours.",
+  "backupRestoreAction": "Choose file",
+  "backupRestoreInvalid": "This file is not a Troona backup, or it is damaged.",
+  "backupRestoreTooNew": "This backup comes from a newer version of Troona. Update the app, then try again.",
+  "backupRestoreDoneTitle": "Backup restored",
+  "backupRestoreFound": "Songs found on this phone: {found} of {total}.",
+  "@backupRestoreFound": {
+    "placeholders": {
+      "found": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRestoreMissing": "{count, plural, =1{1 song is not on this phone. Add it, then restore the same file again to link it.} other{{count} songs are not on this phone. Add them, then restore the same file again to link them.}}",
+  "@backupRestoreMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRestoreMore": "and {count} more",
+  "@backupRestoreMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupRestoreOnline": "Online extras are on, as in the backup. You can turn them off above."
 }

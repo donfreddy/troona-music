@@ -15,6 +15,12 @@ import 'package:troona/features/metadata/data/sources/metadata_cache_data_source
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
+import 'package:troona/features/backup/data/backup_repository_impl.dart';
+import 'package:troona/features/backup/data/isar_backup_data_source.dart';
+import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
+import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
+import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
+import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
@@ -253,6 +259,14 @@ Future<void> configureDependencies() async {
       log: SharedPrefsMonthlyReplayLog(getIt()),
     ),
   );
+  getIt.registerLazySingleton<BackupRepository>(
+    () => BackupRepositoryImpl(
+      source: IsarBackupDataSource(isar, maxPlays: historySource.maxEvents),
+      settings: getIt(),
+      replayLog: SharedPrefsMonthlyReplayLog(getIt()),
+      exportDir: Directory('${cacheBase.path}/troona_backup'),
+    ),
+  );
   getIt.registerLazySingleton<SearchRepository>(
     () => SearchRepositoryImpl(db: getIt()),
   );
@@ -353,6 +367,12 @@ Future<void> configureDependencies() async {
     )..load(),
   );
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
+  getIt.registerFactory<BackupCubit>(
+    () => BackupCubit(
+      export: ExportBackupUseCase(getIt()),
+      restore: RestoreBackupUseCase(getIt(), getIt()),
+    ),
+  );
   getIt.registerFactory<WeeklyRecapCubit>(
     () => WeeklyRecapCubit(
       recap: GetWeeklyRecapUseCase(getIt(), getIt()),

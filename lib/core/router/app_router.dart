@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/app_shell.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/utils/permission_handler.dart';
+import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
 import 'package:troona/features/history/presentation/pages/weekly_recap_page.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
@@ -133,6 +134,7 @@ final appRouter = GoRouter(
                       BlocProvider(
                         create: (_) => getIt<MaintenanceCubit>()..load(),
                       ),
+                      BlocProvider(create: (_) => getIt<BackupCubit>()),
                     ],
                     child: const SettingsPage(),
                   ),

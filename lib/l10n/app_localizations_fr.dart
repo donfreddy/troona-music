@@ -294,11 +294,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les erreurs sont écrites dans un journal sur cet appareil. Il peut contenir des noms de fichiers. Rien n\'est envoyé, sauf si vous choisissez Signaler un problème et le partagez vous-même.';
 
   @override
+  String get privacyBackupTitle => 'Sauvegardes';
+
+  @override
+  String get privacyBackupBody =>
+      'Exporter une sauvegarde écrit vos playlists, vos likes, votre historique d\'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, dans un fichier, sans chiffrement, et le confie à l\'app de votre choix. Il ne part nulle part ailleurs. La restauration ne lit que le fichier que vous choisissez.';
+
+  @override
   String get privacyDeleteTitle => 'Supprimer vos données';
 
   @override
   String get privacyDeleteBody =>
-      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux ne sont jamais modifiés.';
+      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux et les sauvegardes que vous avez exportées ne sont jamais modifiés.';
 
   @override
   String get permissionHeadline =>
@@ -1187,4 +1194,76 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'Toute l\'application suit la langue de votre téléphone.';
+
+  @override
+  String get settingsBackup => 'Sauvegarde';
+
+  @override
+  String get settingsBackupFooter =>
+      'Le fichier contient vos playlists, vos likes, votre historique d\'écoute et vos réglages, sans chiffrement. Gardez-le en lieu sûr.';
+
+  @override
+  String get backupExport => 'Exporter une sauvegarde';
+
+  @override
+  String get backupExportSubtitle =>
+      'Enregistrez-la dans Fichiers, Drive ou une autre app.';
+
+  @override
+  String get backupShareSubject => 'Sauvegarde Troona';
+
+  @override
+  String get backupRestore => 'Restaurer une sauvegarde';
+
+  @override
+  String get backupRestoreSubtitle =>
+      'Ajoute ses playlists, likes et historique aux vôtres.';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Restaurer une sauvegarde ?';
+
+  @override
+  String get backupRestoreConfirmBody =>
+      'Ses playlists, likes et historique d\'écoute s\'ajoutent aux vôtres. Ses réglages remplacent les vôtres.';
+
+  @override
+  String get backupRestoreAction => 'Choisir le fichier';
+
+  @override
+  String get backupRestoreInvalid =>
+      'Ce fichier n\'est pas une sauvegarde Troona, ou il est endommagé.';
+
+  @override
+  String get backupRestoreTooNew =>
+      'Cette sauvegarde vient d\'une version plus récente de Troona. Mettez l\'app à jour, puis réessayez.';
+
+  @override
+  String get backupRestoreDoneTitle => 'Sauvegarde restaurée';
+
+  @override
+  String backupRestoreFound(int found, int total) {
+    return 'Morceaux retrouvés sur ce téléphone : $found sur $total.';
+  }
+
+  @override
+  String backupRestoreMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count morceaux ne sont pas sur ce téléphone. Ajoutez-les, puis restaurez à nouveau le même fichier pour les relier.',
+      one:
+          '1 morceau n\'est pas sur ce téléphone. Ajoutez-le, puis restaurez à nouveau le même fichier pour le relier.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupRestoreMore(int count) {
+    return 'et $count autres';
+  }
+
+  @override
+  String get backupRestoreOnline =>
+      'Les extras en ligne sont activés, comme dans la sauvegarde. Vous pouvez les désactiver plus haut.';
 }

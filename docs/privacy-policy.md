@@ -1,6 +1,6 @@
 # Troona privacy policy
 
-Last updated: October 26, 2026
+Last updated: October 30, 2026
 
 Troona plays the music stored on your phone. It has no account, no ads and no analytics.
 
@@ -19,9 +19,13 @@ There are two separate switches. Bios sends artist and album names to Last.fm. P
 
 Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.
 
+## Backups
+
+Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
+
 ## Deleting your data
 
-Uninstalling Troona deletes everything it stored. Your music files are never touched.
+Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.
 
 ## Contact
 

@@ -138,4 +138,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     if (_current case final settings?) _applyRuntime(settings);
     await _forgetPhotosIfOff();
   }
+
+  /// Applies settings from a backup. The glass quality depends on the phone,
+  /// so this one keeps its own.
+  Future<void> restore(AppSettings saved) async {
+    await _update((s) => saved.copyWith(glassQuality: s.glassQuality));
+    if (_current case final settings?) _applyRuntime(settings);
+    await _forgetPhotosIfOff();
+  }
 }

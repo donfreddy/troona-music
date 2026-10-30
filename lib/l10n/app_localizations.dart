@@ -578,6 +578,18 @@ abstract class AppLocalizations {
   /// **'Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.'**
   String get privacyReportsBody;
 
+  /// No description provided for @privacyBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get privacyBackupTitle;
+
+  /// No description provided for @privacyBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
+  String get privacyBackupBody;
+
   /// No description provided for @privacyDeleteTitle.
   ///
   /// In en, this message translates to:
@@ -587,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'Uninstalling Troona deletes everything it stored. Your music files are never touched.'**
+  /// **'Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.'**
   String get privacyDeleteBody;
 
   /// No description provided for @permissionHeadline.
@@ -1981,6 +1993,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The whole app follows your phone\'s language.'**
   String get whatsNew100LanguageBody;
+
+  /// No description provided for @settingsBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get settingsBackup;
+
+  /// No description provided for @settingsBackupFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'The file holds your playlists, likes, listening history and settings, unencrypted. Keep it somewhere private.'**
+  String get settingsBackupFooter;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export a backup'**
+  String get backupExport;
+
+  /// No description provided for @backupExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save it to Files, Drive or another app.'**
+  String get backupExportSubtitle;
+
+  /// No description provided for @backupShareSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona backup'**
+  String get backupShareSubject;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get backupRestore;
+
+  /// No description provided for @backupRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds its playlists, likes and history to yours.'**
+  String get backupRestoreSubtitle;
+
+  /// No description provided for @backupRestoreConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup?'**
+  String get backupRestoreConfirmTitle;
+
+  /// No description provided for @backupRestoreConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its playlists, likes and listening history are added to yours. Its settings replace yours.'**
+  String get backupRestoreConfirmBody;
+
+  /// No description provided for @backupRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get backupRestoreAction;
+
+  /// No description provided for @backupRestoreInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is not a Troona backup, or it is damaged.'**
+  String get backupRestoreInvalid;
+
+  /// No description provided for @backupRestoreTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup comes from a newer version of Troona. Update the app, then try again.'**
+  String get backupRestoreTooNew;
+
+  /// No description provided for @backupRestoreDoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored'**
+  String get backupRestoreDoneTitle;
+
+  /// No description provided for @backupRestoreFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs found on this phone: {found} of {total}.'**
+  String backupRestoreFound(int found, int total);
+
+  /// No description provided for @backupRestoreMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song is not on this phone. Add it, then restore the same file again to link it.} other{{count} songs are not on this phone. Add them, then restore the same file again to link them.}}'**
+  String backupRestoreMissing(int count);
+
+  /// No description provided for @backupRestoreMore.
+  ///
+  /// In en, this message translates to:
+  /// **'and {count} more'**
+  String backupRestoreMore(int count);
+
+  /// No description provided for @backupRestoreOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online extras are on, as in the backup. You can turn them off above.'**
+  String get backupRestoreOnline;
 }
 
 class _AppLocalizationsDelegate
