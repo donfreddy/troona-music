@@ -37,6 +37,9 @@ final class AudioServiceInitializer {
         androidNotificationChannelName: channelName(
           PlatformDispatcher.instance.locales,
         ),
+        // A white silhouette: Android draws small icons from their alpha
+        // alone, so the full-colour launcher icon came out as a plain disc.
+        androidNotificationIcon: 'drawable/ic_stat_troona',
         androidNotificationOngoing: true,
         androidShowNotificationBadge: true,
         androidStopForegroundOnPause: true,
