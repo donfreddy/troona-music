@@ -295,7 +295,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
+      'Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
 
   @override
   String get privacyDeleteTitle => 'Deleting your data';
@@ -1188,7 +1188,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'The file holds your playlists, likes, listening history and settings, unencrypted. Keep it somewhere private.';
+      'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.';
 
   @override
   String get backupExport => 'Export a backup';
@@ -1211,7 +1211,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupRestoreConfirmBody =>
-      'Its playlists, likes and listening history are added to yours. Its settings replace yours.';
+      'Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.';
 
   @override
   String get backupRestoreAction => 'Choose file';
@@ -1252,5 +1252,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupRestoreOnline =>
-      'Online extras are on, as in the backup. You can turn them off above.';
+      'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.';
 }

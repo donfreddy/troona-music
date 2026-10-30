@@ -317,14 +317,14 @@
   "whatsNew100LanguageTitle": "Anglais et français",
   "whatsNew100LanguageBody": "Toute l'application suit la langue de votre téléphone.",
   "settingsBackup": "Sauvegarde",
-  "settingsBackupFooter": "Le fichier contient vos playlists, vos likes, votre historique d'écoute et vos réglages, sans chiffrement. Gardez-le en lieu sûr.",
+  "settingsBackupFooter": "Le fichier contient vos playlists, vos likes, votre historique d'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-le en lieu sûr.",
   "backupExport": "Exporter une sauvegarde",
   "backupExportSubtitle": "Enregistrez-la dans Fichiers, Drive ou une autre app.",
   "backupShareSubject": "Sauvegarde Troona",
   "backupRestore": "Restaurer une sauvegarde",
   "backupRestoreSubtitle": "Ajoute ses playlists, likes et historique aux vôtres.",
   "backupRestoreConfirmTitle": "Restaurer une sauvegarde ?",
-  "backupRestoreConfirmBody": "Ses playlists, likes et historique d'écoute s'ajoutent aux vôtres. Ses réglages remplacent les vôtres.",
+  "backupRestoreConfirmBody": "Ses playlists, likes et historique d'écoute s'ajoutent aux vôtres. Ses réglages remplacent les vôtres, sauf les extras en ligne.",
   "backupRestoreAction": "Choisir le fichier",
   "backupRestoreInvalid": "Ce fichier n'est pas une sauvegarde Troona, ou il est endommagé.",
   "backupRestoreTooNew": "Cette sauvegarde vient d'une version plus récente de Troona. Mettez l'app à jour, puis réessayez.",
@@ -332,5 +332,5 @@
   "backupRestoreFound": "Morceaux retrouvés sur ce téléphone : {found} sur {total}.",
   "backupRestoreMissing": "{count, plural, =1{1 morceau n'est pas sur ce téléphone. Ajoutez-le, puis restaurez à nouveau le même fichier pour le relier.} other{{count} morceaux ne sont pas sur ce téléphone. Ajoutez-les, puis restaurez à nouveau le même fichier pour les relier.}}",
   "backupRestoreMore": "et {count} autres",
-  "backupRestoreOnline": "Les extras en ligne sont activés, comme dans la sauvegarde. Vous pouvez les désactiver plus haut."
+  "backupRestoreOnline": "Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez."
 }

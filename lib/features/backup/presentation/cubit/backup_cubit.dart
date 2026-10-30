@@ -5,7 +5,7 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 
-/// Whether an export or a restore is running: one at a time.
+/// Whether an export or a restore is running.
 final class BackupCubit extends Cubit<bool> {
   final ExportBackupUseCase _export;
   final RestoreBackupUseCase _restore;
@@ -38,15 +38,17 @@ final class BackupCubit extends Cubit<bool> {
   Future<Either<Failure, RestoreReport>> restore(String path) =>
       _busy(() => _restore(path));
 
-  /// The settings page disables both buttons while busy; a second call
-  /// would still be refused here.
-  Future<T> _busy<T>(Future<T> Function() run) async {
-    if (state) throw StateError('A backup task is already running');
+  /// One task at a time, app-wide (the cubit is a singleton): a second
+  /// export would delete the first one's file before it is shared.
+  Future<Either<Failure, T>> _busy<T>(
+    Future<Either<Failure, T>> Function() run,
+  ) async {
+    if (state) return left(const UnexpectedFailure('Backup task running'));
     emit(true);
     try {
       return await run();
     } finally {
-      if (!isClosed) emit(false);
+      emit(false);
     }
   }
 }

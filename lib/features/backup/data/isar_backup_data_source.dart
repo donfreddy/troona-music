@@ -201,18 +201,24 @@ final class IsarBackupDataSource {
       );
     }
 
-    final trackDays = isar.trackDayModels;
-    for (final saved in backup.trackDays) {
-      final id = ids[saved.track];
+    // Two songs of the backup can be one song here (the same file in two
+    // folders): their plays of a day add up before meeting the stored count.
+    final saved = <String, (int, String, int)>{};
+    for (final d in backup.trackDays) {
+      final id = ids[d.track];
       if (id == null) continue;
-      final key = '${saved.day}:$id';
-      final day =
+      final key = '${d.day}:$id';
+      saved[key] = (d.day, id, (saved[key]?.$3 ?? 0) + d.plays);
+    }
+    final trackDays = isar.trackDayModels;
+    for (final MapEntry(:key, value: (day, id, plays)) in saved.entries) {
+      final stored =
           trackDays.get(key) ??
           (TrackDayModel()
             ..id = key
-            ..day = saved.day
+            ..day = day
             ..trackId = id);
-      trackDays.put(day..plays = max(day.plays, saved.plays));
+      trackDays.put(stored..plays = max(stored.plays, plays));
     }
 
     final firstPlays = isar.trackFirstPlayModels;

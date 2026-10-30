@@ -96,25 +96,30 @@ void main() {
     expect(metadata.forgets, 1);
   });
 
-  test('a restore applies the backup but keeps the glass quality', () async {
-    final cubit = SettingsCubit(repo, null, metadata);
-    await cubit.load();
-    await cubit.setGlassQuality(GlassQuality.low);
-    await cubit.setFetchArtistArtwork(true);
+  test(
+    'a restore keeps the glass quality and online extras of the phone',
+    () async {
+      final cubit = SettingsCubit(repo, null, metadata);
+      await cubit.load();
+      await cubit.setGlassQuality(GlassQuality.low);
+      await cubit.setFetchArtistArtwork(true);
 
-    await cubit.restore(
-      const AppSettings(
-        hapticFeedbackEnabled: false,
-        glassQuality: GlassQuality.off,
-      ),
-    );
+      await cubit.restore(
+        const AppSettings(
+          hapticFeedbackEnabled: false,
+          glassQuality: GlassQuality.off,
+          fetchOnlineMetadata: true,
+        ),
+      );
 
-    final restored = settingsOf(cubit)!;
-    expect(restored.hapticFeedbackEnabled, isFalse);
-    expect(restored.glassQuality, GlassQuality.low);
-    // Photos went off with the backup: the downloaded ones go too.
-    expect(metadata.forgets, 1);
-  });
+      final restored = settingsOf(cubit)!;
+      expect(restored.hapticFeedbackEnabled, isFalse);
+      expect(restored.glassQuality, GlassQuality.low);
+      expect(restored.fetchOnlineMetadata, isFalse);
+      expect(restored.fetchArtistArtwork, isTrue);
+      expect(metadata.forgets, 0);
+    },
+  );
 
   test('a failed first load is retried when Settings opens', () async {
     final cubit = SettingsCubit(_FlakySettings(repo));

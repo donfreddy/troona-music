@@ -139,11 +139,18 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _forgetPhotosIfOff();
   }
 
-  /// Applies settings from a backup. The glass quality depends on the phone,
-  /// so this one keeps its own.
+  /// Applies settings from a backup. This phone keeps its own glass
+  /// quality, which depends on the device, and its own online extras: they
+  /// reach Last.fm and Deezer, so only a choice made here turns them on.
   Future<void> restore(AppSettings saved) async {
-    await _update((s) => saved.copyWith(glassQuality: s.glassQuality));
+    await _update(
+      (s) => saved.copyWith(
+        glassQuality: s.glassQuality,
+        fetchOnlineMetadata: s.fetchOnlineMetadata,
+        fetchArtistArtwork: s.fetchArtistArtwork,
+        onlineExtrasOffered: s.onlineExtrasOffered,
+      ),
+    );
     if (_current case final settings?) _applyRuntime(settings);
-    await _forgetPhotosIfOff();
   }
 }

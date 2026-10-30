@@ -22,10 +22,13 @@ final class BackupVersionException implements Exception {
 /// Backup files: versioned JSON.
 ///
 /// An imported file is untrusted input. [decode] checks every field, every
-/// reference between them, the sizes and the ranges, and rejects the whole
-/// file on the first problem: a half-read backup would restore half a
-/// library. Ranges matter because a restore keeps the larger of two counts:
-/// an absurd value would stay for good.
+/// reference between them and the sizes, and rejects the whole file on the
+/// first problem: a half-read backup would restore half a library.
+///
+/// History records out of range are dropped instead: a restore keeps the
+/// larger of two counts, so an absurd value would stay for good, yet a
+/// phone with a wrong clock (1970 at boot, or ahead) writes such records
+/// itself, and its backups must still restore.
 abstract final class BackupCodec {
   static const format = 'troona-backup';
   static const version = 1;
@@ -40,10 +43,10 @@ abstract final class BackupCodec {
 
   /// Nothing in Troona predates this.
   static final _firstDay = ListeningDay.of(DateTime.utc(2000));
-  static const _maxDayMs = 25 * Duration.millisecondsPerHour; // DST
+
+  /// A 25-hour day (daylight saving) played at the top speed, 2x.
+  static const _maxDayMs = 50 * Duration.millisecondsPerHour;
   static const _maxDayPlays = 100000;
-  static const _maxDurationMs = 7 * Duration.millisecondsPerDay;
-  static const _maxSize = 1 << 42;
 
   static List<int> encode(Backup backup) => utf8.encode(
     jsonEncode({
@@ -109,15 +112,10 @@ abstract final class BackupCodec {
     }
     final fileVersion = _int(json['version'], 'version', min: 1);
     if (fileVersion > version) throw BackupVersionException(fileVersion);
-    int day(Object? value) => _int(value, 'day', min: _firstDay, max: lastDay);
-    DateTime time(Object? value, String what) {
-      final parsed = _utc(_text(value, what), what);
-      final d = ListeningDay.of(parsed);
-      if (d < _firstDay || d > lastDay) {
-        throw BackupFormatException('$what out of range');
-      }
-      return parsed;
-    }
+    bool inRange(int day) => day >= _firstDay && day <= lastDay;
+    // Records failing these are dropped, not fatal (see the class comment).
+    bool fair(int day, {int plays = 0, int listenedMs = 0}) =>
+        inRange(day) && plays <= _maxDayPlays && listenedMs <= _maxDayMs;
 
     final tracks = {
       for (final MapEntry(:key, :value) in _map(
@@ -137,7 +135,7 @@ abstract final class BackupCodec {
 
     final history = _map(json['history'], 'history');
     return Backup(
-      createdAt: time(json['createdAt'], 'createdAt'),
+      createdAt: _utc(_text(json['createdAt'], 'createdAt'), 'createdAt'),
       tracks: tracks,
       playlists: _list(json['playlists'], 'playlists', (p) {
         final m = _map(p, 'playlist');
@@ -147,41 +145,55 @@ abstract final class BackupCodec {
           tracks: _list(m['tracks'], 'playlist tracks', ref),
         );
       }),
-      plays: _list(history['plays'], 'plays', (p) {
-        final m = _map(p, 'play');
-        return BackupPlay(
-          track: ref(m['track']),
-          at: time(m['at'], 'play time'),
-        );
-      }),
-      days: _list(history['days'], 'days', (d) {
-        final m = _map(d, 'day');
-        return BackupDay(
-          day: day(m['day']),
-          plays: _int(m['plays'], 'plays', max: _maxDayPlays),
-          listenedMs: _int(m['listenedMs'], 'listenedMs', max: _maxDayMs),
-        );
-      }),
-      trackDays: _list(history['trackDays'], 'trackDays', (d) {
-        final m = _map(d, 'trackDay');
-        return BackupTrackDay(
-          day: day(m['day']),
-          track: ref(m['track']),
-          plays: _int(m['plays'], 'plays', max: _maxDayPlays),
-        );
-      }),
-      firstPlays: _list(history['firstPlays'], 'firstPlays', (f) {
-        final m = _map(f, 'firstPlay');
-        return BackupFirstPlay(track: ref(m['track']), day: day(m['day']));
-      }),
-      replayMonth: history['replayMonth'] == null
-          ? null
-          : _int(
-              history['replayMonth'],
-              'replayMonth',
-              min: 2000 * 12,
-              max: lastMonth,
-            ),
+      plays: [
+        for (final play in _list(history['plays'], 'plays', (p) {
+          final m = _map(p, 'play');
+          return BackupPlay(
+            track: ref(m['track']),
+            at: _utc(_text(m['at'], 'play time'), 'play time'),
+          );
+        }))
+          if (inRange(ListeningDay.of(play.at))) play,
+      ],
+      days: [
+        for (final d in _list(history['days'], 'days', (d) {
+          final m = _map(d, 'day');
+          return BackupDay(
+            day: _int(m['day'], 'day'),
+            plays: _int(m['plays'], 'plays'),
+            listenedMs: _int(m['listenedMs'], 'listenedMs'),
+          );
+        }))
+          if (fair(d.day, plays: d.plays, listenedMs: d.listenedMs)) d,
+      ],
+      trackDays: [
+        for (final d in _list(history['trackDays'], 'trackDays', (d) {
+          final m = _map(d, 'trackDay');
+          return BackupTrackDay(
+            day: _int(m['day'], 'day'),
+            track: ref(m['track']),
+            plays: _int(m['plays'], 'plays'),
+          );
+        }))
+          if (fair(d.day, plays: d.plays)) d,
+      ],
+      firstPlays: [
+        for (final f in _list(history['firstPlays'], 'firstPlays', (f) {
+          final m = _map(f, 'firstPlay');
+          return BackupFirstPlay(
+            track: ref(m['track']),
+            day: _int(m['day'], 'day'),
+          );
+        }))
+          if (inRange(f.day)) f,
+      ],
+      replayMonth: switch (history['replayMonth']) {
+        null => null,
+        final month => switch (_int(month, 'replayMonth')) {
+          final m when m >= 2000 * 12 && m <= lastMonth => m,
+          _ => null,
+        },
+      },
       settings: _decodeSettings(_map(json['settings'], 'settings')),
     );
   }
@@ -214,9 +226,9 @@ abstract final class BackupCodec {
     title: _text(m['title'], 'title'),
     artist: _text(m['artist'], 'artist'),
     album: _text(m['album'], 'album'),
-    durationMs: _int(m['durationMs'], 'durationMs', max: _maxDurationMs),
+    durationMs: _int(m['durationMs'], 'durationMs'),
     fileName: _text(m['fileName'], 'fileName'),
-    size: _int(m['size'], 'size', max: _maxSize),
+    size: _int(m['size'], 'size'),
   );
 
   static Map<String, Object?> _map(Object? value, String what) =>
@@ -242,12 +254,8 @@ abstract final class BackupCodec {
       ? value
       : throw BackupFormatException('$what is not a short text');
 
-  static int _int(
-    Object? value,
-    String what, {
-    int min = 0,
-    int max = 1 << 53,
-  }) => value is int && value >= min && value <= max
+  static int _int(Object? value, String what, {int min = 0}) =>
+      value is int && value >= min
       ? value
       : throw BackupFormatException('$what is out of range');
 

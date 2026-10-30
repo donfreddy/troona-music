@@ -587,7 +587,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBackupBody.
   ///
   /// In en, this message translates to:
-  /// **'Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
+  /// **'Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
   String get privacyBackupBody;
 
   /// No description provided for @privacyDeleteTitle.
@@ -2003,7 +2003,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBackupFooter.
   ///
   /// In en, this message translates to:
-  /// **'The file holds your playlists, likes, listening history and settings, unencrypted. Keep it somewhere private.'**
+  /// **'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.'**
   String get settingsBackupFooter;
 
   /// No description provided for @backupExport.
@@ -2045,7 +2045,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupRestoreConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Its playlists, likes and listening history are added to yours. Its settings replace yours.'**
+  /// **'Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.'**
   String get backupRestoreConfirmBody;
 
   /// No description provided for @backupRestoreAction.
@@ -2093,7 +2093,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupRestoreOnline.
   ///
   /// In en, this message translates to:
-  /// **'Online extras are on, as in the backup. You can turn them off above.'**
+  /// **'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.'**
   String get backupRestoreOnline;
 }
 

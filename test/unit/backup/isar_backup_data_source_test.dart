@@ -301,22 +301,21 @@ void main() {
       ]);
     });
 
-    test('a playlist created by the restore is not joined again', () async {
+    test('same names pair by rank with what was here, twice over', () async {
       store(
         playlists: [
           playlist('p', 'Mix', ['x']),
         ],
       );
-
-      await source.restore(
-        backup(
-          playlists: const [
-            BackupPlaylist(name: 'Mix', isLikes: false, tracks: ['a']),
-            BackupPlaylist(name: 'Mix', isLikes: false, tracks: ['b']),
-          ],
-        ),
-        {'a': '1', 'b': '2'},
+      final saved = backup(
+        playlists: const [
+          BackupPlaylist(name: 'Mix', isLikes: false, tracks: ['a']),
+          BackupPlaylist(name: 'Mix', isLikes: false, tracks: ['b']),
+        ],
       );
+
+      await source.restore(saved, {'a': '1', 'b': '2'});
+      await source.restore(saved, {'a': '1', 'b': '2'});
 
       final mixes = isar.playlistModels.where().sortById().findAll();
       expect(mixes.map((p) => p.trackIds), [
@@ -379,6 +378,20 @@ void main() {
       final day = isar.listeningDayModels.get(10)!;
       expect(day.plays, 5);
       expect(day.listenedMs, 900);
+    });
+
+    test('two saved songs found as one add up their plays', () async {
+      await source.restore(
+        backup(
+          trackDays: const [
+            BackupTrackDay(day: 10, track: 'a', plays: 3),
+            BackupTrackDay(day: 10, track: 'b', plays: 2),
+          ],
+        ),
+        {'a': '1', 'b': '1'},
+      );
+
+      expect(isar.trackDayModels.get('10:1')!.plays, 5);
     });
 
     test('a first play keeps the earlier day', () async {
@@ -451,6 +464,15 @@ void main() {
       await raf.close();
 
       expect(await repo.readFile(file.path), isA<Left<Failure, Backup>>());
+    });
+
+    test('a damaged file comes back as a format failure', () async {
+      final file = File('${dir.path}/bad.json')..writeAsStringSync('{"x":');
+
+      expect(
+        await repo.readFile(file.path),
+        left<Failure, Backup>(const BackupFormatFailure('Not JSON')),
+      );
     });
 
     test('an export reads back, and is deleted once cleared', () async {

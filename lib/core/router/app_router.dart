@@ -134,7 +134,7 @@ final appRouter = GoRouter(
                       BlocProvider(
                         create: (_) => getIt<MaintenanceCubit>()..load(),
                       ),
-                      BlocProvider(create: (_) => getIt<BackupCubit>()),
+                      BlocProvider.value(value: getIt<BackupCubit>()),
                     ],
                     child: const SettingsPage(),
                   ),

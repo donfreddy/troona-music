@@ -367,7 +367,9 @@ Future<void> configureDependencies() async {
     )..load(),
   );
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
-  getIt.registerFactory<BackupCubit>(
+  // Singleton: a restore keeps running after Settings closes, and reopening
+  // it must not start a second task beside it.
+  getIt.registerLazySingleton<BackupCubit>(
     () => BackupCubit(
       export: ExportBackupUseCase(getIt()),
       restore: RestoreBackupUseCase(getIt(), getIt()),

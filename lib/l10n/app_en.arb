@@ -119,7 +119,7 @@
   "privacyReportsTitle": "Problem reports",
   "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
   "privacyBackupTitle": "Backups",
-  "privacyBackupBody": "Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
+  "privacyBackupBody": "Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
   "privacyDeleteTitle": "Deleting your data",
   "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.",
   "permissionHeadline": "All your music.\nNothing in the way.",
@@ -644,14 +644,14 @@
   "whatsNew100LanguageTitle": "English and French",
   "whatsNew100LanguageBody": "The whole app follows your phone's language.",
   "settingsBackup": "Backup",
-  "settingsBackupFooter": "The file holds your playlists, likes, listening history and settings, unencrypted. Keep it somewhere private.",
+  "settingsBackupFooter": "The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.",
   "backupExport": "Export a backup",
   "backupExportSubtitle": "Save it to Files, Drive or another app.",
   "backupShareSubject": "Troona backup",
   "backupRestore": "Restore a backup",
   "backupRestoreSubtitle": "Adds its playlists, likes and history to yours.",
   "backupRestoreConfirmTitle": "Restore a backup?",
-  "backupRestoreConfirmBody": "Its playlists, likes and listening history are added to yours. Its settings replace yours.",
+  "backupRestoreConfirmBody": "Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.",
   "backupRestoreAction": "Choose file",
   "backupRestoreInvalid": "This file is not a Troona backup, or it is damaged.",
   "backupRestoreTooNew": "This backup comes from a newer version of Troona. Update the app, then try again.",
@@ -683,5 +683,5 @@
       }
     }
   },
-  "backupRestoreOnline": "Online extras are on, as in the backup. You can turn them off above."
+  "backupRestoreOnline": "Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them."
 }

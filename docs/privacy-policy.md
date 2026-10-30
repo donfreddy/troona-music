@@ -21,7 +21,7 @@ Errors are written to a log on this device. It can contain file names. Nothing i
 
 ## Backups
 
-Export a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
+Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
 
 ## Deleting your data
 

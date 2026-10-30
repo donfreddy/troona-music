@@ -128,51 +128,84 @@ void main() {
     );
   });
 
-  group('ranges, since a restore keeps the larger count for good', () {
-    void rejects(void Function(Map<String, dynamic> json) change) {
+  group('history out of range is dropped, so it never sticks', () {
+    Backup decoded(void Function(Map<String, dynamic> json) change) {
       final json = _json();
       change(json);
-      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+      return BackupCodec.decode(_bytes(json));
     }
 
-    test('a day longer than a day of listening', () {
-      rejects(
+    test('a day longer than a day of listening at 2x', () {
+      final read = decoded(
         (j) => (j['history']['days'] as List).first['listenedMs'] = 1 << 62,
       );
+      expect(read.days, isEmpty);
+      expect(read.plays, hasLength(1));
     });
 
     test('a day to come', () {
-      rejects((j) => (j['history']['days'] as List).first['day'] = 1 << 40);
+      final read = decoded(
+        (j) => (j['history']['trackDays'] as List).first['day'] = 1 << 40,
+      );
+      expect(read.trackDays, isEmpty);
     });
 
     test('a play in the far future', () {
-      rejects(
+      final read = decoded(
         (j) => (j['history']['plays'] as List).first['at'] =
-            '+275760-09-13T00:00:00.000Z',
+            '9999-01-01T00:00:00.000Z',
       );
-    });
-
-    test('a date that does not exist', () {
-      rejects(
-        (j) => (j['history']['plays'] as List).first['at'] =
-            '2026-02-30T10:00:00.000Z',
-      );
-    });
-
-    test('a time without its zone', () {
-      rejects(
-        (j) => (j['history']['plays'] as List).first['at'] =
-            '2026-10-29T18:00:00.000',
-      );
+      expect(read.plays, isEmpty);
     });
 
     test('a Replay month to come', () {
-      rejects((j) => j['history']['replayMonth'] = 1 << 40);
+      final read = decoded((j) => j['history']['replayMonth'] = 1 << 40);
+      expect(read.replayMonth, isNull);
     });
 
-    test('version zero', () {
-      rejects((j) => j['version'] = 0);
+    test('a phone whose clock said 1970 still restores', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          Backup(
+            createdAt: DateTime.utc(1970),
+            tracks: _backup.tracks,
+            playlists: _backup.playlists,
+            plays: [BackupPlay(track: '1', at: DateTime.utc(1970))],
+            days: const [BackupDay(day: 0, plays: 1, listenedMs: 1)],
+            trackDays: const [BackupTrackDay(day: 0, track: '1', plays: 1)],
+            firstPlays: const [BackupFirstPlay(track: '1', day: 0)],
+            replayMonth: null,
+            settings: const AppSettings(),
+          ),
+        ),
+      );
+
+      expect(read.playlists, _backup.playlists);
+      expect(read.plays, isEmpty);
+      expect(read.days, isEmpty);
+      expect(read.firstPlays, isEmpty);
     });
+  });
+
+  group('malformed times reject the file', () {
+    void rejects(String at) {
+      final json = _json();
+      (json['history']['plays'] as List).first['at'] = at;
+      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+    }
+
+    test('a date that does not exist', () => rejects('2026-02-30T10:00:00Z'));
+
+    test('a time without its zone', () => rejects('2026-10-29T18:00:00.000'));
+
+    test('a year beyond four digits', () {
+      rejects('+275760-09-13T00:00:00.000Z');
+    });
+  });
+
+  test('version zero is refused', () {
+    final json = _json()..['version'] = 0;
+    expect(() => BackupCodec.decode(_bytes(json)), _rejected);
   });
 
   test('an overlong tag is cut on export, so the file reads back', () {

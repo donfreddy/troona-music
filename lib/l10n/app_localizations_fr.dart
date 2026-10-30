@@ -1200,7 +1200,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'Le fichier contient vos playlists, vos likes, votre historique d\'écoute et vos réglages, sans chiffrement. Gardez-le en lieu sûr.';
+      'Le fichier contient vos playlists, vos likes, votre historique d\'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-le en lieu sûr.';
 
   @override
   String get backupExport => 'Exporter une sauvegarde';
@@ -1224,7 +1224,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backupRestoreConfirmBody =>
-      'Ses playlists, likes et historique d\'écoute s\'ajoutent aux vôtres. Ses réglages remplacent les vôtres.';
+      'Ses playlists, likes et historique d\'écoute s\'ajoutent aux vôtres. Ses réglages remplacent les vôtres, sauf les extras en ligne.';
 
   @override
   String get backupRestoreAction => 'Choisir le fichier';
@@ -1265,5 +1265,5 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backupRestoreOnline =>
-      'Les extras en ligne sont activés, comme dans la sauvegarde. Vous pouvez les désactiver plus haut.';
+      'Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu\'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez.';
 }
