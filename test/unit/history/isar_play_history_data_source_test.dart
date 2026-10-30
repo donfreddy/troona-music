@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -7,25 +6,7 @@ import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 
-/// The Isar core shipped for the host OS by isar_plus_flutter_libs, found
-/// through the package config (`flutter test` runs from the project root).
-String? _hostIsarLibrary() {
-  final file = switch (Platform.operatingSystem) {
-    'macos' => 'macos/libisar.dylib',
-    'linux' => 'linux/libisar.so',
-    _ => null,
-  };
-  final config = File('.dart_tool/package_config.json');
-  if (file == null || !config.existsSync()) return null;
-  final packages = (jsonDecode(config.readAsStringSync()) as Map)['packages'];
-  for (final package in packages as List) {
-    if (package['name'] != 'isar_plus_flutter_libs') continue;
-    final root = config.uri.resolve('${package['rootUri']}/');
-    final path = root.resolve(file).toFilePath();
-    return File(path).existsSync() ? path : null;
-  }
-  return null;
-}
+import '../../helpers/isar_host.dart';
 
 void main() {
   late Directory dir;
@@ -33,7 +14,7 @@ void main() {
   late IsarPlayHistoryDataSource source;
   final t0 = DateTime(2026, 10, 24, 9);
 
-  final library = _hostIsarLibrary();
+  final library = hostIsarLibrary();
   final skip = library == null
       ? 'No Isar core for ${Platform.operatingSystem}'
       : null;
