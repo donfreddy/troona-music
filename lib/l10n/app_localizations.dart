@@ -1913,7 +1913,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew100SleepBody.
   ///
   /// In en, this message translates to:
-  /// **'Stop the music after 15, 30 or 45 minutes or at the end of the song, and play from 0.75x to 2x.'**
+  /// **'Stop the music after 15, 30 or 45 minutes, an hour or at the end of the song, and play from 0.75x to 2x.'**
   String get whatsNew100SleepBody;
 
   /// No description provided for @whatsNew100QueueTitle.
@@ -1943,26 +1943,38 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew100LibraryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Library'**
+  /// **'Your library, offline'**
   String get whatsNew100LibraryTitle;
 
   /// No description provided for @whatsNew100LibraryBody.
   ///
   /// In en, this message translates to:
-  /// **'Faster scans with live progress. Your library stays on screen while it updates.'**
+  /// **'Songs, albums and artists from your phone, with search across all three. Scans show their progress live.'**
   String get whatsNew100LibraryBody;
 
-  /// No description provided for @whatsNew100ShuffleTitle.
+  /// No description provided for @whatsNew100PlayerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shuffle'**
-  String get whatsNew100ShuffleTitle;
+  /// **'Now Playing'**
+  String get whatsNew100PlayerTitle;
 
-  /// No description provided for @whatsNew100ShuffleBody.
+  /// No description provided for @whatsNew100PlayerBody.
   ///
   /// In en, this message translates to:
-  /// **'Every Shuffle button starts on a random song, and turning shuffle off brings back the original order.'**
-  String get whatsNew100ShuffleBody;
+  /// **'Swipe between covers, seek on the ring, and enjoy soft fades on play, pause and skip.'**
+  String get whatsNew100PlayerBody;
+
+  /// No description provided for @whatsNew100PlaylistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists and likes'**
+  String get whatsNew100PlaylistsTitle;
+
+  /// No description provided for @whatsNew100PlaylistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create playlists, reorder their songs, and find every song you like in one place.'**
+  String get whatsNew100PlaylistsBody;
 
   /// No description provided for @whatsNew100LanguageTitle.
   ///
@@ -1975,30 +1987,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The whole app follows your phone\'s language.'**
   String get whatsNew100LanguageBody;
-
-  /// No description provided for @whatsNew100LockTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Lock screen'**
-  String get whatsNew100LockTitle;
-
-  /// No description provided for @whatsNew100LockBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The position stays right after a skip, a seek or a queue change.'**
-  String get whatsNew100LockBody;
-
-  /// No description provided for @whatsNew100ToastTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages'**
-  String get whatsNew100ToastTitle;
-
-  /// No description provided for @whatsNew100ToastBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Confirmations now appear right above the player bar.'**
-  String get whatsNew100ToastBody;
 }
 
 class _AppLocalizationsDelegate

@@ -27,7 +27,29 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  // First public release: everything is new, nothing is compared with a
+  // version nobody had.
   Release('1.0.0', [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew100LibraryTitle,
+      l10n.whatsNew100LibraryBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew100PlayerTitle,
+      l10n.whatsNew100PlayerBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew100QueueTitle,
+      l10n.whatsNew100QueueBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew100PlaylistsTitle,
+      l10n.whatsNew100PlaylistsBody,
+    ),
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew100WeekTitle,
@@ -45,38 +67,13 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
     ),
     ReleaseNote(
       ReleaseNoteKind.added,
-      l10n.whatsNew100QueueTitle,
-      l10n.whatsNew100QueueBody,
-    ),
-    ReleaseNote(
-      ReleaseNoteKind.added,
       l10n.whatsNew100ExtrasTitle,
       l10n.whatsNew100ExtrasBody,
     ),
     ReleaseNote(
-      ReleaseNoteKind.improved,
-      l10n.whatsNew100LibraryTitle,
-      l10n.whatsNew100LibraryBody,
-    ),
-    ReleaseNote(
-      ReleaseNoteKind.improved,
-      l10n.whatsNew100ShuffleTitle,
-      l10n.whatsNew100ShuffleBody,
-    ),
-    ReleaseNote(
-      ReleaseNoteKind.improved,
+      ReleaseNoteKind.added,
       l10n.whatsNew100LanguageTitle,
       l10n.whatsNew100LanguageBody,
-    ),
-    ReleaseNote(
-      ReleaseNoteKind.fixed,
-      l10n.whatsNew100LockTitle,
-      l10n.whatsNew100LockBody,
-    ),
-    ReleaseNote(
-      ReleaseNoteKind.fixed,
-      l10n.whatsNew100ToastTitle,
-      l10n.whatsNew100ToastBody,
     ),
   ]),
 ];

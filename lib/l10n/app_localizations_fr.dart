@@ -1146,7 +1146,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whatsNew100SleepBody =>
-      'Arrêtez la musique après 15, 30 ou 45 minutes ou à la fin du morceau, et écoutez de 0,75x à 2x.';
+      'Arrêtez la musique après 15, 30 ou 45 minutes, une heure ou à la fin du morceau, et écoutez de 0,75x à 2x.';
 
   @override
   String get whatsNew100QueueTitle => 'File d\'attente';
@@ -1164,18 +1164,25 @@ class AppLocalizationsFr extends AppLocalizations {
       'Deux interrupteurs dans les Réglages, désactivés par défaut. Vos fichiers ne quittent jamais votre téléphone.';
 
   @override
-  String get whatsNew100LibraryTitle => 'Bibliothèque';
+  String get whatsNew100LibraryTitle => 'Votre bibliothèque, hors ligne';
 
   @override
   String get whatsNew100LibraryBody =>
-      'Analyse plus rapide avec progression en direct. Votre bibliothèque reste affichée pendant la mise à jour.';
+      'Les morceaux, albums et artistes de votre téléphone, avec une recherche sur les trois. L\'analyse affiche sa progression en direct.';
 
   @override
-  String get whatsNew100ShuffleTitle => 'Lecture aléatoire';
+  String get whatsNew100PlayerTitle => 'Lecture en cours';
 
   @override
-  String get whatsNew100ShuffleBody =>
-      'Chaque bouton Aléatoire démarre sur un morceau au hasard, et désactiver l\'aléatoire rétablit l\'ordre d\'origine.';
+  String get whatsNew100PlayerBody =>
+      'Passez d\'une pochette à l\'autre d\'un geste, avancez dans le morceau sur l\'anneau, avec des fondus doux à la lecture, à la pause et entre les morceaux.';
+
+  @override
+  String get whatsNew100PlaylistsTitle => 'Playlists et titres aimés';
+
+  @override
+  String get whatsNew100PlaylistsBody =>
+      'Créez vos playlists, réorganisez leurs morceaux, et retrouvez tous vos titres aimés au même endroit.';
 
   @override
   String get whatsNew100LanguageTitle => 'Anglais et français';
@@ -1183,18 +1190,4 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'Toute l\'application suit la langue de votre téléphone.';
-
-  @override
-  String get whatsNew100LockTitle => 'Écran de verrouillage';
-
-  @override
-  String get whatsNew100LockBody =>
-      'La position reste juste après un saut, un déplacement ou une modification de la file.';
-
-  @override
-  String get whatsNew100ToastTitle => 'Messages';
-
-  @override
-  String get whatsNew100ToastBody =>
-      'Les confirmations s\'affichent désormais juste au-dessus de la barre de lecture.';
 }

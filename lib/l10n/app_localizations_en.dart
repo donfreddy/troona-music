@@ -1135,7 +1135,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew100SleepBody =>
-      'Stop the music after 15, 30 or 45 minutes or at the end of the song, and play from 0.75x to 2x.';
+      'Stop the music after 15, 30 or 45 minutes, an hour or at the end of the song, and play from 0.75x to 2x.';
 
   @override
   String get whatsNew100QueueTitle => 'Queue';
@@ -1152,18 +1152,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Two switches in Settings, off by default. Your music files never leave your phone.';
 
   @override
-  String get whatsNew100LibraryTitle => 'Library';
+  String get whatsNew100LibraryTitle => 'Your library, offline';
 
   @override
   String get whatsNew100LibraryBody =>
-      'Faster scans with live progress. Your library stays on screen while it updates.';
+      'Songs, albums and artists from your phone, with search across all three. Scans show their progress live.';
 
   @override
-  String get whatsNew100ShuffleTitle => 'Shuffle';
+  String get whatsNew100PlayerTitle => 'Now Playing';
 
   @override
-  String get whatsNew100ShuffleBody =>
-      'Every Shuffle button starts on a random song, and turning shuffle off brings back the original order.';
+  String get whatsNew100PlayerBody =>
+      'Swipe between covers, seek on the ring, and enjoy soft fades on play, pause and skip.';
+
+  @override
+  String get whatsNew100PlaylistsTitle => 'Playlists and likes';
+
+  @override
+  String get whatsNew100PlaylistsBody =>
+      'Create playlists, reorder their songs, and find every song you like in one place.';
 
   @override
   String get whatsNew100LanguageTitle => 'English and French';
@@ -1171,18 +1178,4 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'The whole app follows your phone\'s language.';
-
-  @override
-  String get whatsNew100LockTitle => 'Lock screen';
-
-  @override
-  String get whatsNew100LockBody =>
-      'The position stays right after a skip, a seek or a queue change.';
-
-  @override
-  String get whatsNew100ToastTitle => 'Messages';
-
-  @override
-  String get whatsNew100ToastBody =>
-      'Confirmations now appear right above the player bar.';
 }
