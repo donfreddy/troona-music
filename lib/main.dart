@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:troona/boot_failure_app.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
@@ -47,10 +46,6 @@ Future<void> main() async {
 }
 
 /// Root application widget.
-///
-/// Wraps [MaterialApp.router] with [ScreenUtilInit] so that all `.sp`, `.w`,
-/// and `.h` extension values are calibrated against the design baseline of
-/// 390 × 844 pt (iPhone 14 / design reference).
 class TroonaApp extends StatelessWidget {
   const TroonaApp({super.key});
 
@@ -63,21 +58,15 @@ class TroonaApp extends StatelessWidget {
         BlocProvider.value(value: getIt<LikesCubit>()),
         BlocProvider.value(value: getIt<SleepTimerCubit>()),
       ],
-      child: ScreenUtilInit(
-        // Design canvas size used in Figma / design tool.
-        designSize: const Size(390, 844),
-        minTextAdapt: true,
-        splitScreenMode: true,
-        builder: (_, child) => MaterialApp.router(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: appRouter,
-          themeMode: ThemeMode.dark,
-          theme: AppTheme.dark,
-          darkTheme: AppTheme.dark,
-          debugShowCheckedModeBanner: false,
-        ),
+      child: MaterialApp.router(
+        onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: appRouter,
+        themeMode: ThemeMode.dark,
+        theme: AppTheme.dark,
+        darkTheme: AppTheme.dark,
+        debugShowCheckedModeBanner: false,
       ),
     );
   }
