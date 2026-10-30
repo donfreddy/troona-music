@@ -12,6 +12,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Changed
 
+- The Playlists tab follows changes made elsewhere, such as a restored backup, without being reopened.
 - A long press on a playlist opens Edit playlist and Delete, instead of going straight to the delete confirmation.
 - The like heart on Now Playing uses the accent colour, like the liked songs playlist, instead of red.
 

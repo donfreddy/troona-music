@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
@@ -24,6 +26,11 @@ final class _Repo implements PlaylistRepository {
     stored[playlist.id] = playlist;
     return right(unit);
   }
+
+  final changes = StreamController<void>.broadcast(sync: true);
+
+  @override
+  Stream<void> watchPlaylists() => changes.stream;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -69,5 +76,19 @@ void main() {
     bloc.add(const PlaylistRenameRequested('gone', 'New'));
 
     expect(await bloc.stream.first, isA<PlaylistError>());
+  });
+
+  test('a change made elsewhere lists the playlists again', () async {
+    bloc.add(PlaylistListRequested());
+    await bloc.stream.firstWhere((s) => s is PlaylistLoaded);
+    repo.stored['p2'] = const Playlist(id: 'p2', name: 'Restored');
+
+    repo.changes.add(null);
+    await pumpEventQueue();
+
+    expect((bloc.state as PlaylistLoaded).playlists.map((p) => p.name), [
+      'Old',
+      'Restored',
+    ]);
   });
 }

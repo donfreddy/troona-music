@@ -9,6 +9,9 @@ abstract interface class PlaylistRepository {
   Future<Either<Failure, Playlist>> getPlaylistById(String id);
   Future<Either<Failure, List<Track>>> getTracksByPlaylistId(String id);
 
+  /// Fires after any change to the stored playlists, whoever made it.
+  Stream<void> watchPlaylists();
+
   // Writes (CRUD)
   Future<Either<Failure, Playlist>> createPlaylist({
     required String title,

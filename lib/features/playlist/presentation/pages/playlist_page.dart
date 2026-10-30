@@ -8,7 +8,6 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
-import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_editor_page.dart';
 import 'package:troona/features/playlist/presentation/widgets/likes_hero_card.dart';
@@ -41,59 +40,52 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return BlocListener<LikesCubit, LikesState>(
-      listenWhen: (prev, curr) => prev.likedTrackIds != curr.likedTrackIds,
-      listener: (context, _) {
-        // Automatically sync playlist counts when likes change
-        context.read<PlaylistBloc>().add(PlaylistListRequested());
-      },
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            CustomSliverHeader(
-              title: l10n.navPlaylists,
-              expandedHeight: 130,
-              actions: [
-                GlassIconButton(
-                  icon: _isGrid
-                      ? LucideIcons.layoutList
-                      : LucideIcons.layoutGrid,
-                  tooltip: _isGrid
-                      ? l10n.playlistsListView
-                      : l10n.playlistsGridView,
-                  onTap: () => setState(() => _isGrid = !_isGrid),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                GlassIconButton(
-                  icon: LucideIcons.plus,
-                  tooltip: l10n.playlistsCreate,
-                  onTap: () => _openCreateDialog(context),
-                ),
-              ],
-            ),
-            BlocBuilder<PlaylistBloc, PlaylistState>(
-              builder: (context, state) => switch (state) {
-                PlaylistLoaded(:final playlists) => _PlaylistsBody(
-                  playlists: playlists,
-                  isGrid: _isGrid,
-                  onCreate: () => _openCreateDialog(context),
-                ),
-                PlaylistError() => SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: ErrorView(body: l10n.playlistLoadError),
-                ),
-                _ => const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              },
-            ),
-          ],
+    // Likes and changes made elsewhere reach the list through the bloc,
+    // which watches the stored playlists.
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
+        slivers: [
+          CustomSliverHeader(
+            title: l10n.navPlaylists,
+            expandedHeight: 130,
+            actions: [
+              GlassIconButton(
+                icon: _isGrid ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                tooltip: _isGrid
+                    ? l10n.playlistsListView
+                    : l10n.playlistsGridView,
+                onTap: () => setState(() => _isGrid = !_isGrid),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              GlassIconButton(
+                icon: LucideIcons.plus,
+                tooltip: l10n.playlistsCreate,
+                onTap: () => _openCreateDialog(context),
+              ),
+            ],
+          ),
+          BlocBuilder<PlaylistBloc, PlaylistState>(
+            builder: (context, state) => switch (state) {
+              PlaylistLoaded(:final playlists) => _PlaylistsBody(
+                playlists: playlists,
+                isGrid: _isGrid,
+                onCreate: () => _openCreateDialog(context),
+              ),
+              PlaylistError() => SliverFillRemaining(
+                hasScrollBody: false,
+                child: ErrorView(body: l10n.playlistLoadError),
+              ),
+              _ => const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            },
+          ),
+        ],
       ),
     );
   }

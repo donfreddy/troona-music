@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:dartz/dartz.dart';
@@ -11,14 +13,28 @@ part 'playlist_state.dart';
 
 class PlaylistBloc extends Bloc<PlaylistEvent, PlaylistState> {
   final PlaylistRepository _repo;
+  StreamSubscription<void>? _changes;
 
   PlaylistBloc({required PlaylistRepository repo})
     : _repo = repo,
       super(PlaylistInitial()) {
-    on<PlaylistListRequested>(_onListRequested, transformer: droppable());
+    // Restartable: a change landing during a read starts a fresh one, so
+    // the list never ends on data from before it.
+    on<PlaylistListRequested>(_onListRequested, transformer: restartable());
     on<PlaylistCreateRequested>(_onCreateRequested, transformer: droppable());
     on<PlaylistRenameRequested>(_onRenameRequested, transformer: droppable());
     on<PlaylistDeleteRequested>(_onDeleteRequested, transformer: droppable());
+    // Playlists also change outside this page: a Replay, a song added from
+    // a menu, a restored backup.
+    _changes = _repo.watchPlaylists().listen(
+      (_) => add(PlaylistListRequested()),
+    );
+  }
+
+  @override
+  Future<void> close() async {
+    await _changes?.cancel();
+    return super.close();
   }
 
   Future<void> _onListRequested(

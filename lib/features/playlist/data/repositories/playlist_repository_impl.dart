@@ -154,4 +154,7 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
       return left(ErrorHandler.handle(e, st));
     }
   }
+
+  @override
+  Stream<void> watchPlaylists() => _cache.watchPlaylists();
 }
