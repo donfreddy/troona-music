@@ -89,7 +89,19 @@ final class _FakeAudioPlayer implements AudioPlayer {
   final switches = <(String, double)>[];
 
   @override
-  PlayerState get playerState => PlayerState(playing, ProcessingState.ready);
+  ProcessingState processingState = ProcessingState.ready;
+  final processing = StreamController<ProcessingState>.broadcast(sync: true);
+  @override
+  Stream<ProcessingState> get processingStateStream => processing.stream;
+
+  /// The last track ends: just_audio completes and keeps `playing` true.
+  void completeQueue() {
+    processingState = ProcessingState.completed;
+    processing.add(processingState);
+  }
+
+  @override
+  PlayerState get playerState => PlayerState(playing, processingState);
 
   @override
   bool get hasNext => true;
@@ -460,6 +472,30 @@ void main() {
         expect(player.pauses, 1);
         expect(falling(player.volumes), isTrue);
         expect(player.volumes.last, 0);
+      });
+    });
+
+    test('the end of the queue pauses the player and reads stopped', () {
+      fakeAsync((async) {
+        playing(async);
+        expect(adapter.currentStatus, PlaybackStatus.playing);
+
+        player.completeQueue();
+        async.flushMicrotasks();
+
+        expect(player.pauses, 1);
+        expect(player.playing, isFalse);
+        expect(adapter.currentStatus, PlaybackStatus.stopped);
+      });
+    });
+
+    test('a completed queue reads stopped while just_audio still plays', () {
+      fakeAsync((async) {
+        playing(async);
+        player.processingState = ProcessingState.completed;
+
+        expect(player.playing, isTrue);
+        expect(adapter.currentStatus, PlaybackStatus.stopped);
       });
     });
 

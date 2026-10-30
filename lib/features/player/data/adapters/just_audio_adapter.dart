@@ -96,8 +96,21 @@ class JustAudioAdapter implements AudioServicePort {
       _updateQueue(queue.copyWith(currentIndex: index));
     });
 
+    // At the end of the queue just_audio completes but keeps `playing` true
+    // until told to pause: the status would stay "playing", and a seek back
+    // to the start would set the queue off again.
+    _player.processingStateStream
+        .where((state) => state == ProcessingState.completed)
+        .listen((_) => _onQueueCompleted());
+
     _volume = _player.volume;
     _volumeSubject.add(_volume);
+  }
+
+  void _onQueueCompleted() {
+    _playIntent.add(false);
+    _fade.stop();
+    unawaited(_player.pause());
   }
 
   // ---------------------------------------------------------------------------
@@ -651,17 +664,22 @@ class JustAudioAdapter implements AudioServicePort {
 
   /// Still playing but asked to pause: the pause is fading out.
   PlaybackStatus _status(PlayerState state, bool playIntent) =>
-      state.playing && !playIntent ? PlaybackStatus.paused : _mapState(state);
+      state.playing &&
+          !playIntent &&
+          state.processingState != ProcessingState.completed
+      ? PlaybackStatus.paused
+      : _mapState(state);
 
   PlaybackStatus _mapState(PlayerState state) {
+    // Before `playing`: a completed queue may still report playing.
+    if (state.processingState == ProcessingState.completed) {
+      return PlaybackStatus.stopped;
+    }
     if (state.processingState == ProcessingState.loading ||
         state.processingState == ProcessingState.buffering) {
       return PlaybackStatus.buffering;
     }
     if (state.playing) return PlaybackStatus.playing;
-    if (state.processingState == ProcessingState.completed) {
-      return PlaybackStatus.stopped;
-    }
     return PlaybackStatus.paused;
   }
 
