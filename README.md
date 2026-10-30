@@ -1,6 +1,5 @@
-<!-- TODO(freddy): swap this placeholder for the real app icon/wordmark once the logo is ready. -->
 <p align="center">
-  <img src="https://placehold.co/160x160/0b0b12/b9a7ff?text=%F0%9F%8E%B5&font=montserrat" width="120" height="120" alt="Troona logo placeholder" />
+  <img src="assets/images/app-logo-round.png" width="120" height="120" alt="Troona logo" />
 </p>
 
 <h1 align="center">Troona</h1>

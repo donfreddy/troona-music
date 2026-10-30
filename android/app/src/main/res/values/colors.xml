@@ -2,5 +2,5 @@
 <resources>
     <!-- Matches the app's bgPrimary: the app is dark only, so the launch
          window must not flash white before the first Flutter frame. -->
-    <color name="splash_background">#000000</color>
+    <color name="splash_background">#07090E</color>
 </resources>
