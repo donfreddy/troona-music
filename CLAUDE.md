@@ -90,4 +90,5 @@ Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/wid
 ### Misc
 - App is **portrait-only** (locked in `main.dart`).
 - Dark theme only (`ThemeMode.dark`).
-- `flutter_screenutil` is used for responsive sizing: initialize before use in widget trees.
+- No design-size scaling: layouts follow the room they get (`LayoutBuilder`, `Expanded`). Now Playing shrinks its ring on short screens. Fixed-height chrome (tab bar and mini player, Now Playing and its queue, the Library filter) caps the font size at `AppLayout.maxTextScale` (1.3, `lib/core/layout/app_layout.dart`) with a local `MediaQuery.withClampedTextScaling`; everything else follows the phone's font size and wraps or stacks instead of overflowing. Content under the floating bar pads with `context.bottomBarInset()`.
+- Layout is checked at 360 x 640 dp (Galaxy S7 class) with the font at 1.3 and 2.0, as well as on tall phones. Layout tests that measure labels load Roboto (`test/helpers/roboto.dart`).

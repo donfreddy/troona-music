@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -39,63 +40,76 @@ class QuickAccessRow extends StatelessWidget {
     final isActive = totalTracks > 0;
     final opacity = isActive ? 1.0 : 0.45;
 
+    final chips = [
+      EntranceFader.staggered(
+        index: 0,
+        child: _QuickChip(
+          icon: LucideIcons.heart,
+          label: context.l10n.likedSongs,
+          badge: likesCount > 0 ? likesCount.toString() : null,
+          opacity: opacity,
+          onTap: isActive
+              ? () {
+                  context.go(AppRoute.playlists);
+                }
+              : null,
+        ),
+      ),
+      EntranceFader.staggered(
+        index: 1,
+        child: _QuickChip(
+          icon: LucideIcons.shuffle,
+          label: context.l10n.actionShuffle,
+          opacity: opacity,
+          onTap: isActive ? () => shuffleWholeLibrary(context) : null,
+        ),
+      ),
+      EntranceFader.staggered(
+        index: 2,
+        child: _QuickChip(
+          icon: LucideIcons.clock,
+          label: context.l10n.homeQuickRecent,
+          opacity: opacity,
+          onTap: isActive
+              ? () {
+                  context.read<LibraryBloc>()
+                    ..add(const LibraryFilterChanged(LibraryFilter.tracks))
+                    ..add(const LibrarySortChanged(LibrarySort.dateAdded));
+                  context.go(AppRoute.library);
+                }
+              : null,
+        ),
+      ),
+    ];
+    // Three equal columns, the label under the icon on up to two lines: a
+    // narrow screen wraps a label instead of cutting it. Above the font size
+    // the columns are laid out for, they stack, one chip per line.
+    final stacked =
+        MediaQuery.textScalerOf(context).scale(1) > AppLayout.maxTextScale;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: Row(
-        children: [
-          Expanded(
-            child: EntranceFader.staggered(
-              index: 0,
-              child: _QuickChip(
-                icon: LucideIcons.heart,
-                label: context.l10n.likedSongs,
-                badge: likesCount > 0 ? likesCount.toString() : null,
-                opacity: opacity,
-                onTap: isActive
-                    ? () {
-                        context.go(AppRoute.playlists);
-                      }
-                    : null,
+      child: stacked
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (i, chip) in chips.indexed) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.sm),
+                  chip,
+                ],
+              ],
+            )
+          // The chips share the tallest one's height.
+          : IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (i, chip) in chips.indexed) ...[
+                    if (i > 0) const SizedBox(width: AppSpacing.sm),
+                    Expanded(child: chip),
+                  ],
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: EntranceFader.staggered(
-              index: 1,
-              child: _QuickChip(
-                icon: LucideIcons.shuffle,
-                label: context.l10n.actionShuffle,
-                opacity: opacity,
-                onTap: isActive ? () => shuffleWholeLibrary(context) : null,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: EntranceFader.staggered(
-              index: 2,
-              child: _QuickChip(
-                icon: LucideIcons.clock,
-                label: context.l10n.homeQuickRecent,
-                opacity: opacity,
-                onTap: isActive
-                    ? () {
-                        context.read<LibraryBloc>()
-                          ..add(
-                            const LibraryFilterChanged(LibraryFilter.tracks),
-                          )
-                          ..add(
-                            const LibrarySortChanged(LibrarySort.dateAdded),
-                          );
-                        context.go(AppRoute.library);
-                      }
-                    : null,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -136,44 +150,50 @@ class _QuickChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
             border: Border.all(color: glass.border, width: glass.borderWidth),
           ),
-          child: Row(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: context.colors.accent),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: context.colors.labelPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (badge != null) ...[
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.colors.accent.withValues(alpha: .2),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: TextStyle(
-                      color: context.colors.accent,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 18, color: context.colors.accent),
+                  if (badge != null) ...[
+                    const SizedBox(width: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: context.colors.accent.withValues(alpha: .2),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusFull,
+                        ),
+                      ),
+                      child: Text(
+                        badge!,
+                        style: TextStyle(
+                          color: context.colors.accent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: context.colors.labelPrimary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
         ),

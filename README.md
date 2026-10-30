@@ -96,7 +96,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 ### 🎨 Design
 - Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
 - Glass quality: Auto (chosen by device), Full, Light or Off, applied at runtime and tuned for low-end devices
-- Dark theme, portrait-locked, responsive sizing via `flutter_screenutil`
+- Dark theme, portrait-locked; layouts adapt to the room on screen (down to 360 x 640 dp) and to the phone's font size
 
 ### ⚙️ Settings & maintenance
 - Playback toggles (duck on notification, pause on call, resume after call), glass quality, haptics

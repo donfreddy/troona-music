@@ -24,6 +24,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Small and 16:9 screens (360 x 640, Galaxy S7 class) and large fonts: Now Playing shrinks its cover ring instead of pushing the playback controls under the tab bar; the Home resume card, the quick chips, the Library counts, section titles and the album and artist headers grow, wrap or stack instead of being cut; the last items of Playlists, Search and the detail pages scroll clear of the mini player. The tab bar, mini player, Now Playing, its queue and the Library filter follow the font size up to 1.3x, everything else follows it fully.
 - Android: the playback notification shows the Troona note in the status bar instead of a plain disc.
 
 ## [1.0.0] - 2026-10-30

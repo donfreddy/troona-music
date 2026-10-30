@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -314,12 +315,7 @@ class _HomeBody extends StatelessWidget {
 
         // ── Bottom safe-area padding ─────────────────────────────────────
         SliverPadding(
-          padding: EdgeInsets.only(
-            bottom:
-                AppSpacing.bottomBlockHeight +
-                MediaQuery.of(context).padding.bottom +
-                AppSpacing.md,
-          ),
+          padding: EdgeInsets.only(bottom: context.bottomBarInset()),
         ),
       ],
     );

@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -308,12 +309,7 @@ class _SettingsList extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xl),
         _Footer(version: maintenance.version),
-        SizedBox(
-          height:
-              AppSpacing.bottomBlockHeight +
-              MediaQuery.paddingOf(context).bottom +
-              AppSpacing.xl,
-        ),
+        SizedBox(height: context.bottomBarInset(tabs: false)),
       ],
     );
   }

@@ -21,16 +21,21 @@ class SectionHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.4,
-              color: context.colors.labelPrimary,
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.4,
+                color: context.colors.labelPrimary,
+              ),
             ),
           ),
-          if (onViewAll != null)
+          if (onViewAll != null) ...[
+            const SizedBox(width: AppSpacing.sm),
             GestureDetector(
               onTap: onViewAll,
               child: Container(
@@ -56,6 +61,7 @@ class SectionHeader extends StatelessWidget {
                 ),
               ),
             ),
+          ],
         ],
       ),
     );

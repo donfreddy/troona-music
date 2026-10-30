@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -150,7 +151,7 @@ class _PlaylistsBody extends StatelessWidget {
           ),
         ],
         // Room for the mini player and the tab bar.
-        const SliverToBoxAdapter(child: SizedBox(height: 120)),
+        SliverToBoxAdapter(child: SizedBox(height: context.bottomBarInset())),
       ],
     );
   }

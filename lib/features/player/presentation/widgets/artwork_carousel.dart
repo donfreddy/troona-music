@@ -18,6 +18,8 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 /// 3. a transparent [PageView] that only provides gestures and physics.
 ///
 /// Geometry is proportional to the width, measured on the reference design.
+/// A bounded height shrinks the whole stage so the ring fits it: short
+/// screens (16:9, a large font) keep the controls below on screen.
 class ArtworkCarousel extends StatefulWidget {
   final List<Track> queue;
   final int currentIndex;
@@ -68,6 +70,10 @@ const double _kArtFraction = 0.50;
 const double _kSpacingFraction = 0.42; // centre-to-centre distance
 const double _kNeighbourScale = 0.64;
 
+/// Below this ring (split screen, a floating window) the stage is left out:
+/// a ring the size of a button shows nothing and its lens degenerates.
+const double _kMinRing = 120;
+
 /// Snappy, as in the reference (2 to 3 frames at 10 fps).
 const Duration _kSkipDuration = Duration(milliseconds: 260);
 
@@ -93,6 +99,10 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
 
   /// Last value sent to [ArtworkCarousel.onFocusChanged].
   int? _focus;
+
+  /// The stage is left out (too little room): the PageView is gone, so
+  /// track changes meanwhile are caught up once it is back.
+  bool _hidden = false;
 
   @override
   void initState() {
@@ -234,9 +244,23 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
         final width = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : context.screenWidth;
-        final ringSize = width * _kRingFraction;
-        final artSize = width * _kArtFraction;
-        final spacing = width * _kSpacingFraction;
+        // The width the proportions apply to: the full width, unless the
+        // height cannot hold the ring it gives.
+        final stage = constraints.maxHeight.isFinite
+            ? math.min(width, (constraints.maxHeight - 8) / _kRingFraction)
+            : width;
+        final ringSize = stage * _kRingFraction;
+        if (ringSize < _kMinRing) {
+          _hidden = true;
+          return const SizedBox.shrink();
+        }
+        if (_hidden) {
+          // Reattached on its last page: jump to the playing track.
+          _hidden = false;
+          _scheduleJump();
+        }
+        final artSize = stage * _kArtFraction;
+        final spacing = stage * _kSpacingFraction;
         // Artwork is extracted as square JPEGs, so constraining the width is
         // enough for a sharp BoxFit.cover.
         final cacheWidth = math.max(

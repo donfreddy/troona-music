@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -78,19 +79,23 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     // Toasts sit just above whatever the bar shows, down to nothing.
-    return ToastAnchor(
-      child: BlocBuilder<PlayerBloc, PlayerState>(
-        buildWhen: (prev, curr) => _navKey(prev) != _navKey(curr),
-        builder: (context, playerState) {
-          final resolvedPlayerState = _resolvePlayerState(playerState);
-          return _NavBarBody(
-            currentTab: widget.currentTab,
-            onTabChanged: widget.onTabChanged,
-            playerState: resolvedPlayerState,
-            showMiniPlayer: widget.showMiniPlayer,
-            showTabs: widget.showTabs,
-          );
-        },
+    // Fixed heights: the font size is followed up to the layout cap.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: AppLayout.maxTextScale,
+      child: ToastAnchor(
+        child: BlocBuilder<PlayerBloc, PlayerState>(
+          buildWhen: (prev, curr) => _navKey(prev) != _navKey(curr),
+          builder: (context, playerState) {
+            final resolvedPlayerState = _resolvePlayerState(playerState);
+            return _NavBarBody(
+              currentTab: widget.currentTab,
+              onTabChanged: widget.onTabChanged,
+              playerState: resolvedPlayerState,
+              showMiniPlayer: widget.showMiniPlayer,
+              showTabs: widget.showTabs,
+            );
+          },
+        ),
       ),
     );
   }

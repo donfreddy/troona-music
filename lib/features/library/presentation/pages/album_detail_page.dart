@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
@@ -94,6 +95,9 @@ class AlbumDetailPage extends StatelessWidget {
                                 topPadding: MediaQuery.of(
                                   contentCtx,
                                 ).padding.top,
+                                textScale: MediaQuery.textScalerOf(
+                                  contentCtx,
+                                ).scale(1),
                               ),
                             ),
                             _AlbumTracksView(tracks: data.albumTracks),
@@ -139,10 +143,7 @@ class AlbumDetailPage extends StatelessWidget {
                             ),
                             SliverPadding(
                               padding: EdgeInsets.only(
-                                bottom:
-                                    AppSpacing.miniPlayerHeight +
-                                    MediaQuery.of(contentCtx).padding.bottom +
-                                    AppSpacing.xl,
+                                bottom: contentCtx.bottomBarInset(tabs: false),
                               ),
                             ),
                           ],
@@ -165,14 +166,21 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
   final List<Track> tracks;
   final double topPadding;
 
+  /// The phone's font size: the expanded header grows with its text.
+  final double textScale;
+
   const _AlbumHeroDelegate({
     required this.album,
     required this.tracks,
     required this.topPadding,
+    required this.textScale,
   });
 
   static const double _navBarHeight = 44.0;
   static const double _actionsBarHeight = 64.0;
+
+  /// Height of the expanded header's text at the default font size.
+  static const double _expandedText = 100.0;
   static const double _expandedExtra = 330.0;
 
   @override
@@ -180,13 +188,18 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   double get maxExtent =>
-      topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+      topPadding +
+      _navBarHeight +
+      _expandedExtra +
+      (textScale - 1) * _expandedText +
+      _actionsBarHeight;
 
   @override
   bool shouldRebuild(_AlbumHeroDelegate old) =>
       old.album != album ||
       old.tracks != tracks ||
-      old.topPadding != topPadding;
+      old.topPadding != topPadding ||
+      old.textScale != textScale;
 
   @override
   Widget build(
@@ -466,14 +479,14 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                             const SizedBox(height: 8),
 
                             // Audiophile metadata badges in glass pills
+                            // Wraps on a narrow screen or a large font.
                             _animatedAlbumItem(
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                spacing: 6,
+                                runSpacing: 6,
                                 children: [
-                                  if (year != null) ...[
-                                    _GlassBadge(label: '$year'),
-                                    const SizedBox(width: 6),
-                                  ],
+                                  if (year != null) _GlassBadge(label: '$year'),
                                   _GlassBadge(
                                     label: context.l10n.detailCountsSummary(
                                       context.l10n.songCount(album.trackCount),
@@ -484,7 +497,6 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                   ),
                                   if (_formatBadge(context)
                                       case final badge?) ...[
-                                    const SizedBox(width: 6),
                                     _GlassBadge(
                                       label: badge,
                                       icon: badge == context.l10n.formatLossless

@@ -171,7 +171,8 @@ class HomeHeroBanner extends StatelessWidget {
           onTap: onContinue,
           child: Container(
             width: double.infinity,
-            height: 100,
+            // At least the design height; taller when a large font needs it.
+            constraints: const BoxConstraints(minHeight: 100),
             decoration: BoxDecoration(
               color: glass.fill,
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),

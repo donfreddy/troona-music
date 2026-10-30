@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -43,102 +44,107 @@ class LibrarySegmentControl extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: GlassCard(
-        config: GlassConfig(
-          blurSigma: 0,
-          fill: baseConfig.fill,
-          border: baseConfig.border,
-          highlight: baseConfig.highlight,
-          borderWidth: baseConfig.borderWidth,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          padding: const EdgeInsets.all(4),
-        ),
-        child: SizedBox(
-          height: AppSpacing.tabBarHeight - AppSpacing.sm,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final selectedIndex = _tabs.indexWhere(
-                (tab) => tab.$1 == selected,
-              );
-              final tabWidth = constraints.maxWidth / _tabs.length;
+      // It sits in a pinned header of fixed height, like the tab bar: the
+      // font size is followed up to the layout cap.
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: AppLayout.maxTextScale,
+        child: GlassCard(
+          config: GlassConfig(
+            blurSigma: 0,
+            fill: baseConfig.fill,
+            border: baseConfig.border,
+            highlight: baseConfig.highlight,
+            borderWidth: baseConfig.borderWidth,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            padding: const EdgeInsets.all(4),
+          ),
+          child: SizedBox(
+            height: AppSpacing.tabBarHeight - AppSpacing.sm,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final selectedIndex = _tabs.indexWhere(
+                  (tab) => tab.$1 == selected,
+                );
+                final tabWidth = constraints.maxWidth / _tabs.length;
 
-              return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-                builder: (context, palette) {
-                  final accent = palette.primary;
+                return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+                  builder: (context, palette) {
+                    final accent = palette.primary;
 
-                  return Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: _animationDuration,
-                        curve: Curves.easeOutCubic,
-                        left: selectedIndex * tabWidth,
-                        top: 0,
-                        bottom: 0,
-                        width: tabWidth,
-                        child: IgnorePointer(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  accent.withValues(alpha: .26),
-                                  accent.withValues(alpha: .16),
+                    return Stack(
+                      children: [
+                        AnimatedPositioned(
+                          duration: _animationDuration,
+                          curve: Curves.easeOutCubic,
+                          left: selectedIndex * tabWidth,
+                          top: 0,
+                          bottom: 0,
+                          width: tabWidth,
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    accent.withValues(alpha: .26),
+                                    accent.withValues(alpha: .16),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusMd,
+                                ),
+                                border: Border.all(
+                                  color: accent.withValues(alpha: .24),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: accent.withValues(alpha: .10),
+                                    blurRadius: 16,
+                                    spreadRadius: 1,
+                                    offset: const Offset(0, 8),
+                                  ),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.radiusMd,
-                              ),
-                              border: Border.all(
-                                color: accent.withValues(alpha: .24),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accent.withValues(alpha: .10),
-                                  blurRadius: 16,
-                                  spreadRadius: 1,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
                             ),
                           ),
                         ),
-                      ),
-                      Row(
-                        children: _tabs.map((tab) {
-                          final (filter, icon) = tab;
-                          final label = _labelOf(filter, context);
-                          final isSelected = selected == filter;
+                        Row(
+                          children: _tabs.map((tab) {
+                            final (filter, icon) = tab;
+                            final label = _labelOf(filter, context);
+                            final isSelected = selected == filter;
 
-                          return Expanded(
-                            child: Semantics(
-                              button: true,
-                              selected: isSelected,
-                              label: label,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () {
-                                  if (isSelected) return;
-                                  HapticFeedback.selectionClick();
-                                  onChanged(filter);
-                                },
-                                child: _SegmentTabItem(
-                                  label: label,
-                                  icon: icon,
-                                  isSelected: isSelected,
-                                  duration: _animationDuration,
-                                  accentColor: accent,
+                            return Expanded(
+                              child: Semantics(
+                                button: true,
+                                selected: isSelected,
+                                label: label,
+                                child: GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    if (isSelected) return;
+                                    HapticFeedback.selectionClick();
+                                    onChanged(filter);
+                                  },
+                                  child: _SegmentTabItem(
+                                    label: label,
+                                    icon: icon,
+                                    isSelected: isSelected,
+                                    duration: _animationDuration,
+                                    accentColor: accent,
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ),

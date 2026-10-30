@@ -16,13 +16,15 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 class PlayerUtilityDock extends StatelessWidget {
   const PlayerUtilityDock({super.key});
 
+  static const height = 44.0;
+
   static const _speeds = [0.75, 1.0, 1.25, 1.5, 2.0];
 
   @override
   Widget build(BuildContext context) {
     final sigma = GlassTheme.nowPlaying(context).blurSigma;
     final body = Container(
-      height: 44,
+      height: height,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),

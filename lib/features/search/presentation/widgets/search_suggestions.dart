@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,7 +50,10 @@ class SearchSuggestions extends StatelessWidget {
 
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(top: AppSpacing.md, bottom: 120),
+      padding: EdgeInsets.only(
+        top: AppSpacing.md,
+        bottom: context.bottomBarInset(),
+      ),
       children: [
         if (artists.isNotEmpty) ...[
           SectionHeader(

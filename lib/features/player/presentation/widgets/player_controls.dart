@@ -11,6 +11,9 @@ import 'package:troona/core/extensions/context_ext.dart';
 class PlayerControls extends StatelessWidget {
   const PlayerControls({super.key});
 
+  /// The play button, the tallest of the row.
+  static const height = _PlayPauseButton.size;
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -34,6 +37,8 @@ class PlayerControls extends StatelessWidget {
 class _PlayPauseButton extends StatelessWidget {
   const _PlayPauseButton();
 
+  static const size = 72.0;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PlayerBloc, PlayerState>(
@@ -56,8 +61,8 @@ class _PlayPauseButton extends StatelessWidget {
           child: GestureDetector(
             onTap: toggle,
             child: Container(
-              width: 72,
-              height: 72,
+              width: size,
+              height: size,
               decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,

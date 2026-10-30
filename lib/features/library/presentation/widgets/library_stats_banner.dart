@@ -3,6 +3,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/layout/app_layout.dart';
 
 class LibraryStatsBanner extends StatelessWidget {
   final int trackCount;
@@ -18,6 +19,23 @@ class LibraryStatsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final stats = [
+      _StatItem(
+        icon: LucideIcons.music,
+        value: '$trackCount',
+        label: context.l10n.statSongs(trackCount),
+      ),
+      _StatItem(
+        icon: LucideIcons.disc,
+        value: '$albumCount',
+        label: context.l10n.statAlbums(albumCount),
+      ),
+      _StatItem(
+        icon: LucideIcons.micVocal,
+        value: '$artistCount',
+        label: context.l10n.statArtists(artistCount),
+      ),
+    ];
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -36,28 +54,25 @@ class LibraryStatsBanner extends StatelessWidget {
             width: 0.5,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _StatItem(
-              icon: LucideIcons.music,
-              value: '$trackCount',
-              label: context.l10n.statSongs(trackCount),
-            ),
-            _Divider(),
-            _StatItem(
-              icon: LucideIcons.disc,
-              value: '$albumCount',
-              label: context.l10n.statAlbums(albumCount),
-            ),
-            _Divider(),
-            _StatItem(
-              icon: LucideIcons.micVocal,
-              value: '$artistCount',
-              label: context.l10n.statArtists(artistCount),
-            ),
-          ],
-        ),
+        // Above the font size the row is laid out for, the counts wrap
+        // instead of running off the banner.
+        child:
+            MediaQuery.textScalerOf(context).scale(1) > AppLayout.maxTextScale
+            ? Wrap(
+                alignment: WrapAlignment.spaceAround,
+                spacing: AppSpacing.md,
+                runSpacing: AppSpacing.xs,
+                children: stats,
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  for (final (i, stat) in stats.indexed) ...[
+                    if (i > 0) _Divider(),
+                    stat,
+                  ],
+                ],
+              ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
@@ -63,6 +64,7 @@ class PlaylistDetailPage extends StatelessWidget {
                             : data.playlist.name,
                         tracks: data.tracks,
                         topPadding: MediaQuery.of(context).padding.top,
+                        textScale: MediaQuery.textScalerOf(context).scale(1),
                       ),
                     ),
                     _TrackList(
@@ -70,7 +72,11 @@ class PlaylistDetailPage extends StatelessWidget {
                       tracks: data.tracks,
                       isLikes: id == Playlist.likesId,
                     ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: context.bottomBarInset(tabs: false),
+                      ),
+                    ),
                   ],
                 ),
                 PlaylistDetailError() => ErrorView(
@@ -97,15 +103,22 @@ class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
   final List<Track> tracks;
   final double topPadding;
 
+  /// The phone's font size: the expanded header grows with its text.
+  final double textScale;
+
   const _PlaylistHeroDelegate({
     required this.playlist,
     required this.name,
     required this.tracks,
     required this.topPadding,
+    required this.textScale,
   });
 
   static const double _navBarHeight = 44.0;
   static const double _actionsBarHeight = 64.0;
+
+  /// Height of the expanded header's text at the default font size.
+  static const double _expandedText = 100.0;
   static const double _expandedExtra = 290.0;
   static const double _coverSize = 180.0;
 
@@ -114,14 +127,19 @@ class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   double get maxExtent =>
-      topPadding + _navBarHeight + _expandedExtra + _actionsBarHeight;
+      topPadding +
+      _navBarHeight +
+      _expandedExtra +
+      (textScale - 1) * _expandedText +
+      _actionsBarHeight;
 
   @override
   bool shouldRebuild(_PlaylistHeroDelegate old) =>
       old.playlist != playlist ||
       old.name != name ||
       old.tracks != tracks ||
-      old.topPadding != topPadding;
+      old.topPadding != topPadding ||
+      old.textScale != textScale;
 
   @override
   Widget build(

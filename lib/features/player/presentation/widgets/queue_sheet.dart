@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
@@ -25,7 +26,11 @@ Future<void> showQueueSheet(BuildContext context) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black54,
-    builder: (_) => BlocProvider.value(value: bloc, child: const QueueSheet()),
+    // Part of Now Playing, with fixed row heights: same font size cap.
+    builder: (_) => MediaQuery.withClampedTextScaling(
+      maxScaleFactor: AppLayout.maxTextScale,
+      child: BlocProvider.value(value: bloc, child: const QueueSheet()),
+    ),
   );
 }
 
