@@ -3,14 +3,14 @@
 </p>
 
 <h1 align="center">Troona</h1>
-<p align="center"><strong>A premium, offline-first music player for Android and iOS, with a glassmorphism interface inspired by iOS 17/18.</strong></p>
+<p align="center"><strong>A premium, offline-first music player for Android, with a glassmorphism interface inspired by iOS 17/18.</strong></p>
 
 <p align="center">
   <img alt="Flutter" src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white">
   <img alt="Dart" src="https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white">
   <img alt="CI" src="https://github.com/donfreddy/troona-music/actions/workflows/ci.yml/badge.svg">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-yellow.svg">
-  <img alt="Platform" src="https://img.shields.io/badge/platform-Android%20%7C%20iOS-blue">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Android-blue">
   <img alt="Architecture" src="https://img.shields.io/badge/architecture-Clean%20%2B%20Feature--First-success">
 </p>
 
@@ -29,17 +29,11 @@
 
 ## Download
 
-<!-- TODO(freddy): swap these once v1.0 is actually published. The GitHub Release badge
-     is live (shields.io queries the GitHub API), it will just show "none yet" until
-     you cut a release. The Play Store / App Store ones are static placeholders: point
-     them at the real listing URLs once they exist. -->
 <p align="center">
-  <a href="https://github.com/donfreddy/troona-music/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/donfreddy/troona-music?label=GitHub%20Release&include_prereleases"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.donfreddy.troona"><img alt="Get it on Google Play" src="https://img.shields.io/badge/Google_Play-coming_soon-grey?logo=googleplay&logoColor=white"></a>
-  <a href="#"><img alt="Download on the App Store" src="https://img.shields.io/badge/App_Store-coming_soon-grey?logo=apple&logoColor=white"></a>
+  <a href="https://github.com/donfreddy/troona-music/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/donfreddy/troona-music?label=GitHub%20Release"></a>
 </p>
 
-> Troona hasn't shipped v1.0 yet; see [Roadmap to v1.0](#roadmap-to-v10). Until then, build it yourself from source with [Getting started](#getting-started) below.
+Troona is distributed as APKs on [GitHub Releases](https://github.com/donfreddy/troona-music/releases/latest). Most recent phones need `app-arm64-v8a-release.apk`; older 32-bit phones take `app-armeabi-v7a-release.apk`, and emulators `app-x86_64-release.apk`. Android 7.0 or later. It is not on Google Play or the App Store yet; you can also [build it from source](#getting-started).
 
 ---
 
@@ -69,57 +63,58 @@ It is also an engineering showcase: a Clean Architecture Flutter codebase with a
 Status reflects what is actually implemented and tested today, not a wishlist. See [`CHANGELOG.md`](CHANGELOG.md) for the full history.
 
 ### 🎧 Playback
-- [x] Gapless offline playback (`just_audio`) behind an `AudioServicePort` abstraction: the domain never imports `just_audio` directly
-- [x] Lock-screen and notification controls, backgrounded playback (`audio_service`)
-- [x] Audio focus handling: ducks or pauses on notifications and calls, pauses instantly on headphone unplug, resumes after a call
-- [x] Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
-- [x] Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
-- [x] Shuffle (Fisher–Yates) and repeat (off / one / all)
-- [x] Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
-- [x] Likes, persisted across sessions as a real playlist
+- Gapless offline playback (`just_audio`) behind an `AudioServicePort` abstraction: the domain never imports `just_audio` directly
+- Lock-screen and notification controls, backgrounded playback (`audio_service`)
+- Audio focus handling: ducks or pauses on notifications and calls, pauses instantly on headphone unplug, resumes after a call
+- Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
+- Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
+- Shuffle (Fisher–Yates) and repeat (off / one / all)
+- Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
+- Likes, persisted across sessions as a real playlist
 
 ### 📚 Library
-- [x] 4-phase device scan: query, diff, persist, artwork extraction (4 concurrent workers, de-duplicated)
-- [x] Isar-backed index (Rust core); rescans touch only what changed, with a live progress toast
-- [x] Tracks, albums and artists, each with a dedicated detail page
-- [x] Playlists: create, rename, delete, reorder, add/remove tracks
-- [x] Monthly "Replay" playlist, auto-built from last month's 25 most-played tracks, once a month
-- [x] Global search across tracks, artists and albums
+- 4-phase device scan: query, diff, persist, artwork extraction (4 concurrent workers, de-duplicated)
+- Isar-backed index (Rust core); rescans touch only what changed, with a live progress toast
+- Tracks, albums and artists, each with a dedicated detail page
+- Playlists: create, rename, delete, reorder, add/remove tracks
+- Monthly "Replay" playlist, auto-built from last month's 25 most-played tracks, once a month
+- Global search across tracks, artists and albums
 
 ### 🏠 Home & listening history
-- [x] Recently Played, Your Artists, New Albums, Your Playlists
-- [x] Persistent play history: a play counts after 30 s of listening (or half a track under a minute); seeking never counts
-- [x] Daily listening totals (plays, time, first plays), kept forever
-- [x] "Your week in music": a weekly recap with top artist/song, first listens and a monthly listening calendar
+- Recently Played, Your Artists, New Albums, Your Playlists
+- Persistent play history: a play counts after 30 s of listening (or half a track under a minute); seeking never counts
+- Daily listening totals (plays, time, first plays), kept forever
+- "Your week in music": a weekly recap with top artist/song, first listens and a monthly listening calendar
 
 ### 🌐 Online extras, opt-in and off by default
-- [x] Artist and album bios via Last.fm
-- [x] Artist and album photos via Deezer
-- [x] Each source has its own switch; turning photos off deletes what was downloaded; "Clear online info" wipes both caches
+- Artist and album bios via Last.fm
+- Artist and album photos via Deezer
+- Each source has its own switch; turning photos off deletes what was downloaded; "Clear online info" wipes both caches
 
 ### 🎨 Design
-- [x] Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
-- [x] Three-tier glass quality (Auto / Full / Light / Off) applied at runtime, tuned for low-end devices
-- [x] Dark theme, portrait-locked, responsive sizing via `flutter_screenutil`
+- Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
+- Glass quality: Auto (chosen by device), Full, Light or Off, applied at runtime and tuned for low-end devices
+- Dark theme, portrait-locked, responsive sizing via `flutter_screenutil`
 
 ### ⚙️ Settings & maintenance
-- [x] Playback toggles (duck on notification, pause on call, resume after call), glass quality, haptics
-- [x] Clear cached covers / clear cached online info, each showing the size reclaimed
-- [x] Version-gated "What's new" release-notes sheet, reachable anytime from Settings
-- [x] Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
+- Playback toggles (duck on notification, pause on call, resume after call), glass quality, haptics
+- Clear cached covers / clear cached online info, each showing the size reclaimed
+- Version-gated "What's new" release-notes sheet, reachable anytime from Settings
+- Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
 
 ### 🌍 Localization
-- [x] English and French, full 1:1 key parity, generated via `flutter gen-l10n`
+- English and French, full 1:1 key parity, generated via `flutter gen-l10n`
 
-> **On the equalizer, lyrics and cast:** early builds shipped demo versions of all three with no real DSP, lyrics backend or cast protocol behind them. They were removed deliberately ahead of v1 rather than kept half-working; see the `[Unreleased]` entry in [`CHANGELOG.md`](CHANGELOG.md). A real implementation of any of them is a post-v1 discussion, not a promise.
+> **On the equalizer, lyrics and cast:** early builds shipped demo versions of all three with no real DSP, lyrics backend or cast protocol behind them. They were removed deliberately ahead of v1 rather than kept half-working. A real implementation of any of them is a post-v1 discussion, not a promise.
 
-## Roadmap to v1.0
+## Roadmap
 
-- [ ] Store-readiness pass: release signing, store listings, submission to Google Play and the App Store
+- [ ] Google Play release
+- [ ] iOS release (the project has an iOS target, but no iOS build has been released)
 - [ ] Localization beyond English and French
 - [ ] Revisit a real equalizer and synced lyrics, scoped properly this time
 
-Tracked in [Issues](https://github.com/donfreddy/troona-music/issues); the day-to-day detail lives in [`CHANGELOG.md`](CHANGELOG.md).
+Tracked in [Issues](https://github.com/donfreddy/troona-music/issues); released changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Tech stack
 
@@ -152,8 +147,8 @@ The full breakdown (module-by-module layout, the design system's token hierarchy
 
 ### Prerequisites
 
-- Flutter SDK 3.19+ and Dart 3.3+ (CI runs against 3.47.5)
-- Android SDK 21+ or iOS 14+
+- A Flutter release with Dart 3.10.8 or later, as `pubspec.yaml` requires (development and CI use Flutter 3.47.5)
+- Android 7.0 (API 24) or later; the iOS target is set to iOS 13
 - A device or emulator with local audio files to scan
 
 ### Installation
@@ -162,7 +157,6 @@ The full breakdown (module-by-module layout, the design system's token hierarchy
 git clone https://github.com/donfreddy/troona-music.git
 cd troona-music
 flutter pub get
-dart run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
@@ -201,7 +195,7 @@ flutter run
 flutter analyze                                              # Static analysis
 flutter test                                                 # Full test suite
 flutter test test/unit/player/queue_test.dart                 # A single test file
-dart run build_runner build --delete-conflicting-outputs      # Regenerate Isar/l10n code after a schema change
+dart run build_runner build --delete-conflicting-outputs      # Regenerate Isar code after a schema change (generated files are committed)
 ```
 
 Tests live in `test/unit/` (pure logic, blocs, repositories) and `test/widget/`. Shared player test doubles (`FakeAudioPort`, `buildTestPlayerBloc`, `testTrack`) are in `test/helpers/fake_player.dart`. Isar tests run against the real engine: there is no mocked persistence layer.

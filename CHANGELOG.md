@@ -2,6 +2,25 @@
 
 All notable changes to Troona are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Rename a playlist: long press it, then Edit playlist.
+
+### Changed
+
+- A long press on a playlist opens Edit playlist and Delete, instead of going straight to the delete confirmation.
+- The like heart on Now Playing uses the accent colour, like the liked songs playlist, instead of red.
+
+### Removed
+
+- The description field of the playlist editor: it was never saved.
+
+### Fixed
+
+- Android: the playback notification shows the Troona note in the status bar instead of a plain disc.
+
 ## [1.0.0] - 2026-10-30
 
 First public release. Troona plays the music stored on your phone: no account, no ads, no analytics.
@@ -59,4 +78,5 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/donfreddy/troona-music/releases/tag/v1.0.0
