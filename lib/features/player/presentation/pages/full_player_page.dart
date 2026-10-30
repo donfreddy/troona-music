@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
@@ -621,7 +622,8 @@ class _TrackInfo extends StatelessWidget {
               onPressed: () => context.read<LikesCubit>().toggle(track),
               icon: Icon(
                 isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                color: isLiked ? Colors.redAccent : Colors.white70,
+                // Accent, like the liked songs playlist it adds to.
+                color: isLiked ? context.colors.accent : Colors.white70,
                 size: 26,
               ),
             );
