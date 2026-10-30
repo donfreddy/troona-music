@@ -1294,4 +1294,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyUpdatesBody =>
       'When on, Troona asks GitHub once a day for the number of its latest version. \"Check for updates now\" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: \"View\" opens the release page in your browser.';
+
+  @override
+  String get whatsNew110BackupTitle => 'Backup and restore';
+
+  @override
+  String get whatsNew110BackupBody =>
+      'Save your playlists, likes, listening history and settings to a file, and bring them back on this phone or a new one. In Settings, under Backup.';
+
+  @override
+  String get whatsNew110UpdatesTitle => 'Know when Troona updates';
+
+  @override
+  String get whatsNew110UpdatesBody =>
+      'Turn on Check for updates in Settings: a card on Home tells you when a new version is out. Off by default, nothing is installed for you.';
+
+  @override
+  String get whatsNew110ControlsTitle => 'Like and resume from the lock screen';
+
+  @override
+  String get whatsNew110ControlsBody =>
+      'A heart in the media notification likes the current song (Android 13 and later). After Troona is closed, the media controls resume your last song (Android 11 and later).';
+
+  @override
+  String get whatsNew110RenameTitle => 'Rename a playlist';
+
+  @override
+  String get whatsNew110RenameBody =>
+      'Long press a playlist, then Edit playlist.';
+
+  @override
+  String get whatsNew110ScreensTitle => 'Small screens and large fonts';
+
+  @override
+  String get whatsNew110ScreensBody =>
+      'Now Playing keeps its controls on screen on smaller phones, and the whole app follows your phone\'s font size.';
+
+  @override
+  String get whatsNew110NotificationTitle => 'Notification icon';
+
+  @override
+  String get whatsNew110NotificationBody =>
+      'The playback notification shows the Troona note in the status bar.';
 }

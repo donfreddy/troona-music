@@ -2167,6 +2167,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When on, Troona asks GitHub once a day for the number of its latest version. \"Check for updates now\" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: \"View\" opens the release page in your browser.'**
   String get privacyUpdatesBody;
+
+  /// No description provided for @whatsNew110BackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup and restore'**
+  String get whatsNew110BackupTitle;
+
+  /// No description provided for @whatsNew110BackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your playlists, likes, listening history and settings to a file, and bring them back on this phone or a new one. In Settings, under Backup.'**
+  String get whatsNew110BackupBody;
+
+  /// No description provided for @whatsNew110UpdatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Know when Troona updates'**
+  String get whatsNew110UpdatesTitle;
+
+  /// No description provided for @whatsNew110UpdatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Check for updates in Settings: a card on Home tells you when a new version is out. Off by default, nothing is installed for you.'**
+  String get whatsNew110UpdatesBody;
+
+  /// No description provided for @whatsNew110ControlsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Like and resume from the lock screen'**
+  String get whatsNew110ControlsTitle;
+
+  /// No description provided for @whatsNew110ControlsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A heart in the media notification likes the current song (Android 13 and later). After Troona is closed, the media controls resume your last song (Android 11 and later).'**
+  String get whatsNew110ControlsBody;
+
+  /// No description provided for @whatsNew110RenameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename a playlist'**
+  String get whatsNew110RenameTitle;
+
+  /// No description provided for @whatsNew110RenameBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press a playlist, then Edit playlist.'**
+  String get whatsNew110RenameBody;
+
+  /// No description provided for @whatsNew110ScreensTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Small screens and large fonts'**
+  String get whatsNew110ScreensTitle;
+
+  /// No description provided for @whatsNew110ScreensBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Now Playing keeps its controls on screen on smaller phones, and the whole app follows your phone\'s font size.'**
+  String get whatsNew110ScreensBody;
+
+  /// No description provided for @whatsNew110NotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification icon'**
+  String get whatsNew110NotificationTitle;
+
+  /// No description provided for @whatsNew110NotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The playback notification shows the Troona note in the status bar.'**
+  String get whatsNew110NotificationBody;
 }
 
 class _AppLocalizationsDelegate

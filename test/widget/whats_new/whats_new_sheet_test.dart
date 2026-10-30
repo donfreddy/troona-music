@@ -92,26 +92,31 @@ void main() {
     expect(find.text('Mini player').hitTestable(), findsNothing);
   });
 
-  testWidgets('the 1.0.0 notes fit on a small phone and scroll', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(360, 640);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+  for (final version in ['1.0.0', '1.1.0']) {
+    for (final textScale in [1.0, 2.0]) {
+      testWidgets('the $version notes fit on a small phone and scroll, '
+          'text x$textScale', (tester) async {
+        tester.view.physicalSize = const Size(360, 640);
+        tester.view.devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await tester.pumpWidget(
-      _app(
-        (context) => WhatsNewSheet(
-          release: releaseFor(AppLocalizations.of(context), '1.0.0'),
-        ),
-        locale: const Locale('fr'),
-      ),
-    );
+        await tester.pumpWidget(
+          _app(
+            (context) => WhatsNewSheet(
+              release: releaseFor(AppLocalizations.of(context), version),
+            ),
+            locale: const Locale('fr'),
+          ),
+        );
 
-    expect(tester.takeException(), isNull);
-    expect(find.text('Nouveautés'), findsOneWidget);
-    expect(find.text('Continuer'), findsOneWidget);
-  });
+        expect(tester.takeException(), isNull);
+        expect(find.text('Nouveautés'), findsOneWidget);
+        expect(find.text('Continuer'), findsOneWidget);
+      });
+    }
+  }
 
   group('glass above the tab bar', () {
     tearDown(() {

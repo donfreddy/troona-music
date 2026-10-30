@@ -27,6 +27,38 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  Release('1.1.0', [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew110BackupTitle,
+      l10n.whatsNew110BackupBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew110UpdatesTitle,
+      l10n.whatsNew110UpdatesBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew110ControlsTitle,
+      l10n.whatsNew110ControlsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew110RenameTitle,
+      l10n.whatsNew110RenameBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew110ScreensTitle,
+      l10n.whatsNew110ScreensBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew110NotificationTitle,
+      l10n.whatsNew110NotificationBody,
+    ),
+  ]),
   // First public release: everything is new, nothing is compared with a
   // version nobody had.
   Release('1.0.0', [

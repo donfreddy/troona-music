@@ -1308,4 +1308,47 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get privacyUpdatesBody =>
       'Activée, la recherche demande une fois par jour à GitHub le numéro de la dernière version de Troona. « Vérifier maintenant » ne le demande qu\'une fois, quand vous appuyez dessus. GitHub voit votre adresse IP, comme pour toute requête web ; aucune donnée sur vous ou votre musique n\'est envoyée. Troona ne télécharge ni n\'installe jamais de mise à jour lui-même : « Voir » ouvre la page de la version dans votre navigateur.';
+
+  @override
+  String get whatsNew110BackupTitle => 'Sauvegarde et restauration';
+
+  @override
+  String get whatsNew110BackupBody =>
+      'Enregistrez vos playlists, titres aimés, historique d\'écoute et réglages dans un fichier, et retrouvez-les sur ce téléphone ou un nouveau. Dans les Réglages, rubrique Sauvegarde.';
+
+  @override
+  String get whatsNew110UpdatesTitle => 'Soyez prévenu des mises à jour';
+
+  @override
+  String get whatsNew110UpdatesBody =>
+      'Activez « Rechercher les mises à jour » dans les Réglages : une carte sur l\'accueil vous signale chaque nouvelle version. Désactivé par défaut, rien n\'est installé à votre place.';
+
+  @override
+  String get whatsNew110ControlsTitle =>
+      'Aimer et reprendre depuis l\'écran de verrouillage';
+
+  @override
+  String get whatsNew110ControlsBody =>
+      'Un cœur dans la notification de lecture aime le morceau en cours (Android 13 et plus). Troona fermé, les commandes multimédia reprennent votre dernier morceau (Android 11 et plus).';
+
+  @override
+  String get whatsNew110RenameTitle => 'Renommer une playlist';
+
+  @override
+  String get whatsNew110RenameBody =>
+      'Appuyez longuement sur une playlist, puis sur Modifier la playlist.';
+
+  @override
+  String get whatsNew110ScreensTitle => 'Petits écrans et grands textes';
+
+  @override
+  String get whatsNew110ScreensBody =>
+      'Sur les petits téléphones, l\'écran de lecture garde ses commandes visibles, et toute l\'application suit la taille de texte de votre téléphone.';
+
+  @override
+  String get whatsNew110NotificationTitle => 'Icône de notification';
+
+  @override
+  String get whatsNew110NotificationBody =>
+      'La notification de lecture affiche la note de Troona dans la barre d\'état.';
 }
