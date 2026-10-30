@@ -59,6 +59,7 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
+import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
@@ -78,6 +79,7 @@ import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart'
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
 import 'package:troona/services/audio/media_like_sync.dart';
+import 'package:troona/services/audio/playback_resumer.dart';
 import 'package:troona/services/history/play_history_recorder.dart';
 import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
@@ -199,9 +201,12 @@ Future<void> configureDependencies() async {
   final likeButton = AudioServiceInitializer.likeButton(
     PlatformDispatcher.instance.locales,
   );
+  // The handler is built before the player it resumes: it waits for it.
+  final lastSession = Completer<ResumableSession>();
   final audioPort = await AudioServiceInitializer.init(
     initialSettings,
     likeButton: likeButton,
+    lastSession: lastSession.future,
   );
   getIt.registerSingleton<AudioServicePort>(audioPort);
 
@@ -386,6 +391,9 @@ Future<void> configureDependencies() async {
       sessionStore: getIt(),
       getTracksByIds: getIt(),
     ),
+  );
+  lastSession.complete(
+    PlaybackResumer(store: getIt(), getTracksByIds: getIt(), player: getIt()),
   );
 
   getIt.registerSingleton<LikesCubit>(

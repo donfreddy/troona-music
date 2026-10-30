@@ -50,10 +50,13 @@ void main() {
 
   tearDown(() => port.close());
 
-  Future<PlayerBloc> restoreWith(Either<Failure, List<Track>> answer) async {
+  Future<PlayerBloc> restoreWith(
+    Either<Failure, List<Track>> answer, {
+    bool play = false,
+  }) async {
     final bloc = buildTestPlayerBloc(port, store, library: _Library(answer));
     addTearDown(bloc.close);
-    bloc.add(const RestorePlaybackSessionRequested());
+    bloc.add(RestorePlaybackSessionRequested(play: play));
     await pumpEventQueue();
     return bloc;
   }
@@ -62,6 +65,12 @@ void main() {
     final bloc = await restoreWith(right([a, b]));
     expect(bloc.state, isA<PlayerLoading>());
     expect((bloc.state as PlayerLoading).track, b);
+    expect(port.restoredPlaying, isFalse);
+  });
+
+  test('the media controls restore it playing', () async {
+    await restoreWith(right([a, b]), play: true);
+    expect(port.restoredPlaying, isTrue);
   });
 
   test('a failed library read keeps the session for next time', () async {

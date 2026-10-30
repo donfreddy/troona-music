@@ -1,13 +1,31 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/adapters/media_like_button.dart';
+import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart'
     show PlaybackStatus;
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 import '../../helpers/fake_player.dart';
+
+/// The last session, as the store would hand it back.
+final class _LastSession implements ResumableSession {
+  _LastSession(this.track);
+
+  final Track? track;
+  int resumes = 0;
+
+  @override
+  Future<Track?> lastTrack() async => track;
+
+  @override
+  Future<void> resume() async => resumes++;
+}
 
 void main() {
   late FakeAudioPort port;
@@ -240,6 +258,80 @@ void main() {
       await handler.customAction('something else');
 
       expect(presses, 1);
+    });
+  });
+
+  group('the last session', () {
+    late _LastSession session;
+    late Completer<ResumableSession> ready;
+
+    setUp(() {
+      session = _LastSession(b);
+      ready = Completer();
+      handler = AudioHandlerImpl(port, lastSession: ready.future);
+    });
+
+    Queue queueOf(Track track) => Queue(
+      originalTracks: [track],
+      playbackTracks: [track],
+      currentIndex: 0,
+      shuffleEnabled: false,
+      repeatMode: RepeatMode.off,
+    );
+
+    test('is offered under the recent root while nothing is loaded', () async {
+      ready.complete(session);
+
+      final recent = await handler.getChildren(AudioService.recentRootId);
+
+      expect(recent.map((item) => item.id), ['b']);
+      expect(recent.single.playable, isTrue);
+    });
+
+    test('gives way to the loaded track', () async {
+      ready.complete(session);
+      port.queue = queueOf(a);
+
+      final recent = await handler.getChildren(AudioService.recentRootId);
+
+      expect(recent.map((item) => item.id), ['a']);
+    });
+
+    test('is not browsable from the main root', () async {
+      ready.complete(session);
+
+      expect(await handler.getChildren(AudioService.browsableRootId), isEmpty);
+    });
+
+    test('none saved offers nothing', () async {
+      ready.complete(_LastSession(null));
+
+      expect(await handler.getChildren(AudioService.recentRootId), isEmpty);
+    });
+
+    test(
+      'play with nothing loaded resumes it once the player exists',
+      () async {
+        final played = handler.play();
+        await pumpEventQueue();
+        expect(session.resumes, 0);
+
+        ready.complete(session);
+        await played;
+
+        expect(session.resumes, 1);
+        expect(port.resumeCalls, 0);
+      },
+    );
+
+    test('play with a track loaded just resumes the player', () async {
+      ready.complete(session);
+      port.queue = queueOf(a);
+
+      await handler.play();
+
+      expect(session.resumes, 0);
+      expect(port.resumeCalls, 1);
     });
   });
 }

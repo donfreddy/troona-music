@@ -67,7 +67,10 @@ final class PlayerDismissed extends PlayerEvent {
 }
 
 final class RestorePlaybackSessionRequested extends PlayerEvent {
-  const RestorePlaybackSessionRequested();
+  /// Starts playing once restored (the system media controls asked to
+  /// resume); otherwise the session waits paused.
+  final bool play;
+  const RestorePlaybackSessionRequested({this.play = false});
 }
 
 // ── Queue management ──────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/data/adapters/media_like_button.dart';
+import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -27,15 +28,21 @@ final class AudioServiceInitializer {
 
   /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
   /// OS media controls, and returns the underlying [JustAudioAdapter] as the
-  /// app's [AudioServicePort]. The media controls draw [likeButton].
+  /// app's [AudioServicePort]. The media controls draw [likeButton] and
+  /// offer [lastSession] back while nothing is loaded.
   static Future<AudioServicePort> init(
     AppSettings settings, {
     required MediaLikeButton likeButton,
+    required Future<ResumableSession> lastSession,
   }) async {
     final adapter = JustAudioAdapter();
 
     await AudioService.init(
-      builder: () => AudioHandlerImpl(adapter, likeButton: likeButton),
+      builder: () => AudioHandlerImpl(
+        adapter,
+        likeButton: likeButton,
+        lastSession: lastSession,
+      ),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
         androidNotificationChannelName: channelName(

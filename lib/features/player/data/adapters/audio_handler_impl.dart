@@ -5,6 +5,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/adapters/media_like_button.dart';
+import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart'
     show RepeatMode;
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
@@ -22,8 +23,15 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioServicePort _port;
   final MediaLikeButton? _likeButton;
 
-  AudioHandlerImpl(this._port, {MediaLikeButton? likeButton})
-    : _likeButton = likeButton {
+  /// Completes once the player exists, after this handler is built.
+  final Future<ResumableSession>? _lastSession;
+
+  AudioHandlerImpl(
+    this._port, {
+    MediaLikeButton? likeButton,
+    Future<ResumableSession>? lastSession,
+  }) : _likeButton = likeButton,
+       _lastSession = lastSession {
     // Forward playback status to the audio_service playback state stream.
     // Position is snapshotted here (not per tick) so the OS extrapolates.
     _port.statusStream.listen((status) {
@@ -116,7 +124,15 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   // ---------------------------------------------------------------------------
 
   @override
-  Future<void> play() => _port.resume();
+  Future<void> play() async {
+    // Nothing loaded: the system offered the last session (media resumption
+    // card, headset button), so it is loaded first.
+    final session = _lastSession;
+    if (_port.currentTrack == null && session != null) {
+      return (await session).resume();
+    }
+    await _port.resume();
+  }
 
   @override
   Future<void> pause() => _port.pause();
@@ -162,6 +178,21 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
         AudioServiceRepeatMode.all => RepeatMode.all,
         AudioServiceRepeatMode.group => RepeatMode.all,
       });
+
+  /// Android 11+ asks for the recent root to offer the last session in the
+  /// media controls after the app is closed. Nothing else is browsable.
+  @override
+  Future<List<MediaItem>> getChildren(
+    String parentMediaId, [
+    Map<String, dynamic>? options,
+  ]) async {
+    final session = _lastSession;
+    if (parentMediaId != AudioService.recentRootId || session == null) {
+      return const [];
+    }
+    final track = _port.currentTrack ?? await (await session).lastTrack();
+    return track == null ? const [] : [_trackToMediaItem(track)];
+  }
 
   @override
   Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) {

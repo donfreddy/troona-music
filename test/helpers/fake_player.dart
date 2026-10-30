@@ -75,6 +75,10 @@ final class FakeAudioPort implements AudioServicePort {
   final indexJumps = <int>[];
   int skipPreviousCalls = 0;
   int setQueueCalls = 0;
+  int resumeCalls = 0;
+
+  /// The `play` flag of the last [restoreQueue] call.
+  bool? restoredPlaying;
 
   static Future<Either<Failure, Unit>> get _ok async => const Right(unit);
 
@@ -208,6 +212,24 @@ final class FakeAudioPort implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex) =>
       _edit('move $oldIndex>$newIndex', (q) => q.moveItem(oldIndex, newIndex));
+
+  @override
+  Future<Either<Failure, Unit>> resume() {
+    resumeCalls++;
+    return _ok;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> restoreQueue(
+    Queue queue, {
+    required Duration position,
+    required bool play,
+    required double volume,
+    required double speed,
+  }) {
+    restoredPlaying = play;
+    return _ok;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => _ok;

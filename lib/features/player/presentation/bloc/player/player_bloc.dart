@@ -421,7 +421,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final result = await _audioServicePort.restoreQueue(
       queue,
       position: Duration(milliseconds: snapshot.positionMs),
-      play: false,
+      play: event.play,
       volume: snapshot.volume,
       speed: snapshot.speed,
     );

@@ -8,6 +8,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - Rename a playlist: long press it, then Edit playlist.
 - Android 13 and later: a heart in the system media controls (notification and lock screen) likes or unlikes the current song.
+- Android 11 and later: after Troona is closed, the system media controls offer to resume the last song where it stopped. A headset play button does the same.
 
 ### Changed
 
