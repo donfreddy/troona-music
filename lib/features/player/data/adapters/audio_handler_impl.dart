@@ -4,6 +4,7 @@
 
 import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/player/data/adapters/media_like_button.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart'
     show RepeatMode;
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
@@ -19,8 +20,10 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 /// [JustAudioAdapter] and surfaced via streams.
 class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioServicePort _port;
+  final MediaLikeButton? _likeButton;
 
-  AudioHandlerImpl(this._port) {
+  AudioHandlerImpl(this._port, {MediaLikeButton? likeButton})
+    : _likeButton = likeButton {
     // Forward playback status to the audio_service playback state stream.
     // Position is snapshotted here (not per tick) so the OS extrapolates.
     _port.statusStream.listen((status) {
@@ -91,9 +94,22 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
         );
       }
     });
+
+    // Redraw the heart. Like any push, it resets the anchor time, so the
+    // position goes with it.
+    _likeButton?.liked.distinct().listen((_) {
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: _buildControls(playbackState.value.playing),
+          updatePosition: _port.currentPosition,
+        ),
+      );
+    });
   }
 
   static const _maxDrift = Duration(seconds: 2);
+
+  static const likeAction = 'like';
 
   // ---------------------------------------------------------------------------
   // BaseAudioHandler overrides: all delegate to _port
@@ -147,6 +163,12 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
         AudioServiceRepeatMode.group => RepeatMode.all,
       });
 
+  @override
+  Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) {
+    if (name == likeAction) _likeButton?.press();
+    return super.customAction(name, extras);
+  }
+
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
@@ -170,10 +192,24 @@ class AudioHandlerImpl extends BaseAudioHandler with QueueHandler, SeekHandler {
     _ => AudioProcessingState.idle,
   };
 
-  /// Returns the media controls shown in the OS notification.
+  /// Returns the media controls shown in the OS notification. The heart is a
+  /// session custom action: Android 13+ shows it in the media controls,
+  /// earlier versions only draw the other three.
   List<MediaControl> _buildControls(bool playing) => [
     MediaControl.skipToPrevious,
     if (playing) MediaControl.pause else MediaControl.play,
     MediaControl.skipToNext,
+    ?_likeControl(),
   ];
+
+  MediaControl? _likeControl() {
+    final button = _likeButton;
+    final liked = button?.liked.value;
+    if (button == null || liked == null) return null;
+    return MediaControl.custom(
+      androidIcon: liked ? 'drawable/ic_like_filled' : 'drawable/ic_like',
+      label: liked ? button.unlikeLabel : button.likeLabel,
+      name: likeAction,
+    );
+  }
 }

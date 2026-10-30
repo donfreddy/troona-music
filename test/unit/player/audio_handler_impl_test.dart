@@ -1,6 +1,9 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
+import 'package:troona/features/player/data/adapters/media_like_button.dart';
+import 'package:troona/features/player/domain/entities/playback_state.dart'
+    show PlaybackStatus;
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
@@ -163,6 +166,80 @@ void main() {
         handler.playbackState.value.updatePosition,
         const Duration(seconds: 50),
       );
+    });
+  });
+
+  group('the like button', () {
+    late MediaLikeButton button;
+
+    setUp(() {
+      button = MediaLikeButton(likeLabel: 'Like', unlikeLabel: 'Unlike');
+      handler = AudioHandlerImpl(port, likeButton: button);
+    });
+
+    MediaControl? heart() => handler.playbackState.value.controls
+        .where((c) => c.action == MediaAction.custom)
+        .firstOrNull;
+
+    test('is hidden until a track is shown', () {
+      port.status.add(PlaybackStatus.playing);
+
+      expect(heart(), isNull);
+      expect(handler.playbackState.value.controls, hasLength(3));
+    });
+
+    test('draws the outline or the filled heart, after the others', () async {
+      port.status.add(PlaybackStatus.playing);
+
+      button.show(false);
+      await pumpEventQueue();
+      expect(heart()?.androidIcon, 'drawable/ic_like');
+      expect(heart()?.label, 'Like');
+
+      button.show(true);
+      await pumpEventQueue();
+      expect(heart()?.androidIcon, 'drawable/ic_like_filled');
+      expect(heart()?.label, 'Unlike');
+      expect(handler.playbackState.value.controls.last, heart());
+      expect(handler.playbackState.value.androidCompactActionIndices, [
+        0,
+        1,
+        2,
+      ]);
+    });
+
+    test('keeps the play and pause control when redrawn', () async {
+      port.status.add(PlaybackStatus.playing);
+      button.show(true);
+      await pumpEventQueue();
+
+      expect(heart(), isNotNull);
+      expect(handler.playbackState.value.controls[1].action, MediaAction.pause);
+    });
+
+    test('a redraw re-anchors the position', () async {
+      port.currentPositionValue = const Duration(minutes: 1);
+      handler.playbackState.add(
+        handler.playbackState.value.copyWith(updatePosition: Duration.zero),
+      );
+
+      button.show(true);
+      await pumpEventQueue();
+
+      expect(
+        handler.playbackState.value.updatePosition,
+        const Duration(minutes: 1),
+      );
+    });
+
+    test('a press is passed on', () async {
+      var presses = 0;
+      button.presses.listen((_) => presses++);
+
+      await handler.customAction(AudioHandlerImpl.likeAction);
+      await handler.customAction('something else');
+
+      expect(presses, 1);
     });
   });
 }

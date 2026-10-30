@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' show basicLocaleListResolution;
 import 'package:audio_service/audio_service.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
+import 'package:troona/features/player/data/adapters/media_like_button.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -26,12 +27,15 @@ final class AudioServiceInitializer {
 
   /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
   /// OS media controls, and returns the underlying [JustAudioAdapter] as the
-  /// app's [AudioServicePort].
-  static Future<AudioServicePort> init(AppSettings settings) async {
+  /// app's [AudioServicePort]. The media controls draw [likeButton].
+  static Future<AudioServicePort> init(
+    AppSettings settings, {
+    required MediaLikeButton likeButton,
+  }) async {
     final adapter = JustAudioAdapter();
 
     await AudioService.init(
-      builder: () => AudioHandlerImpl(adapter),
+      builder: () => AudioHandlerImpl(adapter, likeButton: likeButton),
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
         androidNotificationChannelName: channelName(
@@ -51,11 +55,21 @@ final class AudioServiceInitializer {
 
   /// Shown by Android in the app's notification settings, outside any widget
   /// tree: resolved from the device languages the way the app resolves them.
-  static String channelName(List<Locale> device) {
-    final locale = basicLocaleListResolution(
-      device,
-      AppLocalizations.supportedLocales,
+  static String channelName(List<Locale> device) =>
+      _strings(device).notificationChannelName;
+
+  /// The heart of the media controls, labelled in the device language like
+  /// [channelName].
+  static MediaLikeButton likeButton(List<Locale> device) {
+    final strings = _strings(device);
+    return MediaLikeButton(
+      likeLabel: strings.trackLike,
+      unlikeLabel: strings.likesRemove,
     );
-    return lookupAppLocalizations(locale).notificationChannelName;
   }
+
+  static AppLocalizations _strings(List<Locale> device) =>
+      lookupAppLocalizations(
+        basicLocaleListResolution(device, AppLocalizations.supportedLocales),
+      );
 }

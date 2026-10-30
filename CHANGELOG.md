@@ -7,6 +7,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Added
 
 - Rename a playlist: long press it, then Edit playlist.
+- Android 13 and later: a heart in the system media controls (notification and lock screen) likes or unlikes the current song.
 
 ### Changed
 

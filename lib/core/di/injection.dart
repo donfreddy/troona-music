@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show PlatformDispatcher;
 
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
@@ -76,6 +77,7 @@ import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_c
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
 import 'package:troona/services/audio/audio_session_service.dart';
+import 'package:troona/services/audio/media_like_sync.dart';
 import 'package:troona/services/history/play_history_recorder.dart';
 import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
@@ -194,7 +196,13 @@ Future<void> configureDependencies() async {
   );
   AppHaptics.enabled = initialSettings.hapticFeedbackEnabled;
 
-  final audioPort = await AudioServiceInitializer.init(initialSettings);
+  final likeButton = AudioServiceInitializer.likeButton(
+    PlatformDispatcher.instance.locales,
+  );
+  final audioPort = await AudioServiceInitializer.init(
+    initialSettings,
+    likeButton: likeButton,
+  );
   getIt.registerSingleton<AudioServicePort>(audioPort);
 
   // Configure the OS audio session (focus, becoming noisy) before any track
@@ -387,6 +395,11 @@ Future<void> configureDependencies() async {
       isTrackLiked: getIt(),
       getLikesPlaylist: getIt(),
     ),
+  );
+  // Started here: the heart of the media controls works without any page
+  // open.
+  getIt.registerSingleton<MediaLikeSync>(
+    MediaLikeSync(button: likeButton, likes: getIt(), port: audioPort)..start(),
   );
 
   getIt.registerFactory<HomeBloc>(
