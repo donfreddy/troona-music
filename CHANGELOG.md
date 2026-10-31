@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-31
+
 ### Added
 
 - Songs downloaded without an artist tag take their artist from a file name such as "Artist - Title", and appear under that artist next to its tagged songs. Backups made earlier still find them.
@@ -121,7 +123,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/donfreddy/troona-music/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/donfreddy/troona-music/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/donfreddy/troona-music/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/donfreddy/troona-music/releases/tag/v1.0.0

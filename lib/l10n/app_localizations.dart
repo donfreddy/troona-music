@@ -2323,6 +2323,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your music shows on Home as soon as the first scan finds it, without refreshing.'**
   String get whatsNew111HomeBody;
+
+  /// No description provided for @whatsNew120ArtistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artists from file names'**
+  String get whatsNew120ArtistsTitle;
+
+  /// No description provided for @whatsNew120ArtistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs downloaded without an artist take it from their file name, such as \"Artist - Title\", and sit with that artist\'s other songs. The rest read Unknown artist, in your language.'**
+  String get whatsNew120ArtistsBody;
+
+  /// No description provided for @whatsNew120UndoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo a replaced queue'**
+  String get whatsNew120UndoTitle;
+
+  /// No description provided for @whatsNew120UndoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting another album while songs you added with Play next or Add to queue are still to come now offers Undo, which brings your queue back where it was.'**
+  String get whatsNew120UndoBody;
+
+  /// No description provided for @whatsNew120MenusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Menus and dialogs'**
+  String get whatsNew120MenusTitle;
+
+  /// No description provided for @whatsNew120MenusBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Song, album and playlist menus open as a sheet in Troona\'s style, and dialogs fade in smoothly.'**
+  String get whatsNew120MenusBody;
+
+  /// No description provided for @whatsNew120LookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One look across the app'**
+  String get whatsNew120LookTitle;
+
+  /// No description provided for @whatsNew120LookBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Icons, buttons, back buttons and missing covers look the same on every screen, and buttons are easier to tap.'**
+  String get whatsNew120LookBody;
+
+  /// No description provided for @whatsNew120PagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages that slide in'**
+  String get whatsNew120PagesTitle;
+
+  /// No description provided for @whatsNew120PagesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings, the privacy policy and Your week in music no longer show the previous page through them while they open.'**
+  String get whatsNew120PagesBody;
 }
 
 class _AppLocalizationsDelegate

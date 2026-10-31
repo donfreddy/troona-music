@@ -1407,4 +1407,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew111HomeBody =>
       'Your music shows on Home as soon as the first scan finds it, without refreshing.';
+
+  @override
+  String get whatsNew120ArtistsTitle => 'Artists from file names';
+
+  @override
+  String get whatsNew120ArtistsBody =>
+      'Songs downloaded without an artist take it from their file name, such as \"Artist - Title\", and sit with that artist\'s other songs. The rest read Unknown artist, in your language.';
+
+  @override
+  String get whatsNew120UndoTitle => 'Undo a replaced queue';
+
+  @override
+  String get whatsNew120UndoBody =>
+      'Starting another album while songs you added with Play next or Add to queue are still to come now offers Undo, which brings your queue back where it was.';
+
+  @override
+  String get whatsNew120MenusTitle => 'Menus and dialogs';
+
+  @override
+  String get whatsNew120MenusBody =>
+      'Song, album and playlist menus open as a sheet in Troona\'s style, and dialogs fade in smoothly.';
+
+  @override
+  String get whatsNew120LookTitle => 'One look across the app';
+
+  @override
+  String get whatsNew120LookBody =>
+      'Icons, buttons, back buttons and missing covers look the same on every screen, and buttons are easier to tap.';
+
+  @override
+  String get whatsNew120PagesTitle => 'Pages that slide in';
+
+  @override
+  String get whatsNew120PagesBody =>
+      'Settings, the privacy policy and Your week in music no longer show the previous page through them while they open.';
 }

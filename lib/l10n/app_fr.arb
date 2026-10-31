@@ -370,5 +370,15 @@
   "whatsNew111StartupTitle": "Démarrage fiable",
   "whatsNew111StartupBody": "Troona ne reste plus bloqué sur son écran de démarrage quand vous l'ouvrez après avoir relancé la musique depuis les commandes multimédia ou un casque.",
   "whatsNew111HomeTitle": "L'accueil dès la première recherche",
-  "whatsNew111HomeBody": "Votre musique apparaît sur l'accueil dès que la première recherche la trouve, sans actualiser."
+  "whatsNew111HomeBody": "Votre musique apparaît sur l'accueil dès que la première recherche la trouve, sans actualiser.",
+  "whatsNew120ArtistsTitle": "Artistes lus dans le nom du fichier",
+  "whatsNew120ArtistsBody": "Les morceaux téléchargés sans artiste le prennent dans leur nom de fichier, par exemple « Artiste - Titre », et rejoignent les autres morceaux de cet artiste. Les autres s'affichent en Artiste inconnu.",
+  "whatsNew120UndoTitle": "Annuler le remplacement de la file",
+  "whatsNew120UndoBody": "Lancer un autre album alors que des morceaux ajoutés avec Lire ensuite ou Ajouter à la file restent à venir propose maintenant Annuler, qui remet votre file comme elle était.",
+  "whatsNew120MenusTitle": "Menus et boîtes de dialogue",
+  "whatsNew120MenusBody": "Les menus des morceaux, albums et playlists s'ouvrent dans une feuille au style de Troona, et les boîtes de dialogue apparaissent en fondu.",
+  "whatsNew120LookTitle": "Un même style partout",
+  "whatsNew120LookBody": "Icônes, boutons, boutons retour et pochettes manquantes ont le même aspect sur tous les écrans, et les boutons sont plus faciles à toucher.",
+  "whatsNew120PagesTitle": "Pages qui glissent",
+  "whatsNew120PagesBody": "Les Réglages, la politique de confidentialité et Votre semaine en musique ne laissent plus voir la page précédente pendant leur ouverture."
 }

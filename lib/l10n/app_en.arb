@@ -756,5 +756,15 @@
   "whatsNew111StartupTitle": "Reliable start",
   "whatsNew111StartupBody": "Troona no longer stays on its launch screen when you open it after resuming music from the media controls or a headset.",
   "whatsNew111HomeTitle": "Home right after the first scan",
-  "whatsNew111HomeBody": "Your music shows on Home as soon as the first scan finds it, without refreshing."
+  "whatsNew111HomeBody": "Your music shows on Home as soon as the first scan finds it, without refreshing.",
+  "whatsNew120ArtistsTitle": "Artists from file names",
+  "whatsNew120ArtistsBody": "Songs downloaded without an artist take it from their file name, such as \"Artist - Title\", and sit with that artist's other songs. The rest read Unknown artist, in your language.",
+  "whatsNew120UndoTitle": "Undo a replaced queue",
+  "whatsNew120UndoBody": "Starting another album while songs you added with Play next or Add to queue are still to come now offers Undo, which brings your queue back where it was.",
+  "whatsNew120MenusTitle": "Menus and dialogs",
+  "whatsNew120MenusBody": "Song, album and playlist menus open as a sheet in Troona's style, and dialogs fade in smoothly.",
+  "whatsNew120LookTitle": "One look across the app",
+  "whatsNew120LookBody": "Icons, buttons, back buttons and missing covers look the same on every screen, and buttons are easier to tap.",
+  "whatsNew120PagesTitle": "Pages that slide in",
+  "whatsNew120PagesBody": "Settings, the privacy policy and Your week in music no longer show the previous page through them while they open."
 }

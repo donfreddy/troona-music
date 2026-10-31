@@ -1422,4 +1422,39 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew111HomeBody =>
       'Votre musique apparaît sur l\'accueil dès que la première recherche la trouve, sans actualiser.';
+
+  @override
+  String get whatsNew120ArtistsTitle => 'Artistes lus dans le nom du fichier';
+
+  @override
+  String get whatsNew120ArtistsBody =>
+      'Les morceaux téléchargés sans artiste le prennent dans leur nom de fichier, par exemple « Artiste - Titre », et rejoignent les autres morceaux de cet artiste. Les autres s\'affichent en Artiste inconnu.';
+
+  @override
+  String get whatsNew120UndoTitle => 'Annuler le remplacement de la file';
+
+  @override
+  String get whatsNew120UndoBody =>
+      'Lancer un autre album alors que des morceaux ajoutés avec Lire ensuite ou Ajouter à la file restent à venir propose maintenant Annuler, qui remet votre file comme elle était.';
+
+  @override
+  String get whatsNew120MenusTitle => 'Menus et boîtes de dialogue';
+
+  @override
+  String get whatsNew120MenusBody =>
+      'Les menus des morceaux, albums et playlists s\'ouvrent dans une feuille au style de Troona, et les boîtes de dialogue apparaissent en fondu.';
+
+  @override
+  String get whatsNew120LookTitle => 'Un même style partout';
+
+  @override
+  String get whatsNew120LookBody =>
+      'Icônes, boutons, boutons retour et pochettes manquantes ont le même aspect sur tous les écrans, et les boutons sont plus faciles à toucher.';
+
+  @override
+  String get whatsNew120PagesTitle => 'Pages qui glissent';
+
+  @override
+  String get whatsNew120PagesBody =>
+      'Les Réglages, la politique de confidentialité et Votre semaine en musique ne laissent plus voir la page précédente pendant leur ouverture.';
 }
