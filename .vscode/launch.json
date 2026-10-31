@@ -9,7 +9,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "toolArgs": []
+      "toolArgs": ["--android-skip-build-dependency-validation"]
     },
     {
       "name": "troona-music (profile mode)",
