@@ -80,7 +80,14 @@ Every `BackdropFilter` takes `GlassFilter.of(sigma, saturation: config.saturatio
 - Always wrap in a `RepaintBoundary`.
 - Never place inside an `AnimatedBuilder` that rebuilds on audio position.
 - Maximum two `BackdropFilter`s on screen at once (the Now Playing page already uses both, so sheets over it are opaque).
-- One exception: a short-lived modal sheet over the shell (the tab bar blurs below it, a collapsed header may too) may add a third blur on high-tier devices only. Its quality comes from `GlassTheme.aboveGlass(context)`, which is opaque on low-tier devices and when the user turns glass down. Used by "What's new"; not for anything that stays on screen.
+- One exception: a short-lived modal sheet over the shell (the tab bar blurs below it, a collapsed header may too) may add a third blur on high-tier devices only. `showGlassBottomSheet` gets its quality from `GlassTheme.aboveGlass(context)`, read from the context it is opened from: opaque on low-tier devices, when the user turns glass down, and below a `BlurBudgetSpent` (`lib/core/theme/components/blur_budget.dart`). Now Playing and the content of every sheet are marked with it, so the queue, its menus and a sheet opened from a sheet are opaque. Not for anything that stays on screen.
+
+Modals and labels go through one entry point each, in `lib/shared/widgets/`; never `showModalBottomSheet`, `showCupertinoModalPopup`, `showDialog` or a Cupertino sheet or dialog directly:
+- `showGlassBottomSheet`: every bottom sheet (queue, What's new, add to playlist).
+- `showActionSheet` with `SheetAction`s: every menu of actions or options (track actions, sort, sleep timer, speed). A tap closes the sheet, then runs the action.
+- `app_dialog.dart` (`showConfirmDialog`, `showMessageDialog`, `showTextInputDialog`): opaque, fade and scale in, fade only when animations are reduced.
+- `AppToast`: every transient message.
+- `AppBadge` (neutral) and `AppBadge.accent`: small pill labels.
 
 Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`).
 

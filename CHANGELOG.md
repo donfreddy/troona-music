@@ -4,6 +4,13 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Changed
+
+- Menus (song, album, artist and playlist actions, sort, sleep timer, playback speed) open as a sheet in Troona's style, with icons for song, album, artist and playlist actions and a check on the current sort and speed, instead of the iOS-style menu. They close with a tap outside, a swipe down or back.
+- Dialogs (confirmations, playlist names) match the app and fade in smoothly.
+- Add to playlist opens above the mini player, and its height follows the number of playlists.
+- The labels on album, artist and playlist pages and in search share one style.
+
 ## [1.1.1] - 2026-10-31
 
 ### Changed
