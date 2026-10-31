@@ -89,10 +89,7 @@ void main() {
       BlocProvider.value(
         value: bloc,
         child: _app(
-          TrackListTile(
-            track: testTrack('1', durationMs: 60000),
-            onTap: () {},
-          ),
+          TrackListTile(track: testTrack('1', durationMs: 60000), onTap: () {}),
         ),
       ),
     );
