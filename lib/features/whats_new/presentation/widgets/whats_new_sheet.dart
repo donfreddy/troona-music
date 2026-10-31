@@ -8,6 +8,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
+import 'package:troona/shared/widgets/app_badge.dart';
 
 /// Opens "What's new" above the mini player and the tab bar: the release of
 /// [version] (the newest when it has no notes), then every earlier one.
@@ -187,7 +188,7 @@ class _FeaturedReleaseState extends State<_FeaturedRelease> {
               ),
               if (widget.latest) ...[
                 const SizedBox(width: AppSpacing.sm),
-                _Badge(l10n.whatsNewLatest),
+                AppBadge.accent(l10n.whatsNewLatest),
               ],
             ],
           ),
@@ -596,36 +597,6 @@ class _Counts extends StatelessWidget {
               ),
             ),
       ],
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  final String label;
-
-  const _Badge(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: colors.accent.withValues(alpha: .18),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          color: colors.accent,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
-        ),
-      ),
     );
   }
 }

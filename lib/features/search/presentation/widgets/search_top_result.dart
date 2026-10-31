@@ -14,6 +14,7 @@ import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/app_badge.dart';
 
 class SearchTopResult extends StatelessWidget {
   final SearchResult result;
@@ -116,10 +117,7 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(
-                    label: context.l10n.searchBadgeArtist,
-                    color: colors.accent,
-                  ),
+                  AppBadge.accent(context.l10n.searchBadgeArtist),
                   const SizedBox(height: 4),
                   Text(
                     artist.name,
@@ -191,10 +189,7 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(
-                    label: context.l10n.searchBadgeAlbum,
-                    color: colors.accent,
-                  ),
+                  AppBadge.accent(context.l10n.searchBadgeAlbum),
                   const SizedBox(height: 4),
                   Text(
                     album.name,
@@ -275,10 +270,7 @@ class SearchTopResult extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _Badge(
-                    label: context.l10n.searchBadgeSong,
-                    color: colors.accent,
-                  ),
+                  AppBadge.accent(context.l10n.searchBadgeSong),
                   const SizedBox(height: 4),
                   Text(
                     track.title,
@@ -317,33 +309,6 @@ class SearchTopResult extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _Badge({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.5,
         ),
       ),
     );

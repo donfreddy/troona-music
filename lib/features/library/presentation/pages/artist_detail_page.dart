@@ -29,6 +29,7 @@ import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
+import 'package:troona/shared/widgets/app_badge.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -427,21 +428,17 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                 spacing: 6,
                                 runSpacing: 6,
                                 children: [
-                                  _GlassBadge(
-                                    label: context.l10n.songCount(
-                                      artist.trackCount,
-                                    ),
+                                  AppBadge(
+                                    context.l10n.songCount(artist.trackCount),
                                     icon: LucideIcons.music,
                                   ),
-                                  _GlassBadge(
-                                    label: context.l10n.albumCount(
-                                      artist.albumCount,
-                                    ),
+                                  AppBadge(
+                                    context.l10n.albumCount(artist.albumCount),
                                     icon: LucideIcons.disc,
                                   ),
                                   if (totalDuration > Duration.zero) ...[
-                                    _GlassBadge(
-                                      label: totalDuration.toHumanReadable(
+                                    AppBadge(
+                                      totalDuration.toHumanReadable(
                                         context.l10n,
                                       ),
                                       icon: LucideIcons.clock,
@@ -663,47 +660,6 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
           onPressed: () => Navigator.pop(ctx),
           child: Text(context.l10n.actionCancel),
         ),
-      ),
-    );
-  }
-}
-
-// ── Glass Pill Badge ──────────────────────────────────────────────────────────
-class _GlassBadge extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-
-  const _GlassBadge({required this.label, this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 11, color: colors.accent),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            label,
-            style: TextStyle(
-              color: colors.labelSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

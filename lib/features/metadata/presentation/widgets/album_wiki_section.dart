@@ -5,6 +5,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/app_badge.dart';
 
 class AlbumWikiSection extends StatefulWidget {
   final AlbumOnlineInfo info;
@@ -136,11 +137,11 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (listeners != null)
-                    _StatBadge(icon: LucideIcons.headphones, label: listeners),
+                    AppBadge(listeners, icon: LucideIcons.headphones),
                   if (playCount != null)
-                    _StatBadge(icon: LucideIcons.play, label: playCount),
+                    AppBadge(playCount, icon: LucideIcons.play),
                   if (published != null && published.isNotEmpty)
-                    _StatBadge(icon: LucideIcons.calendar, label: published),
+                    AppBadge(published, icon: LucideIcons.calendar),
                 ],
               ),
             ],
@@ -195,40 +196,6 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatBadge extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _StatBadge({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: Colors.white70),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ],
       ),
     );
   }

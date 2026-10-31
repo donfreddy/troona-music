@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
-import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/features/search/presentation/widgets/search_top_result.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/features/search/presentation/widgets/search_artist_chip.dart';
 
 class SearchResultsView extends StatelessWidget {
   final SearchResult result;
@@ -68,7 +65,7 @@ class SearchResultsView extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, index) {
                 final artist = result.artists[index];
-                return _ArtistResultChip(artist: artist);
+                return SearchArtistChip(artist: artist);
               },
             ),
           ),
@@ -176,59 +173,6 @@ class _SearchSectionTitle extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ArtistResultChip extends StatelessWidget {
-  final Artist artist;
-
-  const _ArtistResultChip({required this.artist});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return GestureDetector(
-      onTap: () => context.pushNamed(
-        AppRoute.artistDetail,
-        pathParameters: {'id': artist.id},
-      ),
-      child: SizedBox(
-        width: 80,
-        child: Column(
-          children: [
-            ClipOval(
-              child: SizedBox.square(
-                dimension: 72,
-                child:
-                    artist.artworkPath != null && artist.artworkPath!.isNotEmpty
-                    ? ArtworkImage(artist.artworkPath!)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: const Icon(
-                          LucideIcons.micVocal,
-                          color: Colors.white30,
-                          size: 32,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              artist.name,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: colors.labelPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

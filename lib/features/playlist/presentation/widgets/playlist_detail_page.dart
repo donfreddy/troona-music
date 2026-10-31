@@ -25,6 +25,7 @@ import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
+import 'package:troona/shared/widgets/app_badge.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
 /// header that collapses into the glass bar, then the reorderable tracks.
@@ -232,8 +233,8 @@ class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
                       ),
                       const SizedBox(height: 8),
                       _staggered(
-                        _CountBadge(
-                          label: tracks.isEmpty
+                        AppBadge(
+                          tracks.isEmpty
                               ? context.l10n.songCount(0)
                               : context.l10n.detailCountsSummary(
                                   context.l10n.songCount(tracks.length),
@@ -407,35 +408,6 @@ class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
     slideY: 0.15,
     child: child,
   );
-}
-
-class _CountBadge extends StatelessWidget {
-  final String label;
-
-  const _CountBadge({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-          width: 0.8,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: context.colors.labelSecondary,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
 }
 
 class _TrackList extends StatelessWidget {
