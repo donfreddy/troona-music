@@ -18,6 +18,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
@@ -400,31 +401,31 @@ class _MiniPlayerRow extends StatelessWidget {
                       ),
 
                       // ── Play / Pause ───────────────────────────────────────
-                      IconButton(
+                      AppIconButton(
+                        icon: state.isPlaying
+                            ? LucideIcons.pause
+                            : LucideIcons.play,
                         tooltip: state.isPlaying
                             ? context.l10n.playerPause
                             : context.l10n.actionPlay,
+                        color: context.colors.labelPrimary,
                         onPressed: () => context.read<PlayerBloc>().add(
                           state.isPlaying
                               ? const PauseRequested()
                               : const ResumeRequested(),
                         ),
-                        icon: Icon(
-                          state.isPlaying
-                              ? LucideIcons.pause
-                              : LucideIcons.play,
-                        ),
                       ),
 
                       // ── Skip next ──────────────────────────────────────────
-                      IconButton(
+                      AppIconButton(
+                        icon: LucideIcons.skipForward,
                         tooltip: context.l10n.playerNext,
+                        color: context.colors.labelPrimary,
                         onPressed: state.hasNext
                             ? () => context.read<PlayerBloc>().add(
                                 const SkipNextRequested(),
                               )
                             : null,
-                        icon: Icon(LucideIcons.skipForward),
                       ),
                     ],
                   ),

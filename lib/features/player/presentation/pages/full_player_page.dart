@@ -26,6 +26,7 @@ import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/features/player/presentation/widgets/track_title_switcher.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
@@ -671,18 +672,15 @@ class _TrackInfo extends StatelessWidget {
         BlocBuilder<LikesCubit, LikesState>(
           builder: (context, state) {
             final isLiked = state.isLiked && state.id == track?.id;
-            return IconButton(
-              padding: EdgeInsets.zero,
+            return AppIconButton(
+              icon: isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
               tooltip: isLiked
                   ? context.l10n.likesRemove
                   : context.l10n.trackLike,
+              size: 26,
+              // Accent, like the liked songs playlist it adds to.
+              color: isLiked ? context.colors.accent : Colors.white70,
               onPressed: () => context.read<LikesCubit>().toggle(track),
-              icon: Icon(
-                isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
-                // Accent, like the liked songs playlist it adds to.
-                color: isLiked ? context.colors.accent : Colors.white70,
-                size: 26,
-              ),
             );
           },
         ),

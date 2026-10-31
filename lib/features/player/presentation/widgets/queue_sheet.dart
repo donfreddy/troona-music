@@ -15,6 +15,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -411,16 +412,14 @@ class _Header extends StatelessWidget {
               if (onHistory case final onHistory?)
                 ValueListenableBuilder<bool>(
                   valueListenable: historyInView,
-                  builder: (_, inView, _) => IconButton(
-                    onPressed: onHistory,
+                  builder: (_, inView, _) => AppIconButton(
+                    icon: LucideIcons.history,
                     tooltip: inView
                         ? context.l10n.queueBackToNow
                         : context.l10n.queueHistory,
-                    icon: Icon(
-                      LucideIcons.history,
-                      size: 20,
-                      color: inView ? colors.accent : colors.labelSecondary,
-                    ),
+                    size: 20,
+                    color: inView ? colors.accent : colors.labelSecondary,
+                    onPressed: onHistory,
                   ),
                 ),
             ],

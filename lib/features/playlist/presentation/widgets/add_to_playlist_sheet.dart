@@ -8,6 +8,7 @@ import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 
@@ -119,8 +120,8 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                     color: Colors.white,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(LucideIcons.x, color: Colors.white54),
+                AppIconButton(
+                  icon: LucideIcons.x,
                   tooltip: context.l10n.actionClose,
                   onPressed: () => Navigator.pop(context),
                 ),

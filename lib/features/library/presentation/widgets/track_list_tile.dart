@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -8,6 +9,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/mini_equalizer.dart';
 
@@ -169,15 +171,11 @@ class _TrackListTileState extends State<TrackListTile> {
               const SizedBox(width: AppSpacing.sm),
 
               // ── More options button ───────────────────────────────────────
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 32),
-                icon: const Icon(
-                  LucideIcons.ellipsis,
-                  size: 18,
-                  color: Colors.white30,
-                ),
+              AppIconButton(
+                icon: LucideIcons.ellipsis,
+                tooltip: context.l10n.detailMore,
+                size: 18,
+                color: context.colors.labelTertiary,
                 onPressed: () => _showContextMenu(context),
               ),
             ],

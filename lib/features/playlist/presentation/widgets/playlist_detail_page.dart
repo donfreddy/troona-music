@@ -16,6 +16,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
@@ -516,12 +517,11 @@ class _TrackTile extends StatelessWidget {
                 ),
 
                 // Options (remove) button
-                IconButton(
-                  icon: const Icon(
-                    LucideIcons.ellipsis,
-                    size: 20,
-                    color: Colors.white38,
-                  ),
+                AppIconButton(
+                  icon: LucideIcons.ellipsis,
+                  tooltip: context.l10n.detailMore,
+                  size: 18,
+                  color: context.colors.labelTertiary,
                   onPressed: () => _showTrackOptions(context),
                 ),
 

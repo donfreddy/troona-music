@@ -7,6 +7,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
 import 'package:troona/features/search/presentation/widgets/search_results_view.dart';
 import 'package:troona/features/search/presentation/widgets/search_suggestions.dart';
+import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
@@ -96,14 +97,12 @@ class _SearchPageState extends State<SearchPage> {
                       size: 20,
                     ),
                     suffixIcon: _controller.text.isNotEmpty
-                        ? IconButton(
+                        ? AppIconButton(
+                            icon: LucideIcons.circleX,
                             tooltip: context.l10n.searchClear,
+                            size: 18,
+                            color: colors.labelTertiary,
                             onPressed: _onClear,
-                            icon: Icon(
-                              LucideIcons.circleX,
-                              color: colors.labelTertiary,
-                              size: 18,
-                            ),
                           )
                         : null,
                     filled: true,
