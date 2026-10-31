@@ -438,40 +438,51 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
 
                             // Clickable artist pill
                             _animatedAlbumItem(
-                              InkWell(
-                                onTap: () {
-                                  AppHaptics.lightImpact();
-                                  context.pushArtist('${album.artistId}');
-                                },
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusFull,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        context.artistName(album.artist),
-                                        style: TextStyle(
-                                          color: colors.accent,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
+                              // Songs by different artists, or none: no
+                              // single artist page to open.
+                              album.artist.isEmpty
+                                  ? Text(
+                                      context.artistName(album.artist),
+                                      style: TextStyle(
+                                        color: colors.labelSecondary,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    )
+                                  : InkWell(
+                                      onTap: () {
+                                        AppHaptics.lightImpact();
+                                        context.pushArtist('${album.artistId}');
+                                      },
+                                      borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              album.artist,
+                                              style: TextStyle(
+                                                color: colors.accent,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              AppIcons.disclosure,
+                                              color: colors.accent,
+                                              size: 16,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        AppIcons.disclosure,
-                                        color: colors.accent,
-                                        size: 16,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                                    ),
                               2,
                             ),
 
