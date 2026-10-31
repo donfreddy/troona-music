@@ -7,6 +7,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Added
 
 - Songs downloaded without an artist tag take their artist from a file name such as "Artist - Title", and appear under that artist next to its tagged songs. Backups made earlier still find them.
+- Starting another album or playlist while songs added with Play next or Add to queue are still to come shows "Queue replaced" with Undo, which brings the previous queue back where it was. Another song of the album or playlist that is playing plays within the current queue, and keeps them.
 
 ### Changed
 

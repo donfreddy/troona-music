@@ -115,6 +115,7 @@
   "errorTitle": "Un problème est survenu",
   "playerCantPlay": "Impossible de lire « {title} ». Passage au titre suivant.",
   "playerCantPlayUnknown": "Ce morceau ne peut pas être lu. Passage au suivant.",
+  "playerQueueReplaced": "File d'attente remplacée",
   "notificationChannelName": "Commandes de lecture",
   "bootTitle": "Troona n'a pas pu démarrer",
   "bootBody": "Redémarrez l'application. Si cela se reproduit, copiez le rapport et envoyez-le-nous.",

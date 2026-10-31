@@ -435,6 +435,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'This song can\'t be played. Skipping to the next one.';
 
   @override
+  String get playerQueueReplaced => 'Queue replaced';
+
+  @override
   String get notificationChannelName => 'Playback controls';
 
   @override

@@ -16,3 +16,9 @@ final class TrackUnplayable extends PlayerNotice {
   @override
   List<Object?> get props => [title];
 }
+
+/// A new album or playlist replaced a queue that still held songs queued
+/// by hand. [QueueReplaceUndone] brings it back.
+final class QueueReplaced extends PlayerNotice {
+  const QueueReplaced();
+}

@@ -439,6 +439,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce morceau ne peut pas être lu. Passage au suivant.';
 
   @override
+  String get playerQueueReplaced => 'File d\'attente remplacée';
+
+  @override
   String get notificationChannelName => 'Commandes de lecture';
 
   @override

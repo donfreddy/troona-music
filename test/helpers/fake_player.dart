@@ -80,6 +80,10 @@ final class FakeAudioPort implements AudioServicePort {
   /// The `play` flag of the last [restoreQueue] call.
   bool? restoredPlaying;
 
+  /// The queue and position of the last [restoreQueue] call.
+  Queue? restoredQueue;
+  Duration? restoredPosition;
+
   static Future<Either<Failure, Unit>> get _ok async => const Right(unit);
 
   Future<void> close() => Future.wait([
@@ -228,6 +232,8 @@ final class FakeAudioPort implements AudioServicePort {
     required double speed,
   }) {
     restoredPlaying = play;
+    restoredQueue = queue;
+    restoredPosition = position;
     return _ok;
   }
 

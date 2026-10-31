@@ -53,7 +53,7 @@ Uses **get_it** with **manual** registration in `lib/core/di/injection.dart` (`c
 - Repositories and use cases are lazy singletons.
 
 ### State Management
-`flutter_bloc` throughout. `PlayerBloc` and `LibraryBloc` are provided at the shell level via `MultiBlocProvider` in `app_router.dart`, making them available to all shell pages. `FullPlayerPage` is outside the shell and receives `PlayerBloc` via `BlocProvider.value`. Queue edits (`QueueEditEvent`) go through a single sequential handler so they apply in order.
+`flutter_bloc` throughout. `PlayerBloc` and `LibraryBloc` are provided at the shell level via `MultiBlocProvider` in `app_router.dart`, making them available to all shell pages. `FullPlayerPage` is outside the shell and receives `PlayerBloc` via `BlocProvider.value`. Queue edits (`QueueEditEvent`) go through a single sequential handler so they apply in order. The bloc remembers the ids of the album, playlist or song the queue was built from: playing another song of that source jumps within the queue, and replacing a queue that still holds songs queued by hand (`Queue.hasAddedAhead`) emits a `QueueReplaced` notice, which the shell shows as a toast with Undo (`QueueReplaceUndone` restores the queue through `restoreQueue`). A queue that keeps both layers apart is issue #2.
 
 ### Navigation
 `go_router` with a `StatefulShellRoute.indexedStack` wrapping the bottom-nav branches (`/home`, `/library`, `/search`, `/playlists`). The full player (`/player`) is a fullscreen `CustomTransitionPage` on the root navigator, outside the shell; it morphs from the mini player through Hero flights (`now_playing_hero.dart`). The queue opens as a modal sheet over it (`queue_sheet.dart`).

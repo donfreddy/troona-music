@@ -191,6 +191,7 @@
     }
   },
   "playerCantPlayUnknown": "This song can't be played. Skipping to the next one.",
+  "playerQueueReplaced": "Queue replaced",
   "notificationChannelName": "Playback controls",
   "bootTitle": "Troona couldn't start",
   "bootBody": "Restart the app. If it keeps happening, copy the report and send it to us.",

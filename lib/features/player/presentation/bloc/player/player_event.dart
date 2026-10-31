@@ -53,12 +53,12 @@ final class RepeatModeChangeRequested extends PlayerEvent {
 }
 
 final class VolumeChangeRequested extends PlayerEvent {
-  final double volume; // 0.0 – 1.0
+  final double volume; // 0.0 to 1.0
   const VolumeChangeRequested(this.volume);
 }
 
 final class SpeedChangeRequested extends PlayerEvent {
-  final double speed; // 0.5 – 2.0
+  final double speed; // 0.5 to 2.0
   const SpeedChangeRequested(this.speed);
 }
 
@@ -80,6 +80,12 @@ final class RestorePlaybackSessionRequested extends PlayerEvent {
 final class QueueIndexRequested extends PlayerEvent {
   final int index;
   const QueueIndexRequested(this.index);
+}
+
+/// Restores the queue the last [QueueReplaced] notice was about, at the
+/// song and position it was left.
+final class QueueReplaceUndone extends PlayerEvent {
+  const QueueReplaceUndone();
 }
 
 final class QueueSetRequested extends PlayerEvent {

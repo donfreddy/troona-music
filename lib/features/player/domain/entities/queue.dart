@@ -104,6 +104,25 @@ class Queue {
   bool get hasPrevious => previousTrack != null;
 
   int get length => playbackTracks.length;
+
+  /// Whether a song added on top of [sourceIds] (the album or playlist this
+  /// queue was built from) is still to play: one the queue holds more times
+  /// than its source, with a copy after the current track. Removed or moved
+  /// songs add nothing.
+  bool hasAddedAhead(List<String> sourceIds) {
+    final extra = <String, int>{};
+    for (final track in playbackTracks) {
+      extra[track.id] = (extra[track.id] ?? 0) + 1;
+    }
+    for (final id in sourceIds) {
+      extra[id] = (extra[id] ?? 0) - 1;
+    }
+    for (var i = currentIndex + 1; i < playbackTracks.length; i++) {
+      if ((extra[playbackTracks[i].id] ?? 0) > 0) return true;
+    }
+    return false;
+  }
+
   bool get isEmpty => playbackTracks.isEmpty;
 
   // ---------------------------------------------------------------------------

@@ -19,6 +19,7 @@ import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
@@ -79,14 +80,14 @@ class _AppShellState extends State<AppShell> {
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _noticesSub = context.read<PlayerBloc>().notices.listen((notice) {
+      final player = context.read<PlayerBloc>();
+      _noticesSub = player.notices.listen((notice) {
         if (!mounted) return;
-        final l10n = context.l10n;
-        final message = switch (notice) {
-          TrackUnplayable(:final title?) => l10n.playerCantPlay(title),
-          TrackUnplayable() => l10n.playerCantPlayUnknown,
-        };
-        AppToast.show(context, message);
+        showPlayerNotice(
+          context,
+          notice,
+          onUndo: () => player.add(const QueueReplaceUndone()),
+        );
       });
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());

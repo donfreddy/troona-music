@@ -1,10 +1,53 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 void main() {
   final a = _track('a'), b = _track('b'), c = _track('c'), d = _track('d');
   List<String> ids(List<Track> tracks) => [for (final t in tracks) t.id];
+
+  group('hasAddedAhead', () {
+    final x = _track('x');
+    final source = ['a', 'b', 'c'];
+    final album = Queue.fromTracks([a, b, c]);
+
+    test('a queue that is still its source has nothing added', () {
+      expect(album.hasAddedAhead(source), isFalse);
+    });
+
+    test('a song queued next is ahead until it has played', () {
+      final queued = album.insertAt(1, x);
+      expect(queued.hasAddedAhead(source), isTrue);
+      expect(
+        queued.jumpTo(1).hasAddedAhead(source),
+        isFalse,
+        reason: 'playing',
+      );
+      expect(queued.jumpTo(2).hasAddedAhead(source), isFalse, reason: 'played');
+    });
+
+    test('a song of the source queued again counts', () {
+      expect(album.insertAt(3, b).hasAddedAhead(source), isTrue);
+    });
+
+    test('removing or moving songs adds nothing', () {
+      expect(album.removeAt(1).hasAddedAhead(source), isFalse);
+      expect(album.moveItem(2, 1).hasAddedAhead(source), isFalse);
+    });
+
+    test('shuffled, a song added anywhere ahead counts', () {
+      final shuffled = Queue(
+        originalTracks: [a, b, c, x],
+        playbackTracks: [c, a, x, b],
+        currentIndex: 0,
+        shuffleEnabled: true,
+        repeatMode: RepeatMode.off,
+      );
+      expect(shuffled.hasAddedAhead(source), isTrue);
+      expect(shuffled.jumpTo(3).hasAddedAhead(source), isFalse);
+    });
+  });
 
   group('removeAt', () {
     final queue = Queue.fromTracks([a, b, c, d], startIndex: 2);

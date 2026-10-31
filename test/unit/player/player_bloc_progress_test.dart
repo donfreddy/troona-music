@@ -410,11 +410,12 @@ void main() {
     test('a stale engine track does not override a requested track', () async {
       await activate();
 
+      // Another source: the queue is replaced, not jumped within.
       bloc.add(
         PlayTrackRequested(
           other,
-          contextQueue: [track, other],
-          contextIndex: 1,
+          contextQueue: [other, track],
+          contextIndex: 0,
         ),
       );
       await pumpEventQueue();

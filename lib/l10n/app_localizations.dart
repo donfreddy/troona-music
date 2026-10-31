@@ -788,6 +788,12 @@ abstract class AppLocalizations {
   /// **'This song can\'t be played. Skipping to the next one.'**
   String get playerCantPlayUnknown;
 
+  /// No description provided for @playerQueueReplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue replaced'**
+  String get playerQueueReplaced;
+
   /// No description provided for @notificationChannelName.
   ///
   /// In en, this message translates to:

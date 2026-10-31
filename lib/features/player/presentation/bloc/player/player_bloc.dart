@@ -65,6 +65,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   Stream<PlayerNotice> get notices => _noticesController.stream;
 
   int? _lastPersistedPositionSecond;
+
+  /// Ids of the album, playlist or song the queue was last built from:
+  /// what the queue holds beyond them was queued by hand.
+  List<String>? _sourceIds;
+
+  /// The queue a new source replaced while songs queued by hand were still
+  /// to play, for [QueueReplaceUndone]. Only the last one is kept.
+  ({Queue queue, Duration position, bool play, List<String>? sourceIds})?
+  _replaced;
   PlaybackSessionSnapshot? _restoringSnapshot;
   bool _isManualSeeking = false;
 
@@ -170,6 +179,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       transformer: droppable(),
     );
     on<QueueSetRequested>(_onQueueSetRequested, transformer: droppable());
+    on<QueueReplaceUndone>(_onQueueReplaceUndone, transformer: droppable());
     on<QueueIndexRequested>(_onQueueIndexRequested, transformer: droppable());
     // One handler for every edit type: sequential() only orders events
     // within a single handler.
@@ -192,39 +202,119 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayTrackRequested event,
     Emitter<PlayerState> emit,
   ) async {
+    final context = event.contextQueue;
+    final sourceIds = [
+      for (final t in context ?? [event.track]) t.id,
+    ];
+    if (context != null &&
+        !event.shuffle &&
+        await _playInQueue(event.track, sourceIds)) {
+      return;
+    }
+
     unawaited(AppHaptics.lightImpact());
+    final replacing = _replaceSource(sourceIds);
 
     _requestedTrackId = event.track.id;
     emit(PlayerLoading(event.track));
 
-    if (event.contextQueue != null) {
-      final result = await _setQueue(
-        SetQueueParams(
-          tracks: event.contextQueue!,
-          startIndex: event.contextIndex ?? 0,
-          shuffle: event.shuffle ? true : null,
+    final result = context != null
+        ? await _setQueue(
+            SetQueueParams(
+              tracks: context,
+              startIndex: event.contextIndex ?? 0,
+              shuffle: event.shuffle ? true : null,
+            ),
+          )
+        : await _playTrack(PlayTrackParams(track: event.track));
+    if (result.isLeft()) {
+      emit(
+        PlayerError(
+          message: result.fold((f) => f.message, (_) => ''),
+          lastTrack: event.track,
         ),
       );
-      if (result.isLeft()) {
-        emit(
-          PlayerError(
-            message: result.fold((f) => f.message, (_) => ''),
-            lastTrack: event.track,
-          ),
-        );
-      }
-    } else {
-      final result = await _playTrack(PlayTrackParams(track: event.track));
-      if (result.isLeft()) {
-        emit(
-          PlayerError(
-            message: result.fold((f) => f.message, (_) => ''),
-            lastTrack: event.track,
-          ),
-        );
-      }
+    } else if (replacing) {
+      _noticesController.add(const QueueReplaced());
     }
     // The active state arrives through _onTrackChanged and _onStatusChanged
+  }
+
+  /// Another song of the source already playing: plays it in the current
+  /// queue, which keeps the songs queued by hand. The current song starts
+  /// over. False when the queue no longer holds [track].
+  Future<bool> _playInQueue(Track track, List<String> sourceIds) async {
+    final current = state;
+    final queue = _audioServicePort.currentQueue;
+    if (current is! PlayerActive ||
+        queue == null ||
+        !listEquals(sourceIds, _sourceIds)) {
+      return false;
+    }
+    final index = queue.playbackTracks.indexWhere((t) => t.id == track.id);
+    if (index < 0) return false;
+    if (index != queue.currentIndex) {
+      add(QueueIndexRequested(index));
+      return true;
+    }
+    unawaited(AppHaptics.lightImpact());
+    _setPosition(Duration.zero);
+    await _seek(const SeekParams(position: Duration.zero));
+    if (!current.isPlaying) await _resume();
+    return true;
+  }
+
+  /// Notes [sourceIds] as the new source of the queue. The queue it
+  /// replaces is kept for an undo when it still held songs queued by hand;
+  /// returns whether it did.
+  bool _replaceSource(List<String> sourceIds) {
+    final current = state;
+    final queue = _audioServicePort.currentQueue;
+    final source = _sourceIds;
+    _replaced =
+        current is PlayerActive &&
+            queue != null &&
+            source != null &&
+            queue.hasAddedAhead(source)
+        ? (
+            queue: queue,
+            position: _progress.value.position,
+            play: current.isPlaying,
+            sourceIds: source,
+          )
+        : null;
+    _sourceIds = sourceIds;
+    return _replaced != null;
+  }
+
+  Future<void> _onQueueReplaceUndone(
+    QueueReplaceUndone event,
+    Emitter<PlayerState> emit,
+  ) async {
+    final replaced = _replaced;
+    final track = replaced?.queue.currentTrack;
+    if (replaced == null || track == null) return;
+    final current = state;
+    _replaced = null;
+    _sourceIds = replaced.sourceIds;
+
+    _requestedTrackId = track.id;
+    emit(PlayerLoading(track));
+    final result = await _audioServicePort.restoreQueue(
+      replaced.queue,
+      position: replaced.position,
+      play: replaced.play,
+      volume: current is PlayerActive ? current.volume : 1,
+      speed: current is PlayerActive ? current.speed : 1,
+    );
+    if (result.isLeft()) {
+      emit(
+        PlayerError(
+          message: result.fold((f) => f.message, (_) => ''),
+          lastTrack: track,
+        ),
+      );
+    }
   }
 
   Future<void> _onPauseRequested(
@@ -343,6 +433,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     await _audioServicePort
         .stop(); // Actually stops the audio engine (e.g. swiped away while playing)
     await _clearPersistedSession();
+    _sourceIds = null;
+    _replaced = null;
     emit(const PlayerIdle());
   }
 
@@ -416,6 +508,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     _restoringSnapshot = snapshot;
+    // Songs queued by hand last time are part of the queue now.
+    _sourceIds = [for (final t in playbackTracks) t.id];
     emit(PlayerLoading(queue.currentTrack ?? playbackTracks[currentIndex]));
 
     final result = await _audioServicePort.restoreQueue(
@@ -438,11 +532,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   ) async {
     if (event.tracks.isEmpty) return;
 
+    final replacing = _replaceSource([for (final t in event.tracks) t.id]);
     _requestedTrackId = event.tracks[event.startIndex].id;
     emit(PlayerLoading(event.tracks[event.startIndex]));
-    await _setQueue(
+    final result = await _setQueue(
       SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
     );
+    if (replacing && result.isRight()) {
+      _noticesController.add(const QueueReplaced());
+    }
   }
 
   Future<void> _onQueueIndexRequested(
