@@ -29,6 +29,7 @@ import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart'
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
+import 'package:troona/shared/widgets/ambient_background.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -47,6 +48,12 @@ abstract class AppRoute {
   static const artistDetail = 'artist_detail';
   static const playlistDetail = 'playlist_detail';
 }
+
+/// A page pushed over a tab's root page. The tab pages are transparent over
+/// the shell's [AmbientBackground]; a pushed page without a background of
+/// its own gets a copy, or the page below would show through it while it
+/// slides in. Album, artist and playlist pages paint their own.
+Widget _overTab(Widget page) => AmbientBackground(child: page);
 
 GoRoute _buildAlbumDetailRoute({String? name}) => GoRoute(
   path: 'albums/:id',
@@ -119,32 +126,36 @@ final appRouter = GoRouter(
                 GoRoute(
                   path: AppRoute.weeklyRecap,
                   name: AppRoute.weeklyRecap,
-                  builder: (_, _) => BlocProvider(
-                    create: (_) => getIt<WeeklyRecapCubit>()..load(),
-                    child: const WeeklyRecapPage(),
+                  builder: (_, _) => _overTab(
+                    BlocProvider(
+                      create: (_) => getIt<WeeklyRecapCubit>()..load(),
+                      child: const WeeklyRecapPage(),
+                    ),
                   ),
                 ),
                 GoRoute(
                   path: AppRoute.settings,
                   name: AppRoute.settings,
-                  builder: (context, _) => MultiBlocProvider(
-                    providers: [
-                      BlocProvider.value(
-                        value: getIt<SettingsCubit>()..retryIfFailed(),
-                      ),
-                      BlocProvider(
-                        create: (_) => getIt<MaintenanceCubit>()..load(),
-                      ),
-                      BlocProvider.value(value: getIt<BackupCubit>()),
-                      BlocProvider.value(value: getIt<UpdateCubit>()),
-                    ],
-                    child: const SettingsPage(),
+                  builder: (context, _) => _overTab(
+                    MultiBlocProvider(
+                      providers: [
+                        BlocProvider.value(
+                          value: getIt<SettingsCubit>()..retryIfFailed(),
+                        ),
+                        BlocProvider(
+                          create: (_) => getIt<MaintenanceCubit>()..load(),
+                        ),
+                        BlocProvider.value(value: getIt<BackupCubit>()),
+                        BlocProvider.value(value: getIt<UpdateCubit>()),
+                      ],
+                      child: const SettingsPage(),
+                    ),
                   ),
                   routes: [
                     GoRoute(
                       path: AppRoute.privacy,
                       name: AppRoute.privacy,
-                      builder: (_, _) => const PrivacyPage(),
+                      builder: (_, _) => _overTab(const PrivacyPage()),
                     ),
                   ],
                 ),

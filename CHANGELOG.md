@@ -11,6 +11,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Add to playlist opens above the mini player, and its height follows the number of playlists.
 - The labels on album, artist and playlist pages and in search share one style.
 
+### Fixed
+
+- Opening Settings, the privacy policy or Your week in music showed the previous page through the new one while it slid in, then made it vanish at once.
+
 ## [1.1.1] - 2026-10-31
 
 ### Changed

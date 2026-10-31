@@ -24,7 +24,7 @@ import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
-import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
@@ -288,16 +288,7 @@ class _AppShellState extends State<AppShell> {
             backgroundColor: Colors.black,
             body: Stack(
               children: [
-                Positioned.fill(
-                  child: BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-                    builder: (_, palette) => DynamicBackground(
-                      colorA: palette.backgroundColorA,
-                      colorB: palette.backgroundColorB,
-                      tone: DynamicBackgroundTone.ambient,
-                      child: const SizedBox.expand(),
-                    ),
-                  ),
-                ),
+                const Positioned.fill(child: AmbientBackground()),
 
                 // ── The Branch Content ─────────────────────────────────────────
                 Positioned.fill(child: widget.navigationShell),

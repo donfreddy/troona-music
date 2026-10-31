@@ -58,6 +58,8 @@ Uses **get_it** with **manual** registration in `lib/core/di/injection.dart` (`c
 ### Navigation
 `go_router` with a `StatefulShellRoute.indexedStack` wrapping the bottom-nav branches (`/home`, `/library`, `/search`, `/playlists`). The full player (`/player`) is a fullscreen `CustomTransitionPage` on the root navigator, outside the shell; it morphs from the mini player through Hero flights (`now_playing_hero.dart`). The queue opens as a modal sheet over it (`queue_sheet.dart`).
 
+The shell paints `AmbientBackground` behind the tab pages, which are transparent. A page pushed over a tab must be opaque, or the page below shows through it while it slides in, then vanishes when the slide ends: `app_router.dart` wraps such routes in `_overTab` (Settings, Privacy, Your week in music); album, artist and playlist pages paint their own background.
+
 ### Storage
 One Isar database (`isar_plus`), opened by `AppDatabase.open()` in `lib/core/database/`. Each data source declares its collections (`IsarLibraryDataSource.schemas`, `IsarPlayHistoryDataSource.schemas`) and `injection.dart` passes them in, so core never imports a feature. Adding a collection needs no migration.
 - Library: tracks and playlists (`IsarLibraryDataSource`).
