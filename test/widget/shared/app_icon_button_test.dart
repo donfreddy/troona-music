@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -28,7 +28,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         AppIconButton(
-          icon: LucideIcons.x,
+          icon: AppIcons.close,
           tooltip: 'Close',
           size: 18,
           onPressed: () => taps++,
@@ -57,7 +57,7 @@ void main() {
     await tester.pumpWidget(
       _app(
         const AppIconButton(
-          icon: LucideIcons.skipForward,
+          icon: AppIcons.skipNext,
           tooltip: 'Next',
           onPressed: null,
         ),

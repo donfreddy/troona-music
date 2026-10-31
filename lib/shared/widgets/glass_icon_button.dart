@@ -27,14 +27,14 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 /// ```dart
 /// // Play/pause: primary, large
 /// GlassIconButton.accent(
-///   icon: isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+///   icon: isPlaying ? AppIcons.pause : AppIcons.play,
 ///   size: GlassIconButtonSize.lg,
 ///   onTap: _togglePlayPause,
 /// )
 ///
 /// // Skip: secondary, medium
 /// GlassIconButton(
-///   icon: CupertinoIcons.forward_fill,
+///   icon: AppIcons.skipNext,
 ///   size: GlassIconButtonSize.md,
 ///   onTap: _skipNext,
 /// )

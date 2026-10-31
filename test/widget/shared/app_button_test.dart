@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
 Widget _app(Widget child) => MaterialApp(
@@ -97,14 +97,14 @@ void main() {
             Expanded(
               child: AppButton.primary(
                 'Turn on artist photos and biographies',
-                icon: LucideIcons.play,
+                icon: AppIcons.play,
                 onPressed: () {},
               ),
             ),
             Expanded(
               child: AppButton.secondary(
                 'Shuffle',
-                icon: LucideIcons.shuffle,
+                icon: AppIcons.shuffle,
                 expanded: true,
                 onPressed: () {},
               ),

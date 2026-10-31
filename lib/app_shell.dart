@@ -9,6 +9,7 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/permission_handler.dart';
@@ -455,7 +456,7 @@ class _LibraryBootstrapContent extends StatelessWidget {
             border: Border.all(color: colors.accent.withValues(alpha: .22)),
           ),
           child: const Icon(
-            CupertinoIcons.music_note_list,
+            AppIcons.libraryScan,
             color: Colors.white,
             size: 32,
           ),

@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
@@ -587,7 +587,7 @@ class _TopBar extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   onPressed: () => _dismissFullPlayer(context),
                   child: const Icon(
-                    EvaIcons.chevronDown,
+                    AppIcons.minimize,
                     color: Colors.white,
                     size: 22,
                   ),
@@ -604,7 +604,7 @@ class _TopBar extends StatelessWidget {
                   minimumSize: const Size.square(40),
                   onPressed: () => _showOptionsSheet(context),
                   child: const Icon(
-                    EvaIcons.moreVertical,
+                    AppIcons.moreVertical,
                     color: Colors.white,
                     size: 22,
                   ),
@@ -673,7 +673,7 @@ class _TrackInfo extends StatelessWidget {
           builder: (context, state) {
             final isLiked = state.isLiked && state.id == track?.id;
             return AppIconButton(
-              icon: isLiked ? EvaIcons.heart : EvaIcons.heartOutline,
+              icon: isLiked ? AppIcons.liked : AppIcons.like,
               tooltip: isLiked
                   ? context.l10n.likesRemove
                   : context.l10n.trackLike,

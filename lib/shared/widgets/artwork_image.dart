@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 
 /// Local artwork decoded at its displayed size.
 ///
@@ -50,11 +51,7 @@ class ArtworkImage extends StatelessWidget {
             width: width,
             height: height,
             color: Colors.white.withValues(alpha: .06),
-            child: const Icon(
-              Icons.music_note_rounded,
-              color: Colors.white24,
-              size: 24,
-            ),
+            child: const Icon(AppIcons.track, color: Colors.white24, size: 24),
           ),
     );
 

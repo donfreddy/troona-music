@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
@@ -430,7 +430,7 @@ class _ArtworkPlaceholder extends StatelessWidget {
     return ColoredBox(
       color: Colors.white.withValues(alpha: .08),
       child: const Center(
-        child: Icon(CupertinoIcons.music_note, size: 64, color: Colors.white30),
+        child: Icon(AppIcons.track, size: 64, color: Colors.white30),
       ),
     );
   }

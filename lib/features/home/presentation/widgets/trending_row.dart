@@ -1,7 +1,7 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -54,7 +54,7 @@ class TrendingRow extends StatelessWidget {
                         : Container(
                             color: Colors.white.withValues(alpha: .08),
                             child: const Icon(
-                              EvaIcons.musicOutline,
+                              AppIcons.track,
                               color: Colors.white30,
                             ),
                           ),
@@ -68,7 +68,7 @@ class TrendingRow extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          EvaIcons.music,
+                          AppIcons.nowPlaying,
                           color: Colors.white,
                           size: 20,
                         ),

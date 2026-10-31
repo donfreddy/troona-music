@@ -1,3 +1,4 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -8,13 +9,16 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 /// glyph (a playlist and the queue); give each its own entry anyway, so one
 /// can change without the other.
 ///
-/// Lucide is the base.
+/// Lucide is the base. Eva gives the filled glyphs Lucide lacks.
 abstract final class AppIcons {
   // ── Playback ──────────────────────────────────────────────────────────────
   static const IconData play = LucideIcons.play;
   static const IconData pause = LucideIcons.pause;
   static const IconData skipNext = LucideIcons.skipForward;
+  static const IconData skipPrevious = LucideIcons.skipBack;
   static const IconData shuffle = LucideIcons.shuffle;
+  static const IconData repeat = LucideIcons.repeat;
+  static const IconData repeatOne = LucideIcons.repeat1;
   static const IconData queue = LucideIcons.listMusic;
   static const IconData playNext = LucideIcons.listStart;
   static const IconData addToQueue = LucideIcons.listEnd;
@@ -38,6 +42,9 @@ abstract final class AppIcons {
   static const IconData playlist = LucideIcons.listMusic;
   static const IconData like = LucideIcons.heart;
   static const IconData unlike = LucideIcons.heartOff;
+
+  /// Filled: a song in the liked songs.
+  static const IconData liked = EvaIcons.heart;
   static const IconData addToPlaylist = LucideIcons.listPlus;
   static const IconData removeFromList = LucideIcons.listX;
   static const IconData lossless = LucideIcons.audioWaveform;
@@ -48,6 +55,7 @@ abstract final class AppIcons {
   static const IconData duration = LucideIcons.clock;
   static const IconData recent = LucideIcons.clock;
   static const IconData libraryAll = LucideIcons.galleryVerticalEnd;
+  static const IconData libraryScan = LucideIcons.listMusic;
 
   // ── Navigation ────────────────────────────────────────────────────────────
   static const IconData home = LucideIcons.house;
@@ -55,6 +63,9 @@ abstract final class AppIcons {
   static const IconData search = LucideIcons.search;
   static const IconData settings = LucideIcons.settings;
   static const IconData back = LucideIcons.chevronLeft;
+
+  /// Closes Now Playing back into the mini player.
+  static const IconData minimize = LucideIcons.chevronDown;
 
   /// Leads to another page (a row, a card).
   static const IconData disclosure = LucideIcons.chevronRight;
@@ -86,6 +97,7 @@ abstract final class AppIcons {
 
   // ── Feedback ──────────────────────────────────────────────────────────────
   static const IconData info = LucideIcons.info;
+  static const IconData error = LucideIcons.circleAlert;
   static const IconData noResults = LucideIcons.searchX;
   static const IconData highlight = LucideIcons.sparkles;
   static const IconData hint = LucideIcons.sparkle;

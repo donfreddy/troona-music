@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
@@ -92,7 +92,7 @@ void main() {
     expect(colorOf('Title'), theme.colorScheme.primary);
     expect(colorOf('Delete'), theme.colorScheme.error);
     expect(colorOf('Artist name'), isNot(theme.colorScheme.primary));
-    expect(find.byIcon(LucideIcons.check), findsOneWidget);
+    expect(find.byIcon(AppIcons.selected), findsOneWidget);
     expect(
       tester.getSemantics(find.text('Title')),
       isSemantics(isSelected: true, isButton: true),

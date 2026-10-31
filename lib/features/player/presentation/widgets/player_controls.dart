@@ -1,6 +1,6 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/repeat_shuffle_buttons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -76,9 +76,7 @@ class _PlayPauseButton extends StatelessWidget {
                       ),
                     )
                   : Icon(
-                      isPlaying
-                          ? EvaIcons.pauseCircleOutline
-                          : EvaIcons.playCircleOutline,
+                      isPlaying ? AppIcons.pause : AppIcons.play,
                       color: Colors.black,
                       size: 30,
                     ),
@@ -120,7 +118,7 @@ class _SkipPreviousButton extends StatelessWidget {
               width: 52,
               height: 52,
               child: Icon(
-                EvaIcons.skipBackOutline,
+                AppIcons.skipPrevious,
                 color: enabled
                     ? Colors.white
                     : Colors.white.withValues(alpha: .3),
@@ -164,7 +162,7 @@ class _SkipNextButton extends StatelessWidget {
               width: 52,
               height: 52,
               child: Icon(
-                EvaIcons.skipForwardOutline,
+                AppIcons.skipNext,
                 color: enabled
                     ? Colors.white
                     : Colors.white.withValues(alpha: .3),

@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 
@@ -289,7 +289,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.byIcon(CupertinoIcons.music_note), findsOneWidget);
+    expect(find.byIcon(AppIcons.track), findsOneWidget);
   });
 }
 

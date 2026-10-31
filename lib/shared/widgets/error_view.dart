@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
@@ -24,11 +25,7 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              CupertinoIcons.exclamationmark_circle,
-              size: 44,
-              color: colors.labelTertiary,
-            ),
+            Icon(AppIcons.error, size: 44, color: colors.labelTertiary),
             const SizedBox(height: AppSpacing.lg),
             Text(
               title ?? l10n.errorTitle,

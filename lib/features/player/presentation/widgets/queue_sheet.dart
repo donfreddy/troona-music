@@ -494,7 +494,7 @@ class _QueueRow extends StatelessWidget {
                     : ColoredBox(
                         color: colors.bgTertiary,
                         child: Icon(
-                          CupertinoIcons.music_note,
+                          AppIcons.track,
                           size: 16,
                           color: colors.labelTertiary,
                         ),

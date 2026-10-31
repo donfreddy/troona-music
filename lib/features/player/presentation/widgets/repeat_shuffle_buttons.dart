@@ -1,6 +1,6 @@
-import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -16,7 +16,7 @@ class ShuffleButton extends StatelessWidget {
         final enabled = _shuffle(state) ?? false;
 
         return _ControlButton(
-          icon: EvaIcons.shuffle2,
+          icon: AppIcons.shuffle,
           label: context.l10n.playerShuffle,
           active: enabled,
           onPressed: () =>
@@ -57,42 +57,12 @@ class RepeatButton extends StatelessWidget {
             child: SizedBox(
               width: 44,
               height: 44,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    mode == RepeatMode.one
-                        ? Icons.repeat_on_sharp
-                        : Icons.repeat,
-                    color: mode == RepeatMode.off
-                        ? Colors.white.withValues(alpha: .4)
-                        : Colors.white,
-                    size: 22,
-                  ),
-                  // "1" under the icon for repeat one
-                  if (mode == RepeatMode.one)
-                    Positioned(
-                      bottom: 6,
-                      child: Container(
-                        width: 16,
-                        height: 10,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: const Text(
-                          '1',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            height: 1,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+              child: Icon(
+                mode == RepeatMode.one ? AppIcons.repeatOne : AppIcons.repeat,
+                color: mode == RepeatMode.off
+                    ? Colors.white.withValues(alpha: .4)
+                    : Colors.white,
+                size: 22,
               ),
             ),
           ),
