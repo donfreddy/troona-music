@@ -63,20 +63,11 @@ class _GemCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   child: SizedBox.square(
                     dimension: 130,
-                    child: track.artworkPath != null
-                        ? ArtworkImage(
-                            track.artworkPath!,
-                            width: 130,
-                            height: 130,
-                          )
-                        : Container(
-                            color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(
-                              AppIcons.track,
-                              color: Colors.white30,
-                              size: 48,
-                            ),
-                          ),
+                    child: ArtworkImage(
+                      track.artworkPath,
+                      width: 130,
+                      height: 130,
+                    ),
                   ),
                 ),
                 // Heart + gem overlay

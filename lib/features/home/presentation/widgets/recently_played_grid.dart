@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
-import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -127,16 +126,7 @@ class _RecentCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox.square(
                   dimension: 38,
-                  child: track.artworkPath != null
-                      ? ArtworkImage(track.artworkPath!, width: 38, height: 38)
-                      : Container(
-                          color: Colors.white.withValues(alpha: .08),
-                          child: const Icon(
-                            AppIcons.track,
-                            color: Colors.white30,
-                            size: 18,
-                          ),
-                        ),
+                  child: ArtworkImage(track.artworkPath, width: 38, height: 38),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),

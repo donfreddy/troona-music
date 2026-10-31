@@ -5,10 +5,10 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/glass_lens.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 /// Now Playing stage: circular covers sliding under a fixed [GlassLens].
 ///
@@ -403,9 +403,9 @@ class _Disc extends StatelessWidget {
             fit: BoxFit.cover,
             cacheWidth: cacheWidth,
             gaplessPlayback: true,
-            errorBuilder: (_, _, _) => const _ArtworkPlaceholder(),
+            errorBuilder: (_, _, _) => const ArtworkPlaceholder(),
           )
-        : const _ArtworkPlaceholder();
+        : const ArtworkPlaceholder();
     return SizedBox.square(
       dimension: size,
       child: ClipOval(
@@ -417,20 +417,6 @@ class _Disc extends StatelessWidget {
             child: image,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ArtworkPlaceholder extends StatelessWidget {
-  const _ArtworkPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white.withValues(alpha: .08),
-      child: const Center(
-        child: Icon(AppIcons.track, size: 64, color: Colors.white30),
       ),
     );
   }

@@ -451,19 +451,11 @@ class _TrackTile extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: track.artworkPath != null
-                            ? ArtworkImage(
-                                track.artworkPath!,
-                                width: 48,
-                                height: 48,
-                              )
-                            : Container(
-                                color: Colors.white.withValues(alpha: .08),
-                                child: const Icon(
-                                  AppIcons.track,
-                                  color: Colors.white30,
-                                ),
-                              ),
+                        child: ArtworkImage(
+                          track.artworkPath,
+                          width: 48,
+                          height: 48,
+                        ),
                       ),
                       if (isActive)
                         Positioned.fill(

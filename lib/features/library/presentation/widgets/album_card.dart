@@ -23,16 +23,7 @@ class AlbumCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           child: AspectRatio(
             aspectRatio: 1.0,
-            child: album.artworkPath != null && album.artworkPath!.isNotEmpty
-                ? ArtworkImage(album.artworkPath!)
-                : Container(
-                    color: Colors.white.withValues(alpha: .08),
-                    child: const Icon(
-                      AppIcons.album,
-                      color: Colors.white30,
-                      size: 48,
-                    ),
-                  ),
+            child: ArtworkImage(album.artworkPath, placeholder: AppIcons.album),
           ),
         ),
         const SizedBox(height: 6),

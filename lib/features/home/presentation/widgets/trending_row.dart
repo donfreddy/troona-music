@@ -45,19 +45,11 @@ class TrendingRow extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: track.artworkPath != null
-                        ? ArtworkImage(
-                            track.artworkPath!,
-                            width: 50,
-                            height: 50,
-                          )
-                        : Container(
-                            color: Colors.white.withValues(alpha: .08),
-                            child: const Icon(
-                              AppIcons.track,
-                              color: Colors.white30,
-                            ),
-                          ),
+                    child: ArtworkImage(
+                      track.artworkPath,
+                      width: 50,
+                      height: 50,
+                    ),
                   ),
                   // Now playing overlay
                   if (isActive)

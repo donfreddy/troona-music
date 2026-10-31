@@ -44,9 +44,10 @@ class PlaylistCover extends StatelessWidget {
         trackIds: trackIds,
         size: size,
       ),
-      _ => ColoredBox(
-        color: Colors.white.withValues(alpha: .08),
-        child: Icon(AppIcons.playlist, color: Colors.white30, size: size * .3),
+      _ => ArtworkPlaceholder(
+        icon: AppIcons.playlist,
+        width: size,
+        height: size,
       ),
     };
   }

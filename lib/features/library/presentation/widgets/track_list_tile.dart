@@ -84,20 +84,11 @@ class _TrackListTileState extends State<TrackListTile> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: widget.track.artworkPath != null
-                          ? ArtworkImage(
-                              widget.track.artworkPath!,
-                              width: 48,
-                              height: 48,
-                            )
-                          : Container(
-                              color: Colors.white.withValues(alpha: .08),
-                              child: const Icon(
-                                AppIcons.track,
-                                color: Colors.white30,
-                                size: 22,
-                              ),
-                            ),
+                      child: ArtworkImage(
+                        widget.track.artworkPath,
+                        width: 48,
+                        height: 48,
+                      ),
                     ),
                     if (isActive)
                       Positioned.fill(

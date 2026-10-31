@@ -29,17 +29,10 @@ class SearchArtistChip extends StatelessWidget {
             ClipOval(
               child: SizedBox.square(
                 dimension: 72,
-                child:
-                    artist.artworkPath != null && artist.artworkPath!.isNotEmpty
-                    ? ArtworkImage(artist.artworkPath!)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: const Icon(
-                          AppIcons.artist,
-                          color: Colors.white30,
-                          size: 32,
-                        ),
-                      ),
+                child: ArtworkImage(
+                  artist.artworkPath,
+                  placeholder: AppIcons.artist,
+                ),
               ),
             ),
             const SizedBox(height: 6),

@@ -357,16 +357,12 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                                 ? metaState.info.imageUrl
                                                 : null;
 
-                                            Widget fallbackIcon() => Container(
-                                              color: Colors.white.withValues(
-                                                alpha: .08,
-                                              ),
-                                              child: const Icon(
-                                                AppIcons.album,
-                                                color: Colors.white30,
-                                                size: 64,
-                                              ),
-                                            );
+                                            Widget fallbackIcon() =>
+                                                const ArtworkPlaceholder(
+                                                  icon: AppIcons.album,
+                                                  width: 180,
+                                                  height: 180,
+                                                );
 
                                             if (localArt != null &&
                                                 localArt.isNotEmpty) {

@@ -246,17 +246,12 @@ class _Artwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final path = track.artworkPath;
-    final image = path != null && path.isNotEmpty
-        ? ArtworkImage(path, width: 56, height: 56)
-        : Container(
-            color: Colors.white.withValues(alpha: .08),
-            child: Icon(
-              round ? AppIcons.artist : AppIcons.track,
-              color: Colors.white30,
-              size: 24,
-            ),
-          );
+    final image = ArtworkImage(
+      track.artworkPath,
+      width: 56,
+      height: 56,
+      placeholder: round ? AppIcons.artist : AppIcons.track,
+    );
     return SizedBox.square(
       dimension: 56,
       child: round

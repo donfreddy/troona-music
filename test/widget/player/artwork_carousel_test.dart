@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
@@ -17,6 +18,7 @@ void main() {
     changes ??= <int>[];
     await tester.pumpWidget(
       MaterialApp(
+        theme: AppTheme.dark,
         home: Scaffold(
           body: Center(
             child: SizedBox(

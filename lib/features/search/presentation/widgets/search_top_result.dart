@@ -99,16 +99,7 @@ class SearchTopResult extends StatelessWidget {
             ClipOval(
               child: SizedBox.square(
                 dimension: 64,
-                child: artwork != null && artwork.isNotEmpty
-                    ? ArtworkImage(artwork)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: const Icon(
-                          AppIcons.artist,
-                          color: Colors.white38,
-                          size: 32,
-                        ),
-                      ),
+                child: ArtworkImage(artwork, placeholder: AppIcons.artist),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -166,17 +157,10 @@ class SearchTopResult extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: SizedBox.square(
                 dimension: 64,
-                child:
-                    album.artworkPath != null && album.artworkPath!.isNotEmpty
-                    ? ArtworkImage(album.artworkPath!)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: const Icon(
-                          AppIcons.album,
-                          color: Colors.white38,
-                          size: 32,
-                        ),
-                      ),
+                child: ArtworkImage(
+                  album.artworkPath,
+                  placeholder: AppIcons.album,
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -243,17 +227,7 @@ class SearchTopResult extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: SizedBox.square(
                 dimension: 64,
-                child:
-                    track.artworkPath != null && track.artworkPath!.isNotEmpty
-                    ? ArtworkImage(track.artworkPath!)
-                    : Container(
-                        color: Colors.white.withValues(alpha: .08),
-                        child: const Icon(
-                          AppIcons.track,
-                          color: Colors.white38,
-                          size: 32,
-                        ),
-                      ),
+                child: ArtworkImage(track.artworkPath),
               ),
             ),
             const SizedBox(width: AppSpacing.md),

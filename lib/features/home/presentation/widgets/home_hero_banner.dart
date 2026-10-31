@@ -212,20 +212,11 @@ class HomeHeroBanner extends StatelessWidget {
                         ),
                         child: SizedBox.square(
                           dimension: 68,
-                          child: track.artworkPath != null
-                              ? ArtworkImage(
-                                  track.artworkPath!,
-                                  width: 68,
-                                  height: 68,
-                                )
-                              : Container(
-                                  color: Colors.white.withValues(alpha: .08),
-                                  child: const Icon(
-                                    AppIcons.track,
-                                    color: Colors.white30,
-                                    size: 28,
-                                  ),
-                                ),
+                          child: ArtworkImage(
+                            track.artworkPath,
+                            width: 68,
+                            height: 68,
+                          ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.lg),
