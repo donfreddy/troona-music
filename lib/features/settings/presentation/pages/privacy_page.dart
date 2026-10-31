@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 
 /// In-app privacy policy. Mirrors `docs/privacy-policy.md`, the page linked
 /// from the store listings: keep both in sync.
@@ -30,11 +29,8 @@ class PrivacyPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft, size: 24),
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          onPressed: () => context.pop(),
-        ),
+        leadingWidth: AppBackButton.leadingWidth,
+        leading: const AppBackButton(),
         title: Text(l10n.privacyTitle),
       ),
       body: ListView(

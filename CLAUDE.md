@@ -91,6 +91,7 @@ Modals and labels go through one entry point each, in `lib/shared/widgets/`; nev
 - `AppToast`: every transient message.
 - `AppBadge` (neutral) and `AppBadge.accent`: small pill labels.
 - `AppButton.primary`, `.secondary` and `.text`, in two sizes: `small` (32 dp pill, in-line actions such as See all) and `medium` (44 dp, the default). Both take at least 44 x 44 dp, the touch target. Never a raw `TextButton`, `FilledButton`, `OutlinedButton` or a `GestureDetector` pill; the dialog actions and the boot failure screen are the exceptions. Play and Shuffle on album, artist and playlist pages are one widget, `PlayShuffleButtons`.
+- `AppBackButton`: the back button of every pushed page (glass circle). In an `AppBar`, also set `leadingWidth: AppBackButton.leadingWidth`.
 
 Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`).
 

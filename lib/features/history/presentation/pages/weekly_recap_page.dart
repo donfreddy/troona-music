@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -15,6 +14,7 @@ import 'package:troona/features/history/presentation/widgets/listening_calendar.
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 
 /// Last week at a glance, then this month's listening calendar. Opened from
 /// the Home card. Flat glass panels: no blur, the page holds several.
@@ -31,11 +31,8 @@ class WeeklyRecapPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft, size: 24),
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          onPressed: () => context.pop(),
-        ),
+        leadingWidth: AppBackButton.leadingWidth,
+        leading: const AppBackButton(),
         title: Text(l10n.recapTitle),
       ),
       body: BlocBuilder<WeeklyRecapCubit, WeeklyRecapState>(

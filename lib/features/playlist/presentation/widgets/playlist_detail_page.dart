@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -9,7 +8,6 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -23,9 +21,9 @@ import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
 /// header that collapses into the glass bar, then the reorderable tracks.
@@ -276,17 +274,7 @@ class _PlaylistHeroDelegate extends SliverPersistentHeaderDelegate {
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 0,
-                      child: GlassIconButton(
-                        icon: LucideIcons.chevronLeft,
-                        tooltip: context.l10n.detailBack,
-                        onTap: () {
-                          AppHaptics.lightImpact();
-                          context.pop();
-                        },
-                      ),
-                    ),
+                    Positioned(left: 0, child: const AppBackButton()),
                   ],
                 ),
               ),

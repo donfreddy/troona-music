@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
@@ -32,6 +31,7 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -545,17 +545,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 0,
-                      child: GlassIconButton(
-                        icon: LucideIcons.chevronLeft,
-                        tooltip: context.l10n.detailBack,
-                        onTap: () {
-                          AppHaptics.lightImpact();
-                          context.pop();
-                        },
-                      ),
-                    ),
+                    Positioned(left: 0, child: const AppBackButton()),
                     Positioned(
                       right: 0,
                       child: GlassIconButton(

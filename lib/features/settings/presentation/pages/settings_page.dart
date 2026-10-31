@@ -34,6 +34,7 @@ import 'package:troona/features/updates/presentation/open_release.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -47,11 +48,8 @@ class SettingsPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft, size: 24),
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          onPressed: () => context.pop(),
-        ),
+        leadingWidth: AppBackButton.leadingWidth,
+        leading: const AppBackButton(),
         title: Text(
           l10n.settingsTitle,
           style: const TextStyle(

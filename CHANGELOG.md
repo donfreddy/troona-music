@@ -11,6 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Add to playlist opens above the mini player, and its height follows the number of playlists.
 - The labels on album, artist and playlist pages and in search share one style.
 - Buttons share one style in two sizes. See all, Shuffle all and the action in messages are easier to tap.
+- Settings, the privacy policy and Your week in music have the same back button as album, artist and playlist pages.
 
 ### Fixed
 
