@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -118,7 +119,7 @@ class _GemCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              track.artist,
+              context.artistName(track.artist),
               style: TextStyle(
                 color: context.colors.labelSecondary,
                 fontSize: 12,

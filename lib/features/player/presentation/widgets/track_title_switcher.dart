@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/shared/widgets/marquee.dart';
@@ -121,7 +122,7 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  track?.artist ?? '',
+                  track == null ? '' : context.artistName(track.artist),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTypography.nowPlayingArtist.copyWith(

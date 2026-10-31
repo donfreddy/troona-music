@@ -48,10 +48,10 @@ class AlbumCard extends StatelessWidget {
               Text(
                 album.trackCount > 0
                     ? context.l10n.albumByArtist(
-                        album.artist,
+                        context.artistName(album.artist),
                         context.l10n.songCount(album.trackCount),
                       )
-                    : album.artist,
+                    : context.artistName(album.artist),
                 style: TextStyle(
                   color: context.colors.labelSecondary,
                   fontSize: 12,

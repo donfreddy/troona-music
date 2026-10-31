@@ -7,6 +7,7 @@ import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   final IsarLibraryDataSource _cache;
@@ -34,7 +35,7 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
       return right(
         Artist(
           id: firstTrack.artistId.toString(),
-          name: firstTrack.artist,
+          name: TrackTags.artist(firstTrack.artist),
           albumCount: albumCount,
           trackCount: tracks.length,
           artworkPath: firstTrack.artworkPath,
@@ -85,7 +86,7 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return Album(
           id: firstTrack.albumId.toString(),
           name: firstTrack.album,
-          artist: firstTrack.artist,
+          artist: TrackTags.artist(firstTrack.artist),
           artworkPath: firstTrack.artworkPath,
           artistId: firstTrack.artistId,
           trackCount: group.length,

@@ -1,6 +1,7 @@
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Builds albums and artists from tracks, keyed by the MediaStore ids the
 /// detail pages query with. Grouping by name merged distinct albums that
@@ -18,7 +19,7 @@ abstract final class LibraryGrouping {
         Album(
           id: group.first.albumId.toString(),
           name: group.first.album,
-          artist: group.first.artist,
+          artist: TrackTags.sharedArtist(group.map((t) => t.artist)),
           artistId: group.first.artistId,
           trackCount: group.length,
           artworkPath: _firstArtwork(group),

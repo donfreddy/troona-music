@@ -4,6 +4,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Songs downloaded without an artist tag take their artist from a file name such as "Artist - Title", and appear under that artist next to its tagged songs. Backups made earlier still find them.
+
 ### Changed
 
 - Menus (song, album, artist and playlist actions, sort, sleep timer, playback speed) open as a sheet in Troona's style, with icons for song, album, artist and playlist actions and a check on the current sort and speed, instead of the iOS-style menu. They close with a tap outside, a swipe down or back.
@@ -19,6 +23,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Fixed
 
 - Opening Settings, the privacy policy or Your week in music showed the previous page through the new one while it slid in, then made it vanish at once.
+- Songs without an artist showed "<unknown>": they now read "Unknown artist" in the app's language and come after the named artists.
 
 ## [1.1.1] - 2026-10-31
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -37,7 +38,7 @@ class SearchArtistChip extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              artist.name,
+              context.artistName(artist.name),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

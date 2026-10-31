@@ -388,7 +388,7 @@ class _MiniPlayerRow extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              state.currentTrack.artist,
+                              context.artistName(state.currentTrack.artist),
                               style: TextStyle(
                                 color: colors.labelSecondary,
                                 fontSize: 11,

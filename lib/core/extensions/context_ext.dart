@@ -5,6 +5,11 @@ extension ContextExt on BuildContext {
   /// UI strings for the current locale.
   AppLocalizations get l10n => AppLocalizations.of(this);
 
+  /// [artist] as shown: a song without an artist is stored with an empty
+  /// name (`TrackTags.unknownArtist`) and reads "Unknown artist".
+  String artistName(String artist) =>
+      artist.isEmpty ? l10n.unknownArtist : artist;
+
   // ── Theme shortcuts ────────────────────────────────────────────────────────
 
   ThemeData get theme => Theme.of(this);

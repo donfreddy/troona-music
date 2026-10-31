@@ -5,6 +5,7 @@ import 'package:troona/features/history/domain/entities/weekly_recap.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 
 /// The recap of the last finished week, Monday to Sunday: it changes on
@@ -69,7 +70,7 @@ final class GetWeeklyRecapUseCase {
     final firstTrack = <String, Track>{};
     for (final t in tracks) {
       final name = t.artist.trim();
-      if (name.isEmpty || name.toLowerCase() == '<unknown>') continue;
+      if (TrackTags.isUnknownArtist(name)) continue;
       byArtist[name] = (byArtist[name] ?? 0) + plays[t.id]!;
       firstTrack.putIfAbsent(name, () => t);
     }

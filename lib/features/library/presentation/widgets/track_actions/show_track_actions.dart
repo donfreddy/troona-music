@@ -26,7 +26,7 @@ void showTrackActions(
   showActionSheet(
     context,
     title: track.title,
-    message: track.artist,
+    message: context.artistName(track.artist),
     actions: [
       SheetAction(
         label: l10n.trackPlayNext,

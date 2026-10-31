@@ -516,7 +516,7 @@ class _QueueRow extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    track.artist,
+                    context.artistName(track.artist),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.textTheme.bodySmall?.copyWith(

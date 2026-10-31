@@ -111,7 +111,7 @@ class SearchTopResult extends StatelessWidget {
                   AppBadge.accent(context.l10n.searchBadgeArtist),
                   const SizedBox(height: 4),
                   Text(
-                    artist.name,
+                    context.artistName(artist.name),
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -184,7 +184,7 @@ class SearchTopResult extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     context.l10n.albumByArtist(
-                      album.artist,
+                      context.artistName(album.artist),
                       context.l10n.songCount(album.trackCount),
                     ),
                     style: TextStyle(
@@ -250,7 +250,7 @@ class SearchTopResult extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    track.artist,
+                    context.artistName(track.artist),
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.labelSecondary,

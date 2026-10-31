@@ -97,6 +97,25 @@ void main() {
       expect(_view(tracks, query: ' hello ').$1.map((t) => t.id), ['1', '2']);
     });
 
+    test('songs without an artist sort after the named ones', () {
+      final tracks = [
+        _t('unknown', artist: '', artistId: 9, albumId: 9),
+        _t('zara', artist: 'Zara', artistId: 2, albumId: 2),
+        _t('ayo', artist: 'Ayo', artistId: 3, albumId: 3),
+      ];
+      for (final sort in LibrarySort.values) {
+        final (_, _, artists) = _view(tracks, sort: sort);
+        expect(artists.map((a) => a.name), [
+          'Ayo',
+          'Zara',
+          '',
+        ], reason: '$sort');
+      }
+      final (byArtist, albums, _) = _view(tracks, sort: LibrarySort.artist);
+      expect(byArtist.map((t) => t.id), ['ayo', 'zara', 'unknown']);
+      expect(albums.map((a) => a.artist), ['Ayo', 'Zara', '']);
+    });
+
     test('a filter empties the other sections', () {
       final tracks = [_t('1')];
       final (t, al, ar) = _view(tracks, filter: LibraryFilter.albums);

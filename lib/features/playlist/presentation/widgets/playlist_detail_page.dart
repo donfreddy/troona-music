@@ -390,7 +390,7 @@ class _TrackTile extends StatelessWidget {
     showActionSheet(
       context,
       title: track.title,
-      message: track.artist,
+      message: context.artistName(track.artist),
       actions: [
         SheetAction(
           label: isLikes
@@ -496,7 +496,7 @@ class _TrackTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        track.artist,
+                        context.artistName(track.artist),
                         style: TextStyle(
                           color: colors.labelSecondary,
                           fontSize: 13,

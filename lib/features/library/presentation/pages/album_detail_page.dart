@@ -128,9 +128,11 @@ class AlbumDetailPage extends StatelessWidget {
                               },
                             ),
 
-                            if (data.artistAlbums.any(
-                              (a) => a.id != data.album.id,
-                            ))
+                            // Albums without an artist share nothing else.
+                            if (data.album.artist.isNotEmpty &&
+                                data.artistAlbums.any(
+                                  (a) => a.id != data.album.id,
+                                ))
                               _MoreByArtistView(
                                 artistName: data.album.artist,
                                 albums: data.artistAlbums
@@ -453,7 +455,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        album.artist,
+                                        context.artistName(album.artist),
                                         style: TextStyle(
                                           color: colors.accent,
                                           fontSize: 16,
@@ -602,7 +604,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
       context,
       title: album.name,
       message: context.l10n.albumByArtist(
-        album.artist,
+        context.artistName(album.artist),
         context.l10n.songCount(tracks.length),
       ),
       actions: [

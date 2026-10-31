@@ -4,6 +4,7 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/features/search/domain/repositories/search_repository.dart';
 
@@ -29,7 +30,7 @@ final class SearchRepositoryImpl implements SearchRepository {
       final rawArtists = results[1];
       final seenArtists = <String>{};
       final uniqueArtistTracks = rawArtists
-          .where((t) => seenArtists.add(t.artist))
+          .where((t) => seenArtists.add(TrackTags.artist(t.artist)))
           .toList();
 
       final artists = await Future.wait(
@@ -46,7 +47,7 @@ final class SearchRepositoryImpl implements SearchRepository {
                   ?.artworkPath;
           return Artist(
             id: t.artistId.toString(),
-            name: t.artist,
+            name: TrackTags.artist(t.artist),
             artworkPath: artwork,
             trackCount: artistTracks.length,
             albumCount: albumCount,
@@ -75,7 +76,7 @@ final class SearchRepositoryImpl implements SearchRepository {
           return Album(
             id: t.albumId.toString(),
             name: t.album,
-            artist: t.artist,
+            artist: TrackTags.sharedArtist(albumTracks.map((x) => x.artist)),
             artworkPath: artwork,
             artistId: t.artistId,
             trackCount: albumTracks.length,

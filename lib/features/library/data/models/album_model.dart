@@ -1,7 +1,7 @@
 import 'package:on_audio_query_pluse/on_audio_query.dart' as audio;
 import 'package:troona/core/extensions/num_ext.dart';
-import 'package:troona/core/extensions/string_ext.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Lightweight DTO for albums returned by the platform media store.
 class AlbumModel {
@@ -24,7 +24,7 @@ class AlbumModel {
   factory AlbumModel.fromAlbumModel(audio.AlbumModel model) => AlbumModel(
     id: model.id,
     name: model.album,
-    artist: model.artist.orDefault('Unknown Artist'),
+    artist: TrackTags.artist(model.artist),
     artistId: model.artistId.orDefault(),
     trackCount: model.numOfSongs,
   );

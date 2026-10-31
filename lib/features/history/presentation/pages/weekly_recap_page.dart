@@ -116,7 +116,7 @@ class WeeklyRecapPage extends StatelessWidget {
           caption: l10n.recapTopSong,
           title: topTrack.title,
           subtitle:
-              '${topTrack.artist} • ${l10n.recapPlays(recap.topTrackPlays)}',
+              '${context.artistName(topTrack.artist)} • ${l10n.recapPlays(recap.topTrackPlays)}',
           leading: _Artwork(track: topTrack, round: false),
           onTap: () =>
               context.read<PlayerBloc>().add(PlayTrackRequested(topTrack)),

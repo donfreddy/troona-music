@@ -247,7 +247,7 @@ class HomeHeroBanner extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
-                              track.artist,
+                              context.artistName(track.artist),
                               style: TextStyle(
                                 color: context.colors.labelSecondary,
                                 fontSize: 13,

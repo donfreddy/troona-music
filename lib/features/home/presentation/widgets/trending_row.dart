@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -89,7 +90,7 @@ class TrendingRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    track.artist,
+                    context.artistName(track.artist),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: .5),
                       fontSize: 12,

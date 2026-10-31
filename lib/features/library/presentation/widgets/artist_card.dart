@@ -102,7 +102,7 @@ class _ArtistCardState extends State<ArtistCard> {
         ),
         const SizedBox(height: 6),
         Text(
-          widget.artist.name,
+          context.artistName(widget.artist.name),
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,

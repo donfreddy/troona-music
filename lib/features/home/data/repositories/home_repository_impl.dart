@@ -12,6 +12,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 final class HomeRepositoryImpl implements HomeRepository {
   final IsarLibraryDataSource _db;
@@ -50,7 +51,7 @@ final class HomeRepositoryImpl implements HomeRepository {
           .map(
             (t) => Artist(
               id: t.artistId.toString(),
-              name: t.artist,
+              name: TrackTags.artist(t.artist),
               trackCount: 0,
               albumCount: 0,
               artworkPath: t.artworkPath,
@@ -63,7 +64,7 @@ final class HomeRepositoryImpl implements HomeRepository {
             (t) => Album(
               id: t.albumId.toString(),
               name: t.album,
-              artist: t.artist,
+              artist: TrackTags.artist(t.artist),
               artworkPath: t.artworkPath,
               artistId: 0,
               trackCount: 0,

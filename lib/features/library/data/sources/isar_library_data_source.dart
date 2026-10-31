@@ -2,6 +2,7 @@ import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Isar-backed persistent cache for the local music library.
 ///
@@ -396,6 +397,47 @@ class IsarLibraryDataSource {
             .toList();
         isar.trackModels.deleteAll(isarIds);
       });
+
+  /// Brings indexed songs without an artist tag up to date with [scanned]:
+  /// the artist read from their name, its title and id (a tagged artist's
+  /// id once one is found), and the current way of storing none. Songs with
+  /// an artist tag are left alone: only new songs are indexed again.
+  Future<void> nameUnknownArtists(List<TrackModel> scanned) async {
+    // Only the rows that can change: an index-free filter, so Isar reads
+    // the others without building them.
+    final stale = _isar.trackModels
+        .where()
+        .artistIdLessThan(0)
+        .or()
+        .anyOf(
+          TrackTags.unknownArtistNames,
+          (q, name) => q.artistEqualTo(name, caseSensitive: false),
+        )
+        .findAll();
+    if (stale.isEmpty) return;
+
+    final byId = {for (final t in scanned) t.deviceId: t};
+    final updated = <TrackModel>[];
+    for (final track in stale) {
+      final found = byId[track.deviceId];
+      final title = found?.title ?? track.title;
+      final artist = TrackTags.artist(found?.artist ?? track.artist);
+      final artistId = found?.artistId ?? track.artistId;
+      if (title == track.title &&
+          artist == track.artist &&
+          artistId == track.artistId) {
+        continue;
+      }
+      updated.add(
+        track
+          ..title = title
+          ..artist = artist
+          ..artistId = artistId,
+      );
+    }
+    if (updated.isEmpty) return;
+    _isar.write((isar) => isar.trackModels.putAll(updated));
+  }
 
   /// Records extraction results in one transaction: the cover path (null
   /// when the file has none) and the checked flag. Tracks deleted between

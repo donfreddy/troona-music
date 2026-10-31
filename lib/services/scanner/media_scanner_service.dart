@@ -7,7 +7,8 @@ import 'package:troona/services/scanner/artwork_extractor.dart';
 ///
 /// 1. **Scanning**: query the device media store for all audio files.
 /// 2. **Indexing**: diff the results against the Isar cache, insert new
-///    tracks in batches, and delete orphaned entries.
+///    tracks in batches, delete orphaned entries, and name the artist of
+///    indexed tracks that had none when their name now gives one.
 /// 3. **Artworks**: extract and cache artwork for tracks that have none yet.
 /// 4. **Done**: emit a final [ScanProgress] with `progress == 1.0`.
 ///
@@ -76,6 +77,9 @@ final class MediaScannerService {
       return;
     }
 
+    // One entry per artist, whether tagged or read from a file name.
+    TrackModel.linkArtistIds(scanned);
+
     // ── Phase 2: diff + index ───────────────────────────────────────────────
     yield ScanProgress(
       phase: ScanPhase.indexing,
@@ -94,6 +98,10 @@ final class MediaScannerService {
     if (orphanIds.isNotEmpty) {
       await _cache.deleteByDeviceIds(orphanIds.toList());
     }
+    // Songs indexed before their artist could be read from their name.
+    await _cache.nameUnknownArtists(
+      scanned.where((t) => existingIds.contains(t.deviceId)).toList(),
+    );
 
     const batchSize = 100;
     final newTotal = newTracks.isEmpty ? 1 : newTracks.length;

@@ -405,7 +405,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                           children: [
                             _animatedArtistItem(
                               Text(
-                                artist.name,
+                                context.artistName(artist.name),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
@@ -473,7 +473,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 60),
                         child: Text(
-                          artist.name,
+                          context.artistName(artist.name),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -536,7 +536,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
     AppHaptics.lightImpact();
     showActionSheet(
       context,
-      title: artist.name,
+      title: context.artistName(artist.name),
       message: context.l10n.detailCountsSummary(
         context.l10n.songCount(tracks.length),
         context.l10n.albumCount(albums.length),

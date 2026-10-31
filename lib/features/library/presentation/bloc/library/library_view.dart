@@ -41,20 +41,23 @@ part of 'library_bloc.dart';
   final keys = <String, String>{};
   String k(String s) => keys[s] ??= sortKey(s);
   int text(String a, String b) => k(a).compareTo(k(b));
+  // An empty artist reads "Unknown artist": it goes after the named ones.
+  int artist(String a, String b) =>
+      a.isEmpty == b.isEmpty ? text(a, b) : (a.isEmpty ? 1 : -1);
 
   switch (sort) {
     case LibrarySort.title:
       visibleTracks.sort((a, b) => text(a.title, b.title));
       visibleAlbums.sort((a, b) => text(a.name, b.name));
-      visibleArtists.sort((a, b) => text(a.name, b.name));
+      visibleArtists.sort((a, b) => artist(a.name, b.name));
     case LibrarySort.artist:
       visibleTracks.sort(
-        (a, b) => _then(text(a.artist, b.artist), text(a.title, b.title)),
+        (a, b) => _then(artist(a.artist, b.artist), text(a.title, b.title)),
       );
       visibleAlbums.sort(
-        (a, b) => _then(text(a.artist, b.artist), text(a.name, b.name)),
+        (a, b) => _then(artist(a.artist, b.artist), text(a.name, b.name)),
       );
-      visibleArtists.sort((a, b) => text(a.name, b.name));
+      visibleArtists.sort((a, b) => artist(a.name, b.name));
     case LibrarySort.album:
       visibleTracks.sort(
         (a, b) => _then(
@@ -63,7 +66,7 @@ part of 'library_bloc.dart';
         ),
       );
       visibleAlbums.sort((a, b) => text(a.name, b.name));
-      visibleArtists.sort((a, b) => text(a.name, b.name));
+      visibleArtists.sort((a, b) => artist(a.name, b.name));
     case LibrarySort.dateAdded:
       // Newest first; songs without a date go last.
       visibleTracks.sort(
@@ -75,7 +78,7 @@ part of 'library_bloc.dart';
         ),
       );
       visibleAlbums.sort((a, b) => text(a.name, b.name));
-      visibleArtists.sort((a, b) => text(a.name, b.name));
+      visibleArtists.sort((a, b) => artist(a.name, b.name));
   }
 
   return (visibleTracks, visibleAlbums, visibleArtists);
