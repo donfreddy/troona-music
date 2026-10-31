@@ -13,7 +13,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Buttons share one style in two sizes. See all, Shuffle all and the action in messages are easier to tap.
 - Settings, the privacy policy and Your week in music have the same back button as album, artist and playlist pages.
 - The options button on song rows is easier to tap and screen readers announce it.
-- Icons share one style across the app, including the Now Playing controls.
+- Icons share one style across the app, including the Now Playing controls, with a thinner stroke.
 
 ### Fixed
 
