@@ -35,6 +35,14 @@ TrackModel _model(String id) => TrackModel()
 final class _Library implements IsarLibraryDataSource {
   _Library(this.library);
   final List<String> library;
+  final tracksCtrl = StreamController<void>.broadcast(sync: true);
+  final playlistsCtrl = StreamController<void>.broadcast(sync: true);
+
+  @override
+  Stream<void> watchTracks() => tracksCtrl.stream;
+
+  @override
+  Stream<void> watchPlaylists() => playlistsCtrl.stream;
 
   @override
   Future<List<TrackModel>> getTracksByIds(List<String> ids) async => [
@@ -155,7 +163,8 @@ void main() {
     final repo = _CountingRepository(
       HomeRepositoryImpl(db: _Library(library), history: history),
     );
-    final bloc = HomeBloc(repo: repo)..add(const HomeFeedRequested());
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
     await pumpEventQueue();
     expect(repo.feeds, 1);
 
@@ -169,12 +178,73 @@ void main() {
     await pumpEventQueue();
     expect(repo.feeds, 2, reason: 'no reload after close');
   });
+
+  test(
+    'a scan that fills the library takes Home out of its empty state',
+    () async {
+      // First launch: Home loads before the first scan has saved anything.
+      final db = _Library(library);
+      final repo = _CountingRepository(
+        HomeRepositoryImpl(db: db, history: _History(const [])),
+      );
+      final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+        ..add(const HomeFeedRequested());
+      await pumpEventQueue();
+      expect((bloc.state as HomeLoaded).totalTracks, 0);
+
+      repo.tracks = 42;
+      db.tracksCtrl.add(null);
+      await pumpEventQueue();
+      expect((bloc.state as HomeLoaded).totalTracks, 42);
+      await bloc.close();
+    },
+  );
+
+  test('a playlist change reloads the feed', () async {
+    final db = _Library(library);
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: db, history: _History(const [])),
+    );
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
+    await pumpEventQueue();
+
+    db.playlistsCtrl.add(null);
+    await pumpEventQueue();
+    expect(repo.feeds, 2);
+    await bloc.close();
+  });
+
+  test('a burst of scan writes reloads the feed once they settle', () async {
+    final db = _Library(library);
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: db, history: _History(const [])),
+    );
+    final bloc = HomeBloc(
+      repo: repo,
+      refreshDelay: const Duration(milliseconds: 30),
+    )..add(const HomeFeedRequested());
+    await pumpEventQueue();
+
+    // Songs, then their covers in batches.
+    for (var i = 0; i < 5; i++) {
+      db.tracksCtrl.add(null);
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    expect(repo.feeds, 1, reason: 'nothing while the writes go on');
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    expect(repo.feeds, 2);
+    await bloc.close();
+  });
 }
 
 final class _CountingRepository implements HomeRepository {
   _CountingRepository(this._inner);
   final HomeRepository _inner;
   int feeds = 0;
+
+  /// Songs in the library, as the next load counts them.
+  int tracks = 0;
 
   @override
   Stream<void> get feedChanges => _inner.feedChanges;
@@ -186,5 +256,5 @@ final class _CountingRepository implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, int>> getTotalTrackCount() async => right(0);
+  Future<Either<Failure, int>> getTotalTrackCount() async => right(tracks);
 }

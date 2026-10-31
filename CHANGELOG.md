@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Home kept its "No music here yet" card after the first scan found songs, until it was refreshed by hand. It now follows scans and playlist changes on its own.
 - Troona could stay on its launch screen, then stop responding, when it was opened after Android had started its playback service on its own (resuming from the system media controls, a headset button).
 - Now Playing: after a swipe to another cover, the title could lag behind the song for a frame.
 

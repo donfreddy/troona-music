@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
@@ -26,7 +27,8 @@ final class HomeRepositoryImpl implements HomeRepository {
   static const recentCount = 4;
 
   @override
-  Stream<void> get feedChanges => _history.changes;
+  Stream<void> get feedChanges =>
+      Rx.merge([_history.changes, _db.watchTracks(), _db.watchPlaylists()]);
 
   @override
   Future<Either<Failure, HomeFeed>> getFeed() async {

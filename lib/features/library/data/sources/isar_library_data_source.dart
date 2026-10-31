@@ -211,6 +211,10 @@ class IsarLibraryDataSource {
   /// Fires after every write to the playlists, the liked songs included.
   Stream<void> watchPlaylists() => _isar.playlistModels.watchLazy();
 
+  /// Fires after every write to the tracks: a scan adding or removing
+  /// songs, then saving their covers.
+  Stream<void> watchTracks() => _isar.trackModels.watchLazy();
+
   /// Returns the list of tracks by their stable device IDs, preserving the
   /// exact order of [ids]. Returns an empty list if [ids] is empty.
   Future<List<TrackModel>> getTracksByIds(List<String> ids) async {

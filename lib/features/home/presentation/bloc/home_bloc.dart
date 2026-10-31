@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
@@ -18,16 +19,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({
     required HomeRepository repo,
     ArtistArtworkPrefetchService? prefetchService,
+    Duration refreshDelay = const Duration(milliseconds: 500),
   }) : _repo = repo,
        _prefetchService = prefetchService,
        super(HomeInitial()) {
     on<HomeFeedRequested>(_onFeedRequested, transformer: droppable());
     on<HomeRefreshRequested>(_onFeedRequested, transformer: droppable());
-    // A recorded play reorders Recently Played. The reload keeps the loaded
-    // feed on screen (no shimmer).
-    _feedChangesSub = _repo.feedChanges.listen(
-      (_) => add(const HomeRefreshRequested()),
-    );
+    // A recorded play reorders Recently Played; a scan fills an empty Home.
+    // A scan writes in batches (songs, then covers): one reload once they
+    // settle. The reload keeps the loaded feed on screen (no shimmer).
+    _feedChangesSub = _repo.feedChanges
+        .debounceTime(refreshDelay)
+        .listen((_) => add(const HomeRefreshRequested()));
   }
 
   @override
