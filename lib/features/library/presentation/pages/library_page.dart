@@ -1,8 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -18,6 +16,7 @@ import 'package:troona/features/library/presentation/widgets/library_segment_con
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
@@ -470,31 +469,23 @@ class _SortButton extends StatelessWidget {
 
   void _showSortSheet(BuildContext context, LibrarySort current) {
     final l10n = context.l10n;
-    showCupertinoModalPopup<LibrarySort>(
-      context: context,
-      builder: (_) => CupertinoActionSheet(
-        title: Text(l10n.librarySortBy),
-        actions: LibrarySort.values.map((sort) {
-          final label = switch (sort) {
-            LibrarySort.title => l10n.librarySortTitle,
-            LibrarySort.artist => l10n.librarySortArtist,
-            LibrarySort.album => l10n.librarySortAlbum,
-            LibrarySort.dateAdded => l10n.librarySortRecent,
-          };
-          return CupertinoActionSheetAction(
-            isDefaultAction: sort == current,
-            onPressed: () {
-              context.read<LibraryBloc>().add(LibrarySortChanged(sort));
-              context.pop();
+    showActionSheet(
+      context,
+      title: l10n.librarySortBy,
+      actions: [
+        for (final sort in LibrarySort.values)
+          SheetAction(
+            label: switch (sort) {
+              LibrarySort.title => l10n.librarySortTitle,
+              LibrarySort.artist => l10n.librarySortArtist,
+              LibrarySort.album => l10n.librarySortAlbum,
+              LibrarySort.dateAdded => l10n.librarySortRecent,
             },
-            child: Text(label),
-          );
-        }).toList(),
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => context.pop(),
-          child: Text(l10n.actionCancel),
-        ),
-      ),
+            selected: sort == current,
+            onPressed: () =>
+                context.read<LibraryBloc>().add(LibrarySortChanged(sort)),
+          ),
+      ],
     );
   }
 }

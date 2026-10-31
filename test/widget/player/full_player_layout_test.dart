@@ -4,6 +4,8 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -223,5 +225,46 @@ void main() {
         .controller!
         .page;
     expect(page, playing.toDouble());
+  });
+
+  testWidgets('sheets opened from Now Playing add no blur: the queue (from '
+      'the dock and from a flick up) and the speed menu are opaque', (
+    tester,
+  ) async {
+    GlassTheme.setDetectedTier(GlassQuality.high);
+    addTearDown(() => GlassTheme.setDetectedTier(GlassQuality.high));
+    await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
+    // Relative: the page's own blurs are its business, not this test's.
+    final pageBlurs = find.byType(BackdropFilter).evaluate().length;
+
+    Future<void> settle() async {
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+    }
+
+    final openers = <String, Future<void> Function()>{
+      'dock queue': () => tester.tap(find.byTooltip('Queue')),
+      'dock speed': () => tester.tap(find.byTooltip('Playback speed')),
+      // The page's own State opens this one, above its blur mark.
+      'flick up': () => tester.flingFrom(
+        tester.getCenter(find.byType(PlayerControls)),
+        const Offset(0, -300),
+        3000,
+      ),
+    };
+    for (final MapEntry(key: name, value: open) in openers.entries) {
+      await open();
+      await settle();
+      expect(find.byType(GlassBottomSheet), findsOneWidget, reason: name);
+      expect(
+        find.byType(BackdropFilter).evaluate().length,
+        pageBlurs,
+        reason: name,
+      );
+      await tester.tapAt(const Offset(20, 100));
+      await settle();
+      expect(find.byType(GlassBottomSheet), findsNothing, reason: name);
+    }
   });
 }

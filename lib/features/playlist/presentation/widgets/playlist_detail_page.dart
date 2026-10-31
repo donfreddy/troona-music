@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +18,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
@@ -477,34 +477,28 @@ class _TrackTile extends StatelessWidget {
   });
 
   void _showTrackOptions(BuildContext context) {
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: Text(track.title),
-        message: Text(track.artist),
-        actions: [
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () {
-              Navigator.pop(ctx);
-              if (isLikes) {
-                context.read<LikesCubit>().toggle(track);
-              } else {
-                context.read<PlaylistDetailBloc>().add(
-                  PlaylistRemoveTrackRequested(playlistId, track.id),
-                );
-              }
-            },
-            child: Text(
-              isLikes ? context.l10n.likesRemove : context.l10n.playlistRemove,
-            ),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(context.l10n.actionCancel),
+    showActionSheet(
+      context,
+      title: track.title,
+      message: track.artist,
+      actions: [
+        SheetAction(
+          label: isLikes
+              ? context.l10n.likesRemove
+              : context.l10n.playlistRemove,
+          icon: isLikes ? LucideIcons.heartOff : LucideIcons.listX,
+          destructive: true,
+          onPressed: () {
+            if (isLikes) {
+              context.read<LikesCubit>().toggle(track);
+            } else {
+              context.read<PlaylistDetailBloc>().add(
+                PlaylistRemoveTrackRequested(playlistId, track.id),
+              );
+            }
+          },
         ),
-      ),
+      ],
     );
   }
 

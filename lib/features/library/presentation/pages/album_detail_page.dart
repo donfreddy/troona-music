@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +22,7 @@ import 'package:troona/features/library/presentation/widgets/album_track_list_ti
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -694,41 +694,33 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
     AppHaptics.lightImpact();
-    showCupertinoModalPopup<void>(
-      context: context,
-      builder: (ctx) => CupertinoActionSheet(
-        title: Text(album.name),
-        message: Text(
-          context.l10n.albumByArtist(
-            album.artist,
-            context.l10n.songCount(tracks.length),
-          ),
-        ),
-        actions: [
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              for (final track in tracks.reversed) {
-                context.read<PlayerBloc>().add(TrackQueuedNext(track));
-              }
-            },
-            child: Text(context.l10n.trackPlayNext),
-          ),
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              for (final track in tracks) {
-                context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-              }
-            },
-            child: Text(context.l10n.trackAddToQueue),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(context.l10n.actionCancel),
-        ),
+    showActionSheet(
+      context,
+      title: album.name,
+      message: context.l10n.albumByArtist(
+        album.artist,
+        context.l10n.songCount(tracks.length),
       ),
+      actions: [
+        SheetAction(
+          label: context.l10n.trackPlayNext,
+          icon: LucideIcons.listStart,
+          onPressed: () {
+            for (final track in tracks.reversed) {
+              context.read<PlayerBloc>().add(TrackQueuedNext(track));
+            }
+          },
+        ),
+        SheetAction(
+          label: context.l10n.trackAddToQueue,
+          icon: LucideIcons.listEnd,
+          onPressed: () {
+            for (final track in tracks) {
+              context.read<PlayerBloc>().add(TrackAddedToQueue(track));
+            }
+          },
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -14,6 +13,7 @@ import 'package:troona/features/playlist/presentation/pages/playlist_editor_page
 import 'package:troona/features/playlist/presentation/widgets/likes_hero_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/custom_sliver_header.dart';
@@ -174,32 +174,22 @@ void _openEditor(BuildContext context, [Playlist? playlist]) {
 void _showActions(BuildContext context, Playlist playlist) {
   final l10n = context.l10n;
   AppHaptics.lightImpact();
-  showCupertinoModalPopup<void>(
-    context: context,
-    builder: (ctx) => CupertinoActionSheet(
-      title: Text(playlist.name),
-      actions: [
-        CupertinoActionSheetAction(
-          onPressed: () {
-            Navigator.pop(ctx);
-            _openEditor(context, playlist);
-          },
-          child: Text(l10n.playlistEdit),
-        ),
-        CupertinoActionSheetAction(
-          isDestructiveAction: true,
-          onPressed: () {
-            Navigator.pop(ctx);
-            _confirmDelete(context, playlist);
-          },
-          child: Text(l10n.actionDelete),
-        ),
-      ],
-      cancelButton: CupertinoActionSheetAction(
-        onPressed: () => Navigator.pop(ctx),
-        child: Text(l10n.actionCancel),
+  showActionSheet(
+    context,
+    title: playlist.name,
+    actions: [
+      SheetAction(
+        label: l10n.playlistEdit,
+        icon: LucideIcons.pencil,
+        onPressed: () => _openEditor(context, playlist),
       ),
-    ),
+      SheetAction(
+        label: l10n.actionDelete,
+        icon: LucideIcons.trash2,
+        destructive: true,
+        onPressed: () => _confirmDelete(context, playlist),
+      ),
+    ],
   );
 }
 

@@ -10,6 +10,7 @@ import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 
 /// Secondary playback tools under the Now Playing controls: queue, sleep
 /// timer and playback speed, each with a 44 px touch target.
@@ -111,113 +112,32 @@ class PlayerUtilityDock extends StatelessWidget {
       if (state is! SleepTimerOff) (l10n.sleepTurnOff, cubit.cancel),
     ];
 
-    _showSheet(
-      context: context,
+    showActionSheet(
+      context,
       title: l10n.sleepTimer,
-      subtitle: subtitle,
-      children: [
+      message: subtitle,
+      actions: [
         for (final (label, action) in options)
-          _SheetOptionTile(
-            title: label,
-            isSelected: false,
-            onTap: () {
-              AppHaptics.lightImpact();
-              action();
-              Navigator.pop(context);
-            },
-          ),
+          SheetAction(label: label, onPressed: action),
       ],
     );
   }
 
   void _showSpeedSheet(BuildContext context, double current) {
     final bloc = context.read<PlayerBloc>();
-    _showSheet(
-      context: context,
+    showActionSheet(
+      context,
       title: context.l10n.playbackSpeed,
-      children: [
+      actions: [
         for (final speed in _speeds)
-          _SheetOptionTile(
-            title: speed == 1.0
+          SheetAction(
+            label: speed == 1.0
                 ? context.l10n.playbackSpeedNormal(_formatSpeed(speed))
                 : _formatSpeed(speed),
-            isSelected: speed == current,
-            onTap: () {
-              AppHaptics.lightImpact();
-              bloc.add(SpeedChangeRequested(speed));
-              Navigator.pop(context);
-            },
+            selected: speed == current,
+            onPressed: () => bloc.add(SpeedChangeRequested(speed)),
           ),
       ],
-    );
-  }
-
-  /// Opaque: Now Playing already uses the two blurs the page can afford.
-  void _showSheet({
-    required BuildContext context,
-    required String title,
-    String? subtitle,
-    required List<Widget> children,
-  }) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (modalContext) {
-        final colors = modalContext.colors;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
-            color: colors.bgSecondary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 0.8,
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.labelSecondary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-                const SizedBox(height: 16),
-                Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
-                const SizedBox(height: 12),
-                ...children,
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -299,43 +219,6 @@ class _DockItem extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SheetOptionTile extends StatelessWidget {
-  final String title;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SheetOptionTile({
-    required this.title,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? colors.accent : Colors.white,
-          ),
-        ),
-        trailing: isSelected
-            ? Icon(LucideIcons.check, color: colors.accent, size: 20)
-            : null,
       ),
     );
   }

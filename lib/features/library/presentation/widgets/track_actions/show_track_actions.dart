@@ -1,6 +1,7 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -8,6 +9,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 
 enum TrackActionOrigin { library, album, artist, queue, nowPlaying }
@@ -21,86 +23,68 @@ void showTrackActions(
   final l10n = context.l10n;
   AppHaptics.mediumImpact();
 
-  showCupertinoModalPopup<void>(
-    context: context,
-    builder: (ctx) => CupertinoActionSheet(
-      title: Text(track.title),
-      message: Text(track.artist),
-      actions: [
-        CupertinoActionSheetAction(
+  showActionSheet(
+    context,
+    title: track.title,
+    message: track.artist,
+    actions: [
+      SheetAction(
+        label: l10n.trackPlayNext,
+        icon: LucideIcons.listStart,
+        onPressed: () {
+          context.read<PlayerBloc>().add(TrackQueuedNext(track));
+          AppToast.show(context, l10n.toastPlaysNext);
+        },
+      ),
+      SheetAction(
+        label: l10n.trackAddToQueue,
+        icon: LucideIcons.listEnd,
+        onPressed: () {
+          context.read<PlayerBloc>().add(TrackAddedToQueue(track));
+          AppToast.show(context, l10n.toastAddedToQueue);
+        },
+      ),
+      SheetAction(
+        label: isLiked ? l10n.likesRemove : l10n.trackLike,
+        icon: isLiked ? LucideIcons.heartOff : LucideIcons.heart,
+        onPressed: () {
+          context.read<LikesCubit>().toggle(track);
+          AppToast.show(context, isLiked ? l10n.toastUnliked : l10n.toastLiked);
+        },
+      ),
+      SheetAction(
+        label: l10n.trackAddToPlaylist,
+        icon: LucideIcons.listPlus,
+        onPressed: () => showAddToPlaylistSheet(context, track),
+      ),
+      if (origin != TrackActionOrigin.album)
+        SheetAction(
+          label: l10n.trackGoToAlbum,
+          icon: LucideIcons.disc3,
           onPressed: () {
-            Navigator.pop(ctx);
-            AppHaptics.selectionClick();
-            context.read<PlayerBloc>().add(TrackQueuedNext(track));
-            AppToast.show(context, l10n.toastPlaysNext);
-          },
-          child: Text(l10n.trackPlayNext),
-        ),
-        CupertinoActionSheetAction(
-          onPressed: () {
-            Navigator.pop(ctx);
-            AppHaptics.selectionClick();
-            context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-            AppToast.show(context, l10n.toastAddedToQueue);
-          },
-          child: Text(l10n.trackAddToQueue),
-        ),
-        CupertinoActionSheetAction(
-          onPressed: () {
-            Navigator.pop(ctx);
-            AppHaptics.selectionClick();
-            context.read<LikesCubit>().toggle(track);
-            AppToast.show(
-              context,
-              isLiked ? l10n.toastUnliked : l10n.toastLiked,
+            if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
+              context.pop();
+            }
+            context.goNamed(
+              AppRoute.albumDetail,
+              pathParameters: {'id': '${track.albumId}'},
             );
           },
-          child: Text(isLiked ? l10n.likesRemove : l10n.trackLike),
         ),
-        CupertinoActionSheetAction(
+      if (origin != TrackActionOrigin.artist)
+        SheetAction(
+          label: l10n.trackGoToArtist,
+          icon: LucideIcons.micVocal,
           onPressed: () {
-            Navigator.pop(ctx);
-            AppHaptics.selectionClick();
-            showAddToPlaylistSheet(context, track);
+            if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
+              context.pop();
+            }
+            context.goNamed(
+              AppRoute.artistDetail,
+              pathParameters: {'id': '${track.artistId}'},
+            );
           },
-          child: Text(l10n.trackAddToPlaylist),
         ),
-        if (origin != TrackActionOrigin.album)
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              AppHaptics.selectionClick();
-              if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
-                context.pop();
-              }
-              context.goNamed(
-                AppRoute.albumDetail,
-                pathParameters: {'id': '${track.albumId}'},
-              );
-            },
-            child: Text(l10n.trackGoToAlbum),
-          ),
-        if (origin != TrackActionOrigin.artist)
-          CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(ctx);
-              AppHaptics.selectionClick();
-              if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
-                context.pop();
-              }
-              context.goNamed(
-                AppRoute.artistDetail,
-                pathParameters: {'id': '${track.artistId}'},
-              );
-            },
-            child: Text(l10n.trackGoToArtist),
-          ),
-      ],
-      cancelButton: CupertinoActionSheetAction(
-        isDestructiveAction: false,
-        onPressed: () => Navigator.pop(ctx),
-        child: Text(l10n.actionCancel),
-      ),
-    ),
+    ],
   );
 }
