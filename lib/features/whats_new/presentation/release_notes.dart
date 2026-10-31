@@ -13,9 +13,12 @@ final class ReleaseNote {
 final class Release {
   /// As in pubspec.yaml, without the build number.
   final String version;
+
+  /// The day it was published, as in CHANGELOG.md.
+  final DateTime date;
   final List<ReleaseNote> notes;
 
-  const Release(this.version, this.notes);
+  const Release(this.version, this.notes, {required this.date});
 
   List<ReleaseNote> ofKind(ReleaseNoteKind kind) => [
     for (final n in notes)
@@ -27,7 +30,7 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
-  Release('1.1.0', [
+  Release('1.1.0', date: DateTime(2026, 10, 30), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew110BackupTitle,
@@ -61,7 +64,7 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
   ]),
   // First public release: everything is new, nothing is compared with a
   // version nobody had.
-  Release('1.0.0', [
+  Release('1.0.0', date: DateTime(2026, 10, 30), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew100LibraryTitle,
@@ -110,9 +113,8 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
   ]),
 ];
 
-/// The notes of [version], or of the newest release when it has none (a
-/// hotfix build opened from Settings still shows something).
-Release releaseFor(AppLocalizations l10n, String? version) {
-  final all = releaseNotes(l10n);
-  return all.firstWhere((r) => r.version == version, orElse: () => all.first);
-}
+/// In [releases] (newest first), the notes of [version], or the newest
+/// release when it has none (a hotfix build opened from Settings still
+/// shows something).
+Release releaseIn(List<Release> releases, String? version) => releases
+    .firstWhere((r) => r.version == version, orElse: () => releases.first);

@@ -625,6 +625,41 @@
   "whatsNewImproved": "Improved",
   "whatsNewFixed": "Fixed",
   "whatsNewContinue": "Continue",
+  "whatsNewLatest": "Latest",
+  "whatsNewEarlier": "Earlier releases",
+  "whatsNewShowAll": "Show all {count} changes",
+  "@whatsNewShowAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whatsNewShowLess": "Show fewer",
+  "whatsNewCountAdded": "{count, plural, =1{1 new} other{{count} new}}",
+  "@whatsNewCountAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whatsNewCountImproved": "{count, plural, =1{1 improvement} other{{count} improvements}}",
+  "@whatsNewCountImproved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whatsNewCountFixed": "{count, plural, =1{1 fix} other{{count} fixes}}",
+  "@whatsNewCountFixed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "whatsNew100WeekTitle": "Your week in music",
   "whatsNew100WeekBody": "Every Monday on Home: listening time, top artist and top song, with a calendar of the days you listened.",
   "whatsNew100ReplayTitle": "Monthly Replay",

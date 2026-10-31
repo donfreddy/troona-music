@@ -22,6 +22,9 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 /// the mini player and the tab bar: [useRootNavigator] puts it above them.
 /// Over glass that already blurs, pass [GlassQuality.off] as [quality] to keep
 /// to two blurs on screen.
+///
+/// A sheet that can grow to the top of the screen sets [useSafeArea], so it
+/// stops below the status bar.
 Future<T?> showGlassBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -29,6 +32,7 @@ Future<T?> showGlassBottomSheet<T>({
   bool enableDrag = true,
   bool isScrollControlled = false,
   bool useRootNavigator = false,
+  bool useSafeArea = false,
   GlassQuality? quality,
 }) {
   return showModalBottomSheet<T>(
@@ -39,6 +43,7 @@ Future<T?> showGlassBottomSheet<T>({
     enableDrag: enableDrag,
     isScrollControlled: isScrollControlled,
     useRootNavigator: useRootNavigator,
+    useSafeArea: useSafeArea,
     builder: (ctx) => GlassBottomSheet(quality: quality, child: builder(ctx)),
   );
 }

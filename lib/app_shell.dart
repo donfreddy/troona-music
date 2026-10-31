@@ -107,7 +107,11 @@ class _AppShellState extends State<AppShell> {
       return;
     }
     if (version == null || !mounted) return;
-    await showWhatsNewSheet(context, releaseFor(l10n, version));
+    await showWhatsNewSheet(
+      context,
+      releases: releaseNotes(l10n),
+      version: version,
+    );
   }
 
   /// The daily update check, when it is on. Silent: Home shows a card.

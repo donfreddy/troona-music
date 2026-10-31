@@ -251,7 +251,8 @@ class _SettingsList extends StatelessWidget {
                   : l10n.whatsNewVersion(maintenance.version!.version),
               onTap: () => showWhatsNewSheet(
                 context,
-                releaseFor(l10n, maintenance.version?.version),
+                releases: releaseNotes(l10n),
+                version: maintenance.version?.version,
               ),
             ),
             SettingsTile(

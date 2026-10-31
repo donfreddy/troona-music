@@ -1886,6 +1886,48 @@ abstract class AppLocalizations {
   /// **'Continue'**
   String get whatsNewContinue;
 
+  /// No description provided for @whatsNewLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get whatsNewLatest;
+
+  /// No description provided for @whatsNewEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier releases'**
+  String get whatsNewEarlier;
+
+  /// No description provided for @whatsNewShowAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count} changes'**
+  String whatsNewShowAll(int count);
+
+  /// No description provided for @whatsNewShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get whatsNewShowLess;
+
+  /// No description provided for @whatsNewCountAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 new} other{{count} new}}'**
+  String whatsNewCountAdded(int count);
+
+  /// No description provided for @whatsNewCountImproved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 improvement} other{{count} improvements}}'**
+  String whatsNewCountImproved(int count);
+
+  /// No description provided for @whatsNewCountFixed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 fix} other{{count} fixes}}'**
+  String whatsNewCountFixed(int count);
+
   /// No description provided for @whatsNew100WeekTitle.
   ///
   /// In en, this message translates to:

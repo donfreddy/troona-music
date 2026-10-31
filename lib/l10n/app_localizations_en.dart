@@ -1121,6 +1121,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whatsNewContinue => 'Continue';
 
   @override
+  String get whatsNewLatest => 'Latest';
+
+  @override
+  String get whatsNewEarlier => 'Earlier releases';
+
+  @override
+  String whatsNewShowAll(int count) {
+    return 'Show all $count changes';
+  }
+
+  @override
+  String get whatsNewShowLess => 'Show fewer';
+
+  @override
+  String whatsNewCountAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new',
+      one: '1 new',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String whatsNewCountImproved(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count improvements',
+      one: '1 improvement',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String whatsNewCountFixed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fixes',
+      one: '1 fix',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get whatsNew100WeekTitle => 'Your week in music';
 
   @override
