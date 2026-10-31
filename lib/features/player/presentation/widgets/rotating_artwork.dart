@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
@@ -93,6 +93,6 @@ class _RotatingArtworkState extends State<RotatingArtwork>
       color: Colors.white.withValues(alpha: .12),
       shape: BoxShape.circle,
     ),
-    child: const Icon(LucideIcons.music4, size: 26),
+    child: const Icon(AppIcons.track, size: 26),
   );
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -21,17 +21,17 @@ class LibraryStatsBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final stats = [
       _StatItem(
-        icon: LucideIcons.music,
+        icon: AppIcons.track,
         value: '$trackCount',
         label: context.l10n.statSongs(trackCount),
       ),
       _StatItem(
-        icon: LucideIcons.disc,
+        icon: AppIcons.album,
         value: '$albumCount',
         label: context.l10n.statAlbums(albumCount),
       ),
       _StatItem(
-        icon: LucideIcons.micVocal,
+        icon: AppIcons.artist,
         value: '$artistCount',
         label: context.l10n.statArtists(artistCount),
       ),

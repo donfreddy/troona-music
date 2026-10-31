@@ -6,13 +6,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
@@ -96,21 +96,21 @@ class _SettingsList extends StatelessWidget {
           title: l10n.settingsPlayback,
           children: [
             SettingsTile.switchTile(
-              icon: LucideIcons.volume1,
+              icon: AppIcons.volumeLow,
               iconColor: const Color(0xFF8B5CF6),
               title: l10n.settingsDuck,
               value: settings.duckAudioOnNotification,
               onChanged: cubit.setDuckAudioOnNotification,
             ),
             SettingsTile.switchTile(
-              icon: LucideIcons.phoneOff,
+              icon: AppIcons.pauseOnCall,
               iconColor: const Color(0xFFEC4899),
               title: l10n.settingsPauseOnCall,
               value: settings.stopOnCallEnabled,
               onChanged: cubit.setStopOnCall,
             ),
             SettingsTile.switchTile(
-              icon: LucideIcons.phoneCall,
+              icon: AppIcons.resumeAfterCall,
               iconColor: const Color(0xFF10B981),
               title: l10n.settingsResumeAfterCall,
               value: settings.resumeAfterCallEnabled,
@@ -127,7 +127,7 @@ class _SettingsList extends StatelessWidget {
               builder: (context, state) {
                 final scanning = state is LibraryScanning;
                 return SettingsTile(
-                  icon: LucideIcons.refreshCw,
+                  icon: AppIcons.refresh,
                   iconColor: const Color(0xFFF59E0B),
                   title: l10n.settingsRescan,
                   subtitle: scanning
@@ -145,7 +145,7 @@ class _SettingsList extends StatelessWidget {
               },
             ),
             SettingsTile(
-              icon: LucideIcons.imageOff,
+              icon: AppIcons.clearCovers,
               iconColor: const Color(0xFFEF4444),
               title: l10n.settingsCoversClear,
               subtitle: l10n.settingsCoversClearSubtitle,
@@ -159,21 +159,21 @@ class _SettingsList extends StatelessWidget {
           footer: l10n.settingsOnlineFooter,
           children: [
             SettingsTile.switchTile(
-              icon: LucideIcons.bookOpen,
+              icon: AppIcons.biographies,
               iconColor: const Color(0xFFD51007),
               title: l10n.settingsOnlineBios,
               value: settings.fetchOnlineMetadata,
               onChanged: cubit.setFetchOnlineMetadata,
             ),
             SettingsTile.switchTile(
-              icon: LucideIcons.image,
+              icon: AppIcons.photos,
               iconColor: const Color(0xFF10B981),
               title: l10n.settingsOnlinePhotos,
               value: settings.fetchArtistArtwork,
               onChanged: cubit.setFetchArtistArtwork,
             ),
             SettingsTile.switchTile(
-              icon: LucideIcons.circleArrowUp,
+              icon: AppIcons.update,
               iconColor: const Color(0xFF8B5CF6),
               title: l10n.settingsUpdateCheck,
               subtitle: l10n.settingsUpdateCheckSubtitle,
@@ -181,7 +181,7 @@ class _SettingsList extends StatelessWidget {
               onChanged: (on) => _setCheckForUpdates(context, on),
             ),
             SettingsTile(
-              icon: LucideIcons.eraser,
+              icon: AppIcons.clearOnlineInfo,
               iconColor: const Color(0xFFF97316),
               title: l10n.settingsOnlineClear,
               trailing: _SizeLabel(sizes?.onlineInfoBytes),
@@ -194,7 +194,7 @@ class _SettingsList extends StatelessWidget {
           footer: l10n.settingsGlassFooter,
           children: [
             SegmentedRow<GlassQuality>(
-              icon: LucideIcons.sparkles,
+              icon: AppIcons.glassEffect,
               iconColor: const Color(0xFF06B6D4),
               label: l10n.settingsGlass,
               values: GlassQuality.values,
@@ -208,7 +208,7 @@ class _SettingsList extends StatelessWidget {
               onChanged: cubit.setGlassQuality,
             ),
             SettingsTile.switchTile(
-              icon: LucideIcons.vibrate,
+              icon: AppIcons.haptics,
               iconColor: const Color(0xFFF43F5E),
               title: l10n.settingsHaptics,
               value: settings.hapticFeedbackEnabled,
@@ -221,14 +221,14 @@ class _SettingsList extends StatelessWidget {
           footer: l10n.settingsBackupFooter,
           children: [
             SettingsTile(
-              icon: LucideIcons.hardDriveUpload,
+              icon: AppIcons.backup,
               iconColor: const Color(0xFF3B82F6),
               title: l10n.backupExport,
               subtitle: l10n.backupExportSubtitle,
               onTap: backupBusy ? null : () => _exportBackup(context),
             ),
             SettingsTile(
-              icon: LucideIcons.archiveRestore,
+              icon: AppIcons.restore,
               iconColor: const Color(0xFF22C55E),
               title: l10n.backupRestore,
               subtitle: l10n.backupRestoreSubtitle,
@@ -241,7 +241,7 @@ class _SettingsList extends StatelessWidget {
           title: l10n.settingsSupport,
           children: [
             SettingsTile.navigation(
-              icon: LucideIcons.sparkles,
+              icon: AppIcons.whatsNew,
               iconColor: const Color(0xFF8B5CF6),
               title: l10n.whatsNewTitle,
               subtitle: maintenance.version == null
@@ -254,7 +254,7 @@ class _SettingsList extends StatelessWidget {
               ),
             ),
             SettingsTile(
-              icon: LucideIcons.refreshCw,
+              icon: AppIcons.refresh,
               iconColor: const Color(0xFF14B8A6),
               title: l10n.updateCheckNow,
               subtitle: switch (update.available) {
@@ -267,20 +267,20 @@ class _SettingsList extends StatelessWidget {
               onTap: update.checking ? null : () => _checkForUpdate(context),
             ),
             SettingsTile.navigation(
-              icon: LucideIcons.messageSquareWarning,
+              icon: AppIcons.report,
               iconColor: const Color(0xFF6366F1),
               title: l10n.settingsReport,
               subtitle: l10n.settingsReportSubtitle,
               onTap: () => _shareReport(context),
             ),
             SettingsTile.navigation(
-              icon: LucideIcons.shieldCheck,
+              icon: AppIcons.privacy,
               iconColor: const Color(0xFF0EA5E9),
               title: l10n.settingsPrivacy,
               onTap: () => context.pushNamed(AppRoute.privacy),
             ),
             SettingsTile.navigation(
-              icon: LucideIcons.scrollText,
+              icon: AppIcons.licenses,
               iconColor: const Color(0xFF64748B),
               title: l10n.settingsLicenses,
               onTap: () => showLicensePage(
@@ -295,13 +295,13 @@ class _SettingsList extends StatelessWidget {
           title: l10n.settingsReset,
           children: [
             SettingsTile(
-              icon: LucideIcons.listX,
+              icon: AppIcons.removeFromList,
               iconColor: const Color(0xFF64748B),
               title: l10n.settingsForgetQueue,
               onTap: () => _forgetQueue(context),
             ),
             SettingsTile(
-              icon: LucideIcons.rotateCcw,
+              icon: AppIcons.reset,
               iconColor: const Color(0xFFDC2626),
               title: l10n.settingsResetSettings,
               onTap: () => _resetSettings(context),
@@ -544,7 +544,7 @@ class _Footer extends StatelessWidget {
     final v = version;
     return Column(
       children: [
-        Icon(LucideIcons.music, size: 20, color: colors.labelTertiary),
+        Icon(AppIcons.track, size: 20, color: colors.labelTertiary),
         const SizedBox(height: 6),
         if (v != null)
           Text(

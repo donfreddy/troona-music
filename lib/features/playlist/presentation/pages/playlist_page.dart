@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -56,7 +56,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
             expandedHeight: 130,
             actions: [
               GlassIconButton(
-                icon: _isGrid ? LucideIcons.layoutList : LucideIcons.layoutGrid,
+                icon: _isGrid ? AppIcons.listView : AppIcons.gridView,
                 tooltip: _isGrid
                     ? l10n.playlistsListView
                     : l10n.playlistsGridView,
@@ -64,7 +64,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
               ),
               const SizedBox(width: AppSpacing.sm),
               GlassIconButton(
-                icon: LucideIcons.plus,
+                icon: AppIcons.add,
                 tooltip: l10n.playlistsCreate,
                 onTap: () => _openCreateDialog(context),
               ),
@@ -181,12 +181,12 @@ void _showActions(BuildContext context, Playlist playlist) {
     actions: [
       SheetAction(
         label: l10n.playlistEdit,
-        icon: LucideIcons.pencil,
+        icon: AppIcons.edit,
         onPressed: () => _openEditor(context, playlist),
       ),
       SheetAction(
         label: l10n.actionDelete,
-        icon: LucideIcons.trash2,
+        icon: AppIcons.delete,
         destructive: true,
         onPressed: () => _confirmDelete(context, playlist),
       ),
@@ -271,7 +271,11 @@ class _EmptyPlaylistsView extends StatelessWidget {
                 color: colors.accent.withValues(alpha: .12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(LucideIcons.listPlus, color: colors.accent, size: 28),
+              child: Icon(
+                AppIcons.addToPlaylist,
+                color: colors.accent,
+                size: 28,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
@@ -292,7 +296,7 @@ class _EmptyPlaylistsView extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             AppButton.primary(
               context.l10n.playlistNew,
-              icon: LucideIcons.plus,
+              icon: AppIcons.add,
               onPressed: onCreate,
             ),
           ],
@@ -359,7 +363,7 @@ class _PlaylistTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: Icon(
-                LucideIcons.chevronRight,
+                AppIcons.disclosure,
                 size: 18,
                 color: colors.labelTertiary,
               ),

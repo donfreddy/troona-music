@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
@@ -33,7 +33,7 @@ class SearchResultsView extends StatelessWidget {
           child: EmptyState(
             title: context.l10n.searchNoResultsTitle(query),
             body: context.l10n.searchNoResultsBody,
-            icon: LucideIcons.searchX,
+            icon: AppIcons.noResults,
           ),
         ),
       );

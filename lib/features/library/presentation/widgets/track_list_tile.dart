@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -93,7 +93,7 @@ class _TrackListTileState extends State<TrackListTile> {
                           : Container(
                               color: Colors.white.withValues(alpha: .08),
                               child: const Icon(
-                                LucideIcons.music,
+                                AppIcons.track,
                                 color: Colors.white30,
                                 size: 22,
                               ),
@@ -172,7 +172,7 @@ class _TrackListTileState extends State<TrackListTile> {
 
               // ── More options button ───────────────────────────────────────
               AppIconButton(
-                icon: LucideIcons.ellipsis,
+                icon: AppIcons.more,
                 tooltip: context.l10n.detailMore,
                 size: 18,
                 color: context.colors.labelTertiary,

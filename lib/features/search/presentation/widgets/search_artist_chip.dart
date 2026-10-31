@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
@@ -35,7 +35,7 @@ class SearchArtistChip extends StatelessWidget {
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
                         child: const Icon(
-                          LucideIcons.micVocal,
+                          AppIcons.artist,
                           color: Colors.white30,
                           size: 32,
                         ),

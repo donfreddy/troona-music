@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/metadata/presentation/widgets/album_wiki_section.dart';
 import 'package:troona/core/extensions/string_ext.dart';
@@ -362,7 +362,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                                 alpha: .08,
                                               ),
                                               child: const Icon(
-                                                LucideIcons.disc,
+                                                AppIcons.album,
                                                 color: Colors.white30,
                                                 size: 64,
                                               ),
@@ -466,7 +466,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                       ),
                                       const SizedBox(width: 4),
                                       Icon(
-                                        LucideIcons.chevronRight,
+                                        AppIcons.disclosure,
                                         color: colors.accent,
                                         size: 16,
                                       ),
@@ -501,7 +501,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                                     AppBadge(
                                       badge,
                                       icon: badge == context.l10n.formatLossless
-                                          ? LucideIcons.audioWaveform
+                                          ? AppIcons.lossless
                                           : null,
                                     ),
                                   ],
@@ -549,7 +549,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
                     Positioned(
                       right: 0,
                       child: GlassIconButton(
-                        icon: LucideIcons.ellipsisVertical,
+                        icon: AppIcons.moreVertical,
                         tooltip: context.l10n.detailMore,
                         onTap: tracks.isEmpty
                             ? null
@@ -612,7 +612,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
       actions: [
         SheetAction(
           label: context.l10n.trackPlayNext,
-          icon: LucideIcons.listStart,
+          icon: AppIcons.playNext,
           onPressed: () {
             for (final track in tracks.reversed) {
               context.read<PlayerBloc>().add(TrackQueuedNext(track));
@@ -621,7 +621,7 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
         ),
         SheetAction(
           label: context.l10n.trackAddToQueue,
-          icon: LucideIcons.listEnd,
+          icon: AppIcons.addToQueue,
           onPressed: () {
             for (final track in tracks) {
               context.read<PlayerBloc>().add(TrackAddedToQueue(track));
@@ -770,7 +770,7 @@ class _AlbumMetadataFooter extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(LucideIcons.info, size: 16, color: colors.accent),
+                  Icon(AppIcons.info, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
                   Text(
                     context.l10n.albumAbout,

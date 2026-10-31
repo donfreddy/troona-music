@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/updates/domain/entities/app_release.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
@@ -59,7 +59,7 @@ class _Card extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.circleArrowUp, color: colors.accent, size: 20),
+              Icon(AppIcons.update, color: colors.accent, size: 20),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(

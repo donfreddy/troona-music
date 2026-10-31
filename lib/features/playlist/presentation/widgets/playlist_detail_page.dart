@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -337,7 +337,7 @@ class _TrackList extends StatelessWidget {
       return SliverFillRemaining(
         hasScrollBody: false,
         child: EmptyState(
-          icon: isLikes ? LucideIcons.heart : LucideIcons.listMusic,
+          icon: isLikes ? AppIcons.like : AppIcons.playlist,
           title: isLikes
               ? context.l10n.likesEmptyTitle
               : context.l10n.playlistEmptyTitle,
@@ -396,7 +396,7 @@ class _TrackTile extends StatelessWidget {
           label: isLikes
               ? context.l10n.likesRemove
               : context.l10n.playlistRemove,
-          icon: isLikes ? LucideIcons.heartOff : LucideIcons.listX,
+          icon: isLikes ? AppIcons.unlike : AppIcons.removeFromList,
           destructive: true,
           onPressed: () {
             if (isLikes) {
@@ -460,7 +460,7 @@ class _TrackTile extends StatelessWidget {
                             : Container(
                                 color: Colors.white.withValues(alpha: .08),
                                 child: const Icon(
-                                  LucideIcons.music,
+                                  AppIcons.track,
                                   color: Colors.white30,
                                 ),
                               ),
@@ -473,7 +473,7 @@ class _TrackTile extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
-                              LucideIcons.music2,
+                              AppIcons.nowPlaying,
                               color: colors.accent,
                               size: 20,
                             ),
@@ -518,7 +518,7 @@ class _TrackTile extends StatelessWidget {
 
                 // Options (remove) button
                 AppIconButton(
-                  icon: LucideIcons.ellipsis,
+                  icon: AppIcons.more,
                   tooltip: context.l10n.detailMore,
                   size: 18,
                   color: context.colors.labelTertiary,
@@ -531,7 +531,7 @@ class _TrackTile extends StatelessWidget {
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(
-                      LucideIcons.gripVertical,
+                      AppIcons.dragHandle,
                       size: 20,
                       color: Colors.white24,
                     ),

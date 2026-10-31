@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/history/domain/entities/weekly_recap.dart';
 import 'package:troona/features/history/presentation/utils/recap_format.dart';
@@ -48,11 +48,7 @@ class WeeklyRecapCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(
-                    LucideIcons.calendarHeart,
-                    color: colors.accent,
-                    size: 20,
-                  ),
+                  Icon(AppIcons.weeklyRecap, color: colors.accent, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
@@ -77,7 +73,7 @@ class WeeklyRecapCard extends StatelessWidget {
                     ),
                   ),
                   Icon(
-                    LucideIcons.chevronRight,
+                    AppIcons.disclosure,
                     color: colors.labelTertiary,
                     size: 20,
                   ),

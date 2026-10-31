@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
@@ -46,7 +46,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
               children: [
                 Row(
                   children: [
-                    Icon(LucideIcons.user, size: 18, color: colors.accent),
+                    Icon(AppIcons.artistBio, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       context.l10n.metaAboutArtist,
@@ -192,9 +192,9 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (listeners != null)
-                    AppBadge(listeners, icon: LucideIcons.headphones),
+                    AppBadge(listeners, icon: AppIcons.listen),
                   if (playCount != null)
-                    AppBadge(playCount, icon: LucideIcons.play),
+                    AppBadge(playCount, icon: AppIcons.play),
                 ],
               ),
             ],
@@ -235,9 +235,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
                         ),
                         const SizedBox(width: 4),
                         Icon(
-                          _isExpanded
-                              ? LucideIcons.chevronUp
-                              : LucideIcons.chevronDown,
+                          _isExpanded ? AppIcons.collapse : AppIcons.expand,
                           size: 14,
                           color: colors.accent,
                         ),
@@ -254,7 +252,7 @@ class _ArtistBioSectionState extends State<ArtistBioSection> {
               Row(
                 children: [
                   Icon(
-                    LucideIcons.users,
+                    AppIcons.similarArtists,
                     size: 14,
                     color: colors.labelSecondary,
                   ),

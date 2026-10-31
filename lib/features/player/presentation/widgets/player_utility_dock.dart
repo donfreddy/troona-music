@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -39,7 +39,7 @@ class PlayerUtilityDock extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _DockItem(
-            icon: LucideIcons.listMusic,
+            icon: AppIcons.queue,
             label: context.l10n.queueTitle,
             onTap: () {
               AppHaptics.selectionClick();
@@ -48,7 +48,7 @@ class PlayerUtilityDock extends StatelessWidget {
           ),
           BlocBuilder<SleepTimerCubit, SleepTimerState>(
             builder: (context, timer) => _DockItem(
-              icon: LucideIcons.timer,
+              icon: AppIcons.sleepTimer,
               label: context.l10n.sleepTimer,
               isActive: timer is! SleepTimerOff,
               onTap: () {
@@ -60,7 +60,7 @@ class PlayerUtilityDock extends StatelessWidget {
           BlocSelector<PlayerBloc, PlayerState, double>(
             selector: (s) => s is PlayerActive ? s.speed : 1.0,
             builder: (context, speed) => _DockItem(
-              icon: LucideIcons.gauge,
+              icon: AppIcons.speed,
               label: context.l10n.playbackSpeed,
               isActive: speed != 1.0,
               badgeText: speed != 1.0 ? _formatSpeed(speed) : null,

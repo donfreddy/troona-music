@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
@@ -78,7 +78,7 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
         color: colors.glassFill,
         child: Center(
           child: Icon(
-            LucideIcons.listMusic,
+            AppIcons.playlist,
             color: colors.labelTertiary,
             size: (widget.size ?? 60) * 0.42,
           ),

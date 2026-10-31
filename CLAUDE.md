@@ -96,6 +96,8 @@ Modals and labels go through one entry point each, in `lib/shared/widgets/`; nev
 
 Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`).
 
+Icons come from `AppIcons` (`lib/core/theme/semantic/app_icons.dart`), named by role, not by glyph. It is the only file that imports an icon pack, which `test/unit/architecture/icon_sources_test.dart` enforces. Give each role its own entry, even when two roles share a glyph (a playlist and the queue).
+
 ### Library Scanning (4-phase)
 `MediaScannerService` orchestrates: (1) query device via `on_audio_query_pluse`, (2) diff against cache to find added/removed tracks, (3) persist to `IsarLibraryDataSource`, (4) extract artwork via `ArtworkExtractor` (semaphore × 4 for concurrency control).
 

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 
@@ -162,11 +162,7 @@ class SettingsTile extends StatelessWidget {
           ?trailing,
           if (showChevron) ...[
             const SizedBox(width: 4),
-            Icon(
-              LucideIcons.chevronRight,
-              size: 18,
-              color: colors.labelTertiary,
-            ),
+            Icon(AppIcons.disclosure, size: 18, color: colors.labelTertiary),
           ],
         ],
       ),

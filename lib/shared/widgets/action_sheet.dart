@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
@@ -192,7 +192,7 @@ class _ActionRow extends StatelessWidget {
                   ),
                   if (action.selected) ...[
                     const SizedBox(width: AppSpacing.sm),
-                    Icon(LucideIcons.check, size: 18, color: colors.accent),
+                    Icon(AppIcons.selected, size: 18, color: colors.accent),
                   ],
                 ],
               ),

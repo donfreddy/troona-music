@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
@@ -353,7 +353,7 @@ class _EarlierReleaseState extends State<_EarlierRelease> {
                                 turns: _open ? .5 : 0,
                                 duration: const Duration(milliseconds: 200),
                                 child: Icon(
-                                  LucideIcons.chevronDown,
+                                  AppIcons.expand,
                                   size: 20,
                                   color: colors.labelSecondary,
                                 ),
@@ -615,7 +615,7 @@ class _ShowAllButton extends StatelessWidget {
           trailing: AnimatedRotation(
             turns: expanded ? .5 : 0,
             duration: const Duration(milliseconds: 200),
-            child: const Icon(LucideIcons.chevronDown, size: 18),
+            child: const Icon(AppIcons.expand, size: 18),
           ),
         ),
       ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
@@ -62,7 +62,7 @@ class _LibraryPageState extends State<LibraryPage> {
                 _SortButton(),
                 SizedBox(width: AppSpacing.sm),
                 GlassIconButton(
-                  icon: LucideIcons.refreshCw,
+                  icon: AppIcons.refresh,
                   tooltip: context.l10n.settingsRescan,
                   onTap: () {
                     // Rescans are silent; the shell toasts what changed.
@@ -326,7 +326,7 @@ class _TracksView extends StatelessWidget {
         hasScrollBody: false,
         child: EmptyState(
           title: context.l10n.libraryNoSongs,
-          icon: LucideIcons.music,
+          icon: AppIcons.track,
         ),
       );
     }
@@ -378,7 +378,7 @@ class _AlbumsView extends StatelessWidget {
         hasScrollBody: false,
         child: EmptyState(
           title: context.l10n.libraryNoAlbums,
-          icon: LucideIcons.disc,
+          icon: AppIcons.album,
         ),
       );
     }
@@ -421,7 +421,7 @@ class _ArtistsView extends StatelessWidget {
         hasScrollBody: false,
         child: EmptyState(
           title: context.l10n.libraryNoArtists,
-          icon: LucideIcons.micVocal,
+          icon: AppIcons.artist,
         ),
       );
     }
@@ -460,7 +460,7 @@ class _SortButton extends StatelessWidget {
       builder: (context, sort) {
         return GlassIconButton(
           onTap: () => _showSortSheet(context, sort),
-          icon: LucideIcons.arrowDownNarrowWide,
+          icon: AppIcons.sort,
           tooltip: context.l10n.librarySort,
         );
       },
@@ -499,7 +499,7 @@ class _NoMusicEmpty extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return EmptyState(
-      icon: LucideIcons.music,
+      icon: AppIcons.track,
       title: l10n.libraryEmptyTitle,
       body: l10n.libraryEmptyBody,
       actionLabel: l10n.libraryScanAgain,

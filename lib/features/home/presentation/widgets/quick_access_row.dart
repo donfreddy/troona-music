@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -44,7 +44,7 @@ class QuickAccessRow extends StatelessWidget {
       EntranceFader.staggered(
         index: 0,
         child: _QuickChip(
-          icon: LucideIcons.heart,
+          icon: AppIcons.like,
           label: context.l10n.likedSongs,
           badge: likesCount > 0 ? likesCount.toString() : null,
           opacity: opacity,
@@ -58,7 +58,7 @@ class QuickAccessRow extends StatelessWidget {
       EntranceFader.staggered(
         index: 1,
         child: _QuickChip(
-          icon: LucideIcons.shuffle,
+          icon: AppIcons.shuffle,
           label: context.l10n.actionShuffle,
           opacity: opacity,
           onTap: isActive ? () => shuffleWholeLibrary(context) : null,
@@ -67,7 +67,7 @@ class QuickAccessRow extends StatelessWidget {
       EntranceFader.staggered(
         index: 2,
         child: _QuickChip(
-          icon: LucideIcons.clock,
+          icon: AppIcons.recent,
           label: context.l10n.homeQuickRecent,
           opacity: opacity,
           onTap: isActive

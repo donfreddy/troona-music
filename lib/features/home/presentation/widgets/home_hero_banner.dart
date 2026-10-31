@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -39,19 +39,19 @@ class HomeHeroBanner extends StatelessWidget {
       child: switch ((lastPlayed, totalTracks)) {
         (_, 0) => _buildWelcome(
           context,
-          icon: LucideIcons.music,
+          icon: AppIcons.track,
           title: l10n.homeEmptyTitle,
           body: l10n.homeEmptyBody,
-          ctaIcon: LucideIcons.refreshCw,
+          ctaIcon: AppIcons.refresh,
           ctaLabel: l10n.libraryScanAgain,
           onTap: onScanAgain,
         ),
         (null, _) => _buildWelcome(
           context,
-          icon: LucideIcons.headphones,
+          icon: AppIcons.listen,
           title: l10n.homeFreshTitle,
           body: l10n.homeSongsReady(totalTracks),
-          ctaIcon: LucideIcons.shuffle,
+          ctaIcon: AppIcons.shuffle,
           ctaLabel: l10n.libraryShuffleAll,
           onTap: onShuffleAll,
         ),
@@ -221,7 +221,7 @@ class HomeHeroBanner extends StatelessWidget {
                               : Container(
                                   color: Colors.white.withValues(alpha: .08),
                                   child: const Icon(
-                                    LucideIcons.music,
+                                    AppIcons.track,
                                     color: Colors.white30,
                                     size: 28,
                                   ),
@@ -276,7 +276,7 @@ class HomeHeroBanner extends StatelessWidget {
                           color: context.colors.accent,
                         ),
                         child: Icon(
-                          LucideIcons.play,
+                          AppIcons.play,
                           color: context.colors.accentForeground,
                           size: 20,
                         ),

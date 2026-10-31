@@ -5,10 +5,10 @@ import 'package:flutter/cupertino.dart' hide RepeatMode;
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -413,7 +413,7 @@ class _Header extends StatelessWidget {
                 ValueListenableBuilder<bool>(
                   valueListenable: historyInView,
                   builder: (_, inView, _) => AppIconButton(
-                    icon: LucideIcons.history,
+                    icon: AppIcons.history,
                     tooltip: inView
                         ? context.l10n.queueBackToNow
                         : context.l10n.queueHistory,
@@ -551,7 +551,7 @@ class _DragHandle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.md),
       child: Icon(
-        LucideIcons.gripVertical,
+        AppIcons.dragHandle,
         size: 20,
         color: context.colors.labelTertiary,
       ),
@@ -570,7 +570,7 @@ class _RemoveBackground extends StatelessWidget {
         alignment: Alignment.centerRight,
         child: Padding(
           padding: const EdgeInsets.only(right: AppSpacing.xl),
-          child: Icon(LucideIcons.trash2, color: context.colors.labelPrimary),
+          child: Icon(AppIcons.delete, color: context.colors.labelPrimary),
         ),
       ),
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -31,7 +31,7 @@ class PlayShuffleButtons extends StatelessWidget {
           Expanded(
             child: AppButton.primary(
               l10n.actionPlay,
-              icon: LucideIcons.play,
+              icon: AppIcons.play,
               expanded: true,
               onPressed: empty
                   ? null
@@ -51,7 +51,7 @@ class PlayShuffleButtons extends StatelessWidget {
           Expanded(
             child: AppButton.secondary(
               l10n.actionShuffle,
-              icon: LucideIcons.shuffle,
+              icon: AppIcons.shuffle,
               expanded: true,
               onPressed: empty
                   ? null

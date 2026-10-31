@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
@@ -57,7 +57,7 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         elevation: 0,
         leading: Center(
           child: GlassIconButton(
-            icon: LucideIcons.x,
+            icon: AppIcons.close,
             tooltip: context.l10n.actionClose,
             onTap: () => context.pop(),
           ),
@@ -117,7 +117,7 @@ class _PlaylistCoverPlaceholder extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
         border: Border.all(color: Colors.white10),
       ),
-      child: const Icon(LucideIcons.listMusic, size: 48, color: Colors.white30),
+      child: const Icon(AppIcons.playlist, size: 48, color: Colors.white30),
     );
   }
 }

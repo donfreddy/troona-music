@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
@@ -40,7 +40,7 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
               children: [
                 Row(
                   children: [
-                    Icon(LucideIcons.disc, size: 18, color: colors.accent),
+                    Icon(AppIcons.album, size: 18, color: colors.accent),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
                       context.l10n.metaAboutAlbum,
@@ -137,11 +137,11 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                 runSpacing: AppSpacing.xs,
                 children: [
                   if (listeners != null)
-                    AppBadge(listeners, icon: LucideIcons.headphones),
+                    AppBadge(listeners, icon: AppIcons.listen),
                   if (playCount != null)
-                    AppBadge(playCount, icon: LucideIcons.play),
+                    AppBadge(playCount, icon: AppIcons.play),
                   if (published != null && published.isNotEmpty)
-                    AppBadge(published, icon: LucideIcons.calendar),
+                    AppBadge(published, icon: AppIcons.releaseDate),
                 ],
               ),
             ],
@@ -182,9 +182,7 @@ class _AlbumWikiSectionState extends State<AlbumWikiSection> {
                         ),
                         const SizedBox(width: 4),
                         Icon(
-                          _isExpanded
-                              ? LucideIcons.chevronUp
-                              : LucideIcons.chevronDown,
+                          _isExpanded ? AppIcons.collapse : AppIcons.expand,
                           size: 14,
                           color: colors.accent,
                         ),

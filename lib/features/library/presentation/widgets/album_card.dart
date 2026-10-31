@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -28,7 +28,7 @@ class AlbumCard extends StatelessWidget {
                 : Container(
                     color: Colors.white.withValues(alpha: .08),
                     child: const Icon(
-                      LucideIcons.disc,
+                      AppIcons.album,
                       color: Colors.white30,
                       size: 48,
                     ),

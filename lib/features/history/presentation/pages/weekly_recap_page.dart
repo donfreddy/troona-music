@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/history/domain/entities/weekly_recap.dart';
 import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
@@ -137,7 +137,7 @@ class WeeklyRecapPage extends StatelessWidget {
         _RecapTile(
           caption: l10n.recapDiscoveries,
           title: l10n.recapDiscoveriesValue(discoveries),
-          leading: Icon(LucideIcons.sparkles, color: colors.accent, size: 24),
+          leading: Icon(AppIcons.highlight, color: colors.accent, size: 24),
         ),
     ];
   }
@@ -226,7 +226,7 @@ class _RecapTile extends StatelessWidget {
               ),
               if (onTap != null)
                 Icon(
-                  LucideIcons.chevronRight,
+                  AppIcons.disclosure,
                   color: colors.labelTertiary,
                   size: 20,
                 ),
@@ -252,7 +252,7 @@ class _Artwork extends StatelessWidget {
         : Container(
             color: Colors.white.withValues(alpha: .08),
             child: Icon(
-              round ? LucideIcons.micVocal : LucideIcons.music,
+              round ? AppIcons.artist : AppIcons.track,
               color: Colors.white30,
               size: 24,
             ),

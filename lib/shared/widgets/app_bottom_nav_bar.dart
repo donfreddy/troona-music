@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -162,11 +162,11 @@ class _NavBarBody extends StatelessWidget {
   });
 
   static const _tabs = [
-    (AppTab.home, LucideIcons.house),
-    (AppTab.library, LucideIcons.library),
+    (AppTab.home, AppIcons.home),
+    (AppTab.library, AppIcons.library),
     (AppTab.player, null), // centre artwork slot
-    (AppTab.search, LucideIcons.search),
-    (AppTab.playlists, LucideIcons.listMusic),
+    (AppTab.search, AppIcons.search),
+    (AppTab.playlists, AppIcons.playlist),
   ];
 
   static String _labelOf(AppTab tab, AppLocalizations l10n) => switch (tab) {
@@ -363,7 +363,7 @@ class _MiniPlayerRow extends StatelessWidget {
                               : ColoredBox(
                                   color: colors.glassFill,
                                   child: Icon(
-                                    LucideIcons.music,
+                                    AppIcons.track,
                                     color: colors.labelTertiary,
                                     size: 18,
                                   ),
@@ -402,9 +402,7 @@ class _MiniPlayerRow extends StatelessWidget {
 
                       // ── Play / Pause ───────────────────────────────────────
                       AppIconButton(
-                        icon: state.isPlaying
-                            ? LucideIcons.pause
-                            : LucideIcons.play,
+                        icon: state.isPlaying ? AppIcons.pause : AppIcons.play,
                         tooltip: state.isPlaying
                             ? context.l10n.playerPause
                             : context.l10n.actionPlay,
@@ -418,7 +416,7 @@ class _MiniPlayerRow extends StatelessWidget {
 
                       // ── Skip next ──────────────────────────────────────────
                       AppIconButton(
-                        icon: LucideIcons.skipForward,
+                        icon: AppIcons.skipNext,
                         tooltip: context.l10n.playerNext,
                         color: context.colors.labelPrimary,
                         onPressed: state.hasNext

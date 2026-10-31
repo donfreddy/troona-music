@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
 import 'package:troona/features/metadata/presentation/widgets/artist_bio_section.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
@@ -430,18 +430,18 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                 children: [
                                   AppBadge(
                                     context.l10n.songCount(artist.trackCount),
-                                    icon: LucideIcons.music,
+                                    icon: AppIcons.track,
                                   ),
                                   AppBadge(
                                     context.l10n.albumCount(artist.albumCount),
-                                    icon: LucideIcons.disc,
+                                    icon: AppIcons.album,
                                   ),
                                   if (totalDuration > Duration.zero) ...[
                                     AppBadge(
                                       totalDuration.toHumanReadable(
                                         context.l10n,
                                       ),
-                                      icon: LucideIcons.clock,
+                                      icon: AppIcons.duration,
                                     ),
                                   ],
                                 ],
@@ -488,7 +488,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                     Positioned(
                       right: 0,
                       child: GlassIconButton(
-                        icon: LucideIcons.ellipsisVertical,
+                        icon: AppIcons.moreVertical,
                         tooltip: context.l10n.detailMore,
                         onTap: tracks.isEmpty
                             ? null
@@ -544,7 +544,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       actions: [
         SheetAction(
           label: context.l10n.trackPlayNext,
-          icon: LucideIcons.listStart,
+          icon: AppIcons.playNext,
           onPressed: () {
             for (final track in tracks.reversed) {
               context.read<PlayerBloc>().add(TrackQueuedNext(track));
@@ -553,7 +553,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
         ),
         SheetAction(
           label: context.l10n.trackAddToQueue,
-          icon: LucideIcons.listEnd,
+          icon: AppIcons.addToQueue,
           onPressed: () {
             for (final track in tracks) {
               context.read<PlayerBloc>().add(TrackAddedToQueue(track));
@@ -700,7 +700,7 @@ class _ArtistCollectionFooter extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(LucideIcons.library, size: 16, color: colors.accent),
+                  Icon(AppIcons.library, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
                   Text(
                     context.l10n.artistInLibrary,

@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -25,14 +25,14 @@ class DebugSection extends StatelessWidget {
       title: 'Debug',
       children: [
         SettingsTile(
-          icon: LucideIcons.calendarSync,
+          icon: AppIcons.monthlyReplay,
           iconColor: const Color(0xFFF59E0B),
           title: 'Replay this month now',
           subtitle: 'Makes the Replay of the current month, as if it ended',
           onTap: () => _replayThisMonth(context),
         ),
         SettingsTile(
-          icon: LucideIcons.sparkles,
+          icon: AppIcons.whatsNew,
           iconColor: const Color(0xFFF59E0B),
           title: 'Show What\'s new on next launch',
           subtitle: 'As after an update from an older version',

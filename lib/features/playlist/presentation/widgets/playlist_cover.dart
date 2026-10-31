@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_mosaic.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -33,7 +33,7 @@ class PlaylistCover extends StatelessWidget {
             ],
           ),
         ),
-        child: Icon(LucideIcons.heart, color: colors.accent, size: size * .3),
+        child: Icon(AppIcons.like, color: colors.accent, size: size * .3),
       ),
       Playlist(:final artworkPath?) when artworkPath.isNotEmpty => ArtworkImage(
         artworkPath,
@@ -46,11 +46,7 @@ class PlaylistCover extends StatelessWidget {
       ),
       _ => ColoredBox(
         color: Colors.white.withValues(alpha: .08),
-        child: Icon(
-          LucideIcons.listMusic,
-          color: Colors.white30,
-          size: size * .3,
-        ),
+        child: Icon(AppIcons.playlist, color: Colors.white30, size: size * .3),
       ),
     };
   }

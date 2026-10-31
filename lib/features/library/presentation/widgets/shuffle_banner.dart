@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -48,7 +48,7 @@ class ShuffleBanner extends StatelessWidget {
           ),
           AppButton.secondary(
             context.l10n.actionShuffle,
-            icon: LucideIcons.shuffle,
+            icon: AppIcons.shuffle,
             size: AppButtonSize.small,
             onPressed: () => _onShuffle(context),
           ),

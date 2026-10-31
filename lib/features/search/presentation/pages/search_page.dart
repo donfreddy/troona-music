@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
@@ -90,7 +90,7 @@ class _SearchPageState extends State<SearchPage> {
                       fontSize: 15,
                     ),
                     prefixIcon: Icon(
-                      LucideIcons.search,
+                      AppIcons.search,
                       color: _controller.text.isNotEmpty
                           ? colors.accent
                           : colors.labelSecondary,
@@ -98,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     suffixIcon: _controller.text.isNotEmpty
                         ? AppIconButton(
-                            icon: LucideIcons.circleX,
+                            icon: AppIcons.clear,
                             tooltip: context.l10n.searchClear,
                             size: 18,
                             color: colors.labelTertiary,

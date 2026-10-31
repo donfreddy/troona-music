@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
@@ -104,7 +104,7 @@ class SearchTopResult extends StatelessWidget {
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
                         child: const Icon(
-                          LucideIcons.micVocal,
+                          AppIcons.artist,
                           color: Colors.white38,
                           size: 32,
                         ),
@@ -145,11 +145,7 @@ class SearchTopResult extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: colors.labelTertiary,
-              size: 20,
-            ),
+            Icon(AppIcons.disclosure, color: colors.labelTertiary, size: 20),
           ],
         ),
       ),
@@ -176,7 +172,7 @@ class SearchTopResult extends StatelessWidget {
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
                         child: const Icon(
-                          LucideIcons.disc,
+                          AppIcons.album,
                           color: Colors.white38,
                           size: 32,
                         ),
@@ -217,11 +213,7 @@ class SearchTopResult extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              LucideIcons.chevronRight,
-              color: colors.labelTertiary,
-              size: 20,
-            ),
+            Icon(AppIcons.disclosure, color: colors.labelTertiary, size: 20),
           ],
         ),
       ),
@@ -257,7 +249,7 @@ class SearchTopResult extends StatelessWidget {
                     : Container(
                         color: Colors.white.withValues(alpha: .08),
                         child: const Icon(
-                          LucideIcons.music,
+                          AppIcons.track,
                           color: Colors.white38,
                           size: 32,
                         ),
@@ -302,11 +294,7 @@ class SearchTopResult extends StatelessWidget {
                 color: colors.accent,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                LucideIcons.play,
-                color: Colors.white,
-                size: 18,
-              ),
+              child: const Icon(AppIcons.play, color: Colors.white, size: 18),
             ),
           ],
         ),

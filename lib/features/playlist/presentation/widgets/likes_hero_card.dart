@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -142,7 +142,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.heart, size: 11, color: colors.accent),
+                        Icon(AppIcons.like, size: 11, color: colors.accent),
                         const SizedBox(width: 4),
                         Text(
                           l10n.likesBadge.toUpperCase(),
@@ -191,7 +191,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                   if (count > 0)
                     AppButton.primary(
                       l10n.actionPlay,
-                      icon: LucideIcons.play,
+                      icon: AppIcons.play,
                       size: AppButtonSize.small,
                       onPressed: () => _playLikes(context),
                     ),
@@ -221,7 +221,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
           color: colors.accent.withValues(alpha: .15),
         ),
         child: Center(
-          child: Icon(LucideIcons.heart, color: colors.accent, size: 34),
+          child: Icon(AppIcons.like, color: colors.accent, size: 34),
         ),
       );
     }
@@ -279,7 +279,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        LucideIcons.heart,
+                        AppIcons.like,
                         color: colors.accentForeground,
                         size: 11,
                       ),

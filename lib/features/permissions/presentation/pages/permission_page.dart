@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:troona/core/error/exceptions.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/core/utils/permission_handler.dart';
@@ -250,7 +250,7 @@ class _PermissionPageState extends State<PermissionPage>
           child: Column(
             children: [
               _PillarRow(
-                icon: LucideIcons.disc3,
+                icon: AppIcons.album,
                 iconColor: colors.accent,
                 title: l10n.permissionQualityTitle,
                 description: l10n.permissionQualityBody,
@@ -260,7 +260,7 @@ class _PermissionPageState extends State<PermissionPage>
                 height: AppSpacing.lg * 2,
               ),
               _PillarRow(
-                icon: LucideIcons.shieldCheck,
+                icon: AppIcons.privacy,
                 iconColor: const Color(0xFF68D391),
                 title: l10n.permissionPrivacyTitle,
                 description: l10n.permissionPrivacyBody,
@@ -270,7 +270,7 @@ class _PermissionPageState extends State<PermissionPage>
                 height: AppSpacing.lg * 2,
               ),
               _PillarRow(
-                icon: LucideIcons.layoutGrid,
+                icon: AppIcons.gridView,
                 iconColor: colors.progressStart,
                 title: l10n.permissionLibraryTitle,
                 description: l10n.permissionLibraryBody,
@@ -294,7 +294,7 @@ class _PermissionPageState extends State<PermissionPage>
               color: colors.accent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(LucideIcons.folderLock, color: colors.accent, size: 32),
+            child: Icon(AppIcons.storageAccess, color: colors.accent, size: 32),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -333,7 +333,7 @@ class _PermissionPageState extends State<PermissionPage>
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              LucideIcons.settings2,
+              AppIcons.systemSettings,
               color: Colors.amberAccent,
               size: 32,
             ),
@@ -415,8 +415,8 @@ class _PermissionPageState extends State<PermissionPage>
                             children: [
                               Icon(
                                 isPermanent
-                                    ? LucideIcons.externalLink
-                                    : LucideIcons.headphones,
+                                    ? AppIcons.openExternal
+                                    : AppIcons.listen,
                                 size: 20,
                                 color: Colors.white,
                               ),
@@ -449,7 +449,7 @@ class _PermissionPageState extends State<PermissionPage>
           const SizedBox(height: AppSpacing.sm),
           AppButton.text(
             context.l10n.permissionCheckAgain,
-            icon: LucideIcons.refreshCw,
+            icon: AppIcons.refresh,
             size: AppButtonSize.small,
             onPressed: _checkPermissionSilently,
           ),
@@ -463,7 +463,7 @@ class _PermissionPageState extends State<PermissionPage>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(LucideIcons.sparkle, size: 13, color: colors.labelTertiary),
+        Icon(AppIcons.hint, size: 13, color: colors.labelTertiary),
         const SizedBox(width: 6),
         Text(
           context.l10n.permissionFooter,

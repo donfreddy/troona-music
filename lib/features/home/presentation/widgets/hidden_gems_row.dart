@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -72,7 +72,7 @@ class _GemCard extends StatelessWidget {
                         : Container(
                             color: Colors.white.withValues(alpha: .08),
                             child: const Icon(
-                              LucideIcons.music,
+                              AppIcons.track,
                               color: Colors.white30,
                               size: 48,
                             ),
@@ -102,7 +102,7 @@ class _GemCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          LucideIcons.heart,
+                          AppIcons.like,
                           size: 10,
                           color: context.colors.accent,
                         ),

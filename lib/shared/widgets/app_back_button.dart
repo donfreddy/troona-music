@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -21,7 +21,7 @@ class AppBackButton extends StatelessWidget {
   Widget build(BuildContext context) => Center(
     // A circle, even in an AppBar's leading slot, which is tight in width.
     child: GlassIconButton(
-      icon: LucideIcons.chevronLeft,
+      icon: AppIcons.back,
       tooltip: context.l10n.detailBack,
       onTap: () {
         AppHaptics.lightImpact();

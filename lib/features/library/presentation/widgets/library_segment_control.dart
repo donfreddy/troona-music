@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
@@ -22,10 +22,10 @@ class LibrarySegmentControl extends StatelessWidget {
   });
 
   static const _tabs = [
-    (LibraryFilter.all, LucideIcons.galleryVerticalEnd),
-    (LibraryFilter.tracks, LucideIcons.music),
-    (LibraryFilter.albums, LucideIcons.disc),
-    (LibraryFilter.artists, LucideIcons.micVocal),
+    (LibraryFilter.all, AppIcons.libraryAll),
+    (LibraryFilter.tracks, AppIcons.track),
+    (LibraryFilter.albums, AppIcons.album),
+    (LibraryFilter.artists, AppIcons.artist),
   ];
 
   static String _labelOf(LibraryFilter filter, BuildContext context) =>

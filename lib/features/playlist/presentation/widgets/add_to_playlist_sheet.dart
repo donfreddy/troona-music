@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -121,7 +121,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                   ),
                 ),
                 AppIconButton(
-                  icon: LucideIcons.x,
+                  icon: AppIcons.close,
                   tooltip: context.l10n.actionClose,
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -138,7 +138,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                 color: colors.accent.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(LucideIcons.plus, color: colors.accent),
+              child: Icon(AppIcons.add, color: colors.accent),
             ),
             title: Text(
               context.l10n.playlistNew,
@@ -195,7 +195,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
-                          LucideIcons.listMusic,
+                          AppIcons.playlist,
                           color: Colors.white30,
                         ),
                       ),
@@ -212,7 +212,7 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
                       ),
                       trailing: alreadyIn
                           ? Icon(
-                              LucideIcons.check,
+                              AppIcons.selected,
                               color: colors.accent,
                               size: 18,
                             )

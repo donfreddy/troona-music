@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
@@ -63,7 +63,7 @@ class _OfferCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.micVocal, color: colors.accent, size: 20),
+              Icon(AppIcons.artist, color: colors.accent, size: 20),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
