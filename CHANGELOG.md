@@ -4,6 +4,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Fixed
+
+- Now Playing: after a swipe to another cover, the title could lag behind the song for a frame.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

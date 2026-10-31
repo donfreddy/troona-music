@@ -179,6 +179,33 @@ void main() {
     );
   });
 
+  testWidgets('a swipe to the next cover changes track without an error', (
+    tester,
+  ) async {
+    await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
+    // The carousel reports the swiped cover to the title... The drag starts
+    // beside the ring, which takes its own drags to seek.
+    final pages = tester.getRect(find.byType(PageView));
+    await tester.dragFrom(
+      Offset(pages.right - 20, pages.center.dy),
+      const Offset(-200, 0),
+    );
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(port.indexJumps, [3]);
+
+    // ...then clears it when the player follows, from inside the stage's
+    // LayoutBuilder.
+    port.queueCtrl.add(Queue.fromTracks(tracks, startIndex: 3));
+    for (var i = 0; i < 3; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Title d'), findsWidgets);
+  });
+
   testWidgets('a track change while the ring is hidden shows when it is back', (
     tester,
   ) async {

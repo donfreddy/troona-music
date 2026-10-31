@@ -87,6 +87,21 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   /// the swipe instead of waiting for the bloc. Null otherwise.
   final _swipeFocus = ValueNotifier<int?>(null);
 
+  /// The carousel also reports from didUpdateWidget, when the player
+  /// follows a swipe. It is built inside the stage's LayoutBuilder, so that
+  /// happens during layout, where the title (outside that builder) cannot
+  /// be marked for rebuild: it is told after the frame instead.
+  void _onSwipeFocusChanged(int? page) {
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      _swipeFocus.value = page;
+      return;
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _swipeFocus.value = page;
+    });
+  }
+
   // ── Carousel / likes ──────────────────────────────────────────────────────
   void _onCarouselPageChanged(int index) {
     if (index == _stageIndex || index >= _stageQueue.length) return;
@@ -249,7 +264,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         queue: queue,
         currentIndex: index,
         onPageChanged: _onCarouselPageChanged,
-        onFocusChanged: (page) => _swipeFocus.value = page,
+        onFocusChanged: _onSwipeFocusChanged,
         enableHeroes: _heroes,
         lensOpacity: _stage,
         ringBuilder: (ring, hole) => _fade(
