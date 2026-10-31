@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -28,11 +29,17 @@ Future<void> main() async {
     return true;
   };
 
-  // Lock orientation to portrait before anything else.
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+  // Portrait only. Not awaited: when Android starts the media service on
+  // its own (playback resumption, a headset button), this engine runs with
+  // no activity, the platform channel never answers, and awaiting it kept
+  // the app on its launch screen once opened. The manifest locks Android
+  // (userPortrait) for that case; this covers iOS.
+  unawaited(
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]),
+  );
 
   try {
     await configureDependencies();
