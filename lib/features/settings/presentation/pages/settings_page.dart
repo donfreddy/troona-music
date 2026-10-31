@@ -17,6 +17,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -458,7 +459,9 @@ class _SettingsList extends StatelessWidget {
         [
           l10n.backupRestoreMissing(missing.length),
           for (final t in missing.take(_missingShown))
-            '${t.title}, ${t.artist}',
+            TrackTags.isUnknownArtist(t.artist)
+                ? t.title
+                : '${t.title}, ${t.artist}',
           if (missing.length > _missingShown)
             l10n.backupRestoreMore(missing.length - _missingShown),
         ].join('\n'),

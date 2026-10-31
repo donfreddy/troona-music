@@ -142,6 +142,70 @@ void main() {
     expect(matcher.match(_saved(fileName: 'a.mp3', size: 5)), '1');
   });
 
+  test('an unknown artist from an older backup matches the library\'s', () {
+    // Earlier versions saved `<unknown>`; the library now says ''.
+    final matcher = TrackMatcher([
+      _track('1', title: 'Intro', artist: '', fileName: 'intro.m4a'),
+    ]);
+
+    expect(matcher.match(_saved(title: 'Intro', artist: '<unknown>')), '1');
+  });
+
+  test('a song named from its file is found from an older backup', () {
+    // Saved as Android named it; the library now reads the file name.
+    final matcher = TrackMatcher([
+      _track('1', title: 'Last Last', artist: 'Burna Boy', fileName: 'x.m4a'),
+    ]);
+
+    expect(
+      matcher.match(
+        _saved(
+          title: 'Burna Boy - Last Last (Official Video)',
+          artist: '<unknown>',
+        ),
+      ),
+      '1',
+    );
+  });
+
+  test('a song named from its file: the album decides, then the title', () {
+    final saved = _saved(
+      title: 'Burna Boy - Last Last',
+      artist: '<unknown>',
+      album: 'Download',
+    );
+    // Two equal candidates: only the album tells them apart.
+    final twoAlbums = TrackMatcher([
+      _track(
+        '1',
+        title: 'Last Last',
+        artist: 'Burna Boy',
+        album: 'Other',
+        fileName: 'a',
+      ),
+      _track(
+        '2',
+        title: 'Last Last',
+        artist: 'Burna Boy',
+        album: 'Download',
+        fileName: 'b',
+      ),
+    ]);
+    expect(twoAlbums.match(saved), '2');
+
+    // The album was renamed: title and artist still find it.
+    final renamed = TrackMatcher([
+      _track(
+        '1',
+        title: 'Last Last',
+        artist: 'Burna Boy',
+        album: 'Music',
+        fileName: 'a',
+      ),
+    ]);
+    expect(renamed.match(saved), '1');
+  });
+
   test('a title alone does not match an unknown artist', () {
     final matcher = TrackMatcher([
       _track(

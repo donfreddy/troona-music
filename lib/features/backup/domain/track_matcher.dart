@@ -1,5 +1,6 @@
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Finds the songs of a backup in this phone's library.
 ///
@@ -12,7 +13,8 @@ import 'package:troona/features/library/domain/entities/track.dart';
 ///
 /// Steps 2 and 3 only keep songs within [tolerance] of the saved duration,
 /// and step 3 is skipped for an unknown artist, where a title alone
-/// ("Intro") says too little. Several candidates go to the closest duration;
+/// ("Intro") says too little. A song saved without an artist is also looked
+/// up as the "Artist - Title" its saved title may read as. Several candidates go to the closest duration;
 /// a tie matches nothing, since a missing song is better than a wrong one in
 /// a playlist. At step 1 a tie is the same file in two folders: either copy
 /// is right, so the first one is taken.
@@ -36,10 +38,18 @@ final class TrackMatcher {
     final copies = _byFile[_fileKey(saved.fileName, saved.size)];
     if (copies != null) return _closest(copies, saved, firstOnTie: true)?.id;
 
+    // Saved without an artist by an earlier version, the song may now be
+    // named from its file: "Artist - Title" became Title by Artist.
+    final named = _isKnown(saved.artist)
+        ? null
+        : TrackTags.fromName(saved.title);
     final steps = [
       _byTags[_tagsKey(saved.title, saved.artist, saved.album)],
+      if (named != null)
+        _byTags[_tagsKey(named.title, named.artist, saved.album)],
       if (_isKnown(saved.artist))
         _byTitle[_titleKey(saved.title, saved.artist)],
+      if (named != null) _byTitle[_titleKey(named.title, named.artist)],
     ];
     for (final found in steps) {
       final candidates = [
@@ -66,9 +76,7 @@ final class TrackMatcher {
     return sorted.first;
   }
 
-  /// What Android and the scanner write when a file has no artist tag.
-  static bool _isKnown(String artist) =>
-      !const {'', '<unknown>', 'unknown artist'}.contains(normalize(artist));
+  static bool _isKnown(String artist) => !TrackTags.isUnknownArtist(artist);
 
   static int _gap(Track track, BackupTrack saved) =>
       (track.durationMs - saved.durationMs).abs();
@@ -78,8 +86,9 @@ final class TrackMatcher {
   static String _tagsKey(String title, String artist, String album) =>
       '${_titleKey(title, artist)}\u0000${normalize(album)}';
 
+  /// Earlier versions saved Android's `<unknown>` for a missing artist.
   static String _titleKey(String title, String artist) =>
-      '${normalize(title)}\u0000${normalize(artist)}';
+      '${normalize(title)}\u0000${normalize(TrackTags.artist(artist))}';
 
   /// Case and spacing differ between taggers.
   static String normalize(String text) =>
