@@ -94,7 +94,7 @@ Modals and labels go through one entry point each, in `lib/shared/widgets/`; nev
 - `AppBackButton`: the back button of every pushed page (glass circle). In an `AppBar`, also set `leadingWidth: AppBackButton.leadingWidth`.
 - Icon-only buttons: `GlassIconButton` for a glass circle (header actions), `AppIconButton` for a bare icon (row options, sheet close, field clear, mini player). `AppIconButton` takes 44 x 44 dp and requires a tooltip, the label screen readers read. Never a raw `IconButton`.
 
-Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`). A null or empty path, or a file that cannot be read, shows `ArtworkPlaceholder` with the role's icon (`placeholder: AppIcons.album`); never a hand-made grey box.
+Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/widgets/artwork_image.dart`). A null or empty path, or a file that cannot be read, shows `ArtworkPlaceholder` with the role's icon (`placeholder: AppIcons.album`), opaque like a cover; never a hand-made grey box.
 
 Icons come from `AppIcons` (`lib/core/theme/semantic/app_icons.dart`), named by role, not by glyph. It is the only file that imports an icon pack (Lucide, plus Eva for the filled glyphs Lucide lacks) or names `CupertinoIcons` or Material `Icons`, which `test/unit/architecture/icon_sources_test.dart` enforces (the boot failure screen may use Material `Icons`). Give each role its own entry, even when two roles share a glyph (a playlist and the queue).
 

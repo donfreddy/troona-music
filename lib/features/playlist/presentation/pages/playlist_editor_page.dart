@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
@@ -109,15 +110,13 @@ class _PlaylistCoverPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      height: 180,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .05),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: Colors.white10),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      child: const ArtworkPlaceholder(
+        icon: AppIcons.playlist,
+        width: 180,
+        height: 180,
       ),
-      child: const Icon(AppIcons.playlist, size: 48, color: Colors.white30),
     );
   }
 }

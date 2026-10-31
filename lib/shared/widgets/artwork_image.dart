@@ -83,6 +83,9 @@ class ArtworkImage extends StatelessWidget {
 /// Stands in for missing artwork: a faint square with [icon] in the middle,
 /// sized to the room it gets. Fills its parent unless given a size; the
 /// parent clips it to a rounded square or a circle.
+///
+/// Opaque, like a cover: whatever sits behind one (the record on the album
+/// page, a Hero flight) must not show through it.
 class ArtworkPlaceholder extends StatelessWidget {
   final IconData icon;
   final double? width;
@@ -97,19 +100,22 @@ class ArtworkPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.colors.labelTertiary;
+    final colors = context.colors;
     return SizedBox(
       width: width,
       height: height,
       child: ColoredBox(
-        color: Colors.white.withValues(alpha: .08),
+        color: Color.alphaBlend(
+          Colors.white.withValues(alpha: .08),
+          colors.bgSecondary,
+        ),
         child: LayoutBuilder(
           builder: (_, constraints) {
             final side = math.min(constraints.maxWidth, constraints.maxHeight);
             return Center(
               child: Icon(
                 icon,
-                color: color,
+                color: colors.labelTertiary,
                 size: side.isFinite ? (side * .4).clamp(16, 64) : 24,
               ),
             );

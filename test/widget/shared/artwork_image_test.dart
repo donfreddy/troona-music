@@ -66,6 +66,21 @@ void main() {
     expect(tester.widget<Icon>(find.byIcon(AppIcons.album)).size, 16);
   });
 
+  testWidgets('the placeholder is opaque, like the cover it stands for', (
+    tester,
+  ) async {
+    // The album page shows a record behind its cover: it must not show
+    // through a missing one.
+    await pump(tester, const ArtworkPlaceholder(width: 64, height: 64));
+    final fill = tester.widget<ColoredBox>(
+      find.descendant(
+        of: find.byType(ArtworkPlaceholder),
+        matching: find.byType(ColoredBox),
+      ),
+    );
+    expect(fill.color.a, 1);
+  });
+
   testWidgets('a file that cannot be read shows the same placeholder', (
     tester,
   ) async {

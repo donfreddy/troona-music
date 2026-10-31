@@ -19,6 +19,7 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
@@ -357,17 +358,10 @@ class _MiniPlayerRow extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     gaplessPlayback: true,
                                     errorBuilder: (_, _, _) =>
-                                        ColoredBox(color: colors.glassFill),
+                                        const ArtworkPlaceholder(),
                                   ),
                                 )
-                              : ColoredBox(
-                                  color: colors.glassFill,
-                                  child: Icon(
-                                    AppIcons.track,
-                                    color: colors.labelTertiary,
-                                    size: 18,
-                                  ),
-                                ),
+                              : const ArtworkPlaceholder(),
                         ),
                       ),
 

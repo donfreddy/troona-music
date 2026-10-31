@@ -74,16 +74,7 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
 
     // Loading / Empty state
     if (!_loaded || _artworks.isEmpty) {
-      return Container(
-        color: colors.glassFill,
-        child: Center(
-          child: Icon(
-            AppIcons.playlist,
-            color: colors.labelTertiary,
-            size: (widget.size ?? 60) * 0.42,
-          ),
-        ),
-      );
+      return const ArtworkPlaceholder(icon: AppIcons.playlist);
     }
 
     // 1 single cover: Show full size!

@@ -24,6 +24,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - Opening Settings, the privacy policy or Your week in music showed the previous page through the new one while it slid in, then made it vanish at once.
 - Songs without an artist showed "<unknown>": they now read "Unknown artist" in the app's language and come after the named artists.
+- On an album page without a cover, the record behind the sleeve showed through it.
 
 ## [1.1.1] - 2026-10-31
 

@@ -489,16 +489,7 @@ class _QueueRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
               child: SizedBox.square(
                 dimension: 40,
-                child: track.artworkPath != null
-                    ? ArtworkImage(track.artworkPath!, width: 40, height: 40)
-                    : ColoredBox(
-                        color: colors.bgTertiary,
-                        child: Icon(
-                          AppIcons.track,
-                          size: 16,
-                          color: colors.labelTertiary,
-                        ),
-                      ),
+                child: ArtworkImage(track.artworkPath, width: 40, height: 40),
               ),
             ),
             const SizedBox(width: AppSpacing.md),
