@@ -178,7 +178,7 @@ void main() {
     expect(find.text('Mini player').hitTestable(), findsNothing);
   });
 
-  for (final version in ['1.0.0', '1.1.0']) {
+  for (final version in ['1.0.0', '1.1.0', '1.1.1']) {
     for (final textScale in [1.0, 1.3, 2.0]) {
       testWidgets('the $version notes fit a 360x640 phone below its status '
           'bar, everything open, text x$textScale', (tester) async {

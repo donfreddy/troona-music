@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-31
+
 ### Changed
 
 - What's new shows every release, not only the latest: the installed one first, with its date and how many changes of each kind, then the earlier ones, each opening on tap.
@@ -96,6 +98,7 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/donfreddy/troona-music/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/donfreddy/troona-music/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/donfreddy/troona-music/releases/tag/v1.0.0

@@ -363,5 +363,11 @@
   "whatsNew110ScreensTitle": "Petits écrans et grands textes",
   "whatsNew110ScreensBody": "Sur les petits téléphones, l'écran de lecture garde ses commandes visibles, et toute l'application suit la taille de texte de votre téléphone.",
   "whatsNew110NotificationTitle": "Icône de notification",
-  "whatsNew110NotificationBody": "La notification de lecture affiche la note de Troona dans la barre d'état."
+  "whatsNew110NotificationBody": "La notification de lecture affiche la note de Troona dans la barre d'état.",
+  "whatsNew111ChangelogTitle": "Toutes les versions au même endroit",
+  "whatsNew111ChangelogBody": "Nouveautés garde désormais les notes de chaque version, de la plus récente à la plus ancienne. Ouvrez-les quand vous voulez depuis les Réglages, rubrique Aide et retours.",
+  "whatsNew111StartupTitle": "Démarrage fiable",
+  "whatsNew111StartupBody": "Troona ne reste plus bloqué sur son écran de démarrage quand vous l'ouvrez après avoir relancé la musique depuis les commandes multimédia ou un casque.",
+  "whatsNew111HomeTitle": "L'accueil dès la première recherche",
+  "whatsNew111HomeBody": "Votre musique apparaît sur l'accueil dès que la première recherche la trouve, sans actualiser."
 }

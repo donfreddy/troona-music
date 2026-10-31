@@ -2281,6 +2281,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The playback notification shows the Troona note in the status bar.'**
   String get whatsNew110NotificationBody;
+
+  /// No description provided for @whatsNew111ChangelogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every release in one place'**
+  String get whatsNew111ChangelogTitle;
+
+  /// No description provided for @whatsNew111ChangelogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new now keeps the notes of every version, the newest first. Open it any time from Settings, under Help and feedback.'**
+  String get whatsNew111ChangelogBody;
+
+  /// No description provided for @whatsNew111StartupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reliable start'**
+  String get whatsNew111StartupTitle;
+
+  /// No description provided for @whatsNew111StartupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona no longer stays on its launch screen when you open it after resuming music from the media controls or a headset.'**
+  String get whatsNew111StartupBody;
+
+  /// No description provided for @whatsNew111HomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home right after the first scan'**
+  String get whatsNew111HomeTitle;
+
+  /// No description provided for @whatsNew111HomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your music shows on Home as soon as the first scan finds it, without refreshing.'**
+  String get whatsNew111HomeBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1383,4 +1383,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew110NotificationBody =>
       'The playback notification shows the Troona note in the status bar.';
+
+  @override
+  String get whatsNew111ChangelogTitle => 'Every release in one place';
+
+  @override
+  String get whatsNew111ChangelogBody =>
+      'What\'s new now keeps the notes of every version, the newest first. Open it any time from Settings, under Help and feedback.';
+
+  @override
+  String get whatsNew111StartupTitle => 'Reliable start';
+
+  @override
+  String get whatsNew111StartupBody =>
+      'Troona no longer stays on its launch screen when you open it after resuming music from the media controls or a headset.';
+
+  @override
+  String get whatsNew111HomeTitle => 'Home right after the first scan';
+
+  @override
+  String get whatsNew111HomeBody =>
+      'Your music shows on Home as soon as the first scan finds it, without refreshing.';
 }

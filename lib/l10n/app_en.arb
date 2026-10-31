@@ -749,5 +749,11 @@
   "whatsNew110ScreensTitle": "Small screens and large fonts",
   "whatsNew110ScreensBody": "Now Playing keeps its controls on screen on smaller phones, and the whole app follows your phone's font size.",
   "whatsNew110NotificationTitle": "Notification icon",
-  "whatsNew110NotificationBody": "The playback notification shows the Troona note in the status bar."
+  "whatsNew110NotificationBody": "The playback notification shows the Troona note in the status bar.",
+  "whatsNew111ChangelogTitle": "Every release in one place",
+  "whatsNew111ChangelogBody": "What's new now keeps the notes of every version, the newest first. Open it any time from Settings, under Help and feedback.",
+  "whatsNew111StartupTitle": "Reliable start",
+  "whatsNew111StartupBody": "Troona no longer stays on its launch screen when you open it after resuming music from the media controls or a headset.",
+  "whatsNew111HomeTitle": "Home right after the first scan",
+  "whatsNew111HomeBody": "Your music shows on Home as soon as the first scan finds it, without refreshing."
 }
