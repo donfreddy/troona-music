@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Opens "What's new" above the mini player and the tab bar: the release of
 /// [version] (the newest when it has no notes), then every earlier one.
@@ -95,19 +96,10 @@ class WhatsNewSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          TextButton(
+          AppButton.primary(
+            l10n.whatsNewContinue,
+            expanded: true,
             onPressed: () => Navigator.of(context).pop(),
-            style: TextButton.styleFrom(
-              backgroundColor: colors.accent,
-              foregroundColor: colors.accentForeground,
-              minimumSize: const Size.fromHeight(48),
-              shape: const StadiumBorder(),
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            child: Text(l10n.whatsNewContinue),
           ),
         ],
       ),
@@ -612,34 +604,18 @@ class _ShowAllButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     // Merged: the button makes its own node, which must carry the state.
     return MergeSemantics(
       child: Semantics(
         expanded: expanded,
-        child: OutlinedButton(
+        child: AppButton.secondary(
+          label,
+          expanded: true,
           onPressed: onTap,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: colors.labelPrimary,
-            side: BorderSide(color: colors.separator),
-            minimumSize: const Size.fromHeight(44),
-            shape: const StadiumBorder(),
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(child: Text(label, textAlign: TextAlign.center)),
-              const SizedBox(width: AppSpacing.xs),
-              AnimatedRotation(
-                turns: expanded ? .5 : 0,
-                duration: const Duration(milliseconds: 200),
-                child: const Icon(LucideIcons.chevronDown, size: 18),
-              ),
-            ],
+          trailing: AnimatedRotation(
+            turns: expanded ? .5 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: const Icon(LucideIcons.chevronDown, size: 18),
           ),
         ),
       ),

@@ -10,6 +10,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// First-run welcome and audio permission request.
 ///
@@ -446,21 +447,11 @@ class _PermissionPageState extends State<PermissionPage>
         // Secondary check button for permanently denied state
         if (isPermanent) ...[
           const SizedBox(height: AppSpacing.sm),
-          TextButton.icon(
+          AppButton.text(
+            context.l10n.permissionCheckAgain,
+            icon: LucideIcons.refreshCw,
+            size: AppButtonSize.small,
             onPressed: _checkPermissionSilently,
-            icon: Icon(
-              LucideIcons.refreshCw,
-              size: 15,
-              color: colors.labelSecondary,
-            ),
-            label: Text(
-              context.l10n.permissionCheckAgain,
-              style: TextStyle(
-                color: colors.labelSecondary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
           ),
         ],
       ],

@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/updates/domain/entities/app_release.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/updates/presentation/open_release.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Home card announcing a newer release, until it is installed or skipped.
 class UpdateCard extends StatelessWidget {
@@ -85,27 +86,14 @@ class _Card extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
+              AppButton.text(
+                l10n.updateSkip,
                 onPressed: getIt<UpdateCubit>().skip,
-                style: TextButton.styleFrom(
-                  foregroundColor: colors.labelSecondary,
-                  minimumSize: const Size(0, 44),
-                ),
-                child: Text(l10n.updateSkip),
               ),
               const SizedBox(width: AppSpacing.sm),
-              TextButton(
+              AppButton.primary(
+                l10n.updateView,
                 onPressed: () => openRelease(context, release),
-                style: TextButton.styleFrom(
-                  backgroundColor: colors.accent,
-                  foregroundColor: colors.accentForeground,
-                  minimumSize: const Size(0, 44),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                  ),
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(l10n.updateView),
               ),
             ],
           ),

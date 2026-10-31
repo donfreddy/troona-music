@@ -8,6 +8,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 class ShuffleBanner extends StatelessWidget {
   final List<Track> tracks;
@@ -45,38 +46,11 @@ class ShuffleBanner extends StatelessWidget {
               color: colors.labelSecondary,
             ),
           ),
-          InkWell(
-            onTap: () => _onShuffle(context),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: 6,
-              ),
-              decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: .18),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: colors.accent.withValues(alpha: .3),
-                  width: 0.5,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(LucideIcons.shuffle, size: 14, color: colors.accent),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.l10n.actionShuffle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: colors.accent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          AppButton.secondary(
+            context.l10n.actionShuffle,
+            icon: LucideIcons.shuffle,
+            size: AppButtonSize.small,
+            onPressed: () => _onShuffle(context),
           ),
         ],
       ),

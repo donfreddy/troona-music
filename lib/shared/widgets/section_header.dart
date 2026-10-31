@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -36,30 +37,10 @@ class SectionHeader extends StatelessWidget {
           ),
           if (onViewAll != null) ...[
             const SizedBox(width: AppSpacing.sm),
-            GestureDetector(
-              onTap: onViewAll,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: .15),
-                    width: 0.5,
-                  ),
-                ),
-                child: Text(
-                  context.l10n.actionSeeAll,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
+            AppButton.secondary(
+              context.l10n.actionSeeAll,
+              size: AppButtonSize.small,
+              onPressed: onViewAll,
             ),
           ],
         ],

@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// The app's single transient message: a pill just above the bottom bar
 /// (see [ToastAnchor]), or near the bottom edge when there is none.
@@ -147,17 +148,14 @@ class _ToastView extends StatelessWidget {
                   ),
                 ),
               ),
-              if (actionLabel != null && onAction != null)
-                TextButton(
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                AppButton.secondary(
+                  actionLabel!,
+                  size: AppButtonSize.small,
                   onPressed: onAction,
-                  child: Text(
-                    actionLabel!,
-                    style: TextStyle(
-                      color: colors.accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
                 ),
+              ],
             ],
           ),
         ),

@@ -8,6 +8,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// One-time card asking whether to turn on the online extras (Last.fm and
 /// Deezer). They are off by default; either answer hides the card for good.
@@ -89,30 +90,17 @@ class _OfferCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(
+              AppButton.text(
+                l10n.homeExtrasDecline,
                 onPressed: () {
                   cubit.dismissOnlineExtrasOffer();
                   AppToast.show(context, l10n.homeExtrasDeclined);
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: colors.labelSecondary,
-                  minimumSize: const Size(0, 44),
-                ),
-                child: Text(l10n.homeExtrasDecline),
               ),
               const SizedBox(width: AppSpacing.sm),
-              TextButton(
+              AppButton.primary(
+                l10n.homeExtrasAccept,
                 onPressed: () => cubit.setOnlineExtras(true),
-                style: TextButton.styleFrom(
-                  backgroundColor: colors.accent,
-                  foregroundColor: colors.accentForeground,
-                  minimumSize: const Size(0, 44),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                  ),
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(l10n.homeExtrasAccept),
               ),
             ],
           ),

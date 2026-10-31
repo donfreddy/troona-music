@@ -13,6 +13,7 @@ import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_c
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Hero banner for the liked songs playlist: one-tap playback and a deck of
 /// recent favourite covers.
@@ -188,40 +189,11 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
 
                   // Action Play button
                   if (count > 0)
-                    InkWell(
-                      onTap: () => _playLikes(context),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colors.accent,
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusFull,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              LucideIcons.play,
-                              size: 14,
-                              color: colors.accentForeground,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.actionPlay,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: colors.accentForeground,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    AppButton.primary(
+                      l10n.actionPlay,
+                      icon: LucideIcons.play,
+                      size: AppButtonSize.small,
+                      onPressed: () => _playLikes(context),
                     ),
                 ],
               ),

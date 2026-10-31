@@ -21,6 +21,7 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Playlists tab: the liked songs banner, then the user's playlists as a
 /// grid or a list. Laid out like the Library: large title header, same
@@ -289,20 +290,10 @@ class _EmptyPlaylistsView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            ElevatedButton.icon(
+            AppButton.primary(
+              context.l10n.playlistNew,
+              icon: LucideIcons.plus,
               onPressed: onCreate,
-              icon: const Icon(LucideIcons.plus, size: 16),
-              label: Text(context.l10n.playlistNew),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colors.accent,
-                foregroundColor: colors.accentForeground,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 11,
-                ),
-                shape: const StadiumBorder(),
-              ),
             ),
           ],
         ),

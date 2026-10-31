@@ -19,7 +19,6 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
@@ -30,6 +29,7 @@ import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
+import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -521,89 +521,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                   horizontal: AppSpacing.lg,
                   vertical: 8,
                 ),
-                child: Row(
-                  children: [
-                    // Primary Play Button
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: FilledButton.icon(
-                          onPressed: () {
-                            if (tracks.isNotEmpty) {
-                              AppHaptics.mediumImpact();
-                              context.read<PlayerBloc>().add(
-                                PlayTrackRequested(
-                                  tracks[0],
-                                  contextQueue: tracks,
-                                  contextIndex: 0,
-                                ),
-                              );
-                            }
-                          },
-                          icon: const Icon(LucideIcons.play, size: 18),
-                          label: Text(
-                            context.l10n.actionPlay,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
-                          ),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colors.accent,
-                            foregroundColor: colors.accentForeground,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 4,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    // Secondary Shuffle Button (Glass)
-                    Expanded(
-                      child: SizedBox(
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed: tracks.isEmpty
-                              ? null
-                              : () {
-                                  AppHaptics.mediumImpact();
-                                  playShuffled(
-                                    context.read<PlayerBloc>(),
-                                    tracks,
-                                  );
-                                },
-                          icon: Icon(
-                            LucideIcons.shuffle,
-                            size: 18,
-                            color: colors.accent,
-                          ),
-                          label: Text(
-                            context.l10n.actionShuffle,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.08,
-                            ),
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.16),
-                              width: 0.8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: PlayShuffleButtons(tracks: tracks),
               ),
             ),
           ],

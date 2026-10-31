@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Empty state: what is missing, how to fill it, and one optional action.
 class EmptyState extends StatelessWidget {
@@ -64,23 +65,7 @@ class EmptyState extends StatelessWidget {
             ],
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: AppSpacing.xl),
-              TextButton(
-                onPressed: onAction,
-                style: TextButton.styleFrom(
-                  backgroundColor: colors.accent,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 44),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                  ),
-                  shape: const StadiumBorder(),
-                  textStyle: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: Text(actionLabel!),
-              ),
+              AppButton.primary(actionLabel!, onPressed: onAction),
             ],
           ],
         ),

@@ -7,6 +7,7 @@ import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 class PlaylistEditorPage extends StatefulWidget {
   final Playlist? playlist;
@@ -68,15 +69,10 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          TextButton(
+          AppButton.primary(
+            context.l10n.actionSave,
+            size: AppButtonSize.small,
             onPressed: _onSave,
-            child: Text(
-              context.l10n.actionSave,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
           const SizedBox(width: AppSpacing.md),
         ],

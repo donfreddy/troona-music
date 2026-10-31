@@ -125,12 +125,16 @@ void main() {
     expect(find.text('Change 5'), findsNothing);
     expect(find.text('EARLIER RELEASES'), findsNothing);
 
-    await tester.tap(find.text('Show all 6 changes'));
+    await tester.tap(
+      find.textContaining('Show all 6 changes', findRichText: true),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Change 6'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Show fewer'));
-    await tester.tap(find.text('Show fewer'));
+    await tester.ensureVisible(
+      find.textContaining('Show fewer', findRichText: true),
+    );
+    await tester.tap(find.textContaining('Show fewer', findRichText: true));
     await tester.pumpAndSettle();
     expect(find.text('Change 5'), findsNothing);
   });
@@ -252,7 +256,10 @@ void main() {
     ]);
     await open(tester, [long, ...releases]);
 
-    final showAll = find.text('Show all 6 changes');
+    final showAll = find.textContaining(
+      'Show all 6 changes',
+      findRichText: true,
+    );
     expect(
       tester.getSemantics(showAll),
       isSemantics(

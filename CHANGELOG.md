@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Dialogs (confirmations, playlist names) match the app and fade in smoothly.
 - Add to playlist opens above the mini player, and its height follows the number of playlists.
 - The labels on album, artist and playlist pages and in search share one style.
+- Buttons share one style in two sizes. See all, Shuffle all and the action in messages are easier to tap.
 
 ### Fixed
 

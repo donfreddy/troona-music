@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 /// Full-area error state. Shows user-facing copy only: raw failure messages
 /// belong in the logs, not on screen.
@@ -51,34 +51,11 @@ class ErrorView extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: AppSpacing.xl),
-              _PillButton(label: l10n.actionRetry, onPressed: onRetry!),
+              AppButton.secondary(l10n.actionRetry, onPressed: onRetry),
             ],
           ],
         ),
       ),
-    );
-  }
-}
-
-class _PillButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-
-  const _PillButton({required this.label, required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: .12),
-        foregroundColor: Colors.white,
-        minimumSize: const Size(0, 44),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-        shape: const StadiumBorder(),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-      ),
-      child: Text(label),
     );
   }
 }
