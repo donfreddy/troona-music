@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 
-/// Shows a glass-styled modal bottom sheet.
+/// The app's single way to open a modal bottom sheet.
 ///
-/// Wraps [showModalBottomSheet] with a transparent barrier and a [GlassBottomSheet]
-/// body so callers only need to provide their content:
+/// Wraps [showModalBottomSheet] with a transparent background and a
+/// [GlassBottomSheet] body so callers only provide their content:
 ///
 /// ```dart
 /// showGlassBottomSheet(
@@ -18,23 +19,29 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 /// Set [isScrollControlled] to true when the child may be taller than half the
 /// screen (e.g. a full-height queue list).
 ///
-/// Opened from a shell page, the sheet lives in that branch's navigator, under
-/// the mini player and the tab bar: [useRootNavigator] puts it above them.
-/// Over glass that already blurs, pass [GlassQuality.off] as [quality] to keep
-/// to two blurs on screen.
+/// The sheet opens above the mini player and the tab bar; with
+/// [useRootNavigator] false it would live in the branch's navigator, under them.
+///
+/// The glass comes from [GlassTheme.aboveGlass] read from [context]: a blur
+/// on high-tier devices, opaque elsewhere, over Now Playing and over another
+/// sheet. [quality] overrides it.
 ///
 /// A sheet that can grow to the top of the screen sets [useSafeArea], so it
 /// stops below the status bar.
+///
+/// [padding] replaces the default content padding (see [GlassBottomSheet]).
 Future<T?> showGlassBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isDismissible = true,
   bool enableDrag = true,
   bool isScrollControlled = false,
-  bool useRootNavigator = false,
+  bool useRootNavigator = true,
   bool useSafeArea = false,
   GlassQuality? quality,
+  EdgeInsetsGeometry? padding,
 }) {
+  final resolved = quality ?? GlassTheme.aboveGlass(context);
   return showModalBottomSheet<T>(
     context: context,
     backgroundColor: Colors.transparent,
@@ -44,7 +51,15 @@ Future<T?> showGlassBottomSheet<T>({
     isScrollControlled: isScrollControlled,
     useRootNavigator: useRootNavigator,
     useSafeArea: useSafeArea,
-    builder: (ctx) => GlassBottomSheet(quality: quality, child: builder(ctx)),
+    // A sheet opened from this one would be one blur too many: [builder]
+    // gets a context below the mark.
+    builder: (_) => BlurBudgetSpent(
+      child: GlassBottomSheet(
+        quality: resolved,
+        padding: padding,
+        child: Builder(builder: builder),
+      ),
+    ),
   );
 }
 
@@ -65,8 +80,10 @@ class GlassBottomSheet extends StatelessWidget {
   /// Whether to show the drag-indicator pill at the top of the sheet.
   final bool showHandle;
 
-  /// Horizontal padding applied to [child].  Defaults to [AppSpacing.lg].
-  final double horizontalPadding;
+  /// Padding around [child]. Defaults to [AppSpacing.lg] on the sides and
+  /// below, plus the bottom inset. A child that handles the bottom inset
+  /// itself (a list scrolling under it) passes [EdgeInsets.zero].
+  final EdgeInsetsGeometry? padding;
 
   /// Overrides the user's glass quality; [GlassQuality.off] is opaque.
   final GlassQuality? quality;
@@ -75,7 +92,7 @@ class GlassBottomSheet extends StatelessWidget {
     super.key,
     required this.child,
     this.showHandle = true,
-    this.horizontalPadding = AppSpacing.lg,
+    this.padding,
     this.quality,
   });
 
@@ -86,8 +103,14 @@ class GlassBottomSheet extends StatelessWidget {
     final content = _SheetContent(
       config: cfg,
       showHandle: showHandle,
-      horizontalPadding: horizontalPadding,
-      bottomInset: bottomInset,
+      padding:
+          padding ??
+          EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            0,
+            AppSpacing.lg,
+            AppSpacing.lg + bottomInset,
+          ),
       child: child,
     );
 
@@ -118,15 +141,13 @@ class _SheetContent extends StatelessWidget {
   final GlassConfig config;
   final Widget child;
   final bool showHandle;
-  final double horizontalPadding;
-  final double bottomInset;
+  final EdgeInsetsGeometry padding;
 
   const _SheetContent({
     required this.config,
     required this.child,
     required this.showHandle,
-    required this.horizontalPadding,
-    required this.bottomInset,
+    required this.padding,
   });
 
   @override
@@ -151,15 +172,7 @@ class _SheetContent extends StatelessWidget {
           ] else
             SizedBox(height: config.padding.top),
           Flexible(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                0,
-                horizontalPadding,
-                AppSpacing.lg + bottomInset,
-              ),
-              child: child,
-            ),
+            child: Padding(padding: padding, child: child),
           ),
         ],
       ),

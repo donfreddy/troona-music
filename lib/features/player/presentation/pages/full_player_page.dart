@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
@@ -369,172 +370,178 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final opacity =
         1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          getIt<PlaybackSessionStore>().setFullPlayerOpen(false);
-        }
-      },
-      child: GestureDetector(
-        onVerticalDragUpdate: _onDragUpdate,
-        onVerticalDragEnd: _onDragEnd,
-        child: Transform.translate(
-          offset: Offset(0, _dragOffset),
-          child: Opacity(
-            opacity: opacity,
-            child: BlocListener<PlayerBloc, PlayerState>(
-              listenWhen: (prev, curr) =>
-                  curr is PlayerActive &&
-                  (prev is! PlayerActive ||
-                      prev.currentTrack != curr.currentTrack),
-              listener: (context, state) {
-                if (state is PlayerActive) {
-                  context.read<LikesCubit>().syncTrack(state.currentTrack);
-                }
-              },
-              child: Scaffold(
-                //backgroundColor: Colors.black,
-                // Laid out for the font size up to the layout cap.
-                body: MediaQuery.withClampedTextScaling(
-                  maxScaleFactor: AppLayout.maxTextScale,
-                  child: BlocBuilder<PlayerBloc, PlayerState>(
-                    // Position ticks must not rebuild the page: only the
-                    // track, the queue or the state kind matter here.
-                    buildWhen: (prev, curr) =>
-                        _structuralKey(prev) != _structuralKey(curr),
-                    builder: (context, state) {
-                      final track = _resolveTrack(state);
-                      final stage = _resolveStage(state);
+    // The page uses both allowed blurs: what opens from it is opaque.
+    return BlurBudgetSpent(
+      child: PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) {
+            getIt<PlaybackSessionStore>().setFullPlayerOpen(false);
+          }
+        },
+        child: GestureDetector(
+          onVerticalDragUpdate: _onDragUpdate,
+          onVerticalDragEnd: _onDragEnd,
+          child: Transform.translate(
+            offset: Offset(0, _dragOffset),
+            child: Opacity(
+              opacity: opacity,
+              child: BlocListener<PlayerBloc, PlayerState>(
+                listenWhen: (prev, curr) =>
+                    curr is PlayerActive &&
+                    (prev is! PlayerActive ||
+                        prev.currentTrack != curr.currentTrack),
+                listener: (context, state) {
+                  if (state is PlayerActive) {
+                    context.read<LikesCubit>().syncTrack(state.currentTrack);
+                  }
+                },
+                child: Scaffold(
+                  //backgroundColor: Colors.black,
+                  // Laid out for the font size up to the layout cap.
+                  body: MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: AppLayout.maxTextScale,
+                    child: BlocBuilder<PlayerBloc, PlayerState>(
+                      // Position ticks must not rebuild the page: only the
+                      // track, the queue or the state kind matter here.
+                      buildWhen: (prev, curr) =>
+                          _structuralKey(prev) != _structuralKey(curr),
+                      builder: (context, state) {
+                        final track = _resolveTrack(state);
+                        final stage = _resolveStage(state);
 
-                      return Stack(
-                        children: [
-                          // Dynamic background
-                          BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-                            builder: (_, palette) => DynamicBackground(
-                              colorA: palette.backgroundColorA,
-                              colorB: palette.backgroundColorB,
-                              tone: DynamicBackgroundTone.immersive,
-                              child: const SizedBox.expand(),
+                        return Stack(
+                          children: [
+                            // Dynamic background
+                            BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+                              builder: (_, palette) => DynamicBackground(
+                                colorA: palette.backgroundColorA,
+                                colorB: palette.backgroundColorB,
+                                tone: DynamicBackgroundTone.immersive,
+                                child: const SizedBox.expand(),
+                              ),
                             ),
-                          ),
 
-                          // Scrollable content
-                          SafeArea(
-                            bottom: false,
-                            child: Column(
-                              children: [
-                                // Top bar: dismiss + drag indicator + options
-                                _fadeChrome(_TopBar()),
+                            // Scrollable content
+                            SafeArea(
+                              bottom: false,
+                              child: Column(
+                                children: [
+                                  // Top bar: dismiss + drag indicator + options
+                                  _fadeChrome(_TopBar()),
 
-                                const SizedBox(height: AppSpacing.lg),
+                                  const SizedBox(height: AppSpacing.lg),
 
-                                // Track info + like
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.xl2,
-                                  ),
-                                  child: _fadeChrome(
-                                    // Only the title rebuilds as a swipe
-                                    // crosses covers.
-                                    ValueListenableBuilder<int?>(
-                                      valueListenable: _swipeFocus,
-                                      builder: (_, focus, _) {
-                                        final focused =
-                                            focus != null &&
-                                            focus < _stageQueue.length;
-                                        return _TrackInfo(
-                                          track: focused
-                                              ? _stageQueue[focus]
-                                              : track,
-                                          index: focused ? focus : stage?.$2,
-                                          queueLength: _stageQueue.length,
-                                        );
-                                      },
+                                  // Track info + like
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.xl2,
+                                    ),
+                                    child: _fadeChrome(
+                                      // Only the title rebuilds as a swipe
+                                      // crosses covers.
+                                      ValueListenableBuilder<int?>(
+                                        valueListenable: _swipeFocus,
+                                        builder: (_, focus, _) {
+                                          final focused =
+                                              focus != null &&
+                                              focus < _stageQueue.length;
+                                          return _TrackInfo(
+                                            track: focused
+                                                ? _stageQueue[focus]
+                                                : track,
+                                            index: focused ? focus : stage?.$2,
+                                            queueLength: _stageQueue.length,
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
-                                ),
 
-                                const SizedBox(height: AppSpacing.lg),
+                                  const SizedBox(height: AppSpacing.lg),
 
-                                // The stage takes what the controls leave, up
-                                // to its full size: on a short screen the ring
-                                // shrinks instead of pushing them off screen.
-                                Expanded(
-                                  child: LayoutBuilder(
-                                    builder: (context, box) => Column(
-                                      children: [
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            maxHeight: math.max(
-                                              0,
-                                              box.maxHeight - _kControlsBlock,
+                                  // The stage takes what the controls leave, up
+                                  // to its full size: on a short screen the ring
+                                  // shrinks instead of pushing them off screen.
+                                  Expanded(
+                                    child: LayoutBuilder(
+                                      builder: (context, box) => Column(
+                                        children: [
+                                          ConstrainedBox(
+                                            constraints: BoxConstraints(
+                                              maxHeight: math.max(
+                                                0,
+                                                box.maxHeight - _kControlsBlock,
+                                              ),
+                                            ),
+                                            child: _stageOf(stage, track),
+                                          ),
+                                          // Secondary controls (Glass Utility
+                                          // Dock) and primary playback controls
+                                          Expanded(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: [
+                                                _fadeChrome(
+                                                  const PlayerUtilityDock(),
+                                                ),
+                                                _fadeChrome(
+                                                  const PlayerControls(),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          child: _stageOf(stage, track),
-                                        ),
-                                        // Secondary controls (Glass Utility
-                                        // Dock) and primary playback controls
-                                        Expanded(
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              _fadeChrome(
-                                                const PlayerUtilityDock(),
-                                              ),
-                                              _fadeChrome(
-                                                const PlayerControls(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
+
+                                  // Room for the nav bar overlaid below.
+                                  SizedBox(height: navBarReserve),
+                                ],
+                              ),
+                            ),
+
+                            // Nav bar at bottom, mini player hidden
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  12,
+                                  0,
+                                  12,
+                                  safeBottom + 12,
                                 ),
-
-                                // Room for the nav bar overlaid below.
-                                SizedBox(height: navBarReserve),
-                              ],
-                            ),
-                          ),
-
-                          // Nav bar at bottom, mini player hidden
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                12,
-                                0,
-                                12,
-                                safeBottom + 12,
-                              ),
-                              child: AppBottomNavBar(
-                                currentTab: AppTab.player,
-                                showMiniPlayer: false,
-                                onTabChanged: (tab) {
-                                  switch (tab) {
-                                    case AppTab.home:
-                                      _leaveFullPlayerTo(context, '/home');
-                                    case AppTab.library:
-                                      _leaveFullPlayerTo(context, '/library');
-                                    case AppTab.search:
-                                      _leaveFullPlayerTo(context, '/search');
-                                    case AppTab.playlists:
-                                      _leaveFullPlayerTo(context, '/playlists');
-                                    case AppTab.player:
-                                      break;
-                                  }
-                                },
+                                child: AppBottomNavBar(
+                                  currentTab: AppTab.player,
+                                  showMiniPlayer: false,
+                                  onTabChanged: (tab) {
+                                    switch (tab) {
+                                      case AppTab.home:
+                                        _leaveFullPlayerTo(context, '/home');
+                                      case AppTab.library:
+                                        _leaveFullPlayerTo(context, '/library');
+                                      case AppTab.search:
+                                        _leaveFullPlayerTo(context, '/search');
+                                      case AppTab.playlists:
+                                        _leaveFullPlayerTo(
+                                          context,
+                                          '/playlists',
+                                        );
+                                      case AppTab.player:
+                                        break;
+                                    }
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),

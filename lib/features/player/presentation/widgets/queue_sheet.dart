@@ -7,6 +7,7 @@ import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:troona/core/layout/app_layout.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
@@ -15,17 +16,21 @@ import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
-/// Opens the queue over the Now Playing page.
+/// Opens the queue over the Now Playing page: opaque, as the page already
+/// uses its two blurs.
 Future<void> showQueueSheet(BuildContext context) {
   final bloc = context.read<PlayerBloc>();
-  return showModalBottomSheet<void>(
+  return showGlassBottomSheet<void>(
     context: context,
-    useRootNavigator: true,
     isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black54,
+    // Part of Now Playing whatever context opens it (the page's own State
+    // sits above its [BlurBudgetSpent]).
+    quality: GlassQuality.off,
+    // The list scrolls under the bottom inset and pads for it.
+    padding: EdgeInsets.zero,
     // Part of Now Playing, with fixed row heights: same font size cap.
     builder: (_) => MediaQuery.withClampedTextScaling(
       maxScaleFactor: AppLayout.maxTextScale,
@@ -38,8 +43,7 @@ Future<void> showQueueSheet(BuildContext context) {
 /// current track: scroll up for what was played, down for what comes next.
 ///
 /// Only up next rows can be reordered or removed, so an edit never moves
-/// the current index. The sheet is opaque on purpose: the Now Playing page
-/// already uses the two allowed [BackdropFilter]s.
+/// the current index. Shown in a [GlassBottomSheet] by [showQueueSheet].
 class QueueSheet extends StatefulWidget {
   const QueueSheet({super.key});
 
@@ -187,7 +191,6 @@ class _QueueSheetState extends State<QueueSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final height = MediaQuery.sizeOf(context).height * QueueSheet.heightFactor;
 
     return BlocListener<PlayerBloc, PlayerState>(
@@ -207,15 +210,8 @@ class _QueueSheetState extends State<QueueSheet> {
           }
         });
       },
-      child: Container(
+      child: SizedBox(
         height: height,
-        decoration: BoxDecoration(
-          color: colors.bgSecondary,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppSpacing.radiusXl),
-          ),
-          border: Border(top: BorderSide(color: colors.glassBorder)),
-        ),
         child: Column(
           children: [
             _Header(
@@ -389,21 +385,12 @@ class _Header extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
-        AppSpacing.sm,
+        AppSpacing.xs,
         AppSpacing.lg,
         AppSpacing.sm,
       ),
       child: Column(
         children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: colors.labelQuaternary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Text(

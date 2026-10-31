@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart'
     as troona_settings;
@@ -153,10 +154,11 @@ abstract final class GlassTheme {
       _resolveQuality(ctx, q);
 
   /// Quality for a short-lived surface over glass that already blurs (a
-  /// modal sheet above the tab bar): a third blur only where the device is
-  /// high-tier, opaque otherwise. See the blur budget in CLAUDE.md.
+  /// modal sheet above the tab bar), opened from [ctx]: a third blur only
+  /// where the device is high-tier, opaque otherwise, and always opaque
+  /// below a [BlurBudgetSpent]. See the blur budget in CLAUDE.md.
   static GlassQuality aboveGlass(BuildContext ctx) =>
-      _resolveQuality(ctx) == GlassQuality.high
+      !BlurBudgetSpent.isSpent(ctx) && _resolveQuality(ctx) == GlassQuality.high
       ? GlassQuality.high
       : GlassQuality.off;
 

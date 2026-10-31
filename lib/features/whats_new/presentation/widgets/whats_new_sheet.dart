@@ -20,10 +20,8 @@ Future<void> showWhatsNewSheet(
 }) => showGlassBottomSheet<void>(
   context: context,
   isScrollControlled: true,
-  useRootNavigator: true,
   // Long notes fill the height: the sheet stops below the status bar.
   useSafeArea: true,
-  quality: GlassTheme.aboveGlass(context),
   builder: (_) => WhatsNewSheet(releases: releases, version: version),
 );
 
