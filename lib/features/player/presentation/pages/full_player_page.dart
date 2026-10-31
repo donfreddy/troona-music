@@ -688,33 +688,3 @@ class _TrackInfo extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ignore: unused_element
-class _VolumeSlider extends StatelessWidget {
-  const _VolumeSlider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(CupertinoIcons.volume_mute, color: Colors.white38, size: 16),
-        Expanded(
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              trackHeight: 3,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-              overlayShape: SliderComponentShape.noOverlay,
-              activeTrackColor: Colors.white60,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: Colors.white,
-            ),
-            child: Slider(value: 0.7, onChanged: (_) {}),
-          ),
-        ),
-        const Icon(CupertinoIcons.volume_up, color: Colors.white38, size: 16),
-      ],
-    );
-  }
-}
