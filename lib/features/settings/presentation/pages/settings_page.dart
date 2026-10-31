@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,6 +25,7 @@ import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.da
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
 import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/debug_section.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
@@ -307,6 +309,7 @@ class _SettingsList extends StatelessWidget {
             ),
           ],
         ),
+        if (!kReleaseMode) const DebugSection(),
         const SizedBox(height: AppSpacing.xl),
         _Footer(version: maintenance.version),
         SizedBox(height: context.bottomBarInset(tabs: false)),

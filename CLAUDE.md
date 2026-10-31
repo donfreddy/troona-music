@@ -88,6 +88,7 @@ Artwork is decoded at its displayed size through `ArtworkImage` (`lib/shared/wid
 `MediaScannerService` orchestrates: (1) query device via `on_audio_query_pluse`, (2) diff against cache to find added/removed tracks, (3) persist to `IsarLibraryDataSource`, (4) extract artwork via `ArtworkExtractor` (semaphore × 4 for concurrency control).
 
 ### Misc
+- Debug and profile builds install as `com.donfreddy.troona.dev` ("Troona Dev", DEV banner icon from `android/app/src/debug/res/`), next to the release app and with their own data. To bring real data over, export a backup from the release app and restore it in the dev one. Settings shows a Debug section in non-release builds (`DebugSection`): make this month's Replay now, show "What's new" on the next launch.
 - App is **portrait-only** (locked in `main.dart`).
 - Dark theme only (`ThemeMode.dark`).
 - No design-size scaling: layouts follow the room they get (`LayoutBuilder`, `Expanded`). Now Playing shrinks its ring on short screens. Fixed-height chrome (tab bar and mini player, Now Playing and its queue, the Library filter) caps the font size at `AppLayout.maxTextScale` (1.3, `lib/core/layout/app_layout.dart`) with a local `MediaQuery.withClampedTextScaling`; everything else follows the phone's font size and wraps or stacks instead of overflowing. Content under the floating bar pads with `context.bottomBarInset()`.

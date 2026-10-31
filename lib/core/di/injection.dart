@@ -26,6 +26,7 @@ import 'package:troona/features/history/data/repositories/play_history_repositor
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/history/data/sources/shared_prefs_monthly_replay_log.dart';
+import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
@@ -85,6 +86,7 @@ import 'package:troona/features/updates/domain/repositories/update_repository.da
 import 'package:troona/features/updates/domain/use_cases/check_for_update_use_case.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/data/shared_prefs_whats_new_repository.dart';
+import 'package:troona/features/whats_new/domain/repositories/whats_new_repository.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/services/audio/audio_service_initializer.dart';
@@ -256,19 +258,22 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),
   );
+  getIt.registerLazySingleton<MonthlyReplayLog>(
+    () => SharedPrefsMonthlyReplayLog(getIt()),
+  );
   getIt.registerLazySingleton<CreateMonthlyReplayUseCase>(
     () => CreateMonthlyReplayUseCase(
       history: getIt(),
       getTracksByIds: getIt(),
       playlists: getIt(),
-      log: SharedPrefsMonthlyReplayLog(getIt()),
+      log: getIt(),
     ),
   );
   getIt.registerLazySingleton<BackupRepository>(
     () => BackupRepositoryImpl(
       source: IsarBackupDataSource(isar, maxPlays: historySource.maxEvents),
       settings: getIt(),
-      replayLog: SharedPrefsMonthlyReplayLog(getIt()),
+      replayLog: getIt(),
       exportDir: Directory('${cacheBase.path}/troona_backup'),
     ),
   );
@@ -297,8 +302,11 @@ Future<void> configureDependencies() async {
       coverDir: artworkCache,
     ),
   );
+  getIt.registerLazySingleton<WhatsNewRepository>(
+    () => SharedPrefsWhatsNewRepository(getIt()),
+  );
   getIt.registerLazySingleton<CheckWhatsNewUseCase>(
-    () => CheckWhatsNewUseCase(SharedPrefsWhatsNewRepository(getIt()), getIt()),
+    () => CheckWhatsNewUseCase(getIt(), getIt()),
   );
   // Its own Dio: GitHub headers and a short timeout.
   getIt.registerLazySingleton<UpdateRepository>(
