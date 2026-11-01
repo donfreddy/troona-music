@@ -11,7 +11,7 @@
   <img alt="CI" src="https://github.com/donfreddy/troona-music/actions/workflows/ci.yml/badge.svg">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-yellow.svg">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Android-blue">
-  <img alt="Architecture" src="https://img.shields.io/badge/architecture-Clean%20%2B%20Feature--First-success">
+  <img alt="XERJ Corpus Hub contributor" src="https://hub.xerj.org/contributors/donfreddy/badge.svg" />
 </p>
 
 <p align="center">
@@ -30,7 +30,9 @@
 ## Download
 
 <p align="center">
-  <a href="https://github.com/donfreddy/troona-music/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/donfreddy/troona-music?label=GitHub%20Release"></a>
+   <a href="https://github.com/donfreddy/troona-music/releases/latest"><img src="assets/images/github-download.svg"  alt="Download Troona from GitHub Releases"></a>
+  &nbsp; &nbsp;
+  <a href="https://www.openapk.net/troona/com.donfreddy.troona/"><img src="assets/images/openapk.svg" alt="Get Troona on OpenAPK"></a>
 </p>
 
 Troona is distributed as APKs on [GitHub Releases](https://github.com/donfreddy/troona-music/releases/latest). Most recent phones need `app-arm64-v8a-release.apk`; older 32-bit phones take `app-armeabi-v7a-release.apk`, and emulators `app-x86_64-release.apk`. Android 7.0 or later. It is not on Google Play or the App Store yet; you can also [build it from source](#getting-started).
@@ -54,7 +56,7 @@ It is also an engineering showcase: a Clean Architecture Flutter codebase with a
     <td align="center"><img src="screenshots/playlist.jpeg" width="200" alt="Playlists"><br><sub>Playlists</sub></td>
     <td align="center"><img src="screenshots/album-detail.jpeg" width="200" alt="Album detail"><br><sub>Album</sub></td>
     <td align="center"><img src="screenshots/artist-detail.jpeg" width="200" alt="Artist detail"><br><sub>Artist (Last.fm/Deezer bio)</sub></td>
-    <td></td>
+    <td align="center"><img src="screenshots/settings.jpeg" width="200" alt="Settings"><br><sub>Settings</sub></td>
   </tr>
 </table>
 
