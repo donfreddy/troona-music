@@ -56,7 +56,7 @@ It is also an engineering showcase: a Clean Architecture Flutter codebase with a
     <td align="center"><img src="screenshots/playlist.jpeg" width="200" alt="Playlists"><br><sub>Playlists</sub></td>
     <td align="center"><img src="screenshots/album-detail.jpeg" width="200" alt="Album detail"><br><sub>Album</sub></td>
     <td align="center"><img src="screenshots/artist-detail.jpeg" width="200" alt="Artist detail"><br><sub>Artist (Last.fm/Deezer bio)</sub></td>
-    <td align="center"><img src="screenshots/settings.jpeg" width="200" alt="Settings"><br><sub>Settings</sub></td>
+    <td align="center"><img src="screenshots/weekly-recap.jpeg" width="200" alt="Weekly Recap"><br><sub>Weekly Recap</sub></td>
   </tr>
 </table>
 
