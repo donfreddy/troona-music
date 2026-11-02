@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="assets/images/app-logo-round.png" width="120" height="120" alt="Troona logo" />
+  <img src="screenshots/banner.png" alt="Troona, an offline-first music player for Android" width="100%" />
 </p>
 
-<h1 align="center">Troona</h1>
 <p align="center"><strong>A premium, offline-first music player for Android, with a glassmorphism interface inspired by iOS 17/18.</strong></p>
 
 <p align="center">
