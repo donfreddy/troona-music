@@ -1471,4 +1471,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew120PagesBody =>
       'Les Réglages, la politique de confidentialité et Votre semaine en musique ne laissent plus voir la page précédente pendant leur ouverture.';
+
+  @override
+  String get whatsNew130ArtistsTitle => 'Chaque artiste d\'un morceau';
+
+  @override
+  String get whatsNew130ArtistsBody =>
+      'Un morceau de plusieurs artistes, comme « Nicki Minaj, Beyoncé » ou « Chiké feat Mohbad », compte maintenant pour chacun d\'eux : il apparaît sur la page de chaque artiste et la recherche les trouve tous. Un nom comme « Tyler, The Creator » reste un seul artiste.';
+
+  @override
+  String get whatsNew130ArtistPageTitle => 'Pages artiste';
+
+  @override
+  String get whatsNew130ArtistPageBody =>
+      'La page d\'un artiste commence par ses cinq morceaux les plus écoutés, puis ses albums, ses singles, les albums où il apparaît et des artistes similaires de votre bibliothèque.';
+
+  @override
+  String get whatsNew130AlbumPageTitle => 'Pages album';
+
+  @override
+  String get whatsNew130AlbumPageBody =>
+      'Les albums affichent leur année, et les morceaux téléchargés sans numéro de piste viennent dans l\'ordre de leur téléchargement. Les invités que le titre ne nomme pas s\'affichent dessous.';
+
+  @override
+  String get whatsNew130AboutTitle =>
+      'À propos, quand il y a quelque chose à lire';
+
+  @override
+  String get whatsNew130AboutBody =>
+      'Avec les infos en ligne activées, À propos n\'apparaît que si Last.fm a une bio ou une présentation, avec les auditeurs et quelques genres dessous.';
+
+  @override
+  String get whatsNew130AlbumsTitle => 'Un album, pas plusieurs copies';
+
+  @override
+  String get whatsNew130AlbumsBody =>
+      'Un album téléchargé dans plusieurs dossiers, ou des singles enregistrés chacun dans le leur, apparaissaient plusieurs fois. C\'est de nouveau un seul album, et son année s\'affiche.';
 }

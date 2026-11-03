@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-03
+
 ### Added
 
 - Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and shows their albums apart from the ones they only appear on, in a new Appears on section, and their singles in a Singles section of their own. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
@@ -21,6 +23,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Artist photos and bios turned on in Settings are downloaded again once, as artists are now identified by name.
 - Artist and album pages show About only when Last.fm has a bio or a review, with the listeners and up to three genres under it, and where it comes from. Most artists have none: their page no longer shows an About card of counts and tags. The play count, the On tour badge and the date the review was written are gone.
 - Similar artists show in their own section, Also in your library, and only the ones in your library: a tap opens their page. They were names in the About card that opened nothing, most of them not in the library.
+- Now Playing no longer shows a drag handle above the cover.
 
 ### Fixed
 
@@ -150,7 +153,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/donfreddy/troona-music/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/donfreddy/troona-music/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/donfreddy/troona-music/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/donfreddy/troona-music/compare/v1.0.0...v1.1.0

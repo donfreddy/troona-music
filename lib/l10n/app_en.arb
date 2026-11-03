@@ -791,5 +791,15 @@
   "whatsNew120LookTitle": "One look across the app",
   "whatsNew120LookBody": "Icons, buttons, back buttons and missing covers look the same on every screen, and buttons are easier to tap.",
   "whatsNew120PagesTitle": "Pages that slide in",
-  "whatsNew120PagesBody": "Settings, the privacy policy and Your week in music no longer show the previous page through them while they open."
+  "whatsNew120PagesBody": "Settings, the privacy policy and Your week in music no longer show the previous page through them while they open.",
+  "whatsNew130ArtistsTitle": "Every artist of a song",
+  "whatsNew130ArtistsBody": "A song by several artists, such as \"Nicki Minaj, Beyoncé\" or \"Chiké feat Mohbad\", now counts for each of them: it shows on every artist's page and search finds each one. Names such as \"Tyler, The Creator\" stay one artist.",
+  "whatsNew130ArtistPageTitle": "Artist pages",
+  "whatsNew130ArtistPageBody": "An artist's page starts with their five most played songs, then their albums, their singles, the albums they appear on and similar artists from your library.",
+  "whatsNew130AlbumPageTitle": "Album pages",
+  "whatsNew130AlbumPageBody": "Albums show their year, and downloaded songs without track numbers come in the order they were downloaded. Guests a title does not name show under it.",
+  "whatsNew130AboutTitle": "About, when there is something to read",
+  "whatsNew130AboutBody": "With online info turned on, About shows only when Last.fm has a bio or a review, with the listeners and a few genres under it.",
+  "whatsNew130AlbumsTitle": "One album, not several copies",
+  "whatsNew130AlbumsBody": "An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows."
 }

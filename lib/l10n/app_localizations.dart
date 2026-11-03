@@ -2413,6 +2413,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings, the privacy policy and Your week in music no longer show the previous page through them while they open.'**
   String get whatsNew120PagesBody;
+
+  /// No description provided for @whatsNew130ArtistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every artist of a song'**
+  String get whatsNew130ArtistsTitle;
+
+  /// No description provided for @whatsNew130ArtistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A song by several artists, such as \"Nicki Minaj, Beyoncé\" or \"Chiké feat Mohbad\", now counts for each of them: it shows on every artist\'s page and search finds each one. Names such as \"Tyler, The Creator\" stay one artist.'**
+  String get whatsNew130ArtistsBody;
+
+  /// No description provided for @whatsNew130ArtistPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages'**
+  String get whatsNew130ArtistPageTitle;
+
+  /// No description provided for @whatsNew130ArtistPageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An artist\'s page starts with their five most played songs, then their albums, their singles, the albums they appear on and similar artists from your library.'**
+  String get whatsNew130ArtistPageBody;
+
+  /// No description provided for @whatsNew130AlbumPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Album pages'**
+  String get whatsNew130AlbumPageTitle;
+
+  /// No description provided for @whatsNew130AlbumPageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums show their year, and downloaded songs without track numbers come in the order they were downloaded. Guests a title does not name show under it.'**
+  String get whatsNew130AlbumPageBody;
+
+  /// No description provided for @whatsNew130AboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About, when there is something to read'**
+  String get whatsNew130AboutTitle;
+
+  /// No description provided for @whatsNew130AboutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'With online info turned on, About shows only when Last.fm has a bio or a review, with the listeners and a few genres under it.'**
+  String get whatsNew130AboutBody;
+
+  /// No description provided for @whatsNew130AlbumsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One album, not several copies'**
+  String get whatsNew130AlbumsTitle;
+
+  /// No description provided for @whatsNew130AlbumsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.'**
+  String get whatsNew130AlbumsBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1456,4 +1456,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew120PagesBody =>
       'Settings, the privacy policy and Your week in music no longer show the previous page through them while they open.';
+
+  @override
+  String get whatsNew130ArtistsTitle => 'Every artist of a song';
+
+  @override
+  String get whatsNew130ArtistsBody =>
+      'A song by several artists, such as \"Nicki Minaj, Beyoncé\" or \"Chiké feat Mohbad\", now counts for each of them: it shows on every artist\'s page and search finds each one. Names such as \"Tyler, The Creator\" stay one artist.';
+
+  @override
+  String get whatsNew130ArtistPageTitle => 'Artist pages';
+
+  @override
+  String get whatsNew130ArtistPageBody =>
+      'An artist\'s page starts with their five most played songs, then their albums, their singles, the albums they appear on and similar artists from your library.';
+
+  @override
+  String get whatsNew130AlbumPageTitle => 'Album pages';
+
+  @override
+  String get whatsNew130AlbumPageBody =>
+      'Albums show their year, and downloaded songs without track numbers come in the order they were downloaded. Guests a title does not name show under it.';
+
+  @override
+  String get whatsNew130AboutTitle => 'About, when there is something to read';
+
+  @override
+  String get whatsNew130AboutBody =>
+      'With online info turned on, About shows only when Last.fm has a bio or a review, with the listeners and a few genres under it.';
+
+  @override
+  String get whatsNew130AlbumsTitle => 'One album, not several copies';
+
+  @override
+  String get whatsNew130AlbumsBody =>
+      'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.';
 }
