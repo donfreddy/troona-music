@@ -71,17 +71,28 @@ abstract final class TrackTags {
     return (artist: artist, title: title);
   }
 
-  /// A stable id for an artist found in a file name, so its songs group
-  /// apart from the other songs Android files under `<unknown>`. Negative:
-  /// MediaStore ids are positive, so the two never meet.
-  static int artistIdFor(String artist) {
-    // FNV-1a: String.hashCode is not guaranteed to stay the same between
-    // runs, and this id is stored.
-    var hash = 0x811c9dc5;
-    for (final unit in artist.trim().toLowerCase().codeUnits) {
-      hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+  /// The id of the artist named [artist], whatever its case and spacing.
+  /// Artists are grouped by name, not by MediaStore id: Android gives every
+  /// distinct artist tag an id, so "A" and "A, B" were two artists, and
+  /// every song without a tag shared one.
+  static int artistIdFor(String artist) =>
+      stableId(artist.trim().toLowerCase().replaceAll(_spaces, ' '));
+
+  /// The id of a song without an artist.
+  static final unknownArtistId = artistIdFor(unknownArtist);
+
+  /// A negative id that stays the same for [key] from one run to the next,
+  /// so it can be stored. Negative: MediaStore ids are positive, so an id
+  /// made here never meets one of them.
+  static int stableId(String key) {
+    // 64-bit FNV-1a: String.hashCode is not guaranteed to stay the same
+    // between runs, and 32 bits give likely collisions past ten thousand
+    // names. Dart ints wrap on overflow, which is the modulo FNV needs.
+    var hash = 0xcbf29ce484222325;
+    for (final unit in key.codeUnits) {
+      hash = (hash ^ unit) * 0x100000001b3;
     }
-    return -(hash & 0x7fffffff) - 1;
+    return -(hash & 0x7fffffffffffffff) - 1;
   }
 
   /// A hyphen, minus or any dash, between spaces.

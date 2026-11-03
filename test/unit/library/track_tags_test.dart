@@ -135,9 +135,9 @@ void main() {
     test('is negative, stable and ignores case and spaces', () {
       final id = TrackTags.artistIdFor('Burna Boy');
       expect(id, isNegative);
-      expect(TrackTags.artistIdFor(' burna boy '), id);
+      expect(TrackTags.artistIdFor(' burna  boy '), id);
       // Fixed value: the id is stored, so it must not change between runs.
-      expect(id, -1 - (_fnv1a('burna boy') & 0x7fffffff));
+      expect(id, -1 - (_fnv1a('burna boy') & 0x7fffffffffffffff));
     });
 
     test('differs between artists', () {
@@ -149,10 +149,14 @@ void main() {
   });
 }
 
+/// 64-bit FNV-1a, written out with BigInt so the test does not lean on
+/// the wrapping arithmetic the code under test uses.
 int _fnv1a(String text) {
-  var hash = 0x811c9dc5;
+  final mask = (BigInt.one << 64) - BigInt.one;
+  var hash = BigInt.parse('cbf29ce484222325', radix: 16);
+  final prime = BigInt.parse('100000001b3', radix: 16);
   for (final unit in text.codeUnits) {
-    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
+    hash = ((hash ^ BigInt.from(unit)) * prime) & mask;
   }
-  return hash;
+  return hash.toSigned(64).toInt();
 }
