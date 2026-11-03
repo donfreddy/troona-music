@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_plus/isar_plus.dart';
+import 'package:on_audio_query_pluse/on_audio_query.dart' show SongModel;
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
@@ -86,6 +87,23 @@ void main() {
       final plain = _track('2', title: 'Intro')..nameMissingArtist('Intro');
       expect((plain.artist, plain.artistId), ('<unknown>', _androidUnknownId));
     });
+  });
+
+  test('the year MediaStore hands over as text is read', () {
+    SongModel song(Object? year) => SongModel({
+      '_id': 1,
+      '_data': '/music/a.mp3',
+      '_display_name': 'a.mp3',
+      '_display_name_wo_ext': 'a',
+      '_size': 42,
+      'title': 'Offended',
+      'artist': 'Eminem',
+      'file_extension': 'mp3',
+      'year': year,
+    });
+    expect(TrackModel.fromSongModel(song('2017')).year, 2017);
+    expect(TrackModel.fromSongModel(song(null)).year, 0);
+    expect(TrackModel.fromSongModel(song('n/a')).year, 0);
   });
 
   group('link', () {
@@ -210,6 +228,25 @@ void main() {
       // Tems' page holds the collaboration too.
       final temsSongs = await source.getTracksByArtistId(tems);
       expect({for (final t in temsSongs) t.deviceId}, {'2', '4'});
+    }, skip: skip);
+
+    test('a rescan heals a row stored wrong, keeping its cover', () async {
+      await source.insertTracks([
+        _track('1', title: 'Offended', artist: 'Eminem')
+          ..size = -9223372036854775808
+          ..year = 0
+          ..artworkPath = '/a.jpg',
+      ]);
+      final scanned = [
+        _track('1', title: 'Offended', artist: 'Eminem')
+          ..size = 13217002
+          ..year = 2017,
+      ];
+      TrackModel.link(scanned);
+      await source.refreshIndexed(scanned);
+
+      final row = (await source.getAllTracks()).single;
+      expect((row.size, row.year, row.artworkPath), (13217002, 2017, '/a.jpg'));
     }, skip: skip);
 
     test('a scan joins an album split across folders, once', () async {

@@ -109,8 +109,8 @@ class TrackModel {
           ..fileName = s.displayName
           ..trackNumber = s.track.orDefault()
           ..size = s.size
-          // ..year = (s.getMap['year'] as int?).orDefault()
-          ..year = 0
+          // The plugin hands the year over as text ("2017").
+          ..year = int.tryParse('${s.getMap['year'] ?? ''}') ?? 0
           ..composer = s.composer
           ..dateAdded = (s.getMap['date_added'] as int?).toDateTime()
           ..dateModified = (s.getMap['date_modified'] as int?).toDateTime()
@@ -168,22 +168,39 @@ class TrackModel {
     }
   }
 
-  /// Copies onto this stored row what a scan read for the same file
+  /// Copies onto this stored row everything a scan read for the same file
   /// ([scanned], already [link]ed), keeping what the app added: the cover
   /// and when it was indexed. Returns whether anything changed.
+  ///
+  /// Every field MediaStore gives is taken, not only the tags: a row an
+  /// earlier version stored wrong (no year, a lost size) heals on the next
+  /// scan.
   bool refreshFrom(TrackModel scanned) {
     // Rows indexed by earlier versions hold `<unknown>` or "Unknown Artist".
     final scannedArtist = TrackTags.artist(scanned.artist);
     final changed =
+        path != scanned.path ||
+        uri != scanned.uri ||
         title != scanned.title ||
         artist != scannedArtist ||
         artistId != scanned.artistId ||
         album != scanned.album ||
         albumId != scanned.albumId ||
+        genre != scanned.genre ||
+        genreId != scanned.genreId ||
+        durationMs != scanned.durationMs ||
+        fileName != scanned.fileName ||
         trackNumber != scanned.trackNumber ||
+        size != scanned.size ||
+        year != scanned.year ||
+        composer != scanned.composer ||
+        dateAdded != scanned.dateAdded ||
+        dateModified != scanned.dateModified ||
         !_sameList(artistIds, scanned.artistIds) ||
         !_sameList(artistNames, scanned.artistNames);
     if (!changed) return false;
+    path = scanned.path;
+    uri = scanned.uri;
     title = scanned.title;
     artist = scannedArtist;
     artistId = scanned.artistId;
@@ -191,7 +208,16 @@ class TrackModel {
     artistIds = List.of(scanned.artistIds);
     album = scanned.album;
     albumId = scanned.albumId;
+    genre = scanned.genre;
+    genreId = scanned.genreId;
+    durationMs = scanned.durationMs;
+    fileName = scanned.fileName;
     trackNumber = scanned.trackNumber;
+    size = scanned.size;
+    year = scanned.year;
+    composer = scanned.composer;
+    dateAdded = scanned.dateAdded;
+    dateModified = scanned.dateModified;
     return true;
   }
 

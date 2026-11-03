@@ -110,7 +110,7 @@ Artists and albums are rebuilt from the whole library on every scan (`TrackModel
 - Ids made by `TrackTags.stableId` are negative 64-bit FNV-1a hashes; MediaStore ids are positive.
 - Songs in the player queue keep the ids they had when queued: "Go to album/artist" reads the song again from the library first (`show_track_actions.dart`).
 - An album's artist is the artists credited on every one of its songs, none for a compilation (`LibraryGrouping`). Every screen builds albums and artists through `LibraryGrouping`, so counts and names agree.
-- Phase 2 calls `refreshIndexed`: indexed rows take what the scan read for title, artist, album, track number and the links above (covers and `indexedAt` are kept), so a retagged file is picked up.
+- Phase 2 calls `refreshIndexed`: indexed rows take every field the scan read (tags, size, duration, year, dates) and the links above; covers and `indexedAt` are kept. A retagged file is picked up and a row stored wrong heals. The year comes from MediaStore as text (`TrackModel.fromSongModel`).
 
 ### Misc
 - Debug and profile builds install as `com.donfreddy.troona.dev` ("Troona Dev", DEV banner icon from `android/app/src/debug/res/`), next to the release app and with their own data. To bring real data over, export a backup from the release app and restore it in the dev one. Settings shows a Debug section in non-release builds (`DebugSection`): make this month's Replay now, show "What's new" on the next launch.
