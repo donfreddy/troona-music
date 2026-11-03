@@ -428,7 +428,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                               bottom: false,
                               child: Column(
                                 children: [
-                                  // Top bar: dismiss + drag indicator + options
+                                  // Top bar: dismiss + options
                                   _fadeChrome(_TopBar()),
 
                                   const SizedBox(height: AppSpacing.lg),
@@ -564,53 +564,39 @@ class _TopBar extends StatelessWidget {
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.sm,
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
         children: [
-          // Drag indicator pill, centred whatever the buttons on each side.
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white30,
-              borderRadius: BorderRadius.circular(2),
+          Semantics(
+            button: true,
+            label: context.l10n.playerClose,
+            onTap: () => _dismissFullPlayer(context),
+            excludeSemantics: true,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () => _dismissFullPlayer(context),
+              child: const Icon(
+                AppIcons.minimize,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
-          Row(
-            children: [
-              Semantics(
-                button: true,
-                label: context.l10n.playerClose,
-                onTap: () => _dismissFullPlayer(context),
-                excludeSemantics: true,
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => _dismissFullPlayer(context),
-                  child: const Icon(
-                    AppIcons.minimize,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
+          const Spacer(),
+          Semantics(
+            button: true,
+            label: context.l10n.detailMore,
+            onTap: () => _showOptionsSheet(context),
+            excludeSemantics: true,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size.square(40),
+              onPressed: () => _showOptionsSheet(context),
+              child: const Icon(
+                AppIcons.moreVertical,
+                color: Colors.white,
+                size: 22,
               ),
-              const Spacer(),
-              Semantics(
-                button: true,
-                label: context.l10n.detailMore,
-                onTap: () => _showOptionsSheet(context),
-                excludeSemantics: true,
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size.square(40),
-                  onPressed: () => _showOptionsSheet(context),
-                  child: const Icon(
-                    AppIcons.moreVertical,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
