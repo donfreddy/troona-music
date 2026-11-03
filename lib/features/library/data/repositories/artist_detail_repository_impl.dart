@@ -8,6 +8,7 @@ import 'package:troona/features/history/domain/repositories/play_history_reposit
 import 'package:troona/features/library/domain/entities/artist_songs.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 
 final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   final IsarLibraryDataSource _cache;
@@ -78,6 +79,29 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
           for (final t in tracks) t.toEntity(),
         ]),
       );
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Artist>>> getArtistsByNames(
+    List<String> names,
+  ) async {
+    try {
+      final artists = <Artist>[];
+      final ids = <int>{};
+      for (final name in names) {
+        final id = TrackTags.artistIdFor(name);
+        if (TrackTags.isUnknownArtist(name) || !ids.add(id)) continue;
+        final tracks = await _cache.getAlbumTracksByArtistId(id);
+        if (tracks.isEmpty) continue;
+        final artist = LibraryGrouping.artistOf(id, [
+          for (final t in tracks) t.toEntity(),
+        ]);
+        if (artist != null) artists.add(artist);
+      }
+      return right(artists);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

@@ -6,7 +6,8 @@ import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
-import 'package:troona/features/metadata/presentation/widgets/album_wiki_section.dart';
+import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
+import 'package:troona/features/metadata/presentation/widgets/online_about_card.dart';
 import 'package:troona/core/extensions/string_ext.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -120,28 +121,32 @@ class AlbumDetailPage extends StatelessWidget {
                                     .toList(),
                               ),
 
-                            // ── Album review and Last.fm wiki ──────────────
+                            // ── About: only with a wiki ─────────────────────
                             BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
-                              builder: (context, metaState) {
-                                if (metaState is AlbumMetadataLoaded &&
-                                    (metaState.info.wiki != null ||
-                                        metaState.info.listeners != null ||
-                                        metaState.info.playCount != null ||
-                                        metaState.info.tags.isNotEmpty)) {
-                                  return SliverToBoxAdapter(
+                              builder: (context, meta) => switch (meta) {
+                                AlbumMetadataLoaded(
+                                  info: AlbumOnlineInfo(:final wiki?),
+                                ) =>
+                                  SliverToBoxAdapter(
                                     child: Padding(
                                       padding: const EdgeInsets.only(
-                                        top: AppSpacing.lg,
+                                        top: AppSpacing.xl2,
                                       ),
-                                      child: AlbumWikiSection(
-                                        info: metaState.info,
+                                      child: OnlineAboutCard(
+                                        title: context.l10n.metaAbout,
+                                        text: wiki,
+                                        listeners: meta.info.listeners,
+                                        tags: meta.info.tags,
+                                        names: [
+                                          data.album.name,
+                                          ...data.album.artist.split(', '),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                }
-                                return const SliverToBoxAdapter(
+                                  ),
+                                _ => const SliverToBoxAdapter(
                                   child: SizedBox.shrink(),
-                                );
+                                ),
                               },
                             ),
 
@@ -800,7 +805,7 @@ class _AlbumMetadataFooter extends StatelessWidget {
                   Icon(AppIcons.info, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
                   Text(
-                    context.l10n.albumAbout,
+                    context.l10n.inYourLibrary,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,

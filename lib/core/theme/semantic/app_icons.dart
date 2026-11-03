@@ -50,9 +50,6 @@ abstract final class AppIcons {
   static const IconData removeFromList = LucideIcons300.listX;
   static const IconData lossless = LucideIcons300.audioWaveform;
   static const IconData listen = LucideIcons300.headphones;
-  static const IconData artistBio = LucideIcons300.user;
-  static const IconData similarArtists = LucideIcons300.users;
-  static const IconData releaseDate = LucideIcons300.calendar;
   static const IconData duration = LucideIcons300.clock;
   static const IconData recent = LucideIcons300.clock;
   static const IconData libraryAll = LucideIcons300.galleryVerticalEnd;
@@ -71,7 +68,6 @@ abstract final class AppIcons {
   /// Leads to another page (a row, a card).
   static const IconData disclosure = LucideIcons300.chevronRight;
   static const IconData expand = LucideIcons300.chevronDown;
-  static const IconData collapse = LucideIcons300.chevronUp;
   static const IconData openExternal = LucideIcons300.externalLink;
   static const IconData systemSettings = LucideIcons300.settings2;
 

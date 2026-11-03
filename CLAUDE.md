@@ -69,6 +69,7 @@ One Isar database (`isar_plus`), opened by `AppDatabase.open()` in `lib/core/dat
 - Last version whose "What's new" was handled: `SharedPreferences` (`SharedPrefsWhatsNewRepository`). Add a `Release` (version, date as in CHANGELOG.md, notes) to the top of `releaseNotes()` with each version that should show the sheet; the sheet features the installed release and lists the earlier ones.
 - Covers extracted from local files are cached in the app cache directory under `troona_artwork_cache`.
 - Online extras are opt-in, behind two switches: bios (Last.fm) and photos (Deezer). `MetadataRepositoryImpl` contacts each source only when its switch is on. Their JSON and downloaded photos live under `troona_metadata_cache` (photos in `photos/`), so "clear online info" removes and measures both. Turning photos off deletes the downloaded ones.
+- Artist and album pages show About (`OnlineAboutCard`, `lib/features/metadata/presentation/widgets/`) only when Last.fm has a text: counts and tags alone make no card. Similar artists show only when the library holds them (`SimilarArtistsCubit`, `ArtistDetailRepository.getArtistsByNames`), in Also in your library.
 
 ### Design System (Glassmorphism)
 Three-level token hierarchy in `lib/core/theme/`:

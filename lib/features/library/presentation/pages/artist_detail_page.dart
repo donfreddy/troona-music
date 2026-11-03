@@ -5,7 +5,8 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
-import 'package:troona/features/metadata/presentation/widgets/artist_bio_section.dart';
+import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
+import 'package:troona/features/metadata/presentation/widgets/online_about_card.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -14,7 +15,9 @@ import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
@@ -82,106 +85,135 @@ class ArtistDetailPage extends StatelessWidget {
                     ArtistDetailRequested(int.parse(id)),
                   ),
                 ),
-                ArtistDetailLoaded(:final data) => BlocProvider<ArtistMetadataCubit>(
-                  create: (_) =>
-                      getIt<ArtistMetadataCubit>()
-                        ..loadArtistMetadata(data.artist),
-                  child: Builder(
-                    builder: (contentCtx) {
-                      return CustomScrollView(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        slivers: [
-                          SliverPersistentHeader(
-                            pinned: true,
-                            delegate: _ArtistHeroDelegate(
+                ArtistDetailLoaded(:final data) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider<ArtistMetadataCubit>(
+                      create: (_) =>
+                          getIt<ArtistMetadataCubit>()
+                            ..loadArtistMetadata(data.artist),
+                    ),
+                    BlocProvider<SimilarArtistsCubit>(
+                      create: (_) => getIt<SimilarArtistsCubit>(),
+                    ),
+                  ],
+                  child: BlocListener<ArtistMetadataCubit, ArtistMetadataState>(
+                    listenWhen: (_, next) => next is ArtistMetadataLoaded,
+                    listener: (context, meta) =>
+                        context.read<SimilarArtistsCubit>().load([
+                          for (final s
+                              in (meta as ArtistMetadataLoaded)
+                                  .info
+                                  .similarArtists)
+                            s.name,
+                        ], exceptId: data.artist.id),
+                    child: Builder(
+                      builder: (contentCtx) {
+                        return CustomScrollView(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          slivers: [
+                            SliverPersistentHeader(
+                              pinned: true,
+                              delegate: _ArtistHeroDelegate(
+                                artist: data.artist,
+                                tracks: data.topTracks,
+                                albums: data.allAlbums,
+                                topPadding: MediaQuery.of(
+                                  contentCtx,
+                                ).padding.top,
+                                textScale: MediaQuery.textScalerOf(
+                                  contentCtx,
+                                ).scale(1),
+                              ),
+                            ),
+
+                            // ── 1. Top Tracks FIRST for instant playback ───────────
+                            if (data.topTracks.isNotEmpty)
+                              _ArtistTopTracksList(
+                                tracks: data.topTracks,
+                                byPlays: data.topTracksByPlays,
+                              ),
+
+                            // ── 2. Their albums and singles, then the ones they
+                            // appear on ─────────────────────────────────────────
+                            if (data.albums.own.isNotEmpty)
+                              _ArtistAlbumsCarousel(
+                                title: context.l10n.detailAlbums,
+                                albums: data.albums.own,
+                                order: 5,
+                              ),
+                            if (data.albums.singles.isNotEmpty)
+                              _ArtistAlbumsCarousel(
+                                title: context.l10n.detailSingles,
+                                albums: data.albums.singles,
+                                order: 6,
+                                spaced: data.albums.own.isEmpty,
+                              ),
+                            if (data.albums.appearsOn.isNotEmpty)
+                              _ArtistAlbumsCarousel(
+                                title: context.l10n.detailAppearsOn,
+                                albums: data.albums.appearsOn,
+                                order: 7,
+                                spaced:
+                                    data.albums.own.isEmpty &&
+                                    data.albums.singles.isEmpty,
+                              ),
+
+                            // ── 3. Similar artists the library holds ─────────────
+                            BlocBuilder<SimilarArtistsCubit, List<Artist>>(
+                              builder: (context, similar) => similar.isEmpty
+                                  ? const SliverToBoxAdapter(
+                                      child: SizedBox.shrink(),
+                                    )
+                                  : _SimilarArtistsCarousel(artists: similar),
+                            ),
+
+                            // ── 4. About: only with a bio ─────────────────────────
+                            BlocBuilder<
+                              ArtistMetadataCubit,
+                              ArtistMetadataState
+                            >(
+                              builder: (context, meta) => switch (meta) {
+                                ArtistMetadataLoaded(
+                                  info: ArtistOnlineInfo(:final bio?),
+                                ) =>
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: AppSpacing.xl2,
+                                      ),
+                                      child: OnlineAboutCard(
+                                        title: context.l10n.metaAbout,
+                                        text: bio,
+                                        listeners: meta.info.listeners,
+                                        tags: meta.info.tags,
+                                        names: [data.artist.name],
+                                      ),
+                                    ),
+                                  ),
+                                _ => const SliverToBoxAdapter(
+                                  child: SizedBox.shrink(),
+                                ),
+                              },
+                            ),
+
+                            // ── 5. Collection Stats Footer ─────────────────────────
+                            _ArtistCollectionFooter(
                               artist: data.artist,
                               tracks: data.topTracks,
                               albums: data.allAlbums,
-                              topPadding: MediaQuery.of(contentCtx).padding.top,
-                              textScale: MediaQuery.textScalerOf(
-                                contentCtx,
-                              ).scale(1),
-                            ),
-                          ),
-
-                          // ── 1. Top Tracks FIRST for instant playback ───────────
-                          if (data.topTracks.isNotEmpty)
-                            _ArtistTopTracksList(
-                              tracks: data.topTracks,
-                              byPlays: data.topTracksByPlays,
                             ),
 
-                          // ── 2. Their albums and singles, then the ones they
-                          // appear on ─────────────────────────────────────────
-                          if (data.albums.own.isNotEmpty)
-                            _ArtistAlbumsCarousel(
-                              title: context.l10n.detailAlbums,
-                              albums: data.albums.own,
-                              order: 5,
+                            SliverPadding(
+                              padding: EdgeInsets.only(
+                                bottom: contentCtx.bottomBarInset(tabs: false),
+                              ),
                             ),
-                          if (data.albums.singles.isNotEmpty)
-                            _ArtistAlbumsCarousel(
-                              title: context.l10n.detailSingles,
-                              albums: data.albums.singles,
-                              order: 6,
-                              spaced: data.albums.own.isEmpty,
-                            ),
-                          if (data.albums.appearsOn.isNotEmpty)
-                            _ArtistAlbumsCarousel(
-                              title: context.l10n.detailAppearsOn,
-                              albums: data.albums.appearsOn,
-                              order: 7,
-                              spaced:
-                                  data.albums.own.isEmpty &&
-                                  data.albums.singles.isEmpty,
-                            ),
-
-                          // ── 3. Bio & Last.fm Info ─────────────────────────────
-                          BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
-                            builder: (context, metaState) {
-                              if (metaState is ArtistMetadataLoaded &&
-                                  (metaState.info.bio != null ||
-                                      metaState.info.listeners != null ||
-                                      metaState.info.playCount != null ||
-                                      metaState.info.tags.isNotEmpty ||
-                                      metaState
-                                          .info
-                                          .similarArtists
-                                          .isNotEmpty)) {
-                                return SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: AppSpacing.lg,
-                                    ),
-                                    child: ArtistBioSection(
-                                      info: metaState.info,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const SliverToBoxAdapter(
-                                child: SizedBox.shrink(),
-                              );
-                            },
-                          ),
-
-                          // ── 4. Collection Stats Footer ─────────────────────────
-                          _ArtistCollectionFooter(
-                            artist: data.artist,
-                            tracks: data.topTracks,
-                            albums: data.allAlbums,
-                          ),
-
-                          SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: contentCtx.bottomBarInset(tabs: false),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               },
@@ -739,6 +771,48 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
   }
 }
 
+// ── Similar artists of the library ────────────────────────────────────────────
+class _SimilarArtistsCarousel extends StatelessWidget {
+  final List<Artist> artists;
+
+  const _SimilarArtistsCarousel({required this.artists});
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              const SizedBox(height: AppSpacing.xl2),
+              SectionHeader(title: context.l10n.detailAlsoInLibrary),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final (i, artist) in artists.indexed) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.md),
+                  ArtistCard(
+                    key: ValueKey('similar-artist-${artist.id}'),
+                    artist: artist,
+                    size: 100,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // ── Collection Stats Footer ───────────────────────────────────────────────────
 class _ArtistCollectionFooter extends StatelessWidget {
   final Artist artist;
@@ -785,7 +859,7 @@ class _ArtistCollectionFooter extends StatelessWidget {
                   Icon(AppIcons.library, size: 16, color: colors.accent),
                   const SizedBox(width: 8),
                   Text(
-                    context.l10n.artistInLibrary,
+                    context.l10n.inYourLibrary,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,

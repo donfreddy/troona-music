@@ -339,6 +339,29 @@ void main() {
       expect(data.artist.trackCount, 2);
     }, skip: skip);
 
+    test('artists named elsewhere are found in the library by name, in '
+        'order, once', () async {
+      final tracks = [
+        _track('1', title: 'Essence', artist: 'Wizkid'),
+        _track('2', title: 'Aye', artist: 'Young Jonn'),
+      ];
+      TrackModel.link(tracks);
+      await source.insertTracks(tracks);
+      final artists = ArtistDetailRepositoryImpl(
+        cache: source,
+        history: _History(),
+      );
+
+      final found = (await artists.getArtistsByNames([
+        'Burna Boy',
+        'young  jonn',
+        'WizKid',
+        'Wizkid',
+        '',
+      ])).getOrElse(() => throw 0);
+      expect([for (final a in found) a.name], ['Young Jonn', 'Wizkid']);
+    }, skip: skip);
+
     test('pages built from stored rows read an older unknown artist as '
         'unknown', () async {
       await source.insertTracks([

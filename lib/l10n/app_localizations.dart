@@ -1022,6 +1022,12 @@ abstract class AppLocalizations {
   /// **'Appears on'**
   String get detailAppearsOn;
 
+  /// Artists similar to this one that are in the library.
+  ///
+  /// In en, this message translates to:
+  /// **'Also in your library'**
+  String get detailAlsoInLibrary;
+
   /// No description provided for @detailPopular.
   ///
   /// In en, this message translates to:
@@ -1064,17 +1070,11 @@ abstract class AppLocalizations {
   /// **'{songs} • {albums}'**
   String detailCountsSummary(String songs, String albums);
 
-  /// No description provided for @albumAbout.
-  ///
-  /// In en, this message translates to:
-  /// **'About this album'**
-  String get albumAbout;
-
-  /// No description provided for @artistInLibrary.
+  /// No description provided for @inYourLibrary.
   ///
   /// In en, this message translates to:
   /// **'In your library'**
-  String get artistInLibrary;
+  String get inYourLibrary;
 
   /// No description provided for @infoSongs.
   ///
@@ -1141,12 +1141,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 listener} other{{count} listeners}}'**
   String metaListeners(int count);
-
-  /// No description provided for @metaPlays.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 play} other{{count} plays}}'**
-  String metaPlays(int count);
 
   /// No description provided for @searchHint.
   ///
@@ -1814,23 +1808,17 @@ abstract class AppLocalizations {
   /// **'{position} of {duration}'**
   String playbackPositionValue(String position, String duration);
 
-  /// No description provided for @metaAboutAlbum.
-  ///
-  /// In en, this message translates to:
-  /// **'About this album'**
-  String get metaAboutAlbum;
-
-  /// No description provided for @metaAboutArtist.
+  /// No description provided for @metaAbout.
   ///
   /// In en, this message translates to:
   /// **'About'**
-  String get metaAboutArtist;
+  String get metaAbout;
 
-  /// No description provided for @metaOnTour.
+  /// Where the About text comes from, under it.
   ///
   /// In en, this message translates to:
-  /// **'On tour'**
-  String get metaOnTour;
+  /// **'From {source}'**
+  String metaSource(String source);
 
   /// No description provided for @metaReadMore.
   ///
@@ -1843,12 +1831,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show less'**
   String get metaReadLess;
-
-  /// No description provided for @metaSimilarArtists.
-  ///
-  /// In en, this message translates to:
-  /// **'Similar artists'**
-  String get metaSimilarArtists;
 
   /// No description provided for @playerPause.
   ///

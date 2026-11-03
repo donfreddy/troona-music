@@ -598,6 +598,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get detailAppearsOn => 'Apparaît dans';
 
   @override
+  String get detailAlsoInLibrary => 'Aussi dans votre bibliothèque';
+
+  @override
   String get detailPopular => 'Populaires';
 
   @override
@@ -625,10 +628,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get albumAbout => 'À propos de cet album';
-
-  @override
-  String get artistInLibrary => 'Dans votre bibliothèque';
+  String get inYourLibrary => 'Dans votre bibliothèque';
 
   @override
   String get infoSongs => 'Morceaux';
@@ -672,22 +672,6 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$countString auditeurs',
       one: '$countString auditeur',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String metaPlays(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
-      locale: localeName,
-    );
-    final String countString = countNumberFormat.format(count);
-
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$countString écoutes',
-      one: '$countString écoute',
     );
     return '$_temp0';
   }
@@ -1104,22 +1088,18 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get metaAboutAlbum => 'À propos de cet album';
+  String get metaAbout => 'À propos';
 
   @override
-  String get metaAboutArtist => 'À propos';
-
-  @override
-  String get metaOnTour => 'En tournée';
+  String metaSource(String source) {
+    return 'Source : $source';
+  }
 
   @override
   String get metaReadMore => 'Lire la suite';
 
   @override
   String get metaReadLess => 'Réduire';
-
-  @override
-  String get metaSimilarArtists => 'Artistes similaires';
 
   @override
   String get playerPause => 'Pause';

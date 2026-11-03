@@ -20,10 +20,8 @@ void main() {
     expect(en.scanSongsFound(1), '1 song found');
   });
 
-  test('listener and play counts are compact and localized', () {
+  test('listener counts are compact and localized', () {
     expect(en.metaListeners(4500000), '4.5M listeners');
-    expect(en.metaPlays(950000), '950K plays');
     expect(fr.metaListeners(4500000), '4,5 M auditeurs');
-    expect(fr.metaPlays(1), '1 écoute');
   });
 }

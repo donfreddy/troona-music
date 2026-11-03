@@ -593,6 +593,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailAppearsOn => 'Appears on';
 
   @override
+  String get detailAlsoInLibrary => 'Also in your library';
+
+  @override
   String get detailPopular => 'Popular';
 
   @override
@@ -620,10 +623,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get albumAbout => 'About this album';
-
-  @override
-  String get artistInLibrary => 'In your library';
+  String get inYourLibrary => 'In your library';
 
   @override
   String get infoSongs => 'Songs';
@@ -667,22 +667,6 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$countString listeners',
       one: '1 listener',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String metaPlays(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
-      locale: localeName,
-    );
-    final String countString = countNumberFormat.format(count);
-
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$countString plays',
-      one: '1 play',
     );
     return '$_temp0';
   }
@@ -1093,22 +1077,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get metaAboutAlbum => 'About this album';
+  String get metaAbout => 'About';
 
   @override
-  String get metaAboutArtist => 'About';
-
-  @override
-  String get metaOnTour => 'On tour';
+  String metaSource(String source) {
+    return 'From $source';
+  }
 
   @override
   String get metaReadMore => 'Read more';
 
   @override
   String get metaReadLess => 'Show less';
-
-  @override
-  String get metaSimilarArtists => 'Similar artists';
 
   @override
   String get playerPause => 'Pause';

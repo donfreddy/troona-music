@@ -12,4 +12,9 @@ abstract interface class ArtistDetailRepository {
 
   /// The artist's own albums and the ones they appear on.
   Future<Either<Failure, ArtistAlbums>> getAlbumsByArtistId(String id);
+
+  /// The artists of the library among [names], in that order, matched by
+  /// name as `TrackTags.artistIdFor` keys them. Names of artists the
+  /// library does not hold are left out.
+  Future<Either<Failure, List<Artist>>> getArtistsByNames(List<String> names);
 }

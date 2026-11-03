@@ -295,6 +295,10 @@
   "detailAlbums": "Albums",
   "detailSingles": "Singles",
   "detailAppearsOn": "Appears on",
+  "detailAlsoInLibrary": "Also in your library",
+  "@detailAlsoInLibrary": {
+    "description": "Artists similar to this one that are in the library."
+  },
   "detailPopular": "Popular",
   "detailSeeAllSongs": "See all {count} songs",
   "@detailSeeAllSongs": {
@@ -326,8 +330,7 @@
       }
     }
   },
-  "albumAbout": "About this album",
-  "artistInLibrary": "In your library",
+  "inYourLibrary": "In your library",
   "infoSongs": "Songs",
   "infoAlbums": "Albums",
   "infoSingles": "Singles",
@@ -340,15 +343,6 @@
   "artistLoadError": "We couldn't open this artist.",
   "metaListeners": "{count, plural, =1{1 listener} other{{count} listeners}}",
   "@metaListeners": {
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "format": "compact"
-      }
-    }
-  },
-  "metaPlays": "{count, plural, =1{1 play} other{{count} plays}}",
-  "@metaPlays": {
     "placeholders": {
       "count": {
         "type": "int",
@@ -623,12 +617,18 @@
       }
     }
   },
-  "metaAboutAlbum": "About this album",
-  "metaAboutArtist": "About",
-  "metaOnTour": "On tour",
+  "metaAbout": "About",
+  "metaSource": "From {source}",
+  "@metaSource": {
+    "description": "Where the About text comes from, under it.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "metaReadMore": "Read more",
   "metaReadLess": "Show less",
-  "metaSimilarArtists": "Similar artists",
   "playerPause": "Pause",
   "playerNext": "Next",
   "playerPrevious": "Previous",

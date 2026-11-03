@@ -52,6 +52,7 @@ import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_c
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
 import 'package:troona/features/playlist/data/repositories/playlist_repository_impl.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
@@ -468,6 +469,9 @@ Future<void> configureDependencies() async {
 
   getIt.registerFactory<ArtistDetailBloc>(
     () => ArtistDetailBloc(repo: getIt()),
+  );
+  getIt.registerFactory<SimilarArtistsCubit>(
+    () => SimilarArtistsCubit(repo: getIt()),
   );
 
   getIt.registerFactory<PlaylistBloc>(() => PlaylistBloc(repo: getIt()));

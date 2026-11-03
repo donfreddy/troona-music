@@ -19,10 +19,13 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album pages show the album's year and, as the only format badge, Lossless when every song is; MP3 and other formats stay in About. More by the artist comes right after the songs.
 - Songs of an album without track numbers, as downloaders save them, come in the order they were downloaded, numbered by place, instead of by title with a dash. A song with a guest its title does not name, or any song of a compilation, shows its artists under its title.
 - Artist photos and bios turned on in Settings are downloaded again once, as artists are now identified by name.
+- Artist and album pages show About only when Last.fm has a bio or a review, with the listeners and up to three genres under it, and where it comes from. Most artists have none: their page no longer shows an About card of counts and tags. The play count, the On tour badge and the date the review was written are gone.
+- Similar artists show in their own section, Also in your library, and only the ones in your library: a tap opens their page. They were names in the About card that opened nothing, most of them not in the library.
 
 ### Fixed
 
 - The year of songs and albums was never read, so album pages showed none.
+- Album pages had two sections titled About this album: the one about the files now reads In your library, as on artist pages.
 - An album downloaded in several folders, or a playlist of singles saved one folder per song, showed up as several copies of the same album. They are one album again; compilations stay whole.
 - An album with a featured artist on some of its songs showed "Unknown artist" instead of its artist.
 - A single an artist is only featured on, such as "Medusa (feat. Khaid)", counted as one of their albums, and its page named the guest as its artist too.
