@@ -48,6 +48,7 @@ abstract final class LibraryGrouping {
   /// with one song each. Their songs still count for them, and their page
   /// opens from search.
   static List<Artist> artistsOf(List<Track> tracks, {bool guests = false}) {
+    final ownAlbums = _ownAlbumCounts(tracks);
     final names = <int, String>{};
     final songs = <int, List<Track>>{};
     final leads = <int>{};
@@ -60,12 +61,14 @@ abstract final class LibraryGrouping {
     }
     return [
       for (final MapEntry(key: id, value: group) in songs.entries)
-        if (guests || leads.contains(id)) _artist(id, names[id]!, group),
+        if (guests || leads.contains(id))
+          _artist(id, names[id]!, group, ownAlbums[id] ?? 0),
     ];
   }
 
-  /// The artist [artistId] as [tracks] (the songs that credit them) show
-  /// it, or null when none does.
+  /// The artist [artistId] as [tracks] show it, or null when none of them
+  /// credits the artist. [tracks] are the whole albums the artist is on,
+  /// so their own albums can be told from the ones they appear on.
   static Artist? artistOf(int artistId, List<Track> tracks) {
     final group = [
       for (final t in tracks)
@@ -73,7 +76,27 @@ abstract final class LibraryGrouping {
     ];
     if (group.isEmpty) return null;
     final name = group.first.credits.firstWhere((c) => c.id == artistId).name;
-    return _artist(artistId, name, group);
+    return _artist(
+      artistId,
+      name,
+      group,
+      _ownAlbumCounts(tracks)[artistId] ?? 0,
+    );
+  }
+
+  /// How many albums of [tracks] each artist owns: credited on every song.
+  static Map<int, int> _ownAlbumCounts(List<Track> tracks) {
+    final albums = <int, List<Track>>{};
+    for (final t in tracks) {
+      albums.putIfAbsent(t.albumId, () => []).add(t);
+    }
+    final counts = <int, int>{};
+    for (final album in albums.values) {
+      for (final credit in _sharedCredits(album)) {
+        counts[credit.id] = (counts[credit.id] ?? 0) + 1;
+      }
+    }
+    return counts;
   }
 
   static Album _album(List<Track> group) {
@@ -90,10 +113,15 @@ abstract final class LibraryGrouping {
     );
   }
 
-  static Artist _artist(int id, String name, List<Track> group) => Artist(
+  static Artist _artist(
+    int id,
+    String name,
+    List<Track> group,
+    int ownAlbums,
+  ) => Artist(
     id: id.toString(),
     name: TrackTags.artist(name),
-    albumCount: {for (final t in group) t.albumId}.length,
+    albumCount: ownAlbums,
     trackCount: group.length,
     artworkPath: _firstArtwork(group),
   );

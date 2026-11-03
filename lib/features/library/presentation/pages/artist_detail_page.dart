@@ -447,10 +447,14 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                     context.l10n.songCount(artist.trackCount),
                                     icon: AppIcons.track,
                                   ),
-                                  AppBadge(
-                                    context.l10n.albumCount(artist.albumCount),
-                                    icon: AppIcons.album,
-                                  ),
+                                  // A guest only has no album of their own.
+                                  if (artist.albumCount > 0)
+                                    AppBadge(
+                                      context.l10n.albumCount(
+                                        artist.albumCount,
+                                      ),
+                                      icon: AppIcons.album,
+                                    ),
                                   if (totalDuration > Duration.zero) ...[
                                     AppBadge(
                                       totalDuration.toHumanReadable(
@@ -554,7 +558,7 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       title: context.artistName(artist.name),
       message: context.l10n.detailCountsSummary(
         context.l10n.songCount(tracks.length),
-        context.l10n.albumCount(albums.length),
+        context.l10n.albumCount(artist.albumCount),
       ),
       actions: [
         SheetAction(

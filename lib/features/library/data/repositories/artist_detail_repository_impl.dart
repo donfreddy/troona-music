@@ -27,7 +27,8 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid artist ID format'));
       }
 
-      final tracks = await _cache.getTracksByArtistId(targetId);
+      // Their whole albums, to tell their own from the ones they appear on.
+      final tracks = await _cache.getAlbumTracksByArtistId(targetId);
       final artist = LibraryGrouping.artistOf(targetId, [
         for (final t in tracks) t.toEntity(),
       ]);

@@ -11,6 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Changed
 
 - An artist page starts with five songs, their most played first (Popular), and See all shows the rest; their albums come within reach right after. Without plays yet, the songs are by title.
+- An artist's album count, on their page, in the Artists list and in search, counts their own albums only, not the ones they appear on. An artist only ever featured shows no album count.
 - The Artists list no longer shows each collaboration as an artist of its own, nor artists only ever credited as guests. Their pages still open from search.
 - Your week in music counts a collaboration for each of its artists when it picks the top artist.
 - A rescan picks up files whose tags were edited since they were first found: title, artist, album and track number.

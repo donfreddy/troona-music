@@ -297,6 +297,9 @@ void main() {
       // Her most played song first: the section is Popular.
       expect([for (final t in data.topTracks) t.id], ['1', '3']);
       expect(data.topTracksByPlays, isTrue);
+      // Her count holds her own album, not the one she appears on.
+      expect(data.artist.albumCount, 1);
+      expect(data.artist.trackCount, 2);
     }, skip: skip);
 
     test('pages built from stored rows read an older unknown artist as '

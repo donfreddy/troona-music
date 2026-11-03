@@ -67,6 +67,16 @@ void main() {
 
     final guest = LibraryGrouping.artistOf(beyonce, tracks)!;
     expect((guest.name, guest.trackCount), ('Beyoncé', 1));
+
+    // Album 2 is Nicki's and Beyoncé's alike: every song credits both. With
+    // a solo Nicki song added, Beyoncé only appears on it.
+    final appears = [
+      ...tracks,
+      _t('3', ['Nicki Minaj'], albumId: 2),
+    ];
+    expect(LibraryGrouping.artistOf(beyonce, appears)!.albumCount, 0);
+    final nicki = LibraryGrouping.artistsOf(appears).single;
+    expect((nicki.trackCount, nicki.albumCount), (3, 2));
     expect(
       LibraryGrouping.artistOf(TrackTags.artistIdFor('Drake'), tracks),
       isNull,
