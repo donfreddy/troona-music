@@ -7,6 +7,7 @@ import 'package:troona/features/library/data/repositories/album_detail_repositor
 import 'package:troona/features/library/data/repositories/artist_detail_repository_impl.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
+import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/search/data/repositories/search_repository_impl.dart';
 
@@ -229,15 +230,19 @@ void main() {
       final albums = {for (final t in await source.getAllTracks()) t.albumId};
       expect(albums, hasLength(2), reason: 'Pinkprint is one album');
 
-      // Beyoncé's albums: her own first, then the one she appears on, whole.
+      // Beyoncé's albums: her own, and the one she appears on, whole.
       final beyonce = TrackTags.artistIdFor('Beyoncé');
       final tracks = await source.getAlbumTracksByArtistId(beyonce);
       final ofArtist = LibraryGrouping.albumsOfArtist(beyonce, [
         for (final t in tracks) t.toEntity(),
       ]);
       expect(
-        [for (final a in ofArtist) (a.name, a.trackCount)],
-        [('Lemonade', 1), ('The Pinkprint', 2)],
+        [for (final a in ofArtist.own) (a.name, a.trackCount)],
+        [('Lemonade', 1)],
+      );
+      expect(
+        [for (final a in ofArtist.appearsOn) (a.name, a.trackCount)],
+        [('The Pinkprint', 2)],
       );
 
       // The next scan finds nothing to change.
@@ -250,6 +255,39 @@ void main() {
         [for (final t in again) stored[t.deviceId]!.refreshFrom(t)],
         [false, false, false],
       );
+    }, skip: skip);
+
+    test('an artist page lists their albums and the ones they appear '
+        'on', () async {
+      final scanned = [
+        _track('1', title: 'Feeling Myself', artist: 'Nicki Minaj, Beyoncé')
+          ..album = 'The Pinkprint'
+          ..albumId = 10,
+        _track('2', title: 'Anaconda', artist: 'Nicki Minaj')
+          ..album = 'The Pinkprint'
+          ..albumId = 10,
+        _track('3', title: 'Formation', artist: 'Beyoncé')
+          ..album = 'Lemonade'
+          ..albumId = 12,
+      ];
+      TrackModel.link(scanned);
+      await source.insertTracks(scanned);
+
+      final bloc = ArtistDetailBloc(
+        repo: ArtistDetailRepositoryImpl(cache: source),
+      )..add(ArtistDetailRequested(TrackTags.artistIdFor('Beyoncé')));
+      final loaded =
+          await bloc.stream.firstWhere((s) => s is ArtistDetailLoaded)
+              as ArtistDetailLoaded;
+      await bloc.close();
+
+      final data = loaded.data;
+      expect([for (final a in data.albums.own) a.name], ['Lemonade']);
+      expect(
+        [for (final a in data.albums.appearsOn) a.name],
+        ['The Pinkprint'],
+      );
+      expect(data.topTracks, hasLength(2));
     }, skip: skip);
 
     test('pages built from stored rows read an older unknown artist as '

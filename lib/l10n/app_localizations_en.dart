@@ -573,6 +573,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailAlbums => 'Albums';
 
   @override
+  String get detailAppearsOn => 'Appears on';
+
+  @override
   String detailMoreBy(String artist) {
     return 'More by $artist';
   }

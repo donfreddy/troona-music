@@ -150,6 +150,7 @@
   "trackAddToQueue": "Ajouter à la file",
   "detailSongs": "Morceaux",
   "detailAlbums": "Albums",
+  "detailAppearsOn": "Apparaît dans",
   "detailMoreBy": "Plus de {artist}",
   "detailMore": "Plus d'options",
   "detailBack": "Retour",

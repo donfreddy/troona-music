@@ -6,7 +6,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and the albums they appear on after their own. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
+- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and shows their albums apart from the ones they only appear on, in a new Appears on section. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
 
 ### Changed
 

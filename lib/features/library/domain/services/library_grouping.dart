@@ -1,4 +1,5 @@
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/artist_albums.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -22,10 +23,10 @@ abstract final class LibraryGrouping {
     return [for (final group in groups.values) _album(group)];
   }
 
-  /// The albums [tracks] hold that credit the artist [artistId], their own
-  /// albums first (credited on every song), then the ones they appear on.
-  /// [tracks] are the whole albums, so counts are the albums' own.
-  static List<Album> albumsOfArtist(int artistId, List<Track> tracks) {
+  /// The albums [tracks] hold that credit the artist [artistId]: their own
+  /// (credited on every song, the album's artist) and the ones they appear
+  /// on. [tracks] are the whole albums, so counts are the albums' own.
+  static ArtistAlbums albumsOfArtist(int artistId, List<Track> tracks) {
     final own = <Album>[];
     final appearsOn = <Album>[];
     final groups = <int, List<Track>>{};
@@ -37,7 +38,7 @@ abstract final class LibraryGrouping {
       if (credited == 0) continue;
       (credited == group.length ? own : appearsOn).add(_album(group));
     }
-    return [...own, ...appearsOn];
+    return ArtistAlbums(own: own, appearsOn: appearsOn);
   }
 
   /// The artists of [tracks], in the order their first song comes.

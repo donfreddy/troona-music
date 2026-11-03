@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'Albums'**
   String get detailAlbums;
 
+  /// No description provided for @detailAppearsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Appears on'**
+  String get detailAppearsOn;
+
   /// No description provided for @detailMoreBy.
   ///
   /// In en, this message translates to:

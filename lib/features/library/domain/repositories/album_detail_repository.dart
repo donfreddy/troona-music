@@ -6,6 +6,8 @@ import 'package:troona/features/library/domain/entities/track.dart';
 abstract interface class AlbumDetailRepository {
   Future<Either<Failure, Album>> getAlbumById(String id);
 
+  /// The artist's own albums, for "More by": not the ones they only
+  /// appear on.
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int id);
 
   // todo: remove and put to artiste details repo

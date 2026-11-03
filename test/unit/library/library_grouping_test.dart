@@ -73,19 +73,17 @@ void main() {
     );
   });
 
-  test("an artist's own albums come before the ones they appear on", () {
+  test("an artist's own albums and the ones they appear on", () {
     final albums = LibraryGrouping.albumsOfArtist(beyonce, [
       _t('1', ['Nicki Minaj']),
       _t('2', ['Nicki Minaj', 'Beyoncé']),
       _t('3', ['Beyoncé'], albumId: 2),
     ]);
+    expect([for (final a in albums.own) (a.id, a.trackCount)], [('2', 1)]);
+    // The whole album counts, not only her song.
     expect(
-      [for (final a in albums) (a.id, a.trackCount)],
-      [
-        ('2', 1),
-        // The whole album counts, not only her song.
-        ('1', 2),
-      ],
+      [for (final a in albums.appearsOn) (a.id, a.trackCount)],
+      [('1', 2)],
     );
   });
 }

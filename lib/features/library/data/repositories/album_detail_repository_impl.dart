@@ -40,7 +40,7 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
       return right(
         LibraryGrouping.albumsOfArtist(artistId, [
           for (final t in tracks) t.toEntity(),
-        ]),
+        ]).own,
       );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));

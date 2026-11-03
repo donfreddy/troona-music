@@ -96,7 +96,7 @@ class ArtistDetailPage extends StatelessWidget {
                             delegate: _ArtistHeroDelegate(
                               artist: data.artist,
                               tracks: data.topTracks,
-                              albums: data.albums,
+                              albums: data.allAlbums,
                               topPadding: MediaQuery.of(contentCtx).padding.top,
                               textScale: MediaQuery.textScalerOf(
                                 contentCtx,
@@ -108,9 +108,19 @@ class ArtistDetailPage extends StatelessWidget {
                           if (data.topTracks.isNotEmpty)
                             _ArtistTopTracksList(tracks: data.topTracks),
 
-                          // ── 2. Discography Albums Carousel ─────────────────────
-                          if (data.albums.isNotEmpty)
-                            _ArtistAlbumsCarousel(albums: data.albums),
+                          // ── 2. Their albums, then the ones they appear on ──────
+                          if (data.albums.own.isNotEmpty)
+                            _ArtistAlbumsCarousel(
+                              title: context.l10n.detailAlbums,
+                              albums: data.albums.own,
+                              order: 5,
+                            ),
+                          if (data.albums.appearsOn.isNotEmpty)
+                            _ArtistAlbumsCarousel(
+                              title: context.l10n.detailAppearsOn,
+                              albums: data.albums.appearsOn,
+                              order: 7,
+                            ),
 
                           // ── 3. Bio & Last.fm Info ─────────────────────────────
                           BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
@@ -145,7 +155,7 @@ class ArtistDetailPage extends StatelessWidget {
                           _ArtistCollectionFooter(
                             artist: data.artist,
                             tracks: data.topTracks,
-                            albums: data.albums,
+                            albums: data.allAlbums,
                           ),
 
                           SliverPadding(
@@ -612,10 +622,19 @@ class _ArtistTopTracksList extends StatelessWidget {
   }
 }
 
-// ── Discography Albums Carousel ───────────────────────────────────────────────
+// ── Albums Carousel ───────────────────────────────────────────────────────────
 class _ArtistAlbumsCarousel extends StatelessWidget {
+  final String title;
   final List<Album> albums;
-  const _ArtistAlbumsCarousel({required this.albums});
+
+  /// Where the section comes in the page's entrance animation.
+  final int order;
+
+  const _ArtistAlbumsCarousel({
+    required this.title,
+    required this.albums,
+    required this.order,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -624,11 +643,8 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
         SliverToBoxAdapter(
           child: Column(
             children: [
-              const SizedBox(height: AppSpacing.xl2),
-              _animatedArtistItem(
-                SectionHeader(title: context.l10n.detailAlbums),
-                5,
-              ),
+              if (order == 5) const SizedBox(height: AppSpacing.xl2),
+              _animatedArtistItem(SectionHeader(title: title), order),
             ],
           ),
         ),
@@ -646,7 +662,7 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
                   album: albums[i],
                   size: 140,
                 ),
-                i + 6,
+                i + order + 1,
                 slideY: 0.04,
               ),
             ),

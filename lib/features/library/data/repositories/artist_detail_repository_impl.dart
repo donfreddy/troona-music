@@ -3,7 +3,7 @@ import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
-import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/entities/artist_albums.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
@@ -55,7 +55,7 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   }
 
   @override
-  Future<Either<Failure, List<Album>>> getAlbumsByArtistId(String id) async {
+  Future<Either<Failure, ArtistAlbums>> getAlbumsByArtistId(String id) async {
     try {
       final targetId = int.tryParse(id);
       if (targetId == null) {
