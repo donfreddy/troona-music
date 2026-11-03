@@ -78,6 +78,7 @@ class WeeklyRecapPage extends StatelessWidget {
     final l10n = context.l10n;
     final colors = context.colors;
     final topTrack = recap.topTrack;
+    final artist = recap.topArtist;
     final artistTrack = recap.topArtistTrack;
     final discoveries = recap.discoveries;
 
@@ -123,13 +124,13 @@ class WeeklyRecapPage extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
       ],
-      if (artistTrack != null) ...[
+      if (artist != null && artistTrack != null) ...[
         _RecapTile(
           caption: l10n.recapTopArtist,
-          title: artistTrack.artist,
+          title: artist.name,
           subtitle: l10n.recapPlays(recap.topArtistPlays),
           leading: _Artwork(track: artistTrack, round: true),
-          onTap: () => context.pushArtist(artistTrack.artistId.toString()),
+          onTap: () => context.pushArtist(artist.id.toString()),
         ),
         const SizedBox(height: AppSpacing.md),
       ],

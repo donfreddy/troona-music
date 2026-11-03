@@ -2,7 +2,6 @@ import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Isar-backed persistent cache for the local music library.
 ///
@@ -56,34 +55,13 @@ class IsarLibraryDataSource {
   Future<int> countTracks() async => _isar.trackModels.count();
 
   /// Case-insensitive search across [TrackModel.title] and [TrackModel.artist].
+  /// Artists and albums are searched among the ones the library groups.
   Future<List<TrackModel>> searchTracks(String query) async => _isar.trackModels
       .where()
       .titleContains(query, caseSensitive: false)
       .or()
       .artistContains(query, caseSensitive: false)
       .findAll();
-
-  /// Case-insensitive search for artists.
-  Future<List<TrackModel>> searchArtists(String query) async {
-    final tracks = _isar.trackModels
-        .where()
-        .artistContains(query, caseSensitive: false)
-        .findAll();
-
-    final seen = <String>{};
-    return tracks.where((t) => seen.add(t.artist)).toList();
-  }
-
-  /// Case-insensitive search for albums.
-  Future<List<TrackModel>> searchAlbums(String query) async {
-    final tracks = _isar.trackModels
-        .where()
-        .albumContains(query, caseSensitive: false)
-        .findAll();
-
-    final seen = <String>{};
-    return tracks.where((t) => seen.add(t.album)).toList();
-  }
 
   /// Returns tracks the artwork extractor has not looked at yet.
   Future<List<TrackModel>> getTracksWithoutArtwork() async =>
@@ -231,9 +209,29 @@ class IsarLibraryDataSource {
     ];
   }
 
-  /// Returns the list of tracks by artist ID.
-  Future<List<TrackModel>> getTracksByArtistId(int artistId) async =>
-      _isar.trackModels.where().artistIdEqualTo(artistId).findAll();
+  /// Returns the tracks that credit the artist [artistId], first or not.
+  /// A row a scan has not linked yet has no credits: its own artist counts.
+  Future<List<TrackModel>> getTracksByArtistId(int artistId) async => _isar
+      .trackModels
+      .where()
+      .artistIdsElementEqualTo(artistId)
+      .or()
+      .artistIdEqualTo(artistId)
+      .findAll();
+
+  /// Returns every track of the albums in which the artist [artistId] is
+  /// credited at least once.
+  Future<List<TrackModel>> getAlbumTracksByArtistId(int artistId) async {
+    final albumIds = {
+      for (final t in await getTracksByArtistId(artistId)) t.albumId,
+    };
+    if (albumIds.isEmpty) return const [];
+    return _isar.trackModels
+        .where()
+        .anyOf(albumIds, (q, id) => q.albumIdEqualTo(id))
+        .sortByTrackNumber()
+        .findAll();
+  }
 
   /// Returns the list of tracks by album ID.
   Future<List<TrackModel>> getTracksByAlbumId(int albumId) async => _isar
@@ -331,38 +329,6 @@ class IsarLibraryDataSource {
   Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
       _isar.trackModels.where().sortByIndexedAtDesc().findAll(limit: limit);
 
-  /// Returns a list of tracks grouped by artist.
-  Future<List<TrackModel>> getUniqueArtists({int limit = 5}) async {
-    final tracks = _isar.trackModels.where().findAll();
-    final seenArtists = <String>{};
-    final uniqueTracks = <TrackModel>[];
-
-    for (final track in tracks) {
-      if (!seenArtists.contains(track.artist)) {
-        seenArtists.add(track.artist);
-        uniqueTracks.add(track);
-        if (uniqueTracks.length >= limit) break;
-      }
-    }
-    return uniqueTracks;
-  }
-
-  /// Returns a list of tracks grouped by album.
-  Future<List<TrackModel>> getUniqueAlbums({int limit = 5}) async {
-    final tracks = _isar.trackModels.where().sortByIndexedAtDesc().findAll();
-    final seenAlbums = <String>{};
-    final uniqueTracks = <TrackModel>[];
-
-    for (final track in tracks) {
-      if (!seenAlbums.contains(track.album)) {
-        seenAlbums.add(track.album);
-        uniqueTracks.add(track);
-        if (uniqueTracks.length >= limit) break;
-      }
-    }
-    return uniqueTracks;
-  }
-
   // ---------------------------------------------------------------------------
   // Write operations  (wrapped in Isar.write for atomicity)
   // ---------------------------------------------------------------------------
@@ -398,43 +364,17 @@ class IsarLibraryDataSource {
         isar.trackModels.deleteAll(isarIds);
       });
 
-  /// Brings indexed songs without an artist tag up to date with [scanned]:
-  /// the artist read from their name, its title and id (a tagged artist's
-  /// id once one is found), and the current way of storing none. Songs with
-  /// an artist tag are left alone: only new songs are indexed again.
-  Future<void> nameUnknownArtists(List<TrackModel> scanned) async {
-    // Only the rows that can change: an index-free filter, so Isar reads
-    // the others without building them.
-    final stale = _isar.trackModels
-        .where()
-        .artistIdLessThan(0)
-        .or()
-        .anyOf(
-          TrackTags.unknownArtistNames,
-          (q, name) => q.artistEqualTo(name, caseSensitive: false),
-        )
-        .findAll();
-    if (stale.isEmpty) return;
-
+  /// Brings the indexed songs up to date with [scanned], the whole library
+  /// as a scan read it and [TrackModel.link]ed: what their tags say now and
+  /// the artists and albums they belong to (see [TrackModel.refreshFrom]).
+  /// Only the rows that changed are written; covers are kept.
+  Future<void> refreshIndexed(List<TrackModel> scanned) async {
     final byId = {for (final t in scanned) t.deviceId: t};
-    final updated = <TrackModel>[];
-    for (final track in stale) {
-      final found = byId[track.deviceId];
-      final title = found?.title ?? track.title;
-      final artist = TrackTags.artist(found?.artist ?? track.artist);
-      final artistId = found?.artistId ?? track.artistId;
-      if (title == track.title &&
-          artist == track.artist &&
-          artistId == track.artistId) {
-        continue;
-      }
-      updated.add(
-        track
-          ..title = title
-          ..artist = artist
-          ..artistId = artistId,
-      );
-    }
+    final updated = [
+      for (final row in _isar.trackModels.where().findAll())
+        if (byId[row.deviceId] case final found?)
+          if (row.refreshFrom(found)) row,
+    ];
     if (updated.isEmpty) return;
     _isar.write((isar) => isar.trackModels.putAll(updated));
   }

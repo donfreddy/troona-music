@@ -25,7 +25,7 @@ class WeeklyRecapCard extends StatelessWidget {
     final (main, mainCaption) = recap.listened > Duration.zero
         ? (formatListened(context, recap.listened), l10n.recapListened)
         : (l10n.recapPlays(recap.plays), null);
-    final artist = recap.topArtistTrack?.artist;
+    final artist = recap.topArtist?.name;
     final (second, secondCaption) = artist != null
         ? (artist, l10n.recapTopArtist)
         : (recap.topTrack?.title, l10n.recapTopSong);

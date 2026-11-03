@@ -1,8 +1,20 @@
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
+
 class Track {
   String id;
   String title;
+
+  /// The artist tag as written: "Nicki Minaj, Beyoncé".
   String artist;
+
+  /// The first of [credits]: the artist "Go to artist" opens.
   int artistId;
+
+  /// Every artist [artist] names, the first one first. A track built
+  /// without them credits its one artist.
+  List<ArtistCredit> get credits =>
+      _credits ?? [ArtistCredit(id: artistId, name: artist)];
+  final List<ArtistCredit>? _credits;
   String album;
   int albumId;
   String? genre;
@@ -39,5 +51,6 @@ class Track {
     this.artworkPath,
     this.dateAdded,
     this.dateModified,
-  });
+    List<ArtistCredit>? credits,
+  }) : _credits = (credits == null || credits.isEmpty) ? null : credits;
 }

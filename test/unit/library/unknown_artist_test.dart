@@ -83,7 +83,7 @@ void main() {
     });
   });
 
-  group('linkArtistIds', () {
+  group('link', () {
     test('an artist read from a file name joins the same tagged artist', () {
       final tracks = [
         _track('1', title: 'Ye', artist: 'Burna Boy', artistId: 42),
@@ -91,11 +91,12 @@ void main() {
         _track('3', title: 'Wizkid - Essence'),
       ].map((t) => t..nameMissingArtist(t.title)).toList();
 
-      TrackModel.linkArtistIds(tracks);
+      TrackModel.link(tracks);
 
+      final burna = TrackTags.artistIdFor('Burna Boy');
       expect(
         [for (final t in tracks) t.artistId],
-        [42, 42, TrackTags.artistIdFor('Wizkid')],
+        [burna, burna, TrackTags.artistIdFor('Wizkid')],
       );
       final artists = LibraryGrouping.artistsOf([
         for (final t in tracks) t.toEntity(),
@@ -130,7 +131,7 @@ void main() {
     expect(entities.last.artist, TrackTags.unknownArtist);
   });
 
-  group('nameUnknownArtists', () {
+  group('refreshIndexed', () {
     late Directory dir;
     late Isar isar;
     late IsarLibraryDataSource source;
@@ -161,41 +162,94 @@ void main() {
       await dir.delete(recursive: true);
     });
 
-    test('names the indexed songs without an artist, and only them', () async {
+    test('brings indexed songs up to date with their tags, keeping their '
+        'cover', () async {
+      // Rows as an earlier version stored them: MediaStore artist ids, an
+      // unknown artist written the old way, no credits.
       await source.insertTracks([
         _track('1', title: 'Burna Boy - Last Last')..artworkPath = '/a.jpg',
         _track('2', title: 'Tems - Me', artist: 'Tems', artistId: 3),
         _track('3', title: 'Intro'),
-        _track('4', title: 'Ye', artist: 'Burna Boy', artistId: -5),
+        _track('4', title: 'Ye', artist: 'Burna Boy, Tems', artistId: 5),
       ]);
 
-      // What a scan reads for the same files now. Song 2 was retagged: only
-      // a missing artist is filled in, other tags are not read again.
+      // What a scan reads for the same files now. Song 2 was retagged.
       final scanned = [
         _track('1', title: 'Burna Boy - Last Last'),
         _track('2', title: 'Me', artist: 'Tems', artistId: 3),
         _track('3', title: 'Intro'),
-        // Burna Boy is tagged elsewhere now: his MediaStore id is used.
-        _track('4', title: 'Ye', artist: 'Burna Boy', artistId: 42),
+        _track('4', title: 'Ye', artist: 'Burna Boy, Tems', artistId: 5),
       ].map((t) => t..nameMissingArtist(t.title)).toList();
-      await source.nameUnknownArtists(scanned);
+      TrackModel.link(scanned);
+      await source.refreshIndexed(scanned);
 
+      final burna = TrackTags.artistIdFor('Burna Boy');
+      final tems = TrackTags.artistIdFor('Tems');
       final stored = {
         for (final t in await source.getAllTracks())
-          t.deviceId: (t.title, t.artist, t.artistId),
+          t.deviceId: (t.title, t.artist, t.artistIds.join(',')),
       };
       expect(stored, {
-        '1': ('Last Last', 'Burna Boy', TrackTags.artistIdFor('Burna Boy')),
-        '2': ('Tems - Me', 'Tems', 3),
+        '1': ('Last Last', 'Burna Boy', '$burna'),
+        '2': ('Me', 'Tems', '$tems'),
         // Older rows that stay unknown are stored the current way.
-        '3': ('Intro', TrackTags.unknownArtist, _androidUnknownId),
-        '4': ('Ye', 'Burna Boy', 42),
+        '3': ('Intro', TrackTags.unknownArtist, '${TrackTags.unknownArtistId}'),
+        '4': ('Ye', 'Burna Boy, Tems', '$burna,$tems'),
       });
       // The rest of the row is kept: the cover is not extracted again.
       final first = (await source.getAllTracks()).firstWhere(
         (t) => t.deviceId == '1',
       );
       expect(first.artworkPath, '/a.jpg');
+
+      // Tems' page holds the collaboration too.
+      final temsSongs = await source.getTracksByArtistId(tems);
+      expect({for (final t in temsSongs) t.deviceId}, {'2', '4'});
+    }, skip: skip);
+
+    test('a scan joins an album split across folders, once', () async {
+      // Pinkprint saved in two folders, as MediaStore reports it.
+      List<TrackModel> scan() => [
+        _track('1', title: 'All Things Go', artist: 'Nicki Minaj')
+          ..album = 'The Pinkprint'
+          ..albumId = 10,
+        _track('2', title: 'Feeling Myself', artist: 'Nicki Minaj, Beyoncé')
+          ..album = 'The Pinkprint'
+          ..albumId = 11,
+        _track('3', title: 'Solo', artist: 'Beyoncé')
+          ..album = 'Lemonade'
+          ..albumId = 12,
+      ];
+      await source.insertTracks(scan());
+
+      final scanned = scan();
+      TrackModel.link(scanned);
+      await source.refreshIndexed(scanned);
+
+      final albums = {for (final t in await source.getAllTracks()) t.albumId};
+      expect(albums, hasLength(2), reason: 'Pinkprint is one album');
+
+      // Beyoncé's albums: her own first, then the one she appears on, whole.
+      final beyonce = TrackTags.artistIdFor('Beyoncé');
+      final tracks = await source.getAlbumTracksByArtistId(beyonce);
+      final ofArtist = LibraryGrouping.albumsOfArtist(beyonce, [
+        for (final t in tracks) t.toEntity(),
+      ]);
+      expect(
+        [for (final a in ofArtist) (a.name, a.trackCount)],
+        [('Lemonade', 1), ('The Pinkprint', 2)],
+      );
+
+      // The next scan finds nothing to change.
+      final again = scan();
+      TrackModel.link(again);
+      final stored = {
+        for (final t in await source.getAllTracks()) t.deviceId: t,
+      };
+      expect(
+        [for (final t in again) stored[t.deviceId]!.refreshFrom(t)],
+        [false, false, false],
+      );
     }, skip: skip);
 
     test('pages built from stored rows read an older unknown artist as '

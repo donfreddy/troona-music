@@ -4,9 +4,8 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 
 final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   final IsarLibraryDataSource _cache;
@@ -26,17 +25,8 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
       if (tracks.isEmpty) {
         return left(const DatabaseFailure('Album not found'));
       }
-      final firstTrack = tracks.first;
-
       return right(
-        Album(
-          id: firstTrack.albumId.toString(),
-          name: firstTrack.album,
-          artist: TrackTags.sharedArtist(tracks.map((t) => t.artist)),
-          artworkPath: firstTrack.artworkPath,
-          artistId: firstTrack.artistId,
-          trackCount: tracks.length,
-        ),
+        LibraryGrouping.albumsOf([for (final t in tracks) t.toEntity()]).single,
       );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -46,26 +36,12 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   @override
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int artistId) async {
     try {
-      final tracks = await _cache.getTracksByArtistId(artistId);
-
-      final albumGroups = <String, List<TrackModel>>{};
-      for (final t in tracks) {
-        albumGroups.putIfAbsent(t.album, () => []).add(t);
-      }
-
-      final resultAlbums = albumGroups.values.map((group) {
-        final firstTrack = group.first;
-        return Album(
-          id: firstTrack.albumId.toString(),
-          name: firstTrack.album,
-          artist: TrackTags.artist(firstTrack.artist),
-          artworkPath: firstTrack.artworkPath,
-          artistId: firstTrack.artistId,
-          trackCount: group.length,
-        );
-      }).toList();
-
-      return right(resultAlbums);
+      final tracks = await _cache.getAlbumTracksByArtistId(artistId);
+      return right(
+        LibraryGrouping.albumsOfArtist(artistId, [
+          for (final t in tracks) t.toEntity(),
+        ]),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

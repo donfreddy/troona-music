@@ -77,8 +77,8 @@ final class MediaScannerService {
       return;
     }
 
-    // One entry per artist, whether tagged or read from a file name.
-    TrackModel.linkArtistIds(scanned);
+    // The artists each song credits, and the albums Android split.
+    TrackModel.link(scanned);
 
     // ── Phase 2: diff + index ───────────────────────────────────────────────
     yield ScanProgress(
@@ -98,8 +98,9 @@ final class MediaScannerService {
     if (orphanIds.isNotEmpty) {
       await _cache.deleteByDeviceIds(orphanIds.toList());
     }
-    // Songs indexed before their artist could be read from their name.
-    await _cache.nameUnknownArtists(
+    // Indexed songs follow their tags, and join the artists and albums
+    // the whole library makes.
+    await _cache.refreshIndexed(
       scanned.where((t) => existingIds.contains(t.deviceId)).toList(),
     );
 

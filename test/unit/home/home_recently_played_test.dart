@@ -57,9 +57,7 @@ final class _Library implements IsarLibraryDataSource {
   ];
 
   @override
-  Future<List<TrackModel>> getUniqueArtists({int limit = 5}) async => [];
-  @override
-  Future<List<TrackModel>> getUniqueAlbums({int limit = 5}) async => [];
+  Future<List<TrackModel>> getAllTracks() async => [];
   @override
   Future<List<PlaylistModel>> getPlaylists({int? limit}) async => [];
   @override

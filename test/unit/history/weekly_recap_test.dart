@@ -7,11 +7,11 @@ import 'package:troona/features/history/domain/repositories/play_history_reposit
 import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
 import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
-
-import '../../helpers/fake_player.dart';
 
 final class _History implements PlayHistoryRepository {
   ListeningStats stats = ListeningStats.empty;
@@ -58,8 +58,23 @@ final class _Library implements LibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Track _track(String id, String artist) =>
-    testTrack(id, durationMs: 180000)..artist = artist;
+Track _track(String id, String artist, {List<String>? credits}) => Track(
+  id: id,
+  title: id,
+  artist: artist,
+  artistId: TrackTags.artistIdFor(artist),
+  credits: [
+    for (final name in credits ?? [artist])
+      ArtistCredit(id: TrackTags.artistIdFor(name), name: name),
+  ],
+  album: 'Album',
+  albumId: 1,
+  path: '/$id.mp3',
+  uri: '',
+  size: 0,
+  durationMs: 180000,
+  fileName: '$id.mp3',
+);
 
 void main() {
   group('ListeningDay', () {
@@ -99,12 +114,17 @@ void main() {
     final a2 = _track('a2', 'Daft Punk');
     final b1 = _track('b1', 'Justice');
     final unknown = _track('u1', '<unknown>');
+    final collab = _track(
+      'c1',
+      'Justice, Daft Punk',
+      credits: ['Justice', 'Daft Punk'],
+    );
 
     setUp(() {
       history = _History();
       recap = GetWeeklyRecapUseCase(
         history,
-        GetTracksByIdsUseCase(_Library([a1, a2, b1, unknown])),
+        GetTracksByIdsUseCase(_Library([a1, a2, b1, unknown, collab])),
       );
     });
 
@@ -136,8 +156,19 @@ void main() {
       expect(r.topTrack, unknown, reason: 'the top song keeps any tag');
       expect(r.topTrackPlays, 9);
       // Daft Punk 6 beats Justice 5; untagged files are no artist.
+      expect(r.topArtist?.name, 'Daft Punk');
       expect(r.topArtistTrack?.artist, 'Daft Punk');
       expect(r.topArtistPlays, 6);
+    });
+
+    test('a collaboration counts for each of its artists', () async {
+      history.stats = stats({'b1': 5, 'a1': 3, 'c1': 4});
+
+      final r = (await recap(now: now)).getOrElse(() => null)!;
+
+      // Justice 5 + 4 beats Daft Punk 3 + 4.
+      expect(r.topArtist?.name, 'Justice');
+      expect(r.topArtistPlays, 9);
     });
 
     test('a removed track is skipped for the top song', () async {

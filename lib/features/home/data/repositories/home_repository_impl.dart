@@ -9,10 +9,8 @@ import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
-import 'package:troona/features/library/domain/entities/album.dart';
-import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 
 final class HomeRepositoryImpl implements HomeRepository {
   final IsarLibraryDataSource _db;
@@ -27,6 +25,9 @@ final class HomeRepositoryImpl implements HomeRepository {
   /// Cards in the Recently Played grid.
   static const recentCount = 4;
 
+  /// Cards in the artists and new albums rows.
+  static const _rowCount = 5;
+
   @override
   Stream<void> get feedChanges =>
       Rx.merge([_history.changes, _db.watchTracks(), _db.watchPlaylists()]);
@@ -37,57 +38,43 @@ final class HomeRepositoryImpl implements HomeRepository {
       // ── Phase 1: parallel queries (no inter-dependencies) ───────────────
       final results = await Future.wait([
         _recentlyPlayed(), // 0
-        _db.getUniqueArtists(limit: 5), // 1
-        _db.getUniqueAlbums(limit: 5), // 2
-        _db.getPlaylists(limit: 3), // 3
-        _history.topTrackIds(days: 7, limit: 5), // 4
-        _db.getLikedTrackIds(), // 5
-        _history.totalPlays(days: 7), // 6
+        _db.getAllTracks(), // 1
+        _db.getPlaylists(limit: 3), // 2
+        _history.topTrackIds(days: 7, limit: 5), // 3
+        _db.getLikedTrackIds(), // 4
+        _history.totalPlays(days: 7), // 5
       ]);
 
       final recentTracks = results[0] as List<Track>;
 
-      final artists = (results[1] as List<TrackModel>)
-          .map(
-            (t) => Artist(
-              id: t.artistId.toString(),
-              name: TrackTags.artist(t.artist),
-              trackCount: 0,
-              albumCount: 0,
-              artworkPath: t.artworkPath,
-            ),
-          )
-          .toList();
+      // Artists in the order the library found them, albums newest first,
+      // both grouped the way the library groups them.
+      final library = results[1] as List<TrackModel>;
+      final artists = LibraryGrouping.artistsOf([
+        for (final t in library) t.toEntity(),
+      ]).take(_rowCount).toList();
+      final newestFirst = List.of(library)
+        ..sort((a, b) => b.indexedAt.compareTo(a.indexedAt));
+      final albums = LibraryGrouping.albumsOf([
+        for (final t in newestFirst) t.toEntity(),
+      ]).take(_rowCount).toList();
 
-      final albums = (results[2] as List<TrackModel>)
-          .map(
-            (t) => Album(
-              id: t.albumId.toString(),
-              name: t.album,
-              artist: TrackTags.artist(t.artist),
-              artworkPath: t.artworkPath,
-              artistId: 0,
-              trackCount: 0,
-            ),
-          )
-          .toList();
-
-      final playlists = (results[3] as List<PlaylistModel>)
+      final playlists = (results[2] as List<PlaylistModel>)
           .map((p) => p.toEntity())
           .toList();
 
       // ── Phase 2: top weekly: needs track resolution ──────────────────
-      final topIdsResult = results[4] as Either;
+      final topIdsResult = results[3] as Either;
       final topCounts =
           topIdsResult.getOrElse(() => <String, int>{}) as Map<String, int>;
       final topWeekly = await _resolveTopWeekly(topCounts);
 
       // ── Phase 3: hidden gems: needs liked IDs + history ──────────────
-      final likedIds = results[5] as Set<String>;
+      final likedIds = results[4] as Set<String>;
       final hiddenGems = await _resolveHiddenGems(likedIds);
 
       // Weekly play count
-      final totalPlaysResult = results[6] as Either;
+      final totalPlaysResult = results[5] as Either;
       final weeklyPlayCount = totalPlaysResult.getOrElse(() => 0) as int;
 
       return right(

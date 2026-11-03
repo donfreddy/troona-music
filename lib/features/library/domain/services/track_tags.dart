@@ -25,22 +25,6 @@ abstract final class TrackTags {
   static String artist(String? raw) =>
       isUnknownArtist(raw) ? unknownArtist : raw!.trim();
 
-  /// The artist every one of [artists] names, or [unknownArtist] when they
-  /// differ: a folder of downloads is one "album" in Android's eyes, and
-  /// crediting it to its first song's artist would be wrong.
-  static String sharedArtist(Iterable<String> artists) {
-    String? shared;
-    for (final raw in artists) {
-      final name = artist(raw);
-      if (shared == null) {
-        shared = name;
-      } else if (name.toLowerCase() != shared.toLowerCase()) {
-        return unknownArtist;
-      }
-    }
-    return shared ?? unknownArtist;
-  }
-
   /// The artist and title of an "Artist - Title" name, or null when [name]
   /// does not clearly hold both.
   ///

@@ -1,3 +1,4 @@
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
 /// "Your week in music": one finished week, Monday to Sunday.
@@ -10,7 +11,10 @@ final class WeeklyRecap {
   final Track? topTrack;
   final int topTrackPlays;
 
-  /// A track of the top artist, for its name, id and artwork.
+  /// The artist credited on the most plays, guests included.
+  final ArtistCredit? topArtist;
+
+  /// The top artist's most played track, for its artwork.
   final Track? topArtistTrack;
   final int topArtistPlays;
 
@@ -24,6 +28,7 @@ final class WeeklyRecap {
     required this.listened,
     this.topTrack,
     this.topTrackPlays = 0,
+    this.topArtist,
     this.topArtistTrack,
     this.topArtistPlays = 0,
     this.discoveries,

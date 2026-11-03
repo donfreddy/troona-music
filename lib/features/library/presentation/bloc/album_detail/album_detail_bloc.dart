@@ -1,6 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
+import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 
@@ -37,9 +40,10 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
         await tracksResult.fold(
           (failure) async => emit(AlbumDetailError(failure.message)),
           (tracks) async {
-            final artistAlbumsResult = await _repo.getAlbumsByArtistId(
-              album.artistId,
-            );
+            // A compilation has no artist: nothing more to show by it.
+            final artistAlbumsResult = album.artist.isEmpty
+                ? right<Failure, List<Album>>(const [])
+                : await _repo.getAlbumsByArtistId(album.artistId);
 
             await artistAlbumsResult.fold(
               (failure) async => emit(AlbumDetailError(failure.message)),
@@ -50,7 +54,7 @@ class AlbumDetailBloc extends Bloc<AlbumDetailEvent, AlbumDetailState> {
                       album: album,
                       albumTracks: tracks,
                       artistAlbums: albums
-                          .where((a) => a.name != album.name)
+                          .where((a) => a.id != album.id)
                           .toList(),
                     ),
                   ),

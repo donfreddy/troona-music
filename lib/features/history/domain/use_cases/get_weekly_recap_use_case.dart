@@ -4,6 +4,7 @@ import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/weekly_recap.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -45,7 +46,10 @@ final class GetWeeklyRecapUseCase {
     ])).getOrElse(() => const <Track>[]);
 
     final topTrack = tracks.firstOrNull;
-    final (artistTrack, artistPlays) = _topArtist(tracks, stats.trackPlays);
+    final (artist, artistTrack, artistPlays) = _topArtist(
+      tracks,
+      stats.trackPlays,
+    );
     final historyStart = stats.historyStart;
 
     return WeeklyRecap(
@@ -54,6 +58,7 @@ final class GetWeeklyRecapUseCase {
       listened: stats.listened,
       topTrack: topTrack,
       topTrackPlays: topTrack == null ? 0 : stats.trackPlays[topTrack.id]!,
+      topArtist: artist,
       topArtistTrack: artistTrack,
       topArtistPlays: artistPlays,
       discoveries:
@@ -63,23 +68,30 @@ final class GetWeeklyRecapUseCase {
     );
   }
 
-  /// The artist with the most plays, through its most played track (tracks
-  /// come ranked), ignoring files without an artist tag.
-  static (Track?, int) _topArtist(List<Track> tracks, Map<String, int> plays) {
-    final byArtist = <String, int>{};
-    final firstTrack = <String, Track>{};
+  /// The artist credited on the most plays, with their most played track
+  /// (tracks come ranked), ignoring files without an artist tag. A
+  /// collaboration counts for each of its artists.
+  static (ArtistCredit?, Track?, int) _topArtist(
+    List<Track> tracks,
+    Map<String, int> plays,
+  ) {
+    final byArtist = <int, int>{};
+    final credit = <int, ArtistCredit>{};
+    final firstTrack = <int, Track>{};
     for (final t in tracks) {
-      final name = t.artist.trim();
-      if (TrackTags.isUnknownArtist(name)) continue;
-      byArtist[name] = (byArtist[name] ?? 0) + plays[t.id]!;
-      firstTrack.putIfAbsent(name, () => t);
+      for (final c in t.credits) {
+        if (TrackTags.isUnknownArtist(c.name)) continue;
+        byArtist[c.id] = (byArtist[c.id] ?? 0) + plays[t.id]!;
+        credit.putIfAbsent(c.id, () => c);
+        firstTrack.putIfAbsent(c.id, () => t);
+      }
     }
-    if (byArtist.isEmpty) return (null, 0);
+    if (byArtist.isEmpty) return (null, null, 0);
     // Ties go to the artist whose own top track ranks first.
     var best = byArtist.keys.first;
-    for (final name in byArtist.keys) {
-      if (byArtist[name]! > byArtist[best]!) best = name;
+    for (final id in byArtist.keys) {
+      if (byArtist[id]! > byArtist[best]!) best = id;
     }
-    return (firstTrack[best], byArtist[best]!);
+    return (credit[best], firstTrack[best], byArtist[best]!);
   }
 }

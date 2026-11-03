@@ -58,6 +58,7 @@ void main() {
     listened: const Duration(hours: 2, minutes: 40),
     topTrack: song,
     topTrackPlays: 7,
+    topArtist: song.credits.first,
     topArtistTrack: song,
     topArtistPlays: 12,
     discoveries: 3,

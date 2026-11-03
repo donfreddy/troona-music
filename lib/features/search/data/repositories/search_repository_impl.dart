@@ -4,85 +4,52 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/search/domain/entities/search_result.dart';
 import 'package:troona/features/search/domain/repositories/search_repository.dart';
 
 final class SearchRepositoryImpl implements SearchRepository {
   final IsarLibraryDataSource _db;
 
-  const SearchRepositoryImpl({required IsarLibraryDataSource db}) : _db = db;
+  SearchRepositoryImpl({required IsarLibraryDataSource db}) : _db = db {
+    // Grouping the whole library is too slow for every keystroke: it is
+    // done once, again after the songs change.
+    _db.watchTracks().listen((_) => _grouped = null);
+  }
+
+  ({List<Artist> artists, List<Album> albums})? _grouped;
+
+  Future<({List<Artist> artists, List<Album> albums})> _library() async {
+    if (_grouped case final grouped?) return grouped;
+    final tracks = [for (final t in await _db.getAllTracks()) t.toEntity()];
+    return _grouped = (
+      artists: LibraryGrouping.artistsOf(tracks, guests: true),
+      albums: LibraryGrouping.albumsOf(tracks),
+    );
+  }
 
   @override
   Future<Either<Failure, SearchResult>> search(String query) async {
     if (query.trim().isEmpty) return right(SearchResult.empty());
 
     try {
-      final results = await Future.wait([
-        _db.searchTracks(query),
-        _db.searchArtists(query),
-        _db.searchAlbums(query),
-      ]);
+      final tracks = [
+        for (final t in await _db.searchTracks(query)) t.toEntity(),
+      ];
 
-      final tracks = (results[0]).map((t) => t.toEntity()).toList();
-
-      // Deduplicate artists and enrich with counts and artwork
-      final rawArtists = results[1];
-      final seenArtists = <String>{};
-      final uniqueArtistTracks = rawArtists
-          .where((t) => seenArtists.add(TrackTags.artist(t.artist)))
-          .toList();
-
-      final artists = await Future.wait(
-        uniqueArtistTracks.map((t) async {
-          final artistTracks = await _db.getTracksByArtistId(t.artistId);
-          final albumCount = artistTracks.map((x) => x.albumId).toSet().length;
-          final artwork =
-              t.artworkPath ??
-              artistTracks
-                  .where(
-                    (x) => x.artworkPath != null && x.artworkPath!.isNotEmpty,
-                  )
-                  .firstOrNull
-                  ?.artworkPath;
-          return Artist(
-            id: t.artistId.toString(),
-            name: TrackTags.artist(t.artist),
-            artworkPath: artwork,
-            trackCount: artistTracks.length,
-            albumCount: albumCount,
-          );
-        }),
-      );
-
-      // Deduplicate albums and enrich with counts and artwork
-      final rawAlbums = results[2];
-      final seenAlbums = <String>{};
-      final uniqueAlbumTracks = rawAlbums
-          .where((t) => seenAlbums.add(t.album))
-          .toList();
-
-      final albums = await Future.wait(
-        uniqueAlbumTracks.map((t) async {
-          final albumTracks = await _db.getTracksByAlbumId(t.albumId);
-          final artwork =
-              t.artworkPath ??
-              albumTracks
-                  .where(
-                    (x) => x.artworkPath != null && x.artworkPath!.isNotEmpty,
-                  )
-                  .firstOrNull
-                  ?.artworkPath;
-          return Album(
-            id: t.albumId.toString(),
-            name: t.album,
-            artist: TrackTags.sharedArtist(albumTracks.map((x) => x.artist)),
-            artworkPath: artwork,
-            artistId: t.artistId,
-            trackCount: albumTracks.length,
-          );
-        }),
-      );
+      // Artists and albums as the library groups them, so a collaboration
+      // finds each of its artists and a split album shows once.
+      final library = await _library();
+      final needle = query.trim().toLowerCase();
+      bool matches(String name) => name.toLowerCase().contains(needle);
+      final artists = [
+        for (final a in library.artists)
+          if (matches(a.name)) a,
+      ];
+      final albums = [
+        for (final a in library.albums)
+          if (matches(a.name)) a,
+      ];
 
       return right(
         SearchResult(tracks: tracks, artists: artists, albums: albums),

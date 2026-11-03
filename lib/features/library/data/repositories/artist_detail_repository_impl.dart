@@ -5,9 +5,8 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 
 final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
   final IsarLibraryDataSource _cache;
@@ -24,23 +23,13 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
       }
 
       final tracks = await _cache.getTracksByArtistId(targetId);
-
-      if (tracks.isEmpty) {
+      final artist = LibraryGrouping.artistOf(targetId, [
+        for (final t in tracks) t.toEntity(),
+      ]);
+      if (artist == null) {
         return left(const DatabaseFailure('Artist not found'));
       }
-
-      final firstTrack = tracks.first;
-      final albumCount = tracks.map((t) => t.albumId).toSet().length;
-
-      return right(
-        Artist(
-          id: firstTrack.artistId.toString(),
-          name: TrackTags.artist(firstTrack.artist),
-          albumCount: albumCount,
-          trackCount: tracks.length,
-          artworkPath: firstTrack.artworkPath,
-        ),
-      );
+      return right(artist);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -54,7 +43,7 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid ID format'));
       }
 
-      // Every song by this artist, from the Isar cache
+      // Every song that credits this artist, from the Isar cache
       final tracks = await _cache.getTracksByArtistId(targetId);
 
       // Could be sorted by play count once that is available;
@@ -73,27 +62,12 @@ final class ArtistDetailRepositoryImpl implements ArtistDetailRepository {
         return left(const DatabaseFailure('Invalid ID format'));
       }
 
-      final tracks = await _cache.getTracksByArtistId(targetId);
-
-      // Group by album name to reliably count tracks and grab the first artwork
-      final albumGroups = <String, List<TrackModel>>{};
-      for (final t in tracks) {
-        albumGroups.putIfAbsent(t.album, () => []).add(t);
-      }
-
-      final artistAlbums = albumGroups.values.map((group) {
-        final firstTrack = group.first;
-        return Album(
-          id: firstTrack.albumId.toString(),
-          name: firstTrack.album,
-          artist: TrackTags.artist(firstTrack.artist),
-          artworkPath: firstTrack.artworkPath,
-          artistId: firstTrack.artistId,
-          trackCount: group.length,
-        );
-      }).toList();
-
-      return right(artistAlbums);
+      final tracks = await _cache.getAlbumTracksByArtistId(targetId);
+      return right(
+        LibraryGrouping.albumsOfArtist(targetId, [
+          for (final t in tracks) t.toEntity(),
+        ]),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

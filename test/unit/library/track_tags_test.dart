@@ -119,18 +119,6 @@ void main() {
     });
   });
 
-  group('sharedArtist', () {
-    test('is the artist all songs share, or unknown', () {
-      expect(TrackTags.sharedArtist(['Tems', ' tems ']), 'Tems');
-      expect(
-        TrackTags.sharedArtist(['Tems', 'Wizkid']),
-        TrackTags.unknownArtist,
-      );
-      expect(TrackTags.sharedArtist(['<unknown>']), TrackTags.unknownArtist);
-      expect(TrackTags.sharedArtist([]), TrackTags.unknownArtist);
-    });
-  });
-
   group('artistIdFor', () {
     test('is negative, stable and ignores case and spaces', () {
       final id = TrackTags.artistIdFor('Burna Boy');
