@@ -4,6 +4,23 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and the albums they appear on after their own. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
+
+### Changed
+
+- The Artists list no longer shows each collaboration as an artist of its own, nor artists only ever credited as guests. Their pages still open from search.
+- Your week in music counts a collaboration for each of its artists when it picks the top artist.
+- A rescan picks up files whose tags were edited since they were first found: title, artist, album and track number.
+- Artist photos and bios turned on in Settings are downloaded again once, as artists are now identified by name.
+
+### Fixed
+
+- An album downloaded in several folders, or a playlist of singles saved one folder per song, showed up as several copies of the same album. They are one album again; compilations stay whole.
+- An album with a featured artist on some of its songs showed "Unknown artist" instead of its artist.
+- An artist's page could merge two of their albums that share a name, and an album page hid the artist's other albums of the same name from "More by".
+
 ## [1.2.0] - 2026-10-31
 
 ### Added
