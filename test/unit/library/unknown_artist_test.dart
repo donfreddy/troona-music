@@ -1,7 +1,11 @@
 import 'dart:io';
 
+import 'package:dartz/dartz.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_plus/isar_plus.dart';
+import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/repositories/album_detail_repository_impl.dart';
 import 'package:troona/features/library/data/repositories/artist_detail_repository_impl.dart';
@@ -274,7 +278,10 @@ void main() {
       await source.insertTracks(scanned);
 
       final bloc = ArtistDetailBloc(
-        repo: ArtistDetailRepositoryImpl(cache: source),
+        repo: ArtistDetailRepositoryImpl(
+          cache: source,
+          history: _History({'1': 4}),
+        ),
       )..add(ArtistDetailRequested(TrackTags.artistIdFor('Beyoncé')));
       final loaded =
           await bloc.stream.firstWhere((s) => s is ArtistDetailLoaded)
@@ -287,7 +294,9 @@ void main() {
         [for (final a in data.albums.appearsOn) a.name],
         ['The Pinkprint'],
       );
-      expect(data.topTracks, hasLength(2));
+      // Her most played song first: the section is Popular.
+      expect([for (final t in data.topTracks) t.id], ['1', '3']);
+      expect(data.topTracksByPlays, isTrue);
     }, skip: skip);
 
     test('pages built from stored rows read an older unknown artist as '
@@ -297,7 +306,10 @@ void main() {
         _track('2', title: 'Outro', artist: 'Unknown Artist'),
       ]);
       final albums = AlbumDetailRepositoryImpl(cache: source);
-      final artists = ArtistDetailRepositoryImpl(cache: source);
+      final artists = ArtistDetailRepositoryImpl(
+        cache: source,
+        history: _History(),
+      );
       final search = SearchRepositoryImpl(db: source);
 
       final album = (await albums.getAlbumById('1')).getOrElse(() => throw 0);
@@ -310,4 +322,18 @@ void main() {
       expect(found.albums.single.artist, TrackTags.unknownArtist);
     }, skip: skip);
   });
+}
+
+/// A history where each track of [plays] was played that many times.
+final class _History implements PlayHistoryRepository {
+  _History([this.plays = const {}]);
+  final Map<String, int> plays;
+
+  @override
+  Future<Either<Failure, Map<String, int>>> playCounts(
+    Set<String> trackIds,
+  ) async => right({for (final id in trackIds) id: ?plays[id]});
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

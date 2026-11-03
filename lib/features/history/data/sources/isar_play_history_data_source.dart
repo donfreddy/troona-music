@@ -140,6 +140,21 @@ final class IsarPlayHistoryDataSource {
   /// sorted by play count descending, limited to [limit] entries.
   ///
   /// Used by the "Your Top This Week" home section.
+  /// All-time plays of each of [trackIds] that was ever counted as played,
+  /// from the daily totals, which are never pruned.
+  Map<String, int> playCounts(Set<String> trackIds) {
+    if (trackIds.isEmpty) return const {};
+    final counts = <String, int>{};
+    for (final t
+        in _isar.trackDayModels
+            .where()
+            .anyOf(trackIds, (q, id) => q.trackIdEqualTo(id))
+            .findAll()) {
+      counts[t.trackId] = (counts[t.trackId] ?? 0) + t.plays;
+    }
+    return counts;
+  }
+
   Map<String, int> topTrackIds({int days = 7, int limit = 5}) {
     final since = DateTime.now().subtract(Duration(days: days));
     final events = _isar.playEventModels

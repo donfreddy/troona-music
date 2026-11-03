@@ -30,6 +30,7 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -106,7 +107,10 @@ class ArtistDetailPage extends StatelessWidget {
 
                           // ── 1. Top Tracks FIRST for instant playback ───────────
                           if (data.topTracks.isNotEmpty)
-                            _ArtistTopTracksList(tracks: data.topTracks),
+                            _ArtistTopTracksList(
+                              tracks: data.topTracks,
+                              byPlays: data.topTracksByPlays,
+                            ),
 
                           // ── 2. Their albums, then the ones they appear on ──────
                           if (data.albums.own.isNotEmpty)
@@ -120,6 +124,7 @@ class ArtistDetailPage extends StatelessWidget {
                               title: context.l10n.detailAppearsOn,
                               albums: data.albums.appearsOn,
                               order: 7,
+                              spaced: data.albums.own.isEmpty,
                             ),
 
                           // ── 3. Bio & Last.fm Info ─────────────────────────────
@@ -576,12 +581,34 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
 }
 
 // ── Top Tracks List (Prioritized First) ────────────────────────────────────────
-class _ArtistTopTracksList extends StatelessWidget {
+class _ArtistTopTracksList extends StatefulWidget {
+  /// Every song of the artist, most played first.
   final List<Track> tracks;
-  const _ArtistTopTracksList({required this.tracks});
+
+  /// Whether [tracks] are ranked by plays: the section is Popular.
+  final bool byPlays;
+
+  const _ArtistTopTracksList({required this.tracks, required this.byPlays});
+
+  /// Songs shown before "See all": the albums stay within reach.
+  static const shown = 5;
+
+  @override
+  State<_ArtistTopTracksList> createState() => _ArtistTopTracksListState();
+}
+
+class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
+  var _expanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final tracks = widget.tracks;
+    final l10n = context.l10n;
+    final folds = tracks.length > _ArtistTopTracksList.shown;
+    final visible = _expanded || !folds
+        ? tracks.length
+        : _ArtistTopTracksList.shown;
+
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
@@ -589,14 +616,16 @@ class _ArtistTopTracksList extends StatelessWidget {
             children: [
               const SizedBox(height: AppSpacing.lg),
               _animatedArtistItem(
-                SectionHeader(title: context.l10n.detailSongs),
+                SectionHeader(
+                  title: widget.byPlays ? l10n.detailPopular : l10n.detailSongs,
+                ),
                 3,
               ),
             ],
           ),
         ),
         SliverList.separated(
-          itemCount: tracks.length,
+          itemCount: visible,
           separatorBuilder: (_, _) => Divider(
             height: 0.5,
             indent: 72,
@@ -606,6 +635,7 @@ class _ArtistTopTracksList extends StatelessWidget {
             TrackListTile(
               key: ValueKey('artist-track-${tracks[i].id}'),
               track: tracks[i],
+              // The whole list plays on, folded or not.
               onTap: () => context.read<PlayerBloc>().add(
                 PlayTrackRequested(
                   tracks[i],
@@ -617,6 +647,25 @@ class _ArtistTopTracksList extends StatelessWidget {
             i + 4,
           ),
         ),
+        if (folds)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: AppButton.text(
+                  _expanded
+                      ? l10n.detailShowLess
+                      : l10n.detailSeeAllSongs(tracks.length),
+                  size: AppButtonSize.small,
+                  onPressed: () {
+                    AppHaptics.selectionClick();
+                    setState(() => _expanded = !_expanded);
+                  },
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -630,10 +679,15 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
   /// Where the section comes in the page's entrance animation.
   final int order;
 
+  /// Whether a gap sets it apart from the section above: not between two
+  /// carousels.
+  final bool spaced;
+
   const _ArtistAlbumsCarousel({
     required this.title,
     required this.albums,
     required this.order,
+    this.spaced = true,
   });
 
   @override
@@ -643,7 +697,7 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
         SliverToBoxAdapter(
           child: Column(
             children: [
-              if (order == 5) const SizedBox(height: AppSpacing.xl2),
+              if (spaced) const SizedBox(height: AppSpacing.xl2),
               _animatedArtistItem(SectionHeader(title: title), order),
             ],
           ),

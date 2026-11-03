@@ -253,7 +253,7 @@ Future<void> configureDependencies() async {
     () => AlbumDetailRepositoryImpl(cache: getIt()),
   );
   getIt.registerLazySingleton<ArtistDetailRepository>(
-    () => ArtistDetailRepositoryImpl(cache: getIt()),
+    () => ArtistDetailRepositoryImpl(cache: getIt(), history: getIt()),
   );
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),

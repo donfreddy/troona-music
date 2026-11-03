@@ -116,6 +116,16 @@ void main() {
       expect(stats.discoveries, 2);
     }, skip: skip);
 
+    test('play counts add up all days, for the tracks asked only', () async {
+      await play('a', 0);
+      await play('a', 60 * 24 + 1); // the next day
+      await play('b', 5);
+      await play('c', 6);
+
+      expect(source.playCounts({'a', 'b', 'never'}), {'a': 2, 'b': 1});
+      expect(source.playCounts({}), isEmpty);
+    }, skip: skip);
+
     test('a track first played on an earlier day is no discovery', () async {
       await play('a', 0);
       await play('a', 24 * 60);

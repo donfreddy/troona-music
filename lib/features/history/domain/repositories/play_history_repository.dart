@@ -28,6 +28,9 @@ abstract interface class PlayHistoryRepository {
   /// Ids of the last played tracks, most recent first, each id once.
   Future<Either<Failure, List<String>>> recentTrackIds({required int limit});
 
+  /// All-time plays of each of [trackIds]; a track never played is absent.
+  Future<Either<Failure, Map<String, int>>> playCounts(Set<String> trackIds);
+
   /// Map of {trackId: playCount} for the last [days], sorted by count desc.
   Future<Either<Failure, Map<String, int>>> topTrackIds({
     int days = 7,

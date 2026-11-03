@@ -282,6 +282,16 @@
   "detailSongs": "Songs",
   "detailAlbums": "Albums",
   "detailAppearsOn": "Appears on",
+  "detailPopular": "Popular",
+  "detailSeeAllSongs": "See all {count} songs",
+  "@detailSeeAllSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "detailShowLess": "Show less",
   "detailMoreBy": "More by {artist}",
   "@detailMoreBy": {
     "placeholders": {

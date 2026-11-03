@@ -576,6 +576,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailAppearsOn => 'Appears on';
 
   @override
+  String get detailPopular => 'Popular';
+
+  @override
+  String detailSeeAllSongs(int count) {
+    return 'See all $count songs';
+  }
+
+  @override
+  String get detailShowLess => 'Show less';
+
+  @override
   String detailMoreBy(String artist) {
     return 'More by $artist';
   }

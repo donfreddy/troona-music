@@ -6,7 +6,7 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/artist_albums.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_detail.dart';
-import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/entities/artist_songs.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 
 part 'artist_detail_event.dart';
@@ -42,16 +42,21 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
     ]);
 
     final artistRes = results[0] as Either<Failure, Artist>;
-    final tracksRes = results[1] as Either<Failure, List<Track>>;
+    final tracksRes = results[1] as Either<Failure, ArtistSongs>;
     final albumsRes = results[2] as Either<Failure, ArtistAlbums>;
 
     artistRes.fold((f) => emit(ArtistDetailError(f.message)), (artist) {
-      final tracks = tracksRes.getOrElse(() => []);
+      final songs = tracksRes.getOrElse(() => const ArtistSongs());
       final albums = albumsRes.getOrElse(() => const ArtistAlbums());
 
       emit(
         ArtistDetailLoaded(
-          ArtistDetail(artist: artist, topTracks: tracks, albums: albums),
+          ArtistDetail(
+            artist: artist,
+            topTracks: songs.tracks,
+            topTracksByPlays: songs.byPlays,
+            albums: albums,
+          ),
         ),
       );
     });

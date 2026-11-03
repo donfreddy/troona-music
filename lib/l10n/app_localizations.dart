@@ -1004,6 +1004,24 @@ abstract class AppLocalizations {
   /// **'Appears on'**
   String get detailAppearsOn;
 
+  /// No description provided for @detailPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get detailPopular;
+
+  /// No description provided for @detailSeeAllSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'See all {count} songs'**
+  String detailSeeAllSongs(int count);
+
+  /// No description provided for @detailShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get detailShowLess;
+
   /// No description provided for @detailMoreBy.
   ///
   /// In en, this message translates to:

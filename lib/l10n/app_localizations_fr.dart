@@ -578,7 +578,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get detailAlbums => 'Albums';
 
   @override
-  String get detailAppearsOn => 'Apparaît sur';
+  String get detailAppearsOn => 'Apparaît dans';
+
+  @override
+  String get detailPopular => 'Populaires';
+
+  @override
+  String detailSeeAllSongs(int count) {
+    return 'Voir les $count morceaux';
+  }
+
+  @override
+  String get detailShowLess => 'Afficher moins';
 
   @override
   String detailMoreBy(String artist) {

@@ -74,6 +74,17 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
   }
 
   @override
+  Future<Either<Failure, Map<String, int>>> playCounts(
+    Set<String> trackIds,
+  ) async {
+    try {
+      return right(_source.playCounts(trackIds));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
   Future<Either<Failure, Map<String, int>>> topTrackIds({
     int days = 7,
     int limit = 5,
