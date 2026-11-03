@@ -14,6 +14,8 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/audio_format.dart';
+import 'package:troona/features/library/domain/services/album_order.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
@@ -101,7 +103,22 @@ class AlbumDetailPage extends StatelessWidget {
                                 ).scale(1),
                               ),
                             ),
-                            _AlbumTracksView(tracks: data.albumTracks),
+                            _AlbumTracksView(
+                              album: data.album,
+                              tracks: data.albumTracks,
+                            ),
+
+                            // Albums without an artist share nothing else.
+                            if (data.album.artist.isNotEmpty &&
+                                data.artistAlbums.any(
+                                  (a) => a.id != data.album.id,
+                                ))
+                              _MoreByArtistView(
+                                artistName: data.album.artist,
+                                albums: data.artistAlbums
+                                    .where((a) => a.id != data.album.id)
+                                    .toList(),
+                              ),
 
                             // ── Album review and Last.fm wiki ──────────────
                             BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
@@ -128,17 +145,6 @@ class AlbumDetailPage extends StatelessWidget {
                               },
                             ),
 
-                            // Albums without an artist share nothing else.
-                            if (data.album.artist.isNotEmpty &&
-                                data.artistAlbums.any(
-                                  (a) => a.id != data.album.id,
-                                ))
-                              _MoreByArtistView(
-                                artistName: data.album.artist,
-                                albums: data.artistAlbums
-                                    .where((a) => a.id != data.album.id)
-                                    .toList(),
-                              ),
                             // Technical metadata card & storage footprint
                             _AlbumMetadataFooter(
                               tracks: data.albumTracks,
@@ -601,12 +607,10 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
     );
   }
 
-  /// "Lossless" only when every song is FLAC or WAV, else the format all
-  /// songs share; a mixed album, or one with an unknown file, gets no badge.
-  String? _formatBadge(BuildContext context) {
-    if (AudioFormat.allLossless(tracks)) return context.l10n.formatLossless;
-    return AudioFormat.sharedBy(tracks)?.label;
-  }
+  /// "Lossless" when every song is FLAC or WAV: the one format worth a
+  /// badge. Other formats (MP3, M4A) are listed in the About card.
+  String? _formatBadge(BuildContext context) =>
+      AudioFormat.allLossless(tracks) ? context.l10n.formatLossless : null;
 
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
@@ -644,11 +648,17 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
 
 // ── Tracks List ───────────────────────────────────────────────────────────────
 class _AlbumTracksView extends StatelessWidget {
+  final Album album;
+
+  /// Every song of the album, in its order: an album is its whole track
+  /// list, so it is never folded.
   final List<Track> tracks;
-  const _AlbumTracksView({required this.tracks});
+
+  const _AlbumTracksView({required this.album, required this.tracks});
 
   @override
   Widget build(BuildContext context) {
+    final numbers = AlbumOrder.numbers(tracks);
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
@@ -673,6 +683,14 @@ class _AlbumTracksView extends StatelessWidget {
             AlbumTrackListTile(
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
+              number: numbers[i],
+              subtitle: switch (LibraryGrouping.creditLine(
+                tracks[i],
+                album.artist,
+              )) {
+                final line? => context.artistName(line),
+                null => null,
+              },
               onTap: () => context.read<PlayerBloc>().add(
                 PlayTrackRequested(
                   tracks[i],

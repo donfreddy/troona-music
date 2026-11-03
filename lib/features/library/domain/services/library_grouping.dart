@@ -99,6 +99,29 @@ abstract final class LibraryGrouping {
     return counts;
   }
 
+  /// The artist line to show under [track] on the page of an album by
+  /// [albumArtist], or null when the album's artist says it all.
+  ///
+  /// A compilation names every song's artist. On an artist's album, a song
+  /// with guests names them, unless its title already does: downloaded
+  /// songs read "Feeling Myself (feat. Beyoncé)".
+  static String? creditLine(Track track, String albumArtist) {
+    if (TrackTags.isUnknownArtist(albumArtist)) {
+      return TrackTags.isUnknownArtist(track.artist) ? null : track.artist;
+    }
+    final owners = {
+      for (final name in albumArtist.split(', ')) name.toLowerCase(),
+    };
+    final title = track.title.toLowerCase();
+    final unnamed = track.credits.where(
+      (c) =>
+          !owners.contains(c.name.toLowerCase()) &&
+          !TrackTags.isUnknownArtist(c.name) &&
+          !title.contains(c.name.toLowerCase()),
+    );
+    return unnamed.isEmpty ? null : track.artist;
+  }
+
   static Album _album(List<Track> group) {
     final artists = _sharedCredits(group);
     return Album(

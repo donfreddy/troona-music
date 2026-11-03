@@ -5,6 +5,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
+import 'package:troona/features/library/domain/services/album_order.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
 
 final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
@@ -61,7 +62,7 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id) async {
     try {
       final tracks = await _cache.getTracksByAlbumId(id);
-      return right(tracks.map((t) => t.toEntity()).toList());
+      return right(AlbumOrder.sorted([for (final t in tracks) t.toEntity()]));
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

@@ -15,6 +15,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - The Artists list no longer shows each collaboration as an artist of its own, nor artists only ever credited as guests. Their pages still open from search.
 - Your week in music counts a collaboration for each of its artists when it picks the top artist.
 - A rescan picks up files whose tags were edited since they were first found.
+- Album pages show the album's year and, as the only format badge, Lossless when every song is; MP3 and other formats stay in About. More by the artist comes right after the songs.
+- Songs of an album without track numbers, as downloaders save them, come in the order they were downloaded, numbered by place, instead of by title with a dash. A song with a guest its title does not name, or any song of a compilation, shows its artists under its title.
 - Artist photos and bios turned on in Settings are downloaded again once, as artists are now identified by name.
 
 ### Fixed

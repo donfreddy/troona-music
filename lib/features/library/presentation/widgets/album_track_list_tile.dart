@@ -21,12 +21,21 @@ import 'package:troona/shared/widgets/mini_equalizer.dart';
 /// - Quick Like toggle and context menu
 class AlbumTrackListTile extends StatefulWidget {
   final Track track;
+
+  /// The number shown at the start of the row.
+  final int number;
+
+  /// Who the song is by, when the album's artist does not say it all.
+  final String? subtitle;
+
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
   const AlbumTrackListTile({
     super.key,
     required this.track,
+    required this.number,
+    this.subtitle,
     required this.onTap,
     this.onLongPress,
   });
@@ -57,10 +66,7 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
       return (active, active && state.isPlaying);
     });
 
-    final trackNum = widget.track.trackNumber;
-    final trackNumStr = trackNum != null && trackNum > 0
-        ? trackNum.toString().padLeft(2, '0')
-        : '-';
+    final trackNumStr = widget.number.toString().padLeft(2, '0');
 
     final durationStr = Duration(
       milliseconds: widget.track.durationMs,
@@ -113,16 +119,34 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
 
               // ── Track Title ───────────────────────────────────────────────
               Expanded(
-                child: Text(
-                  widget.track.title,
-                  style: TextStyle(
-                    color: isActive ? colors.accent : colors.labelPrimary,
-                    fontSize: 15,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
-                    letterSpacing: -0.2,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.track.title,
+                      style: TextStyle(
+                        color: isActive ? colors.accent : colors.labelPrimary,
+                        fontSize: 15,
+                        fontWeight: isActive
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (widget.subtitle case final subtitle?)
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: colors.labelSecondary,
+                          fontSize: 13,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                 ),
               ),
 
