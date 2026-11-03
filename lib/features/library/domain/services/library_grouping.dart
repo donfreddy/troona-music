@@ -34,9 +34,9 @@ abstract final class LibraryGrouping {
       groups.putIfAbsent(t.albumId, () => []).add(t);
     }
     for (final group in groups.values) {
-      final credited = group.where((t) => _credits(t, artistId)).length;
-      if (credited == 0) continue;
-      (credited == group.length ? own : appearsOn).add(_album(group));
+      if (!group.any((t) => _credits(t, artistId))) continue;
+      final owns = _sharedCredits(group).any((c) => c.id == artistId);
+      (owns ? own : appearsOn).add(_album(group));
     }
     return ArtistAlbums(own: own, appearsOn: appearsOn);
   }
@@ -153,6 +153,11 @@ abstract final class LibraryGrouping {
   /// order: an album's artist. None for a compilation, or for a folder of
   /// downloads Android took for an album: crediting it to its first song's
   /// artist would be wrong.
+  ///
+  /// An album of one song belongs to the artist credited first: every one
+  /// of its credits is on all its songs, and its guests ("Medusa (feat.
+  /// Khaid)" by Layzee Ella, Khaid) would own it too. Downloaders list the
+  /// lead artist first.
   static List<ArtistCredit> _sharedCredits(List<Track> group) {
     var shared = [
       for (final c in group.first.credits)
@@ -160,6 +165,7 @@ abstract final class LibraryGrouping {
             !TrackTags.isUnknownArtist(c.name))
           c,
     ];
+    if (group.length == 1) return shared.take(1).toList();
     for (final t in group.skip(1)) {
       if (shared.isEmpty) break;
       final ids = {for (final c in t.credits) c.id};

@@ -7,13 +7,19 @@ import 'package:troona/features/library/domain/services/track_tags.dart';
 ArtistCredit _c(String name) =>
     ArtistCredit(id: TrackTags.artistIdFor(name), name: name);
 
-Track _t(String id, List<String> artists, {int albumId = 1}) => Track(
+Track _t(
+  String id,
+  List<String> artists, {
+  int albumId = 1,
+  String? album,
+  String? title,
+}) => Track(
   id: id,
-  title: id,
+  title: title ?? id,
   artist: artists.join(', '),
   artistId: TrackTags.artistIdFor(artists.first),
   credits: [for (final a in artists) _c(a)],
-  album: 'Album $albumId',
+  album: album ?? 'Album $albumId',
   albumId: albumId,
   path: '/$id.mp3',
   uri: '',
@@ -68,8 +74,15 @@ void main() {
     final guest = LibraryGrouping.artistOf(beyonce, tracks)!;
     expect((guest.name, guest.trackCount), ('Beyoncé', 1));
 
-    // Album 2 is Nicki's and Beyoncé's alike: every song credits both. With
-    // a solo Nicki song added, Beyoncé only appears on it.
+    // Album 2, one song, is Nicki's: she is credited first. With a second
+    // song crediting both, it is theirs alike; with a solo Nicki song
+    // instead, Beyoncé only appears on it.
+    expect(guest.albumCount, 0);
+    final duo = [
+      ...tracks,
+      _t('4', ['Beyoncé', 'Nicki Minaj'], albumId: 2),
+    ];
+    expect(LibraryGrouping.artistOf(beyonce, duo)!.albumCount, 1);
     final appears = [
       ...tracks,
       _t('3', ['Nicki Minaj'], albumId: 2),
@@ -95,5 +108,27 @@ void main() {
       [for (final a in albums.appearsOn) (a.id, a.trackCount)],
       [('1', 2)],
     );
+  });
+
+  test('an album of one song belongs to the artist credited first', () {
+    final khaid = TrackTags.artistIdFor('Khaid');
+    final tracks = [
+      _t(
+        '1',
+        ['Layzee Ella', 'Khaid'],
+        album: 'Medusa (feat. Khaid)',
+        title: 'Medusa (feat. Khaid)',
+      ),
+    ];
+    final album = LibraryGrouping.albumsOf(tracks).single;
+    expect(album.artist, 'Layzee Ella');
+    final ofKhaid = LibraryGrouping.albumsOfArtist(khaid, tracks);
+    expect(ofKhaid.own, isEmpty);
+    expect(
+      [for (final a in ofKhaid.appearsOn) a.name],
+      ['Medusa (feat. Khaid)'],
+    );
+    final guest = LibraryGrouping.artistOf(khaid, tracks)!;
+    expect(guest.albumCount, 0);
   });
 }

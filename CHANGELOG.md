@@ -24,6 +24,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - The year of songs and albums was never read, so album pages showed none.
 - An album downloaded in several folders, or a playlist of singles saved one folder per song, showed up as several copies of the same album. They are one album again; compilations stay whole.
 - An album with a featured artist on some of its songs showed "Unknown artist" instead of its artist.
+- A single an artist is only featured on, such as "Medusa (feat. Khaid)", counted as one of their albums, and its page named the guest as its artist too.
 - An artist's page could merge two of their albums that share a name, and an album page hid the artist's other albums of the same name from "More by".
 
 ## [1.2.0] - 2026-10-31
