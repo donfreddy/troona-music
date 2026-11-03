@@ -38,11 +38,10 @@ final class AlbumDetailRepositoryImpl implements AlbumDetailRepository {
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int artistId) async {
     try {
       final tracks = await _cache.getAlbumTracksByArtistId(artistId);
-      return right(
-        LibraryGrouping.albumsOfArtist(artistId, [
-          for (final t in tracks) t.toEntity(),
-        ]).own,
-      );
+      final albums = LibraryGrouping.albumsOfArtist(artistId, [
+        for (final t in tracks) t.toEntity(),
+      ]);
+      return right([...albums.own, ...albums.singles]);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

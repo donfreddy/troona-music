@@ -15,6 +15,7 @@ import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
+import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
 
 class SearchTopResult extends StatelessWidget {
   final SearchResult result;
@@ -122,12 +123,13 @@ class SearchTopResult extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    artist.albumCount > 0
-                        ? context.l10n.detailCountsSummary(
-                            context.l10n.songCount(artist.trackCount),
-                            context.l10n.albumCount(artist.albumCount),
-                          )
-                        : context.l10n.songCount(artist.trackCount),
+                    switch (context.artistReleases(artist)) {
+                      final releases? => context.l10n.detailCountsSummary(
+                        context.l10n.songCount(artist.trackCount),
+                        releases,
+                      ),
+                      null => context.l10n.songCount(artist.trackCount),
+                    },
                     style: TextStyle(
                       fontSize: 13,
                       color: colors.labelSecondary,

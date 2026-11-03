@@ -194,6 +194,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{No albums} =1{1 album} other{{count} albums}}'**
   String albumCount(int count);
 
+  /// No description provided for @singleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 single} other{{count} singles}}'**
+  String singleCount(int count);
+
+  /// Stands for the song count under a single's name: Artist • Single.
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get albumSingle;
+
   /// No description provided for @artistCount.
   ///
   /// In en, this message translates to:
@@ -998,6 +1010,12 @@ abstract class AppLocalizations {
   /// **'Albums'**
   String get detailAlbums;
 
+  /// No description provided for @detailSingles.
+  ///
+  /// In en, this message translates to:
+  /// **'Singles'**
+  String get detailSingles;
+
   /// No description provided for @detailAppearsOn.
   ///
   /// In en, this message translates to:
@@ -1069,6 +1087,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Albums'**
   String get infoAlbums;
+
+  /// No description provided for @infoSingles.
+  ///
+  /// In en, this message translates to:
+  /// **'Singles'**
+  String get infoSingles;
 
   /// No description provided for @infoLength.
   ///

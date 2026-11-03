@@ -3,6 +3,7 @@ import 'package:troona/features/library/domain/entities/artist_albums.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/single_release.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 
 /// Builds albums and artists from tracks, keyed by the ids the detail pages
@@ -24,10 +25,12 @@ abstract final class LibraryGrouping {
   }
 
   /// The albums [tracks] hold that credit the artist [artistId]: their own
-  /// (credited on every song, the album's artist) and the ones they appear
-  /// on. [tracks] are the whole albums, so counts are the albums' own.
+  /// albums and singles (they are the album's artist) and the ones they
+  /// appear on. [tracks] are the whole albums, so counts are the albums'
+  /// own.
   static ArtistAlbums albumsOfArtist(int artistId, List<Track> tracks) {
     final own = <Album>[];
+    final singles = <Album>[];
     final appearsOn = <Album>[];
     final groups = <int, List<Track>>{};
     for (final t in tracks) {
@@ -35,10 +38,16 @@ abstract final class LibraryGrouping {
     }
     for (final group in groups.values) {
       if (!group.any((t) => _credits(t, artistId))) continue;
-      final owns = _sharedCredits(group).any((c) => c.id == artistId);
-      (owns ? own : appearsOn).add(_album(group));
+      final album = _album(group);
+      if (!_sharedCredits(group).any((c) => c.id == artistId)) {
+        appearsOn.add(album);
+      } else if (album.isSingle) {
+        singles.add(album);
+      } else {
+        own.add(album);
+      }
     }
-    return ArtistAlbums(own: own, appearsOn: appearsOn);
+    return ArtistAlbums(own: own, singles: singles, appearsOn: appearsOn);
   }
 
   /// The artists of [tracks], in the order their first song comes.
@@ -48,7 +57,7 @@ abstract final class LibraryGrouping {
   /// with one song each. Their songs still count for them, and their page
   /// opens from search.
   static List<Artist> artistsOf(List<Track> tracks, {bool guests = false}) {
-    final ownAlbums = _ownAlbumCounts(tracks);
+    final owned = _ownedCounts(tracks);
     final names = <int, String>{};
     final songs = <int, List<Track>>{};
     final leads = <int>{};
@@ -61,8 +70,7 @@ abstract final class LibraryGrouping {
     }
     return [
       for (final MapEntry(key: id, value: group) in songs.entries)
-        if (guests || leads.contains(id))
-          _artist(id, names[id]!, group, ownAlbums[id] ?? 0),
+        if (guests || leads.contains(id)) _artist(id, names[id]!, group, owned),
     ];
   }
 
@@ -76,27 +84,27 @@ abstract final class LibraryGrouping {
     ];
     if (group.isEmpty) return null;
     final name = group.first.credits.firstWhere((c) => c.id == artistId).name;
-    return _artist(
-      artistId,
-      name,
-      group,
-      _ownAlbumCounts(tracks)[artistId] ?? 0,
-    );
+    return _artist(artistId, name, group, _ownedCounts(tracks));
   }
 
-  /// How many albums of [tracks] each artist owns: credited on every song.
-  static Map<int, int> _ownAlbumCounts(List<Track> tracks) {
-    final albums = <int, List<Track>>{};
+  /// How many albums and singles of [tracks] each artist owns: they are
+  /// the album's artist.
+  static ({Map<int, int> albums, Map<int, int> singles}) _ownedCounts(
+    List<Track> tracks,
+  ) {
+    final groups = <int, List<Track>>{};
     for (final t in tracks) {
-      albums.putIfAbsent(t.albumId, () => []).add(t);
+      groups.putIfAbsent(t.albumId, () => []).add(t);
     }
-    final counts = <int, int>{};
-    for (final album in albums.values) {
-      for (final credit in _sharedCredits(album)) {
+    final albums = <int, int>{};
+    final singles = <int, int>{};
+    for (final group in groups.values) {
+      final counts = _isSingle(group) ? singles : albums;
+      for (final credit in _sharedCredits(group)) {
         counts[credit.id] = (counts[credit.id] ?? 0) + 1;
       }
     }
-    return counts;
+    return (albums: albums, singles: singles);
   }
 
   /// The artist line to show under [track] on the page of an album by
@@ -133,18 +141,25 @@ abstract final class LibraryGrouping {
       artistId: artists.isEmpty ? TrackTags.unknownArtistId : artists.first.id,
       trackCount: group.length,
       artworkPath: _firstArtwork(group),
+      isSingle: _isSingle(group),
     );
   }
+
+  static bool _isSingle(List<Track> group) => SingleRelease.matches(
+    group.first.album,
+    [for (final t in group) t.title],
+  );
 
   static Artist _artist(
     int id,
     String name,
     List<Track> group,
-    int ownAlbums,
+    ({Map<int, int> albums, Map<int, int> singles}) owned,
   ) => Artist(
     id: id.toString(),
     name: TrackTags.artist(name),
-    albumCount: ownAlbums,
+    albumCount: owned.albums[id] ?? 0,
+    singleCount: owned.singles[id] ?? 0,
     trackCount: group.length,
     artworkPath: _firstArtwork(group),
   );

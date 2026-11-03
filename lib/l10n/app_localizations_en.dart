@@ -75,6 +75,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String singleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count singles',
+      one: '1 single',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get albumSingle => 'Single';
+
+  @override
   String artistCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -573,6 +587,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailAlbums => 'Albums';
 
   @override
+  String get detailSingles => 'Singles';
+
+  @override
   String get detailAppearsOn => 'Appears on';
 
   @override
@@ -613,6 +630,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoAlbums => 'Albums';
+
+  @override
+  String get infoSingles => 'Singles';
 
   @override
   String get infoLength => 'Length';

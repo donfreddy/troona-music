@@ -6,12 +6,13 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and shows their albums apart from the ones they only appear on, in a new Appears on section. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
+- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and shows their albums apart from the ones they only appear on, in a new Appears on section, and their singles in a Singles section of their own. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
 
 ### Changed
 
 - An artist page starts with five songs, their most played first (Popular), and See all shows the rest; their albums come within reach right after. Without plays yet, the songs are by title.
-- An artist's album count, on their page, in the Artists list and in search, counts their own albums only, not the ones they appear on. An artist only ever featured shows no album count.
+- An artist's album count, on their page, in the Artists list and in search, counts their own albums only, not their singles nor the ones they appear on. An artist with singles only shows their singles count, and one only ever featured shows none.
+- Album cards of singles read Single instead of a song count. An album named after one of its at most three songs counts as a single.
 - The Artists list no longer shows each collaboration as an artist of its own, nor artists only ever credited as guests. Their pages still open from search.
 - Your week in music counts a collaboration for each of its artists when it picks the top artist.
 - A rescan picks up files whose tags were edited since they were first found.

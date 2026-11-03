@@ -123,12 +123,38 @@ void main() {
     final album = LibraryGrouping.albumsOf(tracks).single;
     expect(album.artist, 'Layzee Ella');
     final ofKhaid = LibraryGrouping.albumsOfArtist(khaid, tracks);
-    expect(ofKhaid.own, isEmpty);
+    expect(ofKhaid.singles, isEmpty);
     expect(
       [for (final a in ofKhaid.appearsOn) a.name],
       ['Medusa (feat. Khaid)'],
     );
     final guest = LibraryGrouping.artistOf(khaid, tracks)!;
-    expect(guest.albumCount, 0);
+    expect((guest.albumCount, guest.singleCount), (0, 0));
+  });
+
+  test("an artist's albums, singles and the ones they appear on", () {
+    final khaid = TrackTags.artistIdFor('Khaid');
+    final tracks = [
+      _t('1', ['Khaid'], album: 'Emotions', title: 'Jara'),
+      _t('2', ['Khaid', 'Olamide'], album: 'Emotions', title: 'No Time'),
+      _t('3', ['Khaid'], albumId: 2, album: 'Anabella', title: 'Anabella'),
+      // One song of someone else's album: not a single, nor theirs.
+      _t('4', ['Mata', 'Khaid'], albumId: 3, album: '2039', title: 'Kamikaze'),
+      // A song of their own named otherwise: an album of theirs.
+      _t('5', ['Khaid'], albumId: 4, album: 'Playboy', title: 'Diana'),
+    ];
+    final albums = LibraryGrouping.albumsOfArtist(khaid, tracks);
+    expect([for (final a in albums.own) a.name], ['Emotions', 'Playboy']);
+    expect([for (final a in albums.singles) a.name], ['Anabella']);
+    expect([for (final a in albums.appearsOn) a.name], ['2039']);
+    expect(albums.singles.single.isSingle, isTrue);
+    expect(albums.own.first.isSingle, isFalse);
+
+    final artist = LibraryGrouping.artistOf(khaid, tracks)!;
+    expect((artist.albumCount, artist.singleCount), (2, 1));
+    final listed = LibraryGrouping.artistsOf(
+      tracks,
+    ).firstWhere((a) => a.name == 'Khaid');
+    expect((listed.albumCount, listed.singleCount), (2, 1));
   });
 }

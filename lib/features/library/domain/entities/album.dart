@@ -6,6 +6,10 @@ class Album {
   final int trackCount;
   final String? artworkPath;
 
+  /// A single, not an album: named after one of its few songs
+  /// (`SingleRelease`).
+  final bool isSingle;
+
   const Album({
     required this.id,
     required this.name,
@@ -13,6 +17,7 @@ class Album {
     required this.artistId,
     required this.trackCount,
     this.artworkPath,
+    this.isSingle = false,
   });
 
   Album copyWith({String? artworkPath}) {
@@ -23,6 +28,7 @@ class Album {
       artistId: artistId,
       trackCount: trackCount,
       artworkPath: artworkPath ?? this.artworkPath,
+      isSingle: isSingle,
     );
   }
 }

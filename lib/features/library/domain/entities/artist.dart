@@ -3,8 +3,11 @@ class Artist {
   final String name;
 
   /// Their own albums: the ones they are credited on for every song, not
-  /// the ones they only appear on.
+  /// the ones they only appear on, nor their singles.
   final int albumCount;
+
+  /// Their own singles.
+  final int singleCount;
   final int trackCount;
   final String? artworkPath;
 
@@ -12,6 +15,7 @@ class Artist {
     required this.id,
     required this.name,
     required this.albumCount,
+    this.singleCount = 0,
     required this.trackCount,
     this.artworkPath,
   });

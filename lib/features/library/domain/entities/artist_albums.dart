@@ -5,12 +5,19 @@ final class ArtistAlbums {
   /// Their own albums: they are credited on every song.
   final List<Album> own;
 
-  /// The albums they appear on: credited on some songs only, such as a
-  /// guest verse on someone else's album, or a compilation.
+  /// Their own singles (`Album.isSingle`).
+  final List<Album> singles;
+
+  /// The albums and singles they appear on: credited on some songs only,
+  /// such as a guest verse on someone else's album, or a compilation.
   final List<Album> appearsOn;
 
-  const ArtistAlbums({this.own = const [], this.appearsOn = const []});
+  const ArtistAlbums({
+    this.own = const [],
+    this.singles = const [],
+    this.appearsOn = const [],
+  });
 
-  /// [own] then [appearsOn].
-  List<Album> get all => [...own, ...appearsOn];
+  /// [own], [singles], then [appearsOn].
+  List<Album> get all => [...own, ...singles, ...appearsOn];
 }

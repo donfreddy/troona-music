@@ -15,6 +15,7 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -112,19 +113,29 @@ class ArtistDetailPage extends StatelessWidget {
                               byPlays: data.topTracksByPlays,
                             ),
 
-                          // ── 2. Their albums, then the ones they appear on ──────
+                          // ── 2. Their albums and singles, then the ones they
+                          // appear on ─────────────────────────────────────────
                           if (data.albums.own.isNotEmpty)
                             _ArtistAlbumsCarousel(
                               title: context.l10n.detailAlbums,
                               albums: data.albums.own,
                               order: 5,
                             ),
+                          if (data.albums.singles.isNotEmpty)
+                            _ArtistAlbumsCarousel(
+                              title: context.l10n.detailSingles,
+                              albums: data.albums.singles,
+                              order: 6,
+                              spaced: data.albums.own.isEmpty,
+                            ),
                           if (data.albums.appearsOn.isNotEmpty)
                             _ArtistAlbumsCarousel(
                               title: context.l10n.detailAppearsOn,
                               albums: data.albums.appearsOn,
                               order: 7,
-                              spaced: data.albums.own.isEmpty,
+                              spaced:
+                                  data.albums.own.isEmpty &&
+                                  data.albums.singles.isEmpty,
                             ),
 
                           // ── 3. Bio & Last.fm Info ─────────────────────────────
@@ -447,14 +458,10 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                     context.l10n.songCount(artist.trackCount),
                                     icon: AppIcons.track,
                                   ),
-                                  // A guest only has no album of their own.
-                                  if (artist.albumCount > 0)
-                                    AppBadge(
-                                      context.l10n.albumCount(
-                                        artist.albumCount,
-                                      ),
-                                      icon: AppIcons.album,
-                                    ),
+                                  // A guest only has no release of their own.
+                                  if (context.artistReleases(artist)
+                                      case final releases?)
+                                    AppBadge(releases, icon: AppIcons.album),
                                   if (totalDuration > Duration.zero) ...[
                                     AppBadge(
                                       totalDuration.toHumanReadable(
@@ -558,7 +565,8 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
       title: context.artistName(artist.name),
       message: context.l10n.detailCountsSummary(
         context.l10n.songCount(tracks.length),
-        context.l10n.albumCount(artist.albumCount),
+        context.artistReleases(artist) ??
+            context.l10n.albumCount(artist.albumCount),
       ),
       actions: [
         SheetAction(
@@ -795,6 +803,11 @@ class _ArtistCollectionFooter extends StatelessWidget {
                 label: context.l10n.infoAlbums,
                 value: '${artist.albumCount}',
               ),
+              if (artist.singleCount > 0)
+                _MetaRow(
+                  label: context.l10n.infoSingles,
+                  value: '${artist.singleCount}',
+                ),
               _MetaRow(
                 label: context.l10n.infoLength,
                 value: totalDuration.toHumanReadable(context.l10n),
