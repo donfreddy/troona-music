@@ -264,32 +264,41 @@ final appRouter = GoRouter(
   ],
 );
 
+/// The page a detail page was pushed from, handed to it as `extra` by
+/// [NavigationContextExt.pushAlbum] and [NavigationContextExt.pushArtist].
+final class OpenedFrom {
+  final String location;
+
+  const OpenedFrom(this.location);
+}
+
 extension NavigationContextExt on BuildContext {
-  void pushAlbum(String albumId) {
-    final location = GoRouterState.of(this).matchedLocation;
-    if (location.startsWith(AppRoute.home)) {
-      push('${AppRoute.home}/albums/$albumId');
-    } else if (location.startsWith(AppRoute.search)) {
-      push('${AppRoute.search}/albums/$albumId');
-    } else if (location.startsWith(AppRoute.playlists)) {
-      push('${AppRoute.playlists}/albums/$albumId');
-    } else {
-      push('${AppRoute.library}/albums/$albumId');
+  void pushAlbum(String albumId) => _pushDetail('albums', albumId);
+
+  void pushArtist(String artistId) => _pushDetail('artists', artistId);
+
+  /// Pushes the album or artist page within the current tab. When that page
+  /// is the one this page was opened from (an album's artist, opened from
+  /// the artist), goes back to it instead: artist, album, artist, album...
+  /// would pile up copies, and back would walk through them all.
+  void _pushDetail(String section, String id) {
+    final state = GoRouterState.of(this);
+    final here = state.uri.path;
+    final target = '${_tabOf(here)}/$section/$id';
+    if (state.extra case OpenedFrom(:final location)
+        when location == target && canPop()) {
+      pop();
+      return;
     }
+    push(target, extra: OpenedFrom(here));
   }
 
-  void pushArtist(String artistId) {
-    final location = GoRouterState.of(this).matchedLocation;
-    if (location.startsWith(AppRoute.home)) {
-      push('${AppRoute.home}/artists/$artistId');
-    } else if (location.startsWith(AppRoute.search)) {
-      push('${AppRoute.search}/artists/$artistId');
-    } else if (location.startsWith(AppRoute.playlists)) {
-      push('${AppRoute.playlists}/artists/$artistId');
-    } else {
-      push('${AppRoute.library}/artists/$artistId');
-    }
-  }
+  static String _tabOf(String location) => switch (location) {
+    _ when location.startsWith(AppRoute.home) => AppRoute.home,
+    _ when location.startsWith(AppRoute.search) => AppRoute.search,
+    _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
+    _ => AppRoute.library,
+  };
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');
