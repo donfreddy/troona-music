@@ -1485,11 +1485,53 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap an album and its cover flies from the card into place on the album page, then back when you leave.';
 
   @override
-  String get whatsNew150PagesTitle => 'Calmer pages';
+  String get whatsNew150TitlesTitle => 'Bold titles';
+
+  @override
+  String get whatsNew150TitlesBody =>
+      'Large titles are bold, in the same voice as album and artist names and section titles.';
+
+  @override
+  String get whatsNew150TabTitle => 'A dot under the tab';
+
+  @override
+  String get whatsNew150TabBody =>
+      'The tab you are on shows a dot under its icon, not only a brighter colour.';
+
+  @override
+  String get whatsNew150PagesTitle => 'One line of facts';
 
   @override
   String get whatsNew150PagesBody =>
-      'Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.';
+      'Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.';
+
+  @override
+  String get whatsNew150AlbumTitle => 'Album pages';
+
+  @override
+  String get whatsNew150AlbumBody =>
+      'The track list no longer has a Songs title. Under the songs, a quiet line gives the album\'s size and formats instead of the In your library card.';
+
+  @override
+  String get whatsNew150ArtistTitle => 'Artist pages';
+
+  @override
+  String get whatsNew150ArtistBody =>
+      'Each song shows its album and year under its title instead of the artist\'s name again, and album and single cards give the year. The In your library card is gone: its counts are under the name.';
+
+  @override
+  String get whatsNew150MoreByTitle => 'More by';
+
+  @override
+  String get whatsNew150MoreByBody =>
+      'On album pages, More by gives each album\'s year instead of the artist\'s name, with Single on singles.';
+
+  @override
+  String get whatsNew150LibraryTitle => 'A lighter Library';
+
+  @override
+  String get whatsNew150LibraryBody =>
+      'The Library no longer shows its counts of songs, albums and artists above All.';
 
   @override
   String get whatsNew150BackTitle => 'Back where you came from';
@@ -1497,4 +1539,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew150BackBody =>
       'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.';
+
+  @override
+  String get whatsNew150ScrollTitle => 'No empty band';
+
+  @override
+  String get whatsNew150ScrollBody =>
+      'An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.';
+
+  @override
+  String get whatsNew150NamesTitle => 'Artist names with a large font';
+
+  @override
+  String get whatsNew150NamesBody =>
+      'With a large font, the Library\'s row of artists no longer cuts their names short.';
 }
