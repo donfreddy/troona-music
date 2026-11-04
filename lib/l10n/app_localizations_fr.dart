@@ -562,6 +562,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get detailSingles => 'Singles';
 
   @override
+  String get detailLatestRelease => 'Dernière sortie';
+
+  @override
   String get detailAppearsOn => 'Apparaît dans';
 
   @override

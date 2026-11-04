@@ -270,6 +270,7 @@
   "detailSongs": "Songs",
   "detailAlbums": "Albums",
   "detailSingles": "Singles",
+  "detailLatestRelease": "Latest release",
   "detailAppearsOn": "Appears on",
   "detailAlsoInLibrary": "Also in your library",
   "@detailAlsoInLibrary": {

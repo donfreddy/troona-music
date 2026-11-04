@@ -557,6 +557,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSingles => 'Singles';
 
   @override
+  String get detailLatestRelease => 'Latest release';
+
+  @override
   String get detailAppearsOn => 'Appears on';
 
   @override

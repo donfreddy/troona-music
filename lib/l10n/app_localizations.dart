@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'Singles'**
   String get detailSingles;
 
+  /// No description provided for @detailLatestRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest release'**
+  String get detailLatestRelease;
+
   /// No description provided for @detailAppearsOn.
   ///
   /// In en, this message translates to:

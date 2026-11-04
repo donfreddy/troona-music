@@ -4,6 +4,17 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Artist pages show their latest release on its own, above their albums, when the songs carry a year.
+
+### Changed
+
+- Artist pages have one action, Shuffle, as a round button on their photo: an artist's songs have no order. Tap a song to play in order from it.
+- An artist without a photo opens on a soft glow of their cover's colours instead of a plain background.
+- An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.
+- The counts under an artist's name read clearly on a light photo.
+
 ## [1.5.0] - 2026-11-04
 
 ### Added

@@ -15,11 +15,16 @@ class MetaLine extends StatelessWidget {
   /// Smaller and dimmer, for the footnote at the end of a page.
   final bool footnote;
 
+  /// Over a photo (an artist's): brighter, with a shadow, so it reads on
+  /// a light one too.
+  final bool onPhoto;
+
   const MetaLine(
     this.parts, {
     super.key,
     this.textAlign = TextAlign.start,
     this.footnote = false,
+    this.onPhoto = false,
   });
 
   static const separator = ' • ';
@@ -42,9 +47,16 @@ class MetaLine extends StatelessWidget {
       text,
       textAlign: textAlign,
       style: TextStyle(
-        color: footnote ? colors.labelTertiary : colors.labelSecondary,
+        color: switch ((footnote, onPhoto)) {
+          (_, true) => Colors.white.withValues(alpha: .85),
+          (true, _) => colors.labelTertiary,
+          _ => colors.labelSecondary,
+        },
         fontSize: footnote ? 13 : 15,
         fontWeight: FontWeight.w500,
+        shadows: onPhoto
+            ? const [Shadow(color: Colors.black54, blurRadius: 8)]
+            : null,
       ),
     );
   }
