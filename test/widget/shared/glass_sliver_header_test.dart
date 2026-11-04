@@ -240,7 +240,8 @@ void main() {
     await tester.tap(find.text('Play'));
     expect(taps, 1);
 
-    await scrollTo(tester, controller, 180);
+    // Collapsed: faded out.
+    await scrollTo(tester, controller, 200);
     final ignoring = tester
         .widgetList<IgnorePointer>(
           find.ancestor(
@@ -250,6 +251,32 @@ void main() {
         )
         .any((w) => w.ignoring);
     expect(ignoring, isTrue);
+  });
+
+  testWidgets('a hero fades with the collapse, a large title sooner', (
+    tester,
+  ) async {
+    double fadeOf(Finder text) => tester
+        .widget<Opacity>(
+          find.ancestor(of: text, matching: find.byType(Opacity)).first,
+        )
+        .opacity;
+
+    // Half collapsed: the hero's buttons still half there, no empty band.
+    final hero = await pump(
+      tester,
+      const GlassSliverHeader(
+        title: 'Album',
+        expandedHeight: 200,
+        expanded: Align(alignment: Alignment.bottomCenter, child: Text('Play')),
+      ),
+    );
+    await scrollTo(tester, hero, 100);
+    expect(fadeOf(find.text('Play')), closeTo(.5, .01));
+
+    final titled = await pump(tester, largeTitle());
+    await scrollTo(tester, titled, GlassSliverHeader.largeTitleHeight / 2);
+    expect(fadeOf(largeTitleText('Library')), closeTo(1 - .5 * 1.6, .01));
   });
 
   testWidgets('a header without a navigation row takes its glass once '

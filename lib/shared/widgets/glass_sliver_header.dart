@@ -62,6 +62,12 @@ class GlassSliverHeader extends StatelessWidget {
   /// header must be the scroll view's first sliver.
   final bool snap;
 
+  /// How much faster than the collapse [expanded] fades out. A hero fades
+  /// with it (1): its cover and buttons stay in sight while they scroll
+  /// away, with no empty band under the bar. A large title, cut by the
+  /// row's edge, is gone a little sooner.
+  final double expandedFade;
+
   const GlassSliverHeader({
     super.key,
     this.title,
@@ -75,6 +81,7 @@ class GlassSliverHeader extends StatelessWidget {
     this.pinnedBottomHeight = 0,
     this.stretch = false,
     this.snap = false,
+    this.expandedFade = 1,
   });
 
   /// iOS large title: [title] big at the top of the page, which slides
@@ -91,7 +98,8 @@ class GlassSliverHeader extends StatelessWidget {
        expandedTextHeight = _LargeTitle.lineHeight,
        background = null,
        stretch = false,
-       snap = true;
+       snap = true,
+       expandedFade = 1.6;
 
   /// Height of the navigation row, below the status bar.
   static const double navBarHeight = 44;
@@ -236,10 +244,6 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.expandedExtent,
   });
 
-  /// Faster than the scroll: the expanded content is gone before it reaches
-  /// the bar's tint.
-  static const _expandedFade = 1.6;
-
   /// Scroll over which a header that cannot collapse (Search) takes its
   /// glass, once content passes under it.
   static const _glassFadeDistance = 24.0;
@@ -318,7 +322,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
                 minHeight: expandedExtent,
                 maxHeight: expandedExtent,
                 child: _Fade(
-                  opacity: 1 - collapse * _expandedFade,
+                  opacity: 1 - collapse * header.expandedFade,
                   child: expanded,
                 ),
               ),
