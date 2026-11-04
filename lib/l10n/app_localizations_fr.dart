@@ -532,39 +532,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String statSongs(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'morceaux',
-      one: 'morceau',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String statAlbums(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'albums',
-      one: 'album',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String statArtists(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'artistes',
-      one: 'artiste',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String durationMinutes(int minutes) {
     return '$minutes min';
   }

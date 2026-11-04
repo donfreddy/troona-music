@@ -950,24 +950,6 @@ abstract class AppLocalizations {
   /// **'{artist} • {songs}'**
   String albumByArtist(String artist, String songs);
 
-  /// No description provided for @statSongs.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{song} other{songs}}'**
-  String statSongs(int count);
-
-  /// No description provided for @statAlbums.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{album} other{albums}}'**
-  String statAlbums(int count);
-
-  /// No description provided for @statArtists.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{artist} other{artists}}'**
-  String statArtists(int count);
-
   /// No description provided for @durationMinutes.
   ///
   /// In en, this message translates to:

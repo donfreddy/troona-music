@@ -238,30 +238,6 @@
       }
     }
   },
-  "statSongs": "{count, plural, =1{song} other{songs}}",
-  "@statSongs": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "statAlbums": "{count, plural, =1{album} other{albums}}",
-  "@statAlbums": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "statArtists": "{count, plural, =1{artist} other{artists}}",
-  "@statArtists": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "durationMinutes": "{minutes} min",
   "@durationMinutes": {
     "placeholders": {

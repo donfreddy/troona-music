@@ -21,7 +21,6 @@ import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/features/library/presentation/widgets/library_stats_banner.dart';
 import 'package:troona/features/library/presentation/widgets/shuffle_banner.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -174,25 +173,14 @@ class _LibraryBody extends StatelessWidget {
         child: _NoMusicEmpty(),
       );
     }
-    final statsBanner = SliverToBoxAdapter(
-      child: LibraryStatsBanner(
-        trackCount: loaded.allTracks.length,
-        albumCount: loaded.allAlbums.length,
-        artistCount: loaded.allArtists.length,
-      ),
-    );
-
-    return SliverMainAxisGroup(
-      slivers: [
-        if (loaded.filter == LibraryFilter.all) statsBanner,
-        switch (loaded.filter) {
-          LibraryFilter.all => _AllView(loaded: loaded),
-          LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
-          LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
-          LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
-        },
-      ],
-    );
+    // No counts banner: the filter and the sections' See all already lead
+    // to each list.
+    return switch (loaded.filter) {
+      LibraryFilter.all => _AllView(loaded: loaded),
+      LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
+      LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
+      LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
+    };
   }
 }
 
