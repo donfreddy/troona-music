@@ -18,6 +18,8 @@ import 'package:troona/features/library/domain/services/album_order.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
@@ -59,100 +61,72 @@ class AlbumDetailPage extends StatelessWidget {
 
   const AlbumDetailPage({super.key, required this.id});
 
+  /// The album as the library already holds it, read at once: the page
+  /// shows its cover from its first frame, while its songs load, so the
+  /// cover can fly in from the card that opened it.
+  Album? _fromLibrary(BuildContext context) {
+    final loaded = switch (context.read<LibraryBloc>().state) {
+      LibraryLoaded() && final state => state,
+      LibraryScanning(:final cached) => cached,
+      LibraryError(:final lastLoaded) => lastLoaded,
+      LibraryInitial() => null,
+    };
+    return loaded?.allAlbums.where((a) => a.id == id).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocBuilder<AlbumDetailBloc, AlbumDetailState>(
         builder: (context, state) {
+          final data = switch (state) {
+            AlbumDetailLoaded(:final data) => data,
+            _ => null,
+          };
+          final album = data?.album ?? _fromLibrary(context);
           return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
             builder: (_, palette) => DynamicBackground(
               colorA: palette.backgroundColorA,
               colorB: palette.backgroundColorB,
               tone: DynamicBackgroundTone.immersive,
               child: switch (state) {
-                AlbumDetailInitial() || AlbumDetailLoading() => const Center(
-                  child: CircularProgressIndicator(),
-                ),
                 AlbumDetailError() => ErrorView(
                   body: context.l10n.albumLoadError,
                   onRetry: () => context.read<AlbumDetailBloc>().add(
                     AlbumDetailRequested(int.parse(id)),
                   ),
                 ),
-                AlbumDetailLoaded(:final data) =>
-                  BlocProvider<AlbumMetadataCubit>(
-                    create: (_) =>
-                        getIt<AlbumMetadataCubit>()
-                          ..loadAlbumMetadata(data.album),
-                    child: Builder(
-                      builder: (contentCtx) {
-                        return CustomScrollView(
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
+                _ when album == null => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                // Loading or loaded: the same tree, so the header (and the
+                // cover landing in it) stays put when the songs arrive.
+                _ => BlocProvider<AlbumMetadataCubit>(
+                  create: (_) =>
+                      getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
+                  child: Builder(
+                    builder: (contentCtx) {
+                      return CustomScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        slivers: [
+                          _AlbumHeader(
+                            album: album,
+                            tracks: data?.albumTracks ?? const [],
                           ),
-                          slivers: [
-                            _AlbumHeader(
-                              album: data.album,
-                              tracks: data.albumTracks,
+                          if (data != null) ..._content(contentCtx, data),
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: contentCtx.bottomBarInset(tabs: false),
                             ),
-                            _AlbumTracksView(
-                              album: data.album,
-                              tracks: data.albumTracks,
-                            ),
-                            _AlbumFootnote(tracks: data.albumTracks),
-
-                            // Albums without an artist share nothing else.
-                            if (data.album.artist.isNotEmpty &&
-                                data.artistAlbums.any(
-                                  (a) => a.id != data.album.id,
-                                ))
-                              _MoreByArtistView(
-                                artistName: data.album.artist,
-                                albums: data.artistAlbums
-                                    .where((a) => a.id != data.album.id)
-                                    .toList(),
-                              ),
-
-                            // ── About: only with a wiki ─────────────────────
-                            BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
-                              builder: (context, meta) => switch (meta) {
-                                AlbumMetadataLoaded(
-                                  info: AlbumOnlineInfo(:final wiki?),
-                                ) =>
-                                  SliverToBoxAdapter(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: AppSpacing.xl2,
-                                      ),
-                                      child: OnlineAboutCard(
-                                        title: context.l10n.metaAbout,
-                                        text: wiki,
-                                        listeners: meta.info.listeners,
-                                        tags: meta.info.tags,
-                                        names: [
-                                          data.album.name,
-                                          ...data.album.artist.split(', '),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                _ => const SliverToBoxAdapter(
-                                  child: SizedBox.shrink(),
-                                ),
-                              },
-                            ),
-
-                            SliverPadding(
-                              padding: EdgeInsets.only(
-                                bottom: contentCtx.bottomBarInset(tabs: false),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
+                ),
               },
             ),
           );
@@ -160,6 +134,40 @@ class AlbumDetailPage extends StatelessWidget {
       ),
     );
   }
+
+  /// Everything under the header, once the songs are loaded.
+  List<Widget> _content(BuildContext context, AlbumDetail data) => [
+    _AlbumTracksView(album: data.album, tracks: data.albumTracks),
+    _AlbumFootnote(tracks: data.albumTracks),
+
+    // Albums without an artist share nothing else.
+    if (data.album.artist.isNotEmpty &&
+        data.artistAlbums.any((a) => a.id != data.album.id))
+      _MoreByArtistView(
+        artistName: data.album.artist,
+        albums: data.artistAlbums.where((a) => a.id != data.album.id).toList(),
+      ),
+
+    // ── About: only with a wiki ─────────────────────
+    BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
+      builder: (context, meta) => switch (meta) {
+        AlbumMetadataLoaded(info: AlbumOnlineInfo(:final wiki?)) =>
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xl2),
+              child: OnlineAboutCard(
+                title: context.l10n.metaAbout,
+                text: wiki,
+                listeners: meta.info.listeners,
+                tags: meta.info.tags,
+                names: [data.album.name, ...data.album.artist.split(', ')],
+              ),
+            ),
+          ),
+        _ => const SliverToBoxAdapter(child: SizedBox.shrink()),
+      },
+    ),
+  ];
 }
 
 // ── Hero Header ──────────────────────────────────────────────────────
@@ -181,10 +189,9 @@ class _AlbumHeader extends StatelessWidget {
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
-    final year = tracks
-        .map((t) => t.year)
-        .where((y) => y != null && y > 0)
-        .firstOrNull;
+    // Before the songs load (the page's first frames), the library's
+    // album already knows its year and song count.
+    final year = album.year;
 
     return GlassSliverHeader(
       leading: const AppBackButton(),
@@ -449,7 +456,8 @@ class _AlbumHeader extends StatelessWidget {
                               MetaLine([
                                 if (year != null) '$year',
                                 context.l10n.songCount(album.trackCount),
-                                totalDuration.toHumanReadable(context.l10n),
+                                if (totalDuration > Duration.zero)
+                                  totalDuration.toHumanReadable(context.l10n),
                               ], textAlign: TextAlign.center),
                               if (AudioFormat.allLossless(tracks))
                                 AppBadge(
