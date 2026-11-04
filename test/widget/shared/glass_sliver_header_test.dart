@@ -253,7 +253,7 @@ void main() {
     expect(ignoring, isTrue);
   });
 
-  testWidgets('a cover scrolled out of sight does not fly back', (
+  testWidgets('a cover mostly scrolled out of sight does not fly back', (
     tester,
   ) async {
     final controller = await pump(
@@ -271,8 +271,11 @@ void main() {
         .every((m) => m.enabled);
     expect(heroOn(), isTrue);
 
-    await scrollTo(tester, controller, 100);
-    expect(heroOn(), isTrue, reason: 'still partly in sight');
+    await scrollTo(tester, controller, 60);
+    expect(heroOn(), isTrue, reason: 'mostly in sight');
+
+    await scrollTo(tester, controller, 140);
+    expect(heroOn(), isFalse, reason: 'mostly faded');
 
     await scrollTo(tester, controller, 200);
     expect(heroOn(), isFalse);
