@@ -1621,7 +1621,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get whatsNew160RecapBody =>
-      'Chaque semaine ou chaque mois en un coup d\'œil : votre temps d\'écoute, chaque jour en carré rempli selon la musique écoutée, vos morceaux, artiste et albums phares, et vos moments d\'écoute. Ouvrez-le depuis la carte de l\'accueil.';
+      'Chaque semaine ou chaque mois en un coup d\'œil : votre temps d\'écoute, les jours où vous avez écouté de la musique, vos morceaux, artiste et albums phares. Ouvrez-le depuis la carte de l\'accueil, et remontez le temps avec les flèches.';
 
   @override
   String get whatsNew160StoryTitle => 'Partagez-le en story';
@@ -1631,24 +1631,94 @@ class AppLocalizationsFr extends AppLocalizations {
       'Faites d\'une semaine ou d\'un mois une image pour vos stories, aux couleurs de votre morceau phare. Un mois terminé se partage comme son Replay.';
 
   @override
-  String get whatsNew160GesturesTitle => 'Glissez, maintenez';
+  String get whatsNew160SwipeTitle => 'Glissez un morceau';
 
   @override
-  String get whatsNew160GesturesBody =>
-      'Glissez un morceau vers la droite pour le lire ensuite, ou vers la gauche pour l\'ajouter à la file d\'attente. Glissez le mini lecteur pour changer de morceau, et maintenez-le pour aimer le morceau en cours.';
+  String get whatsNew160SwipeBody =>
+      'Dans la bibliothèque, les albums, les artistes et la recherche, glissez un morceau vers la droite pour le lire ensuite, ou vers la gauche pour l\'ajouter à la file d\'attente.';
+
+  @override
+  String get whatsNew160MiniPlayerTitle =>
+      'Glissez et maintenez le mini lecteur';
+
+  @override
+  String get whatsNew160MiniPlayerBody =>
+      'Glissez-le vers la gauche pour le morceau suivant, vers la droite pour le précédent. Maintenez-le pour aimer le morceau en cours, ou retirer votre j\'aime.';
+
+  @override
+  String get whatsNew160CalendarTitle => 'Un calendrier de vos écoutes';
+
+  @override
+  String get whatsNew160CalendarBody =>
+      'Chaque jour est un carré, rempli en cinq niveaux, d\'aucune écoute à 30 lectures ou plus. Touchez un jour pour voir son total.';
+
+  @override
+  String get whatsNew160MomentsTitle => 'Quand vous écoutez';
+
+  @override
+  String get whatsNew160MomentsBody =>
+      'Vos lectures par jour de la semaine et moment de la journée, avec celui qui se démarque, comme le vendredi soir. Les morceaux écoutés après minuit comptent pour la veille au soir.';
+
+  @override
+  String get whatsNew160RecordTitle => 'Le disque tourne';
+
+  @override
+  String get whatsNew160RecordBody =>
+      'Sur une page album, le disque sort de sa pochette et tourne pendant la lecture. Touchez-le pour lire, mettre en pause ou reprendre.';
+
+  @override
+  String get whatsNew160LatestTitle => 'Dernière sortie';
+
+  @override
+  String get whatsNew160LatestBody =>
+      'Les pages artiste montrent leur album ou single le plus récent à part, au-dessus du reste.';
 
   @override
   String get whatsNew160ResumeTitle => 'Reprenez où vous en étiez';
 
   @override
   String get whatsNew160ResumeBody =>
-      'Reprendre, sur l\'accueil, repart là où le morceau s\'est arrêté, avec l\'album ou la playlist d\'origine et le temps restant.';
+      'Reprendre, sur l\'accueil, repart là où le morceau s\'est arrêté, avec l\'album, l\'artiste ou la playlist d\'origine et le temps restant. Pendant la lecture, il ouvre l\'écran En lecture.';
 
   @override
-  String get whatsNew160ArtistTitle =>
-      'Des pages artiste et album plus vivantes';
+  String get whatsNew160ArtistTitle => 'Pages artiste';
 
   @override
   String get whatsNew160ArtistBody =>
-      'Les pages artiste s\'ouvrent sur un bouton rond Aléatoire et leur dernière sortie, avec leurs sorties de la plus récente à la plus ancienne. Sur les pages album, le disque tourne pendant la lecture.';
+      'Un seul bouton rond Aléatoire sur leur photo, puisque les morceaux d\'un artiste n\'ont pas d\'ordre ; touchez un morceau pour lire dans l\'ordre à partir de lui. Les sorties vont de la plus récente à la plus ancienne, aussi dans Plus de sur les pages album. Un artiste sans photo s\'ouvre sur un halo aux couleurs de sa pochette.';
+
+  @override
+  String get whatsNew160PlayingTitle => 'Le morceau en cours, partout pareil';
+
+  @override
+  String get whatsNew160PlayingBody =>
+      'Dans chaque liste, sa pochette est assombrie sous l\'égaliseur animé, qui s\'arrête en pause, et son titre prend la couleur d\'accent.';
+
+  @override
+  String get whatsNew160HapticsTitle => 'Des vibrations cohérentes';
+
+  @override
+  String get whatsNew160HapticsBody =>
+      'Un appui ferme quand la lecture démarre ou s\'arrête, un léger pour un saut, une actualisation ou un menu, et un petit clic pour un choix. Lancer un morceau ne vibre plus deux fois.';
+
+  @override
+  String get whatsNew160BackgroundTitle => 'Un fond plus calme';
+
+  @override
+  String get whatsNew160BackgroundBody =>
+      'Les couleurs derrière les onglets mettent deux secondes à suivre un nouveau morceau au lieu de changer d\'un coup.';
+
+  @override
+  String get whatsNew160BackupTitle => 'Sauvegardes';
+
+  @override
+  String get whatsNew160BackupBody =>
+      'Elles gardent aussi vos moments d\'écoute.';
+
+  @override
+  String get whatsNew160HapticsOffTitle => 'Vibrations désactivées respectées';
+
+  @override
+  String get whatsNew160HapticsOffBody =>
+      'Les onglets en haut de la bibliothèque vibraient même avec les vibrations désactivées dans les réglages. Ils suivent maintenant le réglage.';
 }

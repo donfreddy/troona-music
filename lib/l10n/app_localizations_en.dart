@@ -1606,7 +1606,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whatsNew160RecapBody =>
-      'Any week or month at a glance: your listening time, each day as a square filled by how much music it had, your top songs, artist and albums, and when you listen most. Open it from the card on Home.';
+      'Any week or month at a glance: your listening time, the days you played music, your top songs, artist and albums. Open it from the card on Home, and step back with the arrows.';
 
   @override
   String get whatsNew160StoryTitle => 'Share it as a story';
@@ -1616,23 +1616,93 @@ class AppLocalizationsEn extends AppLocalizations {
       'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.';
 
   @override
-  String get whatsNew160GesturesTitle => 'Swipe and hold';
+  String get whatsNew160SwipeTitle => 'Swipe a song';
 
   @override
-  String get whatsNew160GesturesBody =>
-      'Swipe a song right to play it next, or left to add it to the queue. Swipe the mini player to change song, and hold it to like the song playing.';
+  String get whatsNew160SwipeBody =>
+      'In the Library, albums, artists and search, swipe a song right to play it next, or left to add it to the queue.';
+
+  @override
+  String get whatsNew160MiniPlayerTitle => 'Swipe and hold the mini player';
+
+  @override
+  String get whatsNew160MiniPlayerBody =>
+      'Swipe it left for the next song or right for the previous one. Hold it to like the song playing, or to take the like back.';
+
+  @override
+  String get whatsNew160CalendarTitle => 'A calendar of your listening';
+
+  @override
+  String get whatsNew160CalendarBody =>
+      'Each day is a square, filled in five steps from no music to 30 plays or more. Tap a day for its count.';
+
+  @override
+  String get whatsNew160MomentsTitle => 'When you listen';
+
+  @override
+  String get whatsNew160MomentsBody =>
+      'Your plays by weekday and time of day, with the moment that stands out, such as Friday evening. Songs played after midnight count for the night before.';
+
+  @override
+  String get whatsNew160RecordTitle => 'The record turns';
+
+  @override
+  String get whatsNew160RecordBody =>
+      'On an album page, the record slides out of its sleeve and turns while the album plays. Tap it to play, pause or resume.';
+
+  @override
+  String get whatsNew160LatestTitle => 'Latest release';
+
+  @override
+  String get whatsNew160LatestBody =>
+      'Artist pages show their newest album or single on its own, above the rest.';
 
   @override
   String get whatsNew160ResumeTitle => 'Pick up where you left off';
 
   @override
   String get whatsNew160ResumeBody =>
-      'Jump back in on Home goes on from where the song stopped, with the album or playlist it came from and the time left.';
+      'Jump back in on Home goes on from where the song stopped, with the album, artist or playlist it came from and the time left. While music plays, it opens Now Playing.';
 
   @override
-  String get whatsNew160ArtistTitle => 'Livelier artist and album pages';
+  String get whatsNew160ArtistTitle => 'Artist pages';
 
   @override
   String get whatsNew160ArtistBody =>
-      'Artist pages open on one round Shuffle button and their latest release, with their releases newest first. On album pages, the record turns while the album plays.';
+      'One round Shuffle button on their photo, since an artist\'s songs have no order; tap a song to play in order from it. Releases come newest first, also in More by on album pages. An artist without a photo opens on a soft glow of their cover\'s colours.';
+
+  @override
+  String get whatsNew160PlayingTitle =>
+      'The song playing looks the same everywhere';
+
+  @override
+  String get whatsNew160PlayingBody =>
+      'In every list, its cover is dimmed under the moving equalizer, which stops while paused, and its title is in the accent colour.';
+
+  @override
+  String get whatsNew160HapticsTitle => 'One feel for haptics';
+
+  @override
+  String get whatsNew160HapticsBody =>
+      'A firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, and a tick for a choice. Playing a song no longer taps twice.';
+
+  @override
+  String get whatsNew160BackgroundTitle => 'A calmer background';
+
+  @override
+  String get whatsNew160BackgroundBody =>
+      'The colours behind the tabs take two seconds to follow a new song instead of switching at once.';
+
+  @override
+  String get whatsNew160BackupTitle => 'Backups';
+
+  @override
+  String get whatsNew160BackupBody => 'They now also carry when you listen.';
+
+  @override
+  String get whatsNew160HapticsOffTitle => 'Vibrations with haptics off';
+
+  @override
+  String get whatsNew160HapticsOffBody =>
+      'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.';
 }

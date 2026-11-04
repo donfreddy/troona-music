@@ -2693,7 +2693,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew160RecapBody.
   ///
   /// In en, this message translates to:
-  /// **'Any week or month at a glance: your listening time, each day as a square filled by how much music it had, your top songs, artist and albums, and when you listen most. Open it from the card on Home.'**
+  /// **'Any week or month at a glance: your listening time, the days you played music, your top songs, artist and albums. Open it from the card on Home, and step back with the arrows.'**
   String get whatsNew160RecapBody;
 
   /// No description provided for @whatsNew160StoryTitle.
@@ -2708,17 +2708,77 @@ abstract class AppLocalizations {
   /// **'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.'**
   String get whatsNew160StoryBody;
 
-  /// No description provided for @whatsNew160GesturesTitle.
+  /// No description provided for @whatsNew160SwipeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Swipe and hold'**
-  String get whatsNew160GesturesTitle;
+  /// **'Swipe a song'**
+  String get whatsNew160SwipeTitle;
 
-  /// No description provided for @whatsNew160GesturesBody.
+  /// No description provided for @whatsNew160SwipeBody.
   ///
   /// In en, this message translates to:
-  /// **'Swipe a song right to play it next, or left to add it to the queue. Swipe the mini player to change song, and hold it to like the song playing.'**
-  String get whatsNew160GesturesBody;
+  /// **'In the Library, albums, artists and search, swipe a song right to play it next, or left to add it to the queue.'**
+  String get whatsNew160SwipeBody;
+
+  /// No description provided for @whatsNew160MiniPlayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe and hold the mini player'**
+  String get whatsNew160MiniPlayerTitle;
+
+  /// No description provided for @whatsNew160MiniPlayerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe it left for the next song or right for the previous one. Hold it to like the song playing, or to take the like back.'**
+  String get whatsNew160MiniPlayerBody;
+
+  /// No description provided for @whatsNew160CalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A calendar of your listening'**
+  String get whatsNew160CalendarTitle;
+
+  /// No description provided for @whatsNew160CalendarBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each day is a square, filled in five steps from no music to 30 plays or more. Tap a day for its count.'**
+  String get whatsNew160CalendarBody;
+
+  /// No description provided for @whatsNew160MomentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When you listen'**
+  String get whatsNew160MomentsTitle;
+
+  /// No description provided for @whatsNew160MomentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plays by weekday and time of day, with the moment that stands out, such as Friday evening. Songs played after midnight count for the night before.'**
+  String get whatsNew160MomentsBody;
+
+  /// No description provided for @whatsNew160RecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The record turns'**
+  String get whatsNew160RecordTitle;
+
+  /// No description provided for @whatsNew160RecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On an album page, the record slides out of its sleeve and turns while the album plays. Tap it to play, pause or resume.'**
+  String get whatsNew160RecordBody;
+
+  /// No description provided for @whatsNew160LatestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest release'**
+  String get whatsNew160LatestTitle;
+
+  /// No description provided for @whatsNew160LatestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages show their newest album or single on its own, above the rest.'**
+  String get whatsNew160LatestBody;
 
   /// No description provided for @whatsNew160ResumeTitle.
   ///
@@ -2729,20 +2789,80 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew160ResumeBody.
   ///
   /// In en, this message translates to:
-  /// **'Jump back in on Home goes on from where the song stopped, with the album or playlist it came from and the time left.'**
+  /// **'Jump back in on Home goes on from where the song stopped, with the album, artist or playlist it came from and the time left. While music plays, it opens Now Playing.'**
   String get whatsNew160ResumeBody;
 
   /// No description provided for @whatsNew160ArtistTitle.
   ///
   /// In en, this message translates to:
-  /// **'Livelier artist and album pages'**
+  /// **'Artist pages'**
   String get whatsNew160ArtistTitle;
 
   /// No description provided for @whatsNew160ArtistBody.
   ///
   /// In en, this message translates to:
-  /// **'Artist pages open on one round Shuffle button and their latest release, with their releases newest first. On album pages, the record turns while the album plays.'**
+  /// **'One round Shuffle button on their photo, since an artist\'s songs have no order; tap a song to play in order from it. Releases come newest first, also in More by on album pages. An artist without a photo opens on a soft glow of their cover\'s colours.'**
   String get whatsNew160ArtistBody;
+
+  /// No description provided for @whatsNew160PlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The song playing looks the same everywhere'**
+  String get whatsNew160PlayingTitle;
+
+  /// No description provided for @whatsNew160PlayingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In every list, its cover is dimmed under the moving equalizer, which stops while paused, and its title is in the accent colour.'**
+  String get whatsNew160PlayingBody;
+
+  /// No description provided for @whatsNew160HapticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One feel for haptics'**
+  String get whatsNew160HapticsTitle;
+
+  /// No description provided for @whatsNew160HapticsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, and a tick for a choice. Playing a song no longer taps twice.'**
+  String get whatsNew160HapticsBody;
+
+  /// No description provided for @whatsNew160BackgroundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A calmer background'**
+  String get whatsNew160BackgroundTitle;
+
+  /// No description provided for @whatsNew160BackgroundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The colours behind the tabs take two seconds to follow a new song instead of switching at once.'**
+  String get whatsNew160BackgroundBody;
+
+  /// No description provided for @whatsNew160BackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get whatsNew160BackupTitle;
+
+  /// No description provided for @whatsNew160BackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They now also carry when you listen.'**
+  String get whatsNew160BackupBody;
+
+  /// No description provided for @whatsNew160HapticsOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrations with haptics off'**
+  String get whatsNew160HapticsOffTitle;
+
+  /// No description provided for @whatsNew160HapticsOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.'**
+  String get whatsNew160HapticsOffBody;
 }
 
 class _AppLocalizationsDelegate

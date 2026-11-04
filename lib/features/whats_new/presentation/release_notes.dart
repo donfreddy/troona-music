@@ -43,8 +43,33 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
     ),
     ReleaseNote(
       ReleaseNoteKind.added,
-      l10n.whatsNew160GesturesTitle,
-      l10n.whatsNew160GesturesBody,
+      l10n.whatsNew160SwipeTitle,
+      l10n.whatsNew160SwipeBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160MiniPlayerTitle,
+      l10n.whatsNew160MiniPlayerBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160CalendarTitle,
+      l10n.whatsNew160CalendarBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160MomentsTitle,
+      l10n.whatsNew160MomentsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160RecordTitle,
+      l10n.whatsNew160RecordBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160LatestTitle,
+      l10n.whatsNew160LatestBody,
     ),
     ReleaseNote(
       ReleaseNoteKind.improved,
@@ -55,6 +80,31 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
       ReleaseNoteKind.improved,
       l10n.whatsNew160ArtistTitle,
       l10n.whatsNew160ArtistBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160PlayingTitle,
+      l10n.whatsNew160PlayingBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160HapticsTitle,
+      l10n.whatsNew160HapticsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160BackgroundTitle,
+      l10n.whatsNew160BackgroundBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160BackupTitle,
+      l10n.whatsNew160BackupBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew160HapticsOffTitle,
+      l10n.whatsNew160HapticsOffBody,
     ),
   ]),
   Release('1.5.0', date: DateTime(2026, 11, 4), [
