@@ -36,6 +36,7 @@ import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -45,32 +46,36 @@ class SettingsPage extends StatelessWidget {
     final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: AppBackButton.leadingWidth,
-        leading: const AppBackButton(),
-        title: Text(
-          l10n.settingsTitle,
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 22,
-            letterSpacing: -0.4,
-          ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
         ),
-      ),
-      body: BlocBuilder<SettingsCubit, SettingsState>(
-        builder: (context, state) => switch (state) {
-          SettingsLoaded(:final settings) => _SettingsList(settings: settings),
-          SettingsError() => Center(
-            child: Text(
-              l10n.settingsLoadError,
-              style: TextStyle(color: context.colors.labelSecondary),
-            ),
+        slivers: [
+          GlassSliverHeader.largeTitle(
+            leading: const AppBackButton(),
+            title: l10n.settingsTitle,
           ),
-          _ => const Center(child: CupertinoActivityIndicator(radius: 14)),
-        },
+          BlocBuilder<SettingsCubit, SettingsState>(
+            builder: (context, state) => switch (state) {
+              SettingsLoaded(:final settings) => _SettingsList(
+                settings: settings,
+              ),
+              SettingsError() => SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Text(
+                    l10n.settingsLoadError,
+                    style: TextStyle(color: context.colors.labelSecondary),
+                  ),
+                ),
+              ),
+              _ => const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(child: CupertinoActivityIndicator(radius: 14)),
+              ),
+            },
+          ),
+        ],
       ),
     );
   }
@@ -90,8 +95,7 @@ class _SettingsList extends StatelessWidget {
     final backupBusy = context.watch<BackupCubit>().state;
     final update = context.watch<UpdateCubit>().state;
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
+    return SliverList.list(
       children: [
         SettingsSection(
           title: l10n.settingsPlayback,

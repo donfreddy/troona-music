@@ -15,6 +15,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 
 /// Last week at a glance, then this month's listening calendar. Opened from
 /// the Home card. Flat glass panels: no blur, the page holds several.
@@ -27,49 +28,57 @@ class WeeklyRecapPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leadingWidth: AppBackButton.leadingWidth,
-        leading: const AppBackButton(),
-        title: Text(l10n.recapTitle),
-      ),
-      body: BlocBuilder<WeeklyRecapCubit, WeeklyRecapState>(
-        builder: (context, state) {
-          if (state.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final recap = state.recap;
-          return ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.lg,
-              context.bottomBarInset(tabs: false),
-            ),
-            children: [
-              if (recap != null)
-                ..._recapSections(context, recap)
-              else
-                Text(
-                  l10n.recapEmpty,
-                  style: TextStyle(
-                    color: context.colors.labelSecondary,
-                    fontSize: 15,
-                  ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          GlassSliverHeader.largeTitle(
+            leading: const AppBackButton(),
+            title: l10n.recapTitle,
+          ),
+          BlocBuilder<WeeklyRecapCubit, WeeklyRecapState>(
+            builder: (context, state) {
+              if (state.loading) {
+                return const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final recap = state.recap;
+              return SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.sm,
+                  AppSpacing.lg,
+                  context.bottomBarInset(tabs: false),
                 ),
-              const SizedBox(height: AppSpacing.xl),
-              _Panel(
-                child: ListeningCalendar(
-                  month: state.month,
-                  activeDays: state.activeDays,
-                  today: DateTime.now(),
+                sliver: SliverList.list(
+                  children: [
+                    if (recap != null)
+                      ..._recapSections(context, recap)
+                    else
+                      Text(
+                        l10n.recapEmpty,
+                        style: TextStyle(
+                          color: context.colors.labelSecondary,
+                          fontSize: 15,
+                        ),
+                      ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _Panel(
+                      child: ListeningCalendar(
+                        month: state.month,
+                        activeDays: state.activeDays,
+                        today: DateTime.now(),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
