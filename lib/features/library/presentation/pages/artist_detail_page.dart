@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -242,7 +244,7 @@ class _ArtistHeader extends StatelessWidget {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
-  Widget _buildMonogram(AppColors colors) {
+  Widget _buildMonogram(AppColors colors, {bool initials = true}) {
     return Container(
       decoration: BoxDecoration(
         gradient: RadialGradient(
@@ -252,17 +254,19 @@ class _ArtistHeader extends StatelessWidget {
           ],
         ),
       ),
-      child: Center(
-        child: Text(
-          _getInitials(artist.name),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 42,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1.0,
-          ),
-        ),
-      ),
+      child: !initials
+          ? null
+          : Center(
+              child: Text(
+                _getInitials(artist.name),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.0,
+                ),
+              ),
+            ),
     );
   }
 
@@ -278,91 +282,142 @@ class _ArtistHeader extends StatelessWidget {
     return _buildMonogram(colors);
   }
 
+  /// The artist's photo, downloaded or online: none until the metadata
+  /// says so, and none with photos turned off.
+  static ({String? file, String? url})? _photoOf(ArtistMetadataState state) {
+    if (state is! ArtistMetadataLoaded) return null;
+    final file = state.localImagePath;
+    final url = state.info.imageUrl;
+    final hasFile = file != null && file.isNotEmpty;
+    final hasUrl = url != null && url.isNotEmpty;
+    if (!hasFile && !hasUrl) return null;
+    return (file: hasFile ? file : null, url: hasUrl ? url : null);
+  }
+
+  Duration get _totalDuration => Duration(
+    milliseconds: tracks.fold<int>(0, (sum, t) => sum + t.durationMs),
+  );
+
   @override
   Widget build(BuildContext context) {
+    // With a photo, the page opens on it edge to edge (Apple Music); a
+    // local cover is too small for that and keeps the circle.
+    return BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
+      buildWhen: (a, b) => _photoOf(a) != _photoOf(b),
+      builder: (context, meta) {
+        final photo = _photoOf(meta);
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final expandedHeight = _expandedExtra + _actionsBarHeight;
+        return GlassSliverHeader(
+          leading: const AppBackButton(),
+          title: context.artistName(artist.name),
+          actions: [
+            GlassIconButton(
+              icon: AppIcons.moreVertical,
+              tooltip: context.l10n.detailMore,
+              onTap: tracks.isEmpty ? null : () => _showArtistOptions(context),
+            ),
+          ],
+          stretch: true,
+          background: photo == null
+              ? null
+              : _ArtistPhoto(
+                  file: photo.file,
+                  url: photo.url,
+                  // Decoded once, for the expanded header: a stretch
+                  // scales it instead of decoding it again.
+                  side: math.max(
+                    MediaQuery.sizeOf(context).width,
+                    MediaQuery.paddingOf(context).top +
+                        GlassSliverHeader.navBarHeight +
+                        expandedHeight +
+                        math.max(0, textScale - 1) * _expandedText,
+                  ),
+                  fallback: _buildMonogram(context.colors, initials: false),
+                ),
+          expandedHeight: expandedHeight,
+          expandedTextHeight: _expandedText,
+          expanded: Column(
+            children: [
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: photo == null
+                      ? KeyedSubtree(
+                          key: const ValueKey('circle'),
+                          child: _circleHero(context),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('photo'),
+                          child: _photoCaption(context),
+                        ),
+                ),
+              ),
+              // Play and shuffle scroll away with the hero: the collapsed
+              // bar keeps the title and actions only.
+              SizedBox(
+                height: _actionsBarHeight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: 8,
+                  ),
+                  child: PlayShuffleButtons(tracks: tracks),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Without a photo: the circle (local cover or monogram), centred titles.
+  Widget _circleHero(BuildContext context) {
     final colors = context.colors;
-
-    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
-    final totalDuration = Duration(milliseconds: totalDurationMs);
-
-    return GlassSliverHeader(
-      leading: const AppBackButton(),
-      title: context.artistName(artist.name),
-      actions: [
-        GlassIconButton(
-          icon: AppIcons.moreVertical,
-          tooltip: context.l10n.detailMore,
-          onTap: tracks.isEmpty ? null : () => _showArtistOptions(context),
-        ),
-      ],
-      expandedHeight: _expandedExtra + _actionsBarHeight,
-      expandedTextHeight: _expandedText,
-      expanded: Column(
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
 
-                  // Circular artist photo. Depth only, like the album
-                  // cover: an accent ring and glow would clash with the
-                  // photo's own colours.
-                  _animatedArtistItem(
-                    Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
-                          builder: (context, metaState) {
-                            final downloaded = metaState is ArtistMetadataLoaded
-                                ? metaState.localImagePath
-                                : null;
-                            final onlineUrl = metaState is ArtistMetadataLoaded
-                                ? metaState.info.imageUrl
-                                : null;
-                            final localAlbumArt = artist.artworkPath;
+          // Circular artist photo. Depth only, like the album
+          // cover: an accent ring and glow would clash with the
+          // photo's own colours.
+          _animatedArtistItem(
+            Container(
+              width: 130,
+              height: 130,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
+                  builder: (context, metaState) {
+                    final downloaded = metaState is ArtistMetadataLoaded
+                        ? metaState.localImagePath
+                        : null;
+                    final onlineUrl = metaState is ArtistMetadataLoaded
+                        ? metaState.info.imageUrl
+                        : null;
+                    final localAlbumArt = artist.artworkPath;
 
-                            // 1. Prefer downloaded HD artist photo
-                            if (downloaded != null && downloaded.isNotEmpty) {
-                              return ArtworkImage(
-                                downloaded,
-                                width: 130,
-                                height: 130,
-                                errorBuilder: (_, _, _) =>
-                                    onlineUrl != null && onlineUrl.isNotEmpty
-                                    ? Image.network(
-                                        onlineUrl,
-                                        width: 130,
-                                        height: 130,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, _, _) =>
-                                            _fallbackLocalOrMonogram(
-                                              localAlbumArt,
-                                              colors,
-                                            ),
-                                      )
-                                    : _fallbackLocalOrMonogram(
-                                        localAlbumArt,
-                                        colors,
-                                      ),
-                              );
-                            }
-
-                            // 2. Next prefer online HD artist photo (Deezer/Last.fm)
-                            if (onlineUrl != null && onlineUrl.isNotEmpty) {
-                              return Image.network(
+                    // 1. Prefer downloaded HD artist photo
+                    if (downloaded != null && downloaded.isNotEmpty) {
+                      return ArtworkImage(
+                        downloaded,
+                        width: 130,
+                        height: 130,
+                        errorBuilder: (_, _, _) =>
+                            onlineUrl != null && onlineUrl.isNotEmpty
+                            ? Image.network(
                                 onlineUrl,
                                 width: 130,
                                 height: 130,
@@ -372,94 +427,129 @@ class _ArtistHeader extends StatelessWidget {
                                       localAlbumArt,
                                       colors,
                                     ),
-                              );
-                            }
+                              )
+                            : _fallbackLocalOrMonogram(localAlbumArt, colors),
+                      );
+                    }
 
-                            // 3. Fallback to local track album art or monogram
-                            return _fallbackLocalOrMonogram(
-                              localAlbumArt,
-                              colors,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    0,
-                  ),
+                    // 2. Next prefer online HD artist photo (Deezer/Last.fm)
+                    if (onlineUrl != null && onlineUrl.isNotEmpty) {
+                      return Image.network(
+                        onlineUrl,
+                        width: 130,
+                        height: 130,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            _fallbackLocalOrMonogram(localAlbumArt, colors),
+                      );
+                    }
 
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Artist Name
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xl,
-                    ),
-                    child: Column(
-                      children: [
-                        _animatedArtistItem(
-                          Text(
-                            context.artistName(artist.name),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          1,
-                        ),
-                        const SizedBox(height: 6),
-
-                        // Stats Pill Badges
-                        // Wraps on a narrow screen or a large font.
-                        _animatedArtistItem(
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: [
-                              AppBadge(
-                                context.l10n.songCount(artist.trackCount),
-                                icon: AppIcons.track,
-                              ),
-                              // A guest only has no release of their own.
-                              if (context.artistReleases(artist)
-                                  case final releases?)
-                                AppBadge(releases, icon: AppIcons.album),
-                              if (totalDuration > Duration.zero) ...[
-                                AppBadge(
-                                  totalDuration.toHumanReadable(context.l10n),
-                                  icon: AppIcons.duration,
-                                ),
-                              ],
-                            ],
-                          ),
-                          2,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                    // 3. Fallback to local track album art or monogram
+                    return _fallbackLocalOrMonogram(localAlbumArt, colors);
+                  },
+                ),
               ),
             ),
+            0,
           ),
-          // Play and shuffle scroll away with the hero: the collapsed bar
-          // keeps the title and actions only.
-          SizedBox(
-            height: _actionsBarHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: 8,
-              ),
-              child: PlayShuffleButtons(tracks: tracks),
+
+          const SizedBox(height: AppSpacing.md),
+
+          // Artist Name
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: Column(
+              children: [
+                _animatedArtistItem(
+                  Text(
+                    context.artistName(artist.name),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  1,
+                ),
+                const SizedBox(height: 6),
+
+                // Stats Pill Badges
+                // Wraps on a narrow screen or a large font.
+                _animatedArtistItem(_badges(context, WrapAlignment.center), 2),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Over the photo: the name and counts at its bottom left.
+  Widget _photoCaption(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          AppSpacing.sm,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _animatedArtistItem(
+              Text(
+                context.artistName(artist.name),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                  height: 1.1,
+                  shadows: [Shadow(color: Colors.black54, blurRadius: 12)],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              1,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _animatedArtistItem(_badges(context, WrapAlignment.start), 2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Song count, releases and listening time. Wraps on a narrow screen or
+  /// a large font.
+  Widget _badges(BuildContext context, WrapAlignment alignment) {
+    final totalDuration = _totalDuration;
+    return Wrap(
+      alignment: alignment,
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        AppBadge(
+          context.l10n.songCount(artist.trackCount),
+          icon: AppIcons.track,
+        ),
+        // A guest only has no release of their own.
+        if (context.artistReleases(artist) case final releases?)
+          AppBadge(releases, icon: AppIcons.album),
+        if (totalDuration > Duration.zero) ...[
+          AppBadge(
+            totalDuration.toHumanReadable(context.l10n),
+            icon: AppIcons.duration,
+          ),
+        ],
+      ],
     );
   }
 
@@ -798,6 +888,92 @@ class _MetaRow extends StatelessWidget {
               color: Colors.white,
               fontSize: 13,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The artist's photo behind the expanded header, edge to edge: it melts
+/// into the page at its bottom, and dark gradients keep the status bar, the
+/// back button and the name readable on any photo.
+class _ArtistPhoto extends StatelessWidget {
+  final String? file;
+  final String? url;
+
+  /// Side of the square the photo is decoded at.
+  final double side;
+
+  /// Shown when the photo cannot be read or loaded.
+  final Widget fallback;
+
+  const _ArtistPhoto({
+    required this.file,
+    required this.url,
+    required this.side,
+    required this.fallback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final url = this.url;
+    Widget online() => url == null
+        ? fallback
+        : Image.network(
+            url,
+            width: side,
+            height: side,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => fallback,
+          );
+    final file = this.file;
+    final photo = file != null
+        ? ArtworkImage(
+            file,
+            width: side,
+            height: side,
+            placeholder: AppIcons.artist,
+            errorBuilder: (_, _, _) => online(),
+          )
+        : online();
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 300),
+      builder: (_, t, child) => Opacity(opacity: t, child: child),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ShaderMask(
+            blendMode: BlendMode.dstIn,
+            shaderCallback: (bounds) => const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.white, Colors.transparent],
+              stops: [0, .6, 1],
+            ).createShader(bounds),
+            child: FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox.square(dimension: side, child: photo),
+            ),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0x73000000), // status bar and back button
+                  Color(0x00000000),
+                  Color(0x00000000),
+                  Color(0x8C000000), // name and counts
+                  Color(0x00000000),
+                ],
+                stops: [0, .28, .45, .82, 1],
+              ),
             ),
           ),
         ],
