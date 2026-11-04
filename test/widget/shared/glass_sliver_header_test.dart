@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,11 +20,15 @@ void main() {
   final actionKey = UniqueKey();
   final firstRowKey = UniqueKey();
 
+  /// Scrolls started by code (not by a drag) since a page was pumped.
+  var scrollStarts = 0;
+
   Future<ScrollController> pump(
     WidgetTester tester,
     GlassSliverHeader header, {
     double textScale = 1,
     GlassQuality quality = GlassQuality.high,
+    int rows = 40,
   }) async {
     GlassTheme.overrideQuality(quality);
     tester.view
@@ -38,27 +44,40 @@ void main() {
       MaterialApp(
         theme: robotoTheme(AppTheme.dark),
         home: Scaffold(
-          body: CustomScrollView(
-            controller: controller,
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              header,
-              SliverList.builder(
-                itemCount: 40,
-                itemBuilder: (_, i) => SizedBox(
-                  key: i == 0 ? firstRowKey : null,
-                  height: 56,
-                  child: Text('Row $i'),
-                ),
+          body: NotificationListener<ScrollStartNotification>(
+            onNotification: (n) {
+              // Started by code (a snap), not by a finger.
+              if (n.dragDetails == null) scrollStarts++;
+              return false;
+            },
+            child: CustomScrollView(
+              controller: controller,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
-            ],
+              slivers: [
+                header,
+                SliverList.builder(
+                  itemCount: rows,
+                  // Tappable, like real rows: a finger down is not a drag
+                  // until it moves.
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () {},
+                    child: SizedBox(
+                      key: i == 0 ? firstRowKey : null,
+                      height: 56,
+                      child: Text('Row $i'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
+    scrollStarts = 0;
     return controller;
   }
 
@@ -113,8 +132,8 @@ void main() {
     expect(compactTitleOpacity(tester, 'Library'), 0);
   });
 
-  testWidgets('collapsing switches the blur on at one sigma, and the bar '
-      'takes the compact title', (tester) async {
+  testWidgets('the blur comes on, at one sigma, once content passes under '
+      'the collapsed bar, which takes the compact title', (tester) async {
     final controller = await pump(tester, largeTitle());
     final expected = GlassFilter.of(
       GlassTheme.bar(tester.element(find.byType(Scaffold))).blurSigma,
@@ -123,7 +142,11 @@ void main() {
       ).saturation,
     );
 
+    // Collapsing: only the page background is behind the header.
     await scrollTo(tester, controller, GlassSliverHeader.largeTitleHeight / 2);
+    expect(backdrop(tester).enabled, isFalse);
+
+    await scrollTo(tester, controller, GlassSliverHeader.largeTitleHeight);
     expect(backdrop(tester).enabled, isTrue);
     expect(backdrop(tester).filter, expected);
 
@@ -347,5 +370,60 @@ void main() {
       title.right,
       lessThanOrEqualTo(tester.getRect(find.byKey(actionKey)).left),
     );
+  });
+
+  testWidgets('a finger that stops a scroll halfway is not snapped under; '
+      'its release snaps', (tester) async {
+    final controller = await pump(tester, largeTitle());
+    const range = GlassSliverHeader.largeTitleHeight;
+    unawaited(
+      controller.animateTo(
+        range,
+        duration: const Duration(seconds: 1),
+        curve: Curves.linear,
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    // The finger stops it (a hold, which ends the scroll).
+    final startsBefore = scrollStarts;
+    final gesture = await tester.startGesture(const Offset(180, 400));
+    await tester.pump();
+    final held = controller.offset;
+    expect(held, inExclusiveRange(range / 2, range));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(controller.offset, held);
+    expect(
+      scrollStarts,
+      startsBefore,
+      reason: 'a snap started under the finger',
+    );
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(controller.offset, range);
+  });
+
+  testWidgets('content too short to collapse the header is never snapped '
+      'back', (tester) async {
+    // 640 - 24 - 44 - 86 = 486 dp of room: 10 rows of 56 leave 74 dp of
+    // scroll, less than the 86 the collapse takes.
+    final controller = await pump(tester, largeTitle(), rows: 10);
+    final position = controller.position;
+    expect(
+      position.maxScrollExtent,
+      lessThan(GlassSliverHeader.largeTitleHeight),
+    );
+    final gesture = await tester.startGesture(const Offset(180, 400));
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, -8));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    final before = controller.offset;
+    expect(before, greaterThan(0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(controller.offset, closeTo(before, 0.5));
   });
 }

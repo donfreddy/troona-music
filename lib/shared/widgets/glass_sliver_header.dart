@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart'
     show OverScrollHeaderStretchConfiguration;
@@ -15,15 +16,15 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 /// compact title and the actions.
 ///
 /// Expanded, it shows [expanded] (a large title, an album hero) below the
-/// navigation row, on no glass at all. Scrolling moves [expanded] up under
-/// the row as if it were content, fading it out, while the compact [title]
-/// fades in. Once collapsed, the following slivers pass under the bar, which
-/// blurs them with [GlassTheme.bar].
+/// navigation row, on no glass at all. Scrolling moves [expanded] up like
+/// content, fading it out, and the row's bottom edge cuts it; the compact
+/// [title] fades in. Once collapsed, the following slivers pass under the
+/// bar, which blurs them with [GlassTheme.bar].
 ///
 /// Blur cost: the filter keeps one sigma and is only switched on once the
-/// header starts to collapse; the tint alone follows the scroll. Before
-/// that, only the page background is behind it, and a blur of it would not
-/// show.
+/// header is collapsed, when content starts to pass under it; the tint
+/// alone follows the scroll. Before that, only the page background is
+/// behind it, and a blur of it would not show.
 class GlassSliverHeader extends StatelessWidget {
   /// Compact title, shown in the bar once collapsed. Null with no [leading]
   /// and no [actions]: no navigation row (Search, whose field is the bar).
@@ -103,12 +104,25 @@ class GlassSliverHeader extends StatelessWidget {
   static double navBarBottom(BuildContext context) =>
       MediaQuery.paddingOf(context).top + navBarHeight;
 
+  /// Height of an expanded part of [height] at the default font size, of
+  /// which [textHeight] is text, at the phone's font size.
+  static double expandedExtentOf(
+    BuildContext context,
+    double height,
+    double textHeight,
+  ) {
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
+    return height + math.max(0, textScale - 1) * textHeight;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context).scale(1);
     final hasNavBar = title != null || leading != null || actions.isNotEmpty;
-    final expandedExtent =
-        expandedHeight + math.max(0, textScale - 1) * expandedTextHeight;
+    final expandedExtent = expandedExtentOf(
+      context,
+      expandedHeight,
+      expandedTextHeight,
+    );
     final header = SliverPersistentHeader(
       pinned: true,
       delegate: _GlassHeaderDelegate(
@@ -123,8 +137,9 @@ class GlassSliverHeader extends StatelessWidget {
   }
 }
 
-/// Finishes a collapse left halfway once the scroll stops: the header's
-/// collapse spans the first [range] pixels of the scroll view.
+/// Finishes a collapse left halfway once the scroll stops and no finger is
+/// on the screen: the header's collapse spans the first [range] pixels of
+/// the scroll view.
 class _SnapToEdges extends StatefulWidget {
   final double range;
   final Widget child;
@@ -138,6 +153,26 @@ class _SnapToEdges extends StatefulWidget {
 class _SnapToEdgesState extends State<_SnapToEdges> {
   ScrollPosition? _position;
 
+  /// Fingers on the screen. A finger that stops a fling ends the scroll
+  /// (a hold is no scroll) but must not be snapped under; its release,
+  /// with no scroll after it, must be.
+  int _pointers = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointer);
+  }
+
+  void _onPointer(PointerEvent event) {
+    if (event is PointerDownEvent) {
+      _pointers++;
+    } else if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _pointers = math.max(0, _pointers - 1);
+      if (_pointers == 0) scheduleMicrotask(_snap);
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -149,6 +184,7 @@ class _SnapToEdgesState extends State<_SnapToEdges> {
 
   @override
   void dispose() {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
     _position?.isScrollingNotifier.removeListener(_onScrolling);
     super.dispose();
   }
@@ -159,13 +195,16 @@ class _SnapToEdgesState extends State<_SnapToEdges> {
 
   void _snap() {
     final position = _position;
-    if (!mounted || position == null) return;
+    if (!mounted || position == null || _pointers > 0) return;
     if (position.isScrollingNotifier.value) return;
     if (!position.hasPixels || !position.hasContentDimensions) return;
+    // Content too short to collapse the header fully: a snap would pull
+    // the end of it out of reach.
+    final range = widget.range;
+    if (position.maxScrollExtent < range) return;
     final pixels = position.pixels;
-    final range = math.min(widget.range, position.maxScrollExtent);
     if (pixels <= 0 || pixels >= range) return;
-    final target = pixels < widget.range / 2 ? 0.0 : range;
+    final target = pixels < range / 2 ? 0.0 : range;
     if ((target - pixels).abs() < 1) return;
     position.animateTo(
       target,
@@ -341,7 +380,11 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             : BackdropFilter(
                 // One sigma: a filter that changes every frame is rebuilt
                 // every frame, and small sigmas are the costliest to blur.
-                enabled: collapse > 0,
+                // Content passes under a pinned header only once it is
+                // collapsed (or, for one that cannot collapse, scrolled).
+                enabled: maxExtent == minExtent
+                    ? collapse > 0
+                    : shrinkOffset >= maxExtent - minExtent,
                 filter: GlassFilter.of(
                   glass.blurSigma,
                   saturation: glass.saturation,
