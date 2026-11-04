@@ -51,18 +51,6 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
   }
 
   @override
-  Future<Either<Failure, Set<int>>> activeDays({
-    required int firstDay,
-    required int lastDay,
-  }) async {
-    try {
-      return right(_source.activeDays(firstDay, lastDay));
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<String>>> recentTrackIds({
     required int limit,
   }) async {

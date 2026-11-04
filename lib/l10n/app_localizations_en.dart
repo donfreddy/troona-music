@@ -917,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count songs heard for the first time',
       one: '1 song heard for the first time',
-      zero: 'No new songs this week',
+      zero: 'No new songs',
     );
     return '$_temp0';
   }
@@ -944,14 +944,119 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recapEmpty => 'Nothing was played last week.';
+  String get recapPageTitle => 'Your listening';
 
   @override
-  String get recapCalendarCaption => 'A filled dot is a day with music.';
+  String get recapWeek => 'Week';
 
   @override
-  String recapCalendarDay(String date) {
-    return '$date, music played';
+  String get recapMonth => 'Month';
+
+  @override
+  String get recapThisWeek => 'This week';
+
+  @override
+  String get recapLastWeek => 'Last week';
+
+  @override
+  String get recapThisMonth => 'This month';
+
+  @override
+  String get recapLastMonth => 'Last month';
+
+  @override
+  String get recapPreviousSpan => 'Earlier';
+
+  @override
+  String get recapNextSpan => 'Later';
+
+  @override
+  String get recapInProgress => 'In progress';
+
+  @override
+  String recapActiveDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days with music',
+      one: '1 day with music',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get recapNothingYet => 'Nothing played yet. Your next song starts it.';
+
+  @override
+  String get recapNothing => 'Nothing was played.';
+
+  @override
+  String get recapTopSongs => 'Top songs';
+
+  @override
+  String get recapPlaysHeader => 'Plays';
+
+  @override
+  String get recapTopAlbums => 'Top albums';
+
+  @override
+  String get recapDayByDay => 'Day by day';
+
+  @override
+  String get recapLess => 'Less';
+
+  @override
+  String get recapMore => 'More';
+
+  @override
+  String recapDayPlays(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+      zero: 'no music',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String recapBusiestDay(String date, String plays) {
+    return 'Busiest day: $date, $plays';
+  }
+
+  @override
+  String get recapMoments => 'When you listen';
+
+  @override
+  String get recapMomentsEmpty =>
+      'Your listening moments show up as you play music.';
+
+  @override
+  String recapPeak(String weekday, String part) {
+    return 'Peak: $weekday $part';
+  }
+
+  @override
+  String recapPeakNight(String eve, String day) {
+    return 'Peak: $eve night';
+  }
+
+  @override
+  String get recapMorning => 'Morning';
+
+  @override
+  String get recapAfternoon => 'Afternoon';
+
+  @override
+  String get recapEvening => 'Evening';
+
+  @override
+  String get recapNight => 'Night';
+
+  @override
+  String recapPlayFrom(String title) {
+    return 'Play from $title';
   }
 
   @override
@@ -962,11 +1067,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String replayReady(String name) {
     return '$name is in your playlists: last month\'s most played songs.';
-  }
-
-  @override
-  String recapCalendarQuietDay(String date) {
-    return '$date, no music';
   }
 
   @override

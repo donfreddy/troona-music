@@ -22,6 +22,7 @@ final class IsarPlayHistoryDataSource {
     ListeningDayModelSchema,
     TrackDayModelSchema,
     TrackFirstPlayModelSchema,
+    ListeningHourModelSchema,
   ];
 
   Future<void> add(PlayEventModel event) async => _isar.write((isar) {
@@ -29,6 +30,7 @@ final class IsarPlayHistoryDataSource {
     event.id = events.autoIncrement();
     events.put(event);
     _count(isar, event.trackId, ListeningDay.of(event.playedAt));
+    _countHour(isar, event.playedAt);
     final excess = events.count() - maxEvents;
     if (excess > 0) {
       final oldest = events.where().sortByPlayedAt().findAll(limit: excess);
@@ -61,6 +63,12 @@ final class IsarPlayHistoryDataSource {
     }
   }
 
+  static void _countHour(Isar isar, DateTime at) {
+    final hours = isar.listeningHourModels;
+    final id = ListeningDay.of(at) * 24 + at.hour;
+    hours.put((hours.get(id) ?? (ListeningHourModel()..id = id))..plays += 1);
+  }
+
   Future<void> addListening(int day, int ms) async => _isar.write((isar) {
     final days = isar.listeningDayModels;
     days.put(
@@ -68,13 +76,17 @@ final class IsarPlayHistoryDataSource {
     );
   });
 
-  /// Builds the daily totals from the events still stored, once: the
-  /// history kept before them only has its last [maxEvents] plays.
-  /// Listening time before that is unknown and stays at zero.
-  Future<void> backfillDays() async => _isar.write((isar) {
-    if (isar.listeningDayModels.count() > 0) return;
+  /// Builds the daily and hourly totals from the events still stored,
+  /// each once, when it is still empty: the history kept before them only
+  /// has its last [maxEvents] plays. Listening time before that is unknown
+  /// and stays at zero.
+  Future<void> backfill() async => _isar.write((isar) {
+    final days = isar.listeningDayModels.count() == 0;
+    final hours = isar.listeningHourModels.count() == 0;
+    if (!days && !hours) return;
     for (final e in isar.playEventModels.where().sortByPlayedAt().findAll()) {
-      _count(isar, e.trackId, ListeningDay.of(e.playedAt));
+      if (days) _count(isar, e.trackId, ListeningDay.of(e.playedAt));
+      if (hours) _countHour(isar, e.playedAt);
     }
   });
 
@@ -91,8 +103,22 @@ final class IsarPlayHistoryDataSource {
             .findAll()) {
       trackPlays[t.trackId] = (trackPlays[t.trackId] ?? 0) + t.plays;
     }
+    final hourPlays = List.filled(7 * 24, 0);
+    for (final h
+        in _isar.listeningHourModels
+            .where()
+            .idBetween(firstDay * 24, lastDay * 24 + 23)
+            .findAll()) {
+      final weekday = ListeningDay.weekday(h.id ~/ 24);
+      hourPlays[(weekday - 1) * 24 + h.id % 24] += h.plays;
+    }
     return ListeningStats(
       plays: days.fold(0, (sum, d) => sum + d.plays),
+      dayPlays: {
+        for (final d in days)
+          if (d.plays > 0) d.id: d.plays,
+      },
+      hourPlays: hourPlays,
       listened: Duration(
         milliseconds: days.fold(0, (sum, d) => sum + d.listenedMs),
       ),
@@ -104,17 +130,6 @@ final class IsarPlayHistoryDataSource {
       historyStart: _isar.listeningDayModels.where().sortById().findFirst()?.id,
     );
   }
-
-  Set<int> activeDays(int firstDay, int lastDay) => {
-    for (final d
-        in _isar.listeningDayModels
-            .where()
-            .idBetween(firstDay, lastDay)
-            .and()
-            .playsGreaterThan(0)
-            .findAll())
-      d.id,
-  };
 
   /// Fires after every write to the play events.
   Stream<void> watch() => _isar.playEventModels.watchLazy();

@@ -10,6 +10,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
 - On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
 - Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
+- Your listening, opened from the Home card, shows any week or month: switch between Week and Month, and step back to earlier ones with the arrows. Each gives its listening time, days with music, busiest day, top five songs (tap one to play the list from it), top artist and top albums.
+- When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening").
 
 ### Changed
 
@@ -21,6 +23,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Haptics follow one vocabulary: a firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, a tick for a choice. Playing a song or Play and Shuffle no longer tap twice.
 - The song playing looks the same in every list: its cover dimmed under the moving equalizer, which stops while paused, and its title in the accent colour. Playlists and Home showed a still note instead.
 - The background behind the tabs takes two seconds to follow a new song's colours, instead of switching at once.
+- The listening calendar shows each day as a square filled by how much music it had, in five steps from none to 30 plays or more, instead of a dot for any music at all. Tap a day for its count. The squares light up one after the other, unless the phone asks for less motion.
 
 ### Fixed
 

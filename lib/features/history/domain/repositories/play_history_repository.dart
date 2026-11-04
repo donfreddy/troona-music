@@ -16,12 +16,6 @@ abstract interface class PlayHistoryRepository {
     required int lastDay,
   });
 
-  /// The days from [firstDay] to [lastDay] with at least one counted play.
-  Future<Either<Failure, Set<int>>> activeDays({
-    required int firstDay,
-    required int lastDay,
-  });
-
   /// Fires each time a play is recorded.
   Stream<void> get changes;
 

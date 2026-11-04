@@ -1601,7 +1601,7 @@ abstract class AppLocalizations {
   /// No description provided for @recapDiscoveriesValue.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{No new songs this week} =1{1 song heard for the first time} other{{count} songs heard for the first time}}'**
+  /// **'{count, plural, =0{No new songs} =1{1 song heard for the first time} other{{count} songs heard for the first time}}'**
   String recapDiscoveriesValue(int count);
 
   /// No description provided for @recapPlays.
@@ -1622,23 +1622,185 @@ abstract class AppLocalizations {
   /// **'{minutes} min'**
   String recapMinutes(int minutes);
 
-  /// No description provided for @recapEmpty.
+  /// No description provided for @recapPageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nothing was played last week.'**
-  String get recapEmpty;
+  /// **'Your listening'**
+  String get recapPageTitle;
 
-  /// No description provided for @recapCalendarCaption.
+  /// No description provided for @recapWeek.
   ///
   /// In en, this message translates to:
-  /// **'A filled dot is a day with music.'**
-  String get recapCalendarCaption;
+  /// **'Week'**
+  String get recapWeek;
 
-  /// No description provided for @recapCalendarDay.
+  /// No description provided for @recapMonth.
   ///
   /// In en, this message translates to:
-  /// **'{date}, music played'**
-  String recapCalendarDay(String date);
+  /// **'Month'**
+  String get recapMonth;
+
+  /// No description provided for @recapThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get recapThisWeek;
+
+  /// No description provided for @recapLastWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Last week'**
+  String get recapLastWeek;
+
+  /// No description provided for @recapThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get recapThisMonth;
+
+  /// No description provided for @recapLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get recapLastMonth;
+
+  /// No description provided for @recapPreviousSpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get recapPreviousSpan;
+
+  /// No description provided for @recapNextSpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get recapNextSpan;
+
+  /// No description provided for @recapInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get recapInProgress;
+
+  /// No description provided for @recapActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day with music} other{{count} days with music}}'**
+  String recapActiveDays(int count);
+
+  /// No description provided for @recapNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing played yet. Your next song starts it.'**
+  String get recapNothingYet;
+
+  /// No description provided for @recapNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was played.'**
+  String get recapNothing;
+
+  /// No description provided for @recapTopSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Top songs'**
+  String get recapTopSongs;
+
+  /// No description provided for @recapPlaysHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays'**
+  String get recapPlaysHeader;
+
+  /// No description provided for @recapTopAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Top albums'**
+  String get recapTopAlbums;
+
+  /// No description provided for @recapDayByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day by day'**
+  String get recapDayByDay;
+
+  /// No description provided for @recapLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get recapLess;
+
+  /// No description provided for @recapMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get recapMore;
+
+  /// No description provided for @recapDayPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {count, plural, =0{no music} =1{1 play} other{{count} plays}}'**
+  String recapDayPlays(String date, int count);
+
+  /// No description provided for @recapBusiestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest day: {date}, {plays}'**
+  String recapBusiestDay(String date, String plays);
+
+  /// No description provided for @recapMoments.
+  ///
+  /// In en, this message translates to:
+  /// **'When you listen'**
+  String get recapMoments;
+
+  /// No description provided for @recapMomentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listening moments show up as you play music.'**
+  String get recapMomentsEmpty;
+
+  /// No description provided for @recapPeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak: {weekday} {part}'**
+  String recapPeak(String weekday, String part);
+
+  /// No description provided for @recapPeakNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak: {eve} night'**
+  String recapPeakNight(String eve, String day);
+
+  /// No description provided for @recapMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get recapMorning;
+
+  /// No description provided for @recapAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get recapAfternoon;
+
+  /// No description provided for @recapEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get recapEvening;
+
+  /// No description provided for @recapNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get recapNight;
+
+  /// No description provided for @recapPlayFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Play from {title}'**
+  String recapPlayFrom(String title);
 
   /// No description provided for @replayName.
   ///
@@ -1651,12 +1813,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} is in your playlists: last month\'s most played songs.'**
   String replayReady(String name);
-
-  /// No description provided for @recapCalendarQuietDay.
-  ///
-  /// In en, this message translates to:
-  /// **'{date}, no music'**
-  String recapCalendarQuietDay(String date);
 
   /// No description provided for @queueTitle.
   ///

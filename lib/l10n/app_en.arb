@@ -428,7 +428,11 @@
   "homeTimeLeft": "{time} left",
   "@homeTimeLeft": {
     "description": "Home resume card: listening time left in the queue, e.g. 12 min left.",
-    "placeholders": {"time": {"type": "String"}}
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "homeQuickRecent": "Recently added",
   "homeRecentlyPlayed": "Recently played",
@@ -468,7 +472,7 @@
   "recapTopArtist": "Top artist",
   "recapTopSong": "Top song",
   "recapDiscoveries": "First listens",
-  "recapDiscoveriesValue": "{count, plural, =0{No new songs this week} =1{1 song heard for the first time} other{{count} songs heard for the first time}}",
+  "recapDiscoveriesValue": "{count, plural, =0{No new songs} =1{1 song heard for the first time} other{{count} songs heard for the first time}}",
   "@recapDiscoveriesValue": {
     "placeholders": {
       "count": {
@@ -503,12 +507,86 @@
       }
     }
   },
-  "recapEmpty": "Nothing was played last week.",
-  "recapCalendarCaption": "A filled dot is a day with music.",
-  "recapCalendarDay": "{date}, music played",
-  "@recapCalendarDay": {
+  "recapPageTitle": "Your listening",
+  "recapWeek": "Week",
+  "recapMonth": "Month",
+  "recapThisWeek": "This week",
+  "recapLastWeek": "Last week",
+  "recapThisMonth": "This month",
+  "recapLastMonth": "Last month",
+  "recapPreviousSpan": "Earlier",
+  "recapNextSpan": "Later",
+  "recapInProgress": "In progress",
+  "recapActiveDays": "{count, plural, =1{1 day with music} other{{count} days with music}}",
+  "@recapActiveDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapNothingYet": "Nothing played yet. Your next song starts it.",
+  "recapNothing": "Nothing was played.",
+  "recapTopSongs": "Top songs",
+  "recapPlaysHeader": "Plays",
+  "recapTopAlbums": "Top albums",
+  "recapDayByDay": "Day by day",
+  "recapLess": "Less",
+  "recapMore": "More",
+  "recapDayPlays": "{date}, {count, plural, =0{no music} =1{1 play} other{{count} plays}}",
+  "@recapDayPlays": {
     "placeholders": {
       "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapBusiestDay": "Busiest day: {date}, {plays}",
+  "@recapBusiestDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "plays": {
+        "type": "String"
+      }
+    }
+  },
+  "recapMoments": "When you listen",
+  "recapMomentsEmpty": "Your listening moments show up as you play music.",
+  "recapPeak": "Peak: {weekday} {part}",
+  "@recapPeak": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "recapPeakNight": "Peak: {eve} night",
+  "@recapPeakNight": {
+    "placeholders": {
+      "eve": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "recapMorning": "Morning",
+  "recapAfternoon": "Afternoon",
+  "recapEvening": "Evening",
+  "recapNight": "Night",
+  "recapPlayFrom": "Play from {title}",
+  "@recapPlayFrom": {
+    "placeholders": {
+      "title": {
         "type": "String"
       }
     }
@@ -525,14 +603,6 @@
   "@replayReady": {
     "placeholders": {
       "name": {
-        "type": "String"
-      }
-    }
-  },
-  "recapCalendarQuietDay": "{date}, no music",
-  "@recapCalendarQuietDay": {
-    "placeholders": {
-      "date": {
         "type": "String"
       }
     }

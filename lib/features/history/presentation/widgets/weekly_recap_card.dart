@@ -4,13 +4,13 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/history/domain/entities/weekly_recap.dart';
+import 'package:troona/features/history/domain/entities/listening_recap.dart';
 import 'package:troona/features/history/presentation/utils/recap_format.dart';
 
 /// Home card for last week: listening time and top artist. One card, no
 /// badge; tapping it opens the recap page.
 class WeeklyRecapCard extends StatelessWidget {
-  final WeeklyRecap recap;
+  final ListeningRecap recap;
   final VoidCallback onTap;
 
   const WeeklyRecapCard({super.key, required this.recap, required this.onTap});

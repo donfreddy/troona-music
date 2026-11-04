@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_plus/isar_plus.dart';
+import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
@@ -94,6 +95,36 @@ void main() {
     expect(isar.playEventModels.count(), 5);
   }, skip: skip);
 
+  group('hourly totals', () {
+    final day = ListeningDay.of(t0);
+
+    test('count each play in its local hour and weekday', () async {
+      await play('a', 0); // Saturday 9:00
+      await play('b', 59); // 9:59
+      await play('c', 60); // 10:00
+      await play('d', 24 * 60 + 15 * 60); // Monday 0:00
+
+      final stats = source.listeningStats(day, day + 2);
+      final saturday = (DateTime.saturday - 1) * 24;
+      expect(stats.hourPlays, hasLength(168));
+      expect(stats.hourPlays[saturday + 9], 2);
+      expect(stats.hourPlays[saturday + 10], 1);
+      expect(stats.hourPlays[0], 1, reason: 'Monday at midnight');
+      expect(
+        source.listeningStats(day, day).hourPlays.fold(0, (a, b) => a + b),
+        3,
+      );
+    }, skip: skip);
+
+    test('outlive the pruned events', () async {
+      for (var i = 0; i < 7; i++) {
+        await play('t$i', i);
+      }
+      final stats = source.listeningStats(day, day);
+      expect(stats.hourPlays[(t0.weekday - 1) * 24 + 9], 7);
+    }, skip: skip);
+  });
+
   group('daily totals', () {
     final day = ListeningDay.of(t0);
 
@@ -148,7 +179,10 @@ void main() {
 
       expect(source.listeningStats(day, day).plays, 1);
       expect(source.listeningStats(day + 1, day + 1).plays, 1);
-      expect(source.activeDays(day - 1, day + 2), {day, day + 1});
+      expect(source.listeningStats(day - 1, day + 2).dayPlays, {
+        day: 1,
+        day + 1: 1,
+      });
     }, skip: skip);
 
     test('listening time adds up per day', () async {
@@ -161,7 +195,7 @@ void main() {
         const Duration(milliseconds: 42500),
       );
       // Listening alone is not a play: the day stays off the calendar.
-      expect(source.activeDays(day, day + 1), isEmpty);
+      expect(source.listeningStats(day, day + 1).dayPlays, isEmpty);
     }, skip: skip);
 
     test('backfill counts the stored events once', () async {
@@ -176,13 +210,38 @@ void main() {
         }
       });
 
-      await source.backfillDays();
-      await source.backfillDays();
+      await source.backfill();
+      await source.backfill();
 
       final stats = source.listeningStats(day - 2, day);
       expect(stats.plays, 3);
       expect(stats.discoveries, 3);
       expect(stats.historyStart, day - 2);
+      // Three days at 9: one play at 9 on each of their weekdays.
+      expect(stats.hourPlays.where((p) => p > 0), [1, 1, 1]);
+      expect(stats.hourPlays[(t0.weekday - 1) * 24 + 9], 1);
+    }, skip: skip);
+
+    test('backfill fills the hours alone when the days exist', () async {
+      // An update from a version that kept days but no hours.
+      await play('a', 0);
+      isar.write((isar) => isar.listeningHourModels.clear());
+      isar.write(
+        (isar) => isar.playEventModels.put(
+          PlayEventModel()
+            ..id = 100
+            ..trackId = 'b'
+            ..playedAt = t0.add(const Duration(hours: 3)),
+        ),
+      );
+
+      await source.backfill();
+
+      final stats = source.listeningStats(day, day);
+      expect(stats.plays, 1, reason: 'the days are not counted twice');
+      final base = (t0.weekday - 1) * 24;
+      expect(stats.hourPlays[base + 9], 1);
+      expect(stats.hourPlays[base + 12], 1);
     }, skip: skip);
   });
 }

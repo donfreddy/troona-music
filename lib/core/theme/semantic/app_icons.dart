@@ -100,6 +100,13 @@ abstract final class AppIcons {
   static const IconData stats = LucideIcons300.barChart3;
   static const IconData weeklyRecap = LucideIcons300.calendarHeart;
   static const IconData monthlyReplay = LucideIcons300.calendarSync;
+  static const IconData share = LucideIcons300.share2;
+  static const IconData previousSpan = LucideIcons300.chevronLeft;
+  static const IconData nextSpan = LucideIcons300.chevronRight;
+  static const IconData morning = LucideIcons300.sunrise;
+  static const IconData afternoon = LucideIcons300.sun;
+  static const IconData evening = LucideIcons300.sunset;
+  static const IconData night = LucideIcons300.moon;
   static const IconData whatsNew = LucideIcons300.sparkles;
   static const IconData update = LucideIcons300.circleArrowUp;
   static const IconData glassEffect = LucideIcons300.sparkles;

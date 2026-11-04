@@ -28,11 +28,10 @@ import 'package:troona/features/history/domain/repositories/play_history_reposit
 import 'package:troona/features/history/data/sources/shared_prefs_monthly_replay_log.dart';
 import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
-import 'package:troona/features/history/domain/use_cases/get_listening_calendar_use_case.dart';
-import 'package:troona/features/history/domain/use_cases/get_weekly_recap_use_case.dart';
+import 'package:troona/features/history/domain/use_cases/get_listening_recap_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/record_listening_use_case.dart';
 import 'package:troona/features/history/domain/use_cases/record_play_use_case.dart';
-import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
+import 'package:troona/features/history/presentation/cubit/listening_recap_cubit.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
 import 'package:troona/features/home/domain/use_cases/get_home_feed_use_case.dart';
@@ -140,7 +139,7 @@ Future<void> configureDependencies() async {
   // Before the recorder starts: it only runs while the daily totals are
   // empty, and the first play would make them non-empty.
   try {
-    await historySource.backfillDays();
+    await historySource.backfill();
   } catch (e, st) {
     appLogger.e('Daily listening backfill failed', error: e, stackTrace: st);
   }
@@ -404,11 +403,9 @@ Future<void> configureDependencies() async {
       settings: getIt(),
     ),
   );
-  getIt.registerFactory<WeeklyRecapCubit>(
-    () => WeeklyRecapCubit(
-      recap: GetWeeklyRecapUseCase(getIt(), getIt()),
-      calendar: GetListeningCalendarUseCase(getIt()),
-    ),
+  getIt.registerFactory<ListeningRecapCubit>(
+    () =>
+        ListeningRecapCubit(recap: GetListeningRecapUseCase(getIt(), getIt())),
   );
 
   getIt.registerSingleton<TrackPaletteCubit>(TrackPaletteCubit());

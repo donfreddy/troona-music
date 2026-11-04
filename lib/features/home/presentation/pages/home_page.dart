@@ -8,7 +8,7 @@ import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
+import 'package:troona/features/history/presentation/cubit/listening_recap_cubit.dart';
 import 'package:troona/features/history/presentation/widgets/weekly_recap_card.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
@@ -51,7 +51,7 @@ class HomePage extends StatelessWidget {
         onRefresh: () async {
           AppHaptics.lightImpact();
           context.read<HomeBloc>().add(HomeRefreshRequested());
-          await context.read<WeeklyRecapCubit>().load();
+          await context.read<ListeningRecapCubit>().load();
         },
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(
@@ -386,10 +386,10 @@ class _WeeklySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WeeklyRecapCubit, WeeklyRecapState>(
+    return BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
       builder: (context, state) {
         final recap = state.recap;
-        final Widget? content = recap != null
+        final Widget? content = recap != null && recap.plays > 0
             ? Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: EntranceFader.staggered(
