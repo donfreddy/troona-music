@@ -16,7 +16,7 @@ import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dar
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
-import 'package:troona/shared/widgets/custom_sliver_header.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -51,9 +51,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          CustomSliverHeader(
+          GlassSliverHeader.largeTitle(
             title: l10n.navPlaylists,
-            expandedHeight: 130,
             actions: [
               GlassIconButton(
                 icon: _isGrid ? AppIcons.listView : AppIcons.gridView,

@@ -17,7 +17,7 @@ import 'package:troona/features/library/presentation/widgets/track_actions/show_
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
-import 'package:troona/shared/widgets/custom_sliver_header.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
@@ -56,7 +56,7 @@ class _LibraryPageState extends State<LibraryPage> {
         slivers: [
           BlocSelector<LibraryBloc, LibraryState, LibraryFilter>(
             selector: _selectedFilterFromState,
-            builder: (context, filter) => CustomSliverHeader(
+            builder: (context, filter) => GlassSliverHeader.largeTitle(
               title: context.l10n.navLibrary,
               actions: [
                 _SortButton(),
@@ -73,19 +73,12 @@ class _LibraryPageState extends State<LibraryPage> {
                   },
                 ),
               ],
-              bottom: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LibrarySegmentControl(
-                    selected: filter,
-                    onChanged: (f) => context.read<LibraryBloc>().add(
-                      LibraryFilterChanged(f),
-                    ),
-                  ),
-                ],
+              pinnedBottom: LibrarySegmentControl(
+                selected: filter,
+                onChanged: (f) =>
+                    context.read<LibraryBloc>().add(LibraryFilterChanged(f)),
               ),
-              bottomHeight: AppSpacing.tabBarHeight + AppSpacing.xl,
-              expandedHeight: 130,
+              pinnedBottomHeight: AppSpacing.tabBarHeight + AppSpacing.xl,
             ),
           ),
 
