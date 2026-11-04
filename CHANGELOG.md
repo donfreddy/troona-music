@@ -17,6 +17,12 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - An artist without a photo opens on a soft glow of their cover's colours instead of a plain background.
 - An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.
 - The counts under an artist's name read clearly on a light photo.
+- Haptics follow one vocabulary: a firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, a tick for a choice. Playing a song or Play and Shuffle no longer tap twice.
+- The background behind the tabs takes two seconds to follow a new song's colours, instead of switching at once.
+
+### Fixed
+
+- The Library's segments vibrated even with haptics turned off in Settings.
 
 ## [1.5.0] - 2026-11-04
 

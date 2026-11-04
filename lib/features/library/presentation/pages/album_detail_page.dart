@@ -669,7 +669,7 @@ class _AlbumVinylState extends State<_AlbumVinyl>
   void _tap(bool ours, bool playing) {
     final tracks = widget.tracks;
     if (tracks.isEmpty) return;
-    AppHaptics.mediumImpact();
+    // The player ticks for it.
     final bloc = context.read<PlayerBloc>();
     bloc.add(switch ((ours, playing)) {
       (true, true) => const PauseRequested(),

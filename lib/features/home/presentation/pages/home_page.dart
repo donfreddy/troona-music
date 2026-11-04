@@ -28,6 +28,7 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/section_header.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomePage: Troona's adaptive home feed
@@ -48,6 +49,7 @@ class HomePage extends StatelessWidget {
         // Below the glass bar, which stays on top of the scroll view.
         edgeOffset: GlassSliverHeader.navBarBottom(context),
         onRefresh: () async {
+          AppHaptics.lightImpact();
           context.read<HomeBloc>().add(HomeRefreshRequested());
           await context.read<WeeklyRecapCubit>().load();
         },

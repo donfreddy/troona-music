@@ -212,7 +212,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       return;
     }
 
-    unawaited(AppHaptics.lightImpact());
+    unawaited(AppHaptics.mediumImpact());
     final replacing = _replaceSource(sourceIds);
 
     _requestedTrackId = event.track.id;
@@ -257,7 +257,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       add(QueueIndexRequested(index));
       return true;
     }
-    unawaited(AppHaptics.lightImpact());
+    unawaited(AppHaptics.mediumImpact());
     _setPosition(Duration.zero);
     await _seek(const SeekParams(position: Duration.zero));
     if (!current.isPlaying) await _resume();
@@ -322,7 +322,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
-    unawaited(AppHaptics.lightImpact());
+    unawaited(AppHaptics.mediumImpact());
     await _pause();
   }
 
@@ -331,7 +331,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
-    unawaited(AppHaptics.lightImpact());
+    unawaited(AppHaptics.mediumImpact());
     await _resume();
   }
 
@@ -356,7 +356,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     SkipNextRequested event,
     Emitter<PlayerState> emit,
   ) async {
-    unawaited(AppHaptics.mediumImpact());
+    unawaited(AppHaptics.lightImpact());
     await _skipNext();
   }
 
@@ -365,7 +365,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     Emitter<PlayerState> emit,
   ) async {
     if (state is! PlayerActive) return;
-    unawaited(AppHaptics.mediumImpact());
+    unawaited(AppHaptics.lightImpact());
     final current = state as PlayerActive;
 
     // Past 3 s, or on the first track, "previous" restarts the current one.

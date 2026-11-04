@@ -64,10 +64,8 @@ class _TrackListTileState extends State<TrackListTile> {
     return QueueSwipe(
       track: widget.track,
       child: InkWell(
-        onTap: () {
-          AppHaptics.selectionClick();
-          widget.onTap();
-        },
+        // The player ticks when the song starts.
+        onTap: widget.onTap,
         onHighlightChanged: (value) => setState(() => _pressed = value),
         onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
         highlightColor: colors.glassHighlight,

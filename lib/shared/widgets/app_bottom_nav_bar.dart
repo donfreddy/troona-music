@@ -431,11 +431,13 @@ class _MiniPlayerRow extends StatelessWidget {
                             ? context.l10n.playerPause
                             : context.l10n.actionPlay,
                         color: context.colors.labelPrimary,
-                        onPressed: () => context.read<PlayerBloc>().add(
-                          state.isPlaying
-                              ? const PauseRequested()
-                              : const ResumeRequested(),
-                        ),
+                        onPressed: () {
+                          context.read<PlayerBloc>().add(
+                            state.isPlaying
+                                ? const PauseRequested()
+                                : const ResumeRequested(),
+                          );
+                        },
                       ),
 
                       // ── Skip next ──────────────────────────────────────────
@@ -444,9 +446,11 @@ class _MiniPlayerRow extends StatelessWidget {
                         tooltip: context.l10n.playerNext,
                         color: context.colors.labelPrimary,
                         onPressed: state.hasNext
-                            ? () => context.read<PlayerBloc>().add(
-                                const SkipNextRequested(),
-                              )
+                            ? () {
+                                context.read<PlayerBloc>().add(
+                                  const SkipNextRequested(),
+                                );
+                              }
                             : null,
                       ),
                     ],

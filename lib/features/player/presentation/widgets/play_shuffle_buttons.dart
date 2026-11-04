@@ -5,7 +5,6 @@ import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
@@ -37,7 +36,6 @@ class PlayShuffleButtons extends StatelessWidget {
               onPressed: empty
                   ? null
                   : () {
-                      AppHaptics.mediumImpact();
                       context.read<PlayerBloc>().add(
                         PlayTrackRequested(
                           tracks[0],
@@ -56,10 +54,7 @@ class PlayShuffleButtons extends StatelessWidget {
               expanded: true,
               onPressed: empty
                   ? null
-                  : () {
-                      AppHaptics.mediumImpact();
-                      playShuffled(context.read<PlayerBloc>(), tracks);
-                    },
+                  : () => playShuffled(context.read<PlayerBloc>(), tracks),
             ),
           ),
         ],
@@ -142,8 +137,6 @@ class _ShuffleRoundButtonState extends State<ShuffleRoundButton> {
     );
   }
 
-  void _shuffle() {
-    AppHaptics.mediumImpact();
-    playShuffled(context.read<PlayerBloc>(), widget.tracks);
-  }
+  // The player ticks for it.
+  void _shuffle() => playShuffled(context.read<PlayerBloc>(), widget.tracks);
 }

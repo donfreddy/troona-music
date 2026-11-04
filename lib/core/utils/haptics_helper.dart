@@ -1,6 +1,17 @@
 import 'package:flutter/services.dart';
 
-/// Helper to provide consistent haptic feedback across the app.
+/// Haptic feedback, off when the user turns it off in Settings: never call
+/// [HapticFeedback] directly. One vocabulary across the app:
+///
+/// - [selectionClick]: a choice among options (a segment, a sort) and a
+///   swipe that becomes armed.
+/// - [lightImpact]: a small step (skip, open a menu, refresh).
+/// - [mediumImpact]: playback starts or stops (Play, Shuffle, play/pause,
+///   the album's record).
+/// - Nothing while scrolling or dragging.
+///
+/// Playback ticks once, in `PlayerBloc`, whatever started it: a button that
+/// sends a playback event adds no tick of its own.
 class AppHaptics {
   const AppHaptics._();
 

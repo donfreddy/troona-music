@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -10,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 
 class LibrarySegmentControl extends StatelessWidget {
   final LibraryFilter selected;
@@ -124,7 +124,7 @@ class LibrarySegmentControl extends StatelessWidget {
                                   behavior: HitTestBehavior.opaque,
                                   onTap: () {
                                     if (isSelected) return;
-                                    HapticFeedback.selectionClick();
+                                    AppHaptics.selectionClick();
                                     onChanged(filter);
                                   },
                                   child: _SegmentTabItem(
