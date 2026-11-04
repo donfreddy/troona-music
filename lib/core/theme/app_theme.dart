@@ -6,6 +6,19 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 
 abstract final class AppTheme {
+  /// The system bars, edge to edge over the app's dark pages: transparent,
+  /// light icons. With three-button navigation, Android keeps its scrim
+  /// behind the buttons (contrast enforced); with gestures there is none.
+  static const systemOverlay = SystemUiOverlayStyle(
+    statusBarColor: Color(0x00000000),
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+    systemNavigationBarColor: Color(0x00000000),
+    systemNavigationBarDividerColor: Color(0x00000000),
+    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarContrastEnforced: true,
+  );
+
   static ThemeData get light => _build(Brightness.light);
   static ThemeData get dark => _build(Brightness.dark);
 
@@ -47,9 +60,8 @@ abstract final class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        systemOverlayStyle: isDark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark,
+        // Not SystemUiOverlayStyle.light: it paints the navigation bar black.
+        systemOverlayStyle: isDark ? systemOverlay : SystemUiOverlayStyle.dark,
         titleTextStyle: AppTypography.textTheme.headlineSmall?.copyWith(
           color: colors.labelPrimary,
         ),
