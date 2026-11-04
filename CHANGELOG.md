@@ -8,6 +8,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - Artist pages show their latest release on its own, above their albums, when the songs carry a year.
 - Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
+- Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
 
 ### Changed
 
