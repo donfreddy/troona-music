@@ -23,10 +23,11 @@ abstract final class AppTypography {
   //static const _fontFamily = null; // null means SF Pro on iOS
 
   static TextTheme get textTheme => const TextTheme(
-    // Large Title: page title (scroll collapse). Thin, as in the reference.
+    // Large Title: page title (scroll collapse). Bold, as on iOS: the same
+    // voice as the album and artist names and the section titles.
     displayLarge: TextStyle(
       fontSize: 34,
-      fontWeight: FontWeight.w300,
+      fontWeight: FontWeight.w700,
       letterSpacing: -0.5,
       height: 1.21,
     ),
