@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:troona/core/layout/app_layout.dart';
-import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -11,7 +9,6 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -26,6 +23,7 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 
 import '../../features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/shared/widgets/swipe_actions.dart';
+import 'package:troona/features/player/presentation/utils/open_full_player.dart';
 
 /// Unified bottom bar: an optional mini player row stacked above the five nav
 /// tabs inside a single glass container.
@@ -293,11 +291,11 @@ class _MiniPlayerRow extends StatelessWidget {
         context.read<PlayerBloc>().add(const PlayerDismissed());
       },
       child: GestureDetector(
-        onTap: () => _openFullPlayer(context),
+        onTap: () => openFullPlayer(context),
         onVerticalDragEnd: (d) {
           // Swipe up with sufficient velocity → open full player.
           if (d.velocity.pixelsPerSecond.dy < -300) {
-            _openFullPlayer(context);
+            openFullPlayer(context);
           }
         },
         behavior: HitTestBehavior.opaque,
@@ -536,13 +534,6 @@ class _FillPainter extends CustomPainter {
       old.ratio != ratio || old.tint != tint;
 }
 
-void _openFullPlayer(BuildContext context) {
-  if (GoRouterState.of(context).matchedLocation == FullPlayerPage.routeName) {
-    return;
-  }
-  getIt<PlaybackSessionStore>().setFullPlayerOpen(true);
-  context.push(FullPlayerPage.routeName);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 

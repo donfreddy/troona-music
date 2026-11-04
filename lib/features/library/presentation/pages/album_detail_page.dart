@@ -38,6 +38,7 @@ import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/meta_line.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -446,7 +447,10 @@ class _AlbumHeader extends StatelessWidget {
                 horizontal: AppSpacing.lg,
                 vertical: 8,
               ),
-              child: PlayShuffleButtons(tracks: tracks),
+              child: PlayShuffleButtons(
+                tracks: tracks,
+                origin: _originOf(album),
+              ),
             ),
           ),
         ],
@@ -529,6 +533,7 @@ class _AlbumTracksView extends StatelessWidget {
                   tracks[i],
                   contextQueue: tracks,
                   contextIndex: i,
+                  origin: _originOf(album),
                 ),
               ),
             ),
@@ -674,7 +679,12 @@ class _AlbumVinylState extends State<_AlbumVinyl>
     bloc.add(switch ((ours, playing)) {
       (true, true) => const PauseRequested(),
       (true, false) => const ResumeRequested(),
-      _ => PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+      _ => PlayTrackRequested(
+        tracks[0],
+        contextQueue: tracks,
+        contextIndex: 0,
+        origin: _originOf(widget.album),
+      ),
     });
   }
 
@@ -797,3 +807,7 @@ class _Grooves extends CustomPainter {
   @override
   bool shouldRepaint(_Grooves oldDelegate) => false;
 }
+
+/// The album a queue started on its page comes from, for Home's resume card.
+QueueOrigin _originOf(Album album) =>
+    QueueOrigin(QueueOriginKind.album, id: album.id, name: album.name);

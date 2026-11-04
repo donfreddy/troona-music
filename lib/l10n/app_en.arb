@@ -421,6 +421,15 @@
   "homeEmptyBody": "Copy songs to your phone's Music folder, then scan again.",
   "homeFreshTitle": "Your library is ready",
   "homeJumpBackIn": "Jump back in",
+  "homeNowPlaying": "Now playing",
+  "queueOriginAlbum": "Album",
+  "queueOriginArtist": "Artist",
+  "queueOriginPlaylist": "Playlist",
+  "homeTimeLeft": "{time} left",
+  "@homeTimeLeft": {
+    "description": "Home resume card: listening time left in the queue, e.g. 12 min left.",
+    "placeholders": {"time": {"type": "String"}}
+  },
   "homeQuickRecent": "Recently added",
   "homeRecentlyPlayed": "Recently played",
   "homeOnRepeat": "On repeat this week",

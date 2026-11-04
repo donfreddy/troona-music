@@ -9,6 +9,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 /// Play and Shuffle side by side, for the album, artist and playlist pages.
 /// Both are disabled while [tracks] is empty.
@@ -18,7 +19,10 @@ import 'package:troona/shared/widgets/app_button.dart';
 class PlayShuffleButtons extends StatelessWidget {
   final List<Track> tracks;
 
-  const PlayShuffleButtons({super.key, required this.tracks});
+  /// The album or playlist [tracks] are.
+  final QueueOrigin? origin;
+
+  const PlayShuffleButtons({super.key, required this.tracks, this.origin});
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +45,7 @@ class PlayShuffleButtons extends StatelessWidget {
                           tracks[0],
                           contextQueue: tracks,
                           contextIndex: 0,
+                          origin: origin,
                         ),
                       );
                     },
@@ -54,7 +59,11 @@ class PlayShuffleButtons extends StatelessWidget {
               expanded: true,
               onPressed: empty
                   ? null
-                  : () => playShuffled(context.read<PlayerBloc>(), tracks),
+                  : () => playShuffled(
+                      context.read<PlayerBloc>(),
+                      tracks,
+                      origin: origin,
+                    ),
             ),
           ),
         ],
@@ -71,7 +80,10 @@ class PlayShuffleButtons extends StatelessWidget {
 class ShuffleRoundButton extends StatefulWidget {
   final List<Track> tracks;
 
-  const ShuffleRoundButton({super.key, required this.tracks});
+  /// The artist [tracks] are by.
+  final QueueOrigin? origin;
+
+  const ShuffleRoundButton({super.key, required this.tracks, this.origin});
 
   static const double diameter = 56;
 
@@ -138,5 +150,9 @@ class _ShuffleRoundButtonState extends State<ShuffleRoundButton> {
   }
 
   // The player ticks for it.
-  void _shuffle() => playShuffled(context.read<PlayerBloc>(), widget.tracks);
+  void _shuffle() => playShuffled(
+    context.read<PlayerBloc>(),
+    widget.tracks,
+    origin: widget.origin,
+  );
 }

@@ -819,6 +819,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeJumpBackIn => 'Jump back in';
 
   @override
+  String get homeNowPlaying => 'Now playing';
+
+  @override
+  String get queueOriginAlbum => 'Album';
+
+  @override
+  String get queueOriginArtist => 'Artist';
+
+  @override
+  String get queueOriginPlaylist => 'Playlist';
+
+  @override
+  String homeTimeLeft(String time) {
+    return '$time left';
+  }
+
+  @override
   String get homeQuickRecent => 'Recently added';
 
   @override

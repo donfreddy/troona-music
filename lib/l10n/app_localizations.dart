@@ -1442,6 +1442,36 @@ abstract class AppLocalizations {
   /// **'Jump back in'**
   String get homeJumpBackIn;
 
+  /// No description provided for @homeNowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get homeNowPlaying;
+
+  /// No description provided for @queueOriginAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get queueOriginAlbum;
+
+  /// No description provided for @queueOriginArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get queueOriginArtist;
+
+  /// No description provided for @queueOriginPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist'**
+  String get queueOriginPlaylist;
+
+  /// Home resume card: listening time left in the queue, e.g. 12 min left.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left'**
+  String homeTimeLeft(String time);
+
   /// No description provided for @homeQuickRecent.
   ///
   /// In en, this message translates to:

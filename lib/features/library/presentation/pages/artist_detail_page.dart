@@ -37,6 +37,7 @@ import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -126,6 +127,7 @@ class ArtistDetailPage extends StatelessWidget {
                               _ArtistTopTracksList(
                                 tracks: data.topTracks,
                                 byPlays: data.topTracksByPlays,
+                                artist: data.artist,
                               ),
 
                             if (data.albums.latest case final latest?)
@@ -417,7 +419,13 @@ class _ArtistHeader extends StatelessWidget {
 
                 _animatedArtistItem(_summary(context, TextAlign.center), 2),
                 const SizedBox(height: AppSpacing.lg),
-                _animatedArtistItem(ShuffleRoundButton(tracks: tracks), 3),
+                _animatedArtistItem(
+                  ShuffleRoundButton(
+                    tracks: tracks,
+                    origin: _originOf(context, artist),
+                  ),
+                  3,
+                ),
               ],
             ),
           ),
@@ -443,7 +451,13 @@ class _ArtistHeader extends StatelessWidget {
           children: [
             Expanded(child: _caption(context)),
             const SizedBox(width: AppSpacing.md),
-            _animatedArtistItem(ShuffleRoundButton(tracks: tracks), 3),
+            _animatedArtistItem(
+              ShuffleRoundButton(
+                tracks: tracks,
+                origin: _originOf(context, artist),
+              ),
+              3,
+            ),
           ],
         ),
       ),
@@ -540,7 +554,13 @@ class _ArtistTopTracksList extends StatefulWidget {
   /// Whether [tracks] are ranked by plays: the section is Popular.
   final bool byPlays;
 
-  const _ArtistTopTracksList({required this.tracks, required this.byPlays});
+  final Artist artist;
+
+  const _ArtistTopTracksList({
+    required this.tracks,
+    required this.byPlays,
+    required this.artist,
+  });
 
   /// Songs shown before "See all": the albums stay within reach.
   static const shown = 5;
@@ -598,6 +618,7 @@ class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
                   tracks[i],
                   contextQueue: tracks,
                   contextIndex: i,
+                  origin: _originOf(context, widget.artist),
                 ),
               ),
             ),
@@ -961,3 +982,11 @@ class _ArtistPhoto extends StatelessWidget {
     );
   }
 }
+
+/// The artist a queue started on their page comes from, for Home's resume
+/// card, named as the page names them.
+QueueOrigin _originOf(BuildContext context, Artist artist) => QueueOrigin(
+  QueueOriginKind.artist,
+  id: artist.id,
+  name: context.artistName(artist.name),
+);

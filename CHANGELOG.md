@@ -13,6 +13,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Changed
 
+- Home's Jump back in card goes on with the session where it stopped, instead of playing the last song again from its start. It names the album, artist or playlist it was started from, the listening time left and how far along it is; while it plays, it reads Now playing and opens Now Playing.
 - Artist pages have one action, Shuffle, as a round button on their photo: an artist's songs have no order. Tap a song to play in order from it.
 - An artist without a photo opens on a soft glow of their cover's colours instead of a plain background.
 - An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.

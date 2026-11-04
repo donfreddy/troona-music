@@ -258,6 +258,9 @@ final class PortRepository implements PlayerRepository {
       _port.seekTo(position);
 
   @override
+  Future<Either<Failure, Unit>> resume() => _port.resume();
+
+  @override
   Future<Either<Failure, Unit>> skipToNext() => _port.skipToNext();
 
   @override
