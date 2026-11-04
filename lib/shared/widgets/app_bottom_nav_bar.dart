@@ -25,6 +25,7 @@ import 'package:troona/shared/widgets/toast_anchor.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 
 import '../../features/player/domain/entities/repeat_mode.dart';
+import 'package:troona/shared/widgets/swipe_actions.dart';
 
 /// Unified bottom bar: an optional mini player row stacked above the five nav
 /// tabs inside a single glass container.
@@ -339,58 +340,87 @@ class _MiniPlayerRow extends StatelessWidget {
                     children: [
                       const SizedBox(width: 12),
 
-                      // ── Artwork thumbnail ────────────────────────
-                      SizedBox.square(
-                        dimension: 42,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            NowPlayingHero.miniArtworkRadius,
-                          ),
-                          child: state.currentTrack.artworkPath != null
-                              ? Hero(
-                                  tag: NowPlayingHero.artworkTag,
-                                  flightShuttleBuilder:
-                                      NowPlayingHero.artworkShuttle,
-                                  // Full-size decode on purpose: this image
-                                  // is also the morph shuttle's content.
-                                  child: Image.file(
-                                    File(state.currentTrack.artworkPath!),
-                                    fit: BoxFit.cover,
-                                    gaplessPlayback: true,
-                                    errorBuilder: (_, _, _) =>
-                                        const ArtworkPlaceholder(),
+                      // A swipe on the song changes it: left for the next,
+                      // right for the previous (not back to its start, as
+                      // the button does past 3 s), like the Now Playing
+                      // covers.
+                      Expanded(
+                        child: SwipeActions(
+                          fadeChild: true,
+                          onSwipeLeft: state.hasNext
+                              ? () => context.read<PlayerBloc>().add(
+                                  const SkipNextRequested(),
+                                )
+                              : null,
+                          onSwipeRight: state.hasPrevious
+                              ? () => context.read<PlayerBloc>().add(
+                                  QueueIndexRequested(
+                                    state.queue.currentIndex - 1,
                                   ),
                                 )
-                              : const ArtworkPlaceholder(),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // ── Track title and artist ─────────────────────────────
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Marquee(
-                              text: state.currentTrack.title,
-                              style: TextStyle(
-                                color: colors.labelPrimary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                              : null,
+                          child: Row(
+                            children: [
+                              // ── Artwork thumbnail ────────────────────────
+                              SizedBox.square(
+                                dimension: 42,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    NowPlayingHero.miniArtworkRadius,
+                                  ),
+                                  child: state.currentTrack.artworkPath != null
+                                      ? Hero(
+                                          tag: NowPlayingHero.artworkTag,
+                                          flightShuttleBuilder:
+                                              NowPlayingHero.artworkShuttle,
+                                          // Full-size decode on purpose: this image
+                                          // is also the morph shuttle's content.
+                                          child: Image.file(
+                                            File(
+                                              state.currentTrack.artworkPath!,
+                                            ),
+                                            fit: BoxFit.cover,
+                                            gaplessPlayback: true,
+                                            errorBuilder: (_, _, _) =>
+                                                const ArtworkPlaceholder(),
+                                          ),
+                                        )
+                                      : const ArtworkPlaceholder(),
+                                ),
                               ),
-                            ),
-                            Text(
-                              context.artistName(state.currentTrack.artist),
-                              style: TextStyle(
-                                color: colors.labelSecondary,
-                                fontSize: 11,
+
+                              const SizedBox(width: 12),
+
+                              // ── Track title and artist ─────────────────────────────
+                              Expanded(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Marquee(
+                                      text: state.currentTrack.title,
+                                      style: TextStyle(
+                                        color: colors.labelPrimary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      context.artistName(
+                                        state.currentTrack.artist,
+                                      ),
+                                      style: TextStyle(
+                                        color: colors.labelSecondary,
+                                        fontSize: 11,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
 

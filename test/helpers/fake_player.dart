@@ -74,6 +74,7 @@ final class FakeAudioPort implements AudioServicePort {
   final seeks = <Duration>[];
   final indexJumps = <int>[];
   int skipPreviousCalls = 0;
+  int skipNextCalls = 0;
   int setQueueCalls = 0;
   int resumeCalls = 0;
 
@@ -133,6 +134,12 @@ final class FakeAudioPort implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> seekTo(Duration position) {
     seeks.add(position);
+    return _ok;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> skipToNext() {
+    skipNextCalls++;
     return _ok;
   }
 
@@ -249,6 +256,9 @@ final class PortRepository implements PlayerRepository {
   @override
   Future<Either<Failure, Unit>> seekTo(Duration position) =>
       _port.seekTo(position);
+
+  @override
+  Future<Either<Failure, Unit>> skipToNext() => _port.skipToNext();
 
   @override
   Future<Either<Failure, Unit>> skipToPrevious() => _port.skipToPrevious();
