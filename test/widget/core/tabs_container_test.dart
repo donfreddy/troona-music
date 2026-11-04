@@ -57,6 +57,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(tester.takeException(), isNull);
+    // The shown tab's cover is in flight: between its size and Now
+    // Playing's.
+    final sizes = [
+      for (final box in find.byType(SizedBox).evaluate())
+        (box.renderObject! as RenderBox).size.width,
+    ];
+    expect(sizes.any((w) => w > 40 && w < 300), isTrue, reason: '$sizes');
     await tester.pumpAndSettle();
     expect(find.byType(Hero), findsOneWidget);
 
