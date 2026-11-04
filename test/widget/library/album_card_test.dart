@@ -40,6 +40,26 @@ void main() {
     expect(find.textContaining('Burna Boy'), findsNothing);
   });
 
+  testWidgets('a single says so next to its year', (tester) async {
+    await pump(
+      tester,
+      const AlbumCard(
+        album: Album(
+          id: '2',
+          name: 'Last Last',
+          artist: 'Burna Boy',
+          artistId: 1,
+          trackCount: 1,
+          isSingle: true,
+          year: 2022,
+        ),
+        size: 140,
+        showArtist: false,
+      ),
+    );
+    expect(find.text('2022 • Single'), findsOneWidget);
+  });
+
   testWidgets('without a year, what the release is', (tester) async {
     await pump(
       tester,

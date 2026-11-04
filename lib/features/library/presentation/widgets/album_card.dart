@@ -6,6 +6,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
 class AlbumCard extends StatelessWidget {
@@ -29,7 +30,14 @@ class AlbumCard extends StatelessWidget {
         ? l10n.albumSingle
         : l10n.songCount(album.trackCount);
     if (!showArtist) {
-      return album.year?.toString() ?? kind;
+      // A single says so even with its year: More by mixes them with albums.
+      return switch (album.year) {
+        final year? => MetaLine.join([
+          '$year',
+          if (album.isSingle) l10n.albumSingle,
+        ])!,
+        null => kind,
+      };
     }
     final artist = context.artistName(album.artist);
     return album.trackCount > 0 ? l10n.albumByArtist(artist, kind) : artist;
