@@ -11,7 +11,28 @@ class AlbumCard extends StatelessWidget {
   final Album album;
   final double? size;
 
-  const AlbumCard({super.key, required this.album, this.size});
+  /// False where the page already names the artist (their page, More by):
+  /// the line under the name gives the year instead.
+  final bool showArtist;
+
+  const AlbumCard({
+    super.key,
+    required this.album,
+    this.size,
+    this.showArtist = true,
+  });
+
+  String _subtitle(BuildContext context) {
+    final l10n = context.l10n;
+    final kind = album.isSingle
+        ? l10n.albumSingle
+        : l10n.songCount(album.trackCount);
+    if (!showArtist) {
+      return album.year?.toString() ?? kind;
+    }
+    final artist = context.artistName(album.artist);
+    return album.trackCount > 0 ? l10n.albumByArtist(artist, kind) : artist;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +67,7 @@ class AlbumCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                album.trackCount > 0
-                    ? context.l10n.albumByArtist(
-                        context.artistName(album.artist),
-                        album.isSingle
-                            ? context.l10n.albumSingle
-                            : context.l10n.songCount(album.trackCount),
-                      )
-                    : context.artistName(album.artist),
+                _subtitle(context),
                 style: TextStyle(
                   color: context.colors.labelSecondary,
                   fontSize: 12,

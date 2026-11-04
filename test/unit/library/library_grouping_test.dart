@@ -13,6 +13,7 @@ Track _t(
   int albumId = 1,
   String? album,
   String? title,
+  int? year,
 }) => Track(
   id: id,
   title: title ?? id,
@@ -26,6 +27,7 @@ Track _t(
   size: 0,
   durationMs: 0,
   fileName: '$id.mp3',
+  year: year,
 );
 
 void main() {
@@ -47,6 +49,17 @@ void main() {
       _t('2', ['Sarz', 'BNXN']),
     ]).single;
     expect(album.artist, 'BNXN, Sarz');
+  });
+
+  test("an album's year is the first one its songs have", () {
+    final albums = LibraryGrouping.albumsOf([
+      _t('1', ['Burna Boy']),
+      _t('2', ['Burna Boy'], year: 0),
+      _t('3', ['Burna Boy'], year: 2024),
+      _t('4', ['Burna Boy'], year: 2023),
+      _t('5', ['Burna Boy'], albumId: 2),
+    ]);
+    expect([for (final a in albums) a.year], [2024, null]);
   });
 
   test('a compilation has no artist', () {
