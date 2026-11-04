@@ -2443,6 +2443,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.'**
   String get whatsNew140TopBody;
+
+  /// No description provided for @whatsNew150CoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The cover flies in'**
+  String get whatsNew150CoverTitle;
+
+  /// No description provided for @whatsNew150CoverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap an album and its cover flies from the card into place on the album page, then back when you leave.'**
+  String get whatsNew150CoverBody;
+
+  /// No description provided for @whatsNew150PagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calmer pages'**
+  String get whatsNew150PagesTitle;
+
+  /// No description provided for @whatsNew150PagesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.'**
+  String get whatsNew150PagesBody;
+
+  /// No description provided for @whatsNew150BackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back where you came from'**
+  String get whatsNew150BackTitle;
+
+  /// No description provided for @whatsNew150BackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.'**
+  String get whatsNew150BackBody;
 }
 
 class _AppLocalizationsDelegate

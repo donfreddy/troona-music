@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-04
+
 ### Added
 
 - Tapping an album's cover opens its page with the cover flying into place, and back takes it home.
@@ -14,7 +16,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - The selected tab shows a dot under its icon, not only a brighter colour.
 - Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.
 - Album pages no longer title their track list Songs. Under the songs, a quiet line gives the album's size and formats instead of the In your library card.
-- Artist pages show each song's album and year under its title, instead of repeating the artist's name, and their album and single cards give the year, with Single on singles. Their In your library card is gone: the counts it repeated are under the name.
+- Artist pages show each song's album and year under its title, instead of repeating the artist's name, and their album and single cards give the year. Their In your library card is gone: the counts it repeated are under the name.
 - More by on album pages gives each album's year instead of the artist's name, with Single on singles.
 - The Library no longer shows its counts of songs, albums and artists above All.
 - Opening an artist from one of their albums, when you came to the album from that artist, goes back to their page instead of opening it a second time, and the same the other way round.
@@ -184,7 +186,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/donfreddy/troona-music/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/donfreddy/troona-music/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/donfreddy/troona-music/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/donfreddy/troona-music/compare/v1.1.1...v1.2.0

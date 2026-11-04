@@ -1455,4 +1455,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew140TopBody =>
       'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.';
+
+  @override
+  String get whatsNew150CoverTitle => 'The cover flies in';
+
+  @override
+  String get whatsNew150CoverBody =>
+      'Tap an album and its cover flies from the card into place on the album page, then back when you leave.';
+
+  @override
+  String get whatsNew150PagesTitle => 'Calmer pages';
+
+  @override
+  String get whatsNew150PagesBody =>
+      'Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.';
+
+  @override
+  String get whatsNew150BackTitle => 'Back where you came from';
+
+  @override
+  String get whatsNew150BackBody =>
+      'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.';
 }

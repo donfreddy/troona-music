@@ -775,5 +775,11 @@
   "whatsNew140TitlesTitle": "Large titles",
   "whatsNew140TitlesBody": "Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page's actions.",
   "whatsNew140TopTitle": "Back to the top",
-  "whatsNew140TopBody": "Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it."
+  "whatsNew140TopBody": "Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.",
+  "whatsNew150CoverTitle": "The cover flies in",
+  "whatsNew150CoverBody": "Tap an album and its cover flies from the card into place on the album page, then back when you leave.",
+  "whatsNew150PagesTitle": "Calmer pages",
+  "whatsNew150PagesBody": "Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.",
+  "whatsNew150BackTitle": "Back where you came from",
+  "whatsNew150BackBody": "Open an album's artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round."
 }

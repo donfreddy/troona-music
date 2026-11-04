@@ -1471,4 +1471,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew140TopBody =>
       'Touchez l\'onglet où vous êtes pour remonter en haut de sa page. Dans la recherche, le champ reste en haut pendant que les résultats défilent dessous.';
+
+  @override
+  String get whatsNew150CoverTitle => 'La pochette s\'envole';
+
+  @override
+  String get whatsNew150CoverBody =>
+      'Touchez un album : sa pochette part de la carte et vient se poser sur la page de l\'album, puis y retourne quand vous la quittez.';
+
+  @override
+  String get whatsNew150PagesTitle => 'Des pages plus calmes';
+
+  @override
+  String get whatsNew150PagesBody =>
+      'Les pages album et artiste donnent leurs infos sur une ligne de texte au lieu de pastilles, et leurs cartes d\'albums indiquent l\'année. Les titres sont en gras, et un point marque l\'onglet où vous êtes.';
+
+  @override
+  String get whatsNew150BackTitle => 'Retour d\'où vous venez';
+
+  @override
+  String get whatsNew150BackBody =>
+      'Ouvrez l\'artiste d\'un album alors que vous venez de cet artiste, et vous revenez sur sa page au lieu de l\'ouvrir une deuxième fois. Pareil dans l\'autre sens.';
 }
