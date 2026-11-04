@@ -2612,6 +2612,18 @@ abstract class AppLocalizations {
   /// **'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.'**
   String get whatsNew130AlbumsBody;
 
+  /// No description provided for @whatsNew140TopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the top'**
+  String get whatsNew140TopTitle;
+
+  /// No description provided for @whatsNew140TopBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the tab you are on to scroll its page back to the top.'**
+  String get whatsNew140TopBody;
+
   /// No description provided for @whatsNew140EdgeTitle.
   ///
   /// In en, this message translates to:
@@ -2621,7 +2633,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew140EdgeBody.
   ///
   /// In en, this message translates to:
-  /// **'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.'**
+  /// **'Lists now scroll under the status bar and the floating tab bar, on every Android version, and fade out softly under the tab bar instead of stopping on a line.'**
   String get whatsNew140EdgeBody;
 
   /// No description provided for @whatsNew140TitlesTitle.
@@ -2633,20 +2645,44 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew140TitlesBody.
   ///
   /// In en, this message translates to:
-  /// **'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.'**
+  /// **'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions. A title left halfway settles open or closed.'**
   String get whatsNew140TitlesBody;
 
-  /// No description provided for @whatsNew140TopTitle.
+  /// No description provided for @whatsNew140CoversTitle.
   ///
   /// In en, this message translates to:
-  /// **'Back to the top'**
-  String get whatsNew140TopTitle;
+  /// **'Album and playlist pages'**
+  String get whatsNew140CoversTitle;
 
-  /// No description provided for @whatsNew140TopBody.
+  /// No description provided for @whatsNew140CoversBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.'**
-  String get whatsNew140TopBody;
+  /// **'Their cover and buttons scroll away under the same glass bar, which then shows their name.'**
+  String get whatsNew140CoversBody;
+
+  /// No description provided for @whatsNew140ArtistPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist photos'**
+  String get whatsNew140ArtistPhotoTitle;
+
+  /// No description provided for @whatsNew140ArtistPhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An artist with a photo opens on it, edge to edge, with their name over it. Pull down to enlarge it.'**
+  String get whatsNew140ArtistPhotoBody;
+
+  /// No description provided for @whatsNew140SearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get whatsNew140SearchTitle;
+
+  /// No description provided for @whatsNew140SearchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The search field stays pinned at the top in a glass bar while the results scroll under it, and scrolling the results closes the keyboard.'**
+  String get whatsNew140SearchBody;
 
   /// No description provided for @whatsNew150CoverTitle.
   ///
@@ -2660,17 +2696,89 @@ abstract class AppLocalizations {
   /// **'Tap an album and its cover flies from the card into place on the album page, then back when you leave.'**
   String get whatsNew150CoverBody;
 
+  /// No description provided for @whatsNew150TitlesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold titles'**
+  String get whatsNew150TitlesTitle;
+
+  /// No description provided for @whatsNew150TitlesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Large titles are bold, in the same voice as album and artist names and section titles.'**
+  String get whatsNew150TitlesBody;
+
+  /// No description provided for @whatsNew150TabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A dot under the tab'**
+  String get whatsNew150TabTitle;
+
+  /// No description provided for @whatsNew150TabBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The tab you are on shows a dot under its icon, not only a brighter colour.'**
+  String get whatsNew150TabBody;
+
   /// No description provided for @whatsNew150PagesTitle.
   ///
   /// In en, this message translates to:
-  /// **'Calmer pages'**
+  /// **'One line of facts'**
   String get whatsNew150PagesTitle;
 
   /// No description provided for @whatsNew150PagesBody.
   ///
   /// In en, this message translates to:
-  /// **'Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.'**
+  /// **'Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.'**
   String get whatsNew150PagesBody;
+
+  /// No description provided for @whatsNew150AlbumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Album pages'**
+  String get whatsNew150AlbumTitle;
+
+  /// No description provided for @whatsNew150AlbumBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The track list no longer has a Songs title. Under the songs, a quiet line gives the album\'s size and formats instead of the In your library card.'**
+  String get whatsNew150AlbumBody;
+
+  /// No description provided for @whatsNew150ArtistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages'**
+  String get whatsNew150ArtistTitle;
+
+  /// No description provided for @whatsNew150ArtistBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each song shows its album and year under its title instead of the artist\'s name again, and album and single cards give the year. The In your library card is gone: its counts are under the name.'**
+  String get whatsNew150ArtistBody;
+
+  /// No description provided for @whatsNew150MoreByTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More by'**
+  String get whatsNew150MoreByTitle;
+
+  /// No description provided for @whatsNew150MoreByBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On album pages, More by gives each album\'s year instead of the artist\'s name, with Single on singles.'**
+  String get whatsNew150MoreByBody;
+
+  /// No description provided for @whatsNew150LibraryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A lighter Library'**
+  String get whatsNew150LibraryTitle;
+
+  /// No description provided for @whatsNew150LibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Library no longer shows its counts of songs, albums and artists above All.'**
+  String get whatsNew150LibraryBody;
 
   /// No description provided for @whatsNew150BackTitle.
   ///
@@ -2683,6 +2791,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.'**
   String get whatsNew150BackBody;
+
+  /// No description provided for @whatsNew150ScrollTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No empty band'**
+  String get whatsNew150ScrollTitle;
+
+  /// No description provided for @whatsNew150ScrollBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.'**
+  String get whatsNew150ScrollBody;
+
+  /// No description provided for @whatsNew150NamesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist names with a large font'**
+  String get whatsNew150NamesTitle;
+
+  /// No description provided for @whatsNew150NamesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'With a large font, the Library\'s row of artists no longer cuts their names short.'**
+  String get whatsNew150NamesBody;
 
   /// No description provided for @whatsNew160RecapTitle.
   ///

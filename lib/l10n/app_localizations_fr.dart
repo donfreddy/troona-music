@@ -1575,25 +1575,46 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un album téléchargé dans plusieurs dossiers, ou des singles enregistrés chacun dans le leur, apparaissaient plusieurs fois. C\'est de nouveau un seul album, et son année s\'affiche.';
 
   @override
+  String get whatsNew140TopTitle => 'Retour en haut';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Touchez l\'onglet où vous êtes pour remonter en haut de sa page.';
+
+  @override
   String get whatsNew140EdgeTitle => 'Bord à bord';
 
   @override
   String get whatsNew140EdgeBody =>
-      'Les listes défilent maintenant sous la barre d\'état et sous la barre d\'onglets flottante, qui les estompe en douceur. Les pages album et playlist s\'ouvrent sur leur pochette, et un artiste avec une photo sur celle-ci, bord à bord.';
+      'Les listes défilent maintenant sous la barre d\'état et sous la barre d\'onglets flottante, sur toutes les versions d\'Android, et s\'estompent en douceur sous la barre d\'onglets au lieu de s\'arrêter net.';
 
   @override
   String get whatsNew140TitlesTitle => 'Grands titres';
 
   @override
   String get whatsNew140TitlesBody =>
-      'Chaque page s\'ouvre sur un grand titre qui se replie en barre de verre quand vous défilez, avec le bouton retour et les actions de la page.';
+      'Chaque page s\'ouvre sur un grand titre qui se replie en barre de verre quand vous défilez, avec le bouton retour et les actions de la page. Un titre laissé à mi-chemin s\'ouvre ou se replie de lui-même.';
 
   @override
-  String get whatsNew140TopTitle => 'Retour en haut';
+  String get whatsNew140CoversTitle => 'Pages album et playlist';
 
   @override
-  String get whatsNew140TopBody =>
-      'Touchez l\'onglet où vous êtes pour remonter en haut de sa page. Dans la recherche, le champ reste en haut pendant que les résultats défilent dessous.';
+  String get whatsNew140CoversBody =>
+      'Leur pochette et leurs boutons défilent sous la même barre de verre, qui affiche alors leur nom.';
+
+  @override
+  String get whatsNew140ArtistPhotoTitle => 'Photos d\'artiste';
+
+  @override
+  String get whatsNew140ArtistPhotoBody =>
+      'Un artiste avec une photo s\'ouvre sur celle-ci, bord à bord, avec son nom par-dessus. Tirez vers le bas pour l\'agrandir.';
+
+  @override
+  String get whatsNew140SearchTitle => 'Recherche';
+
+  @override
+  String get whatsNew140SearchBody =>
+      'Le champ de recherche reste en haut dans une barre de verre pendant que les résultats défilent dessous, et faire défiler les résultats ferme le clavier.';
 
   @override
   String get whatsNew150CoverTitle => 'La pochette s\'envole';
@@ -1603,11 +1624,53 @@ class AppLocalizationsFr extends AppLocalizations {
       'Touchez un album : sa pochette part de la carte et vient se poser sur la page de l\'album, puis y retourne quand vous la quittez.';
 
   @override
-  String get whatsNew150PagesTitle => 'Des pages plus calmes';
+  String get whatsNew150TitlesTitle => 'Titres en gras';
+
+  @override
+  String get whatsNew150TitlesBody =>
+      'Les grands titres sont en gras, dans le même ton que les noms d\'albums et d\'artistes et les titres de section.';
+
+  @override
+  String get whatsNew150TabTitle => 'Un point sous l\'onglet';
+
+  @override
+  String get whatsNew150TabBody =>
+      'L\'onglet où vous êtes affiche un point sous son icône, pas seulement une couleur plus vive.';
+
+  @override
+  String get whatsNew150PagesTitle => 'Les infos sur une ligne';
 
   @override
   String get whatsNew150PagesBody =>
-      'Les pages album et artiste donnent leurs infos sur une ligne de texte au lieu de pastilles, et leurs cartes d\'albums indiquent l\'année. Les titres sont en gras, et un point marque l\'onglet où vous êtes.';
+      'Les pages album donnent leur année, leur nombre de morceaux et leur durée, et les pages artiste leurs morceaux, sorties et durée, sur une ligne de texte au lieu de pastilles. Sans perte garde son badge.';
+
+  @override
+  String get whatsNew150AlbumTitle => 'Pages album';
+
+  @override
+  String get whatsNew150AlbumBody =>
+      'La liste des morceaux n\'a plus de titre Morceaux. Sous les morceaux, une ligne discrète donne la taille et les formats de l\'album à la place de la carte Dans votre bibliothèque.';
+
+  @override
+  String get whatsNew150ArtistTitle => 'Pages artiste';
+
+  @override
+  String get whatsNew150ArtistBody =>
+      'Chaque morceau affiche son album et son année sous son titre au lieu de répéter le nom de l\'artiste, et les cartes d\'albums et de singles indiquent l\'année. La carte Dans votre bibliothèque disparaît : ses chiffres sont sous le nom.';
+
+  @override
+  String get whatsNew150MoreByTitle => 'Plus de';
+
+  @override
+  String get whatsNew150MoreByBody =>
+      'Sur les pages album, Plus de donne l\'année de chaque album au lieu du nom de l\'artiste, avec Single sur les singles.';
+
+  @override
+  String get whatsNew150LibraryTitle => 'Une bibliothèque plus légère';
+
+  @override
+  String get whatsNew150LibraryBody =>
+      'La bibliothèque n\'affiche plus ses nombres de morceaux, d\'albums et d\'artistes au-dessus de Tout.';
 
   @override
   String get whatsNew150BackTitle => 'Retour d\'où vous venez';
@@ -1615,6 +1678,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew150BackBody =>
       'Ouvrez l\'artiste d\'un album alors que vous venez de cet artiste, et vous revenez sur sa page au lieu de l\'ouvrir une deuxième fois. Pareil dans l\'autre sens.';
+
+  @override
+  String get whatsNew150ScrollTitle => 'Plus de bande vide';
+
+  @override
+  String get whatsNew150ScrollBody =>
+      'Une page album ou playlist garde sa pochette et ses boutons en vue pendant qu\'ils défilent, au lieu de laisser une bande vide sous la barre.';
+
+  @override
+  String get whatsNew150NamesTitle => 'Noms d\'artistes en grande police';
+
+  @override
+  String get whatsNew150NamesBody =>
+      'Avec une grande police, la rangée d\'artistes de la bibliothèque ne coupe plus leurs noms.';
 
   @override
   String get whatsNew160RecapTitle => 'Vos écoutes';

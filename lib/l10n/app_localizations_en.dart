@@ -1560,25 +1560,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.';
 
   @override
+  String get whatsNew140TopTitle => 'Back to the top';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Tap the tab you are on to scroll its page back to the top.';
+
+  @override
   String get whatsNew140EdgeTitle => 'Edge to edge';
 
   @override
   String get whatsNew140EdgeBody =>
-      'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.';
+      'Lists now scroll under the status bar and the floating tab bar, on every Android version, and fade out softly under the tab bar instead of stopping on a line.';
 
   @override
   String get whatsNew140TitlesTitle => 'Large titles';
 
   @override
   String get whatsNew140TitlesBody =>
-      'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.';
+      'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions. A title left halfway settles open or closed.';
 
   @override
-  String get whatsNew140TopTitle => 'Back to the top';
+  String get whatsNew140CoversTitle => 'Album and playlist pages';
 
   @override
-  String get whatsNew140TopBody =>
-      'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.';
+  String get whatsNew140CoversBody =>
+      'Their cover and buttons scroll away under the same glass bar, which then shows their name.';
+
+  @override
+  String get whatsNew140ArtistPhotoTitle => 'Artist photos';
+
+  @override
+  String get whatsNew140ArtistPhotoBody =>
+      'An artist with a photo opens on it, edge to edge, with their name over it. Pull down to enlarge it.';
+
+  @override
+  String get whatsNew140SearchTitle => 'Search';
+
+  @override
+  String get whatsNew140SearchBody =>
+      'The search field stays pinned at the top in a glass bar while the results scroll under it, and scrolling the results closes the keyboard.';
 
   @override
   String get whatsNew150CoverTitle => 'The cover flies in';
@@ -1588,11 +1609,53 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap an album and its cover flies from the card into place on the album page, then back when you leave.';
 
   @override
-  String get whatsNew150PagesTitle => 'Calmer pages';
+  String get whatsNew150TitlesTitle => 'Bold titles';
+
+  @override
+  String get whatsNew150TitlesBody =>
+      'Large titles are bold, in the same voice as album and artist names and section titles.';
+
+  @override
+  String get whatsNew150TabTitle => 'A dot under the tab';
+
+  @override
+  String get whatsNew150TabBody =>
+      'The tab you are on shows a dot under its icon, not only a brighter colour.';
+
+  @override
+  String get whatsNew150PagesTitle => 'One line of facts';
 
   @override
   String get whatsNew150PagesBody =>
-      'Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.';
+      'Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.';
+
+  @override
+  String get whatsNew150AlbumTitle => 'Album pages';
+
+  @override
+  String get whatsNew150AlbumBody =>
+      'The track list no longer has a Songs title. Under the songs, a quiet line gives the album\'s size and formats instead of the In your library card.';
+
+  @override
+  String get whatsNew150ArtistTitle => 'Artist pages';
+
+  @override
+  String get whatsNew150ArtistBody =>
+      'Each song shows its album and year under its title instead of the artist\'s name again, and album and single cards give the year. The In your library card is gone: its counts are under the name.';
+
+  @override
+  String get whatsNew150MoreByTitle => 'More by';
+
+  @override
+  String get whatsNew150MoreByBody =>
+      'On album pages, More by gives each album\'s year instead of the artist\'s name, with Single on singles.';
+
+  @override
+  String get whatsNew150LibraryTitle => 'A lighter Library';
+
+  @override
+  String get whatsNew150LibraryBody =>
+      'The Library no longer shows its counts of songs, albums and artists above All.';
 
   @override
   String get whatsNew150BackTitle => 'Back where you came from';
@@ -1600,6 +1663,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew150BackBody =>
       'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.';
+
+  @override
+  String get whatsNew150ScrollTitle => 'No empty band';
+
+  @override
+  String get whatsNew150ScrollBody =>
+      'An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.';
+
+  @override
+  String get whatsNew150NamesTitle => 'Artist names with a large font';
+
+  @override
+  String get whatsNew150NamesBody =>
+      'With a large font, the Library\'s row of artists no longer cuts their names short.';
 
   @override
   String get whatsNew160RecapTitle => 'Your listening';
