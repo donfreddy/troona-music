@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 ///
 /// - [selectionClick]: a choice among options (a segment, a sort) and a
 ///   swipe that becomes armed.
-/// - [lightImpact]: a small step (skip, open a menu, refresh).
+/// - [lightImpact]: a small step (skip, open a menu, refresh, a like by
+///   long press on the mini player).
 /// - [mediumImpact]: playback starts or stops (Play, Shuffle, play/pause,
 ///   the album's record).
 /// - Nothing while scrolling or dragging.

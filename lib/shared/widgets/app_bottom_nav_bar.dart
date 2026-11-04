@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -11,7 +12,10 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
@@ -268,7 +272,9 @@ class _NavBarBody extends StatelessWidget {
 /// play/pause and skip controls intercept their own taps so they do not
 /// trigger the surrounding [GestureDetector].
 ///
-class _MiniPlayerRow extends StatelessWidget {
+/// A long press likes the song, or takes the like back: a heart pops over
+/// its cover, with a light tick and a toast. Next keeps its button.
+class _MiniPlayerRow extends StatefulWidget {
   final PlayerActive state;
   final BorderRadius radius;
   final bool showTabs;
@@ -280,184 +286,345 @@ class _MiniPlayerRow extends StatelessWidget {
   });
 
   @override
+  State<_MiniPlayerRow> createState() => _MiniPlayerRowState();
+}
+
+class _MiniPlayerRowState extends State<_MiniPlayerRow> {
+  /// Bumped by each like from here, with what it did.
+  final _burst = ValueNotifier<(int, bool)>((0, false));
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
+  }
+
+  bool _isLiked(BuildContext context) => context
+      .read<LikesCubit>()
+      .state
+      .isTrackLiked(widget.state.currentTrack.id);
+
+  void _toggleLike(BuildContext context) {
+    final track = widget.state.currentTrack;
+    final liked = !_isLiked(context);
+    context.read<LikesCubit>().toggle(track);
+    AppHaptics.lightImpact();
+    _burst.value = (_burst.value.$1 + 1, liked);
+    AppToast.show(
+      context,
+      liked ? context.l10n.toastLiked : context.l10n.toastUnliked,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
+    final radius = widget.radius;
+    final showTabs = widget.showTabs;
     final colors = context.colors;
     final glass = GlassTheme.miniPlayer(context);
 
-    return Dismissible(
-      key: ValueKey(state.currentTrack.id),
-      direction: DismissDirection.down,
-      onDismissed: (_) {
-        context.read<PlayerBloc>().add(const PlayerDismissed());
+    final likeLabel = _likeLabelOf(context);
+    return Semantics(
+      onLongPressHint: likeLabel,
+      customSemanticsActions: {
+        CustomSemanticsAction(label: likeLabel): () => _toggleLike(context),
       },
-      child: GestureDetector(
-        onTap: () => openFullPlayer(context),
-        onVerticalDragEnd: (d) {
-          // Swipe up with sufficient velocity → open full player.
-          if (d.velocity.pixelsPerSecond.dy < -300) {
-            openFullPlayer(context);
-          }
+      child: Dismissible(
+        key: ValueKey(state.currentTrack.id),
+        direction: DismissDirection.down,
+        onDismissed: (_) {
+          context.read<PlayerBloc>().add(const PlayerDismissed());
         },
-        behavior: HitTestBehavior.opaque,
-        child: _CoveredFade(
-          child: Container(
-            height: AppSpacing.miniPlayerHeight,
-            // Always a decoration, so toggling the tabs keeps the same element
-            // tree and the heroes below survive (an interrupted flight
-            // asserts if its hero is recreated).
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: showTabs
-                  ? Border.all(width: 0, color: glass.border)
-                  : null,
-            ),
-            child: ClipRRect(
-              borderRadius: radius,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Landing spot of the Now Playing ring morph (invisible at
-                  // rest: the bar itself draws the glass).
-                  const Hero(
-                    tag: NowPlayingHero.surfaceTag,
-                    flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
-                    child: SizedBox.expand(),
-                  ),
-                  if (showTabs)
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
-                        ),
-                      ),
+        child: GestureDetector(
+          onTap: () => openFullPlayer(context),
+          onLongPress: () => _toggleLike(context),
+          onVerticalDragEnd: (d) {
+            // Swipe up with sufficient velocity → open full player.
+            if (d.velocity.pixelsPerSecond.dy < -300) {
+              openFullPlayer(context);
+            }
+          },
+          behavior: HitTestBehavior.opaque,
+          child: _CoveredFade(
+            child: Container(
+              height: AppSpacing.miniPlayerHeight,
+              // Always a decoration, so toggling the tabs keeps the same element
+              // tree and the heroes below survive (an interrupted flight
+              // asserts if its hero is recreated).
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: showTabs
+                    ? Border.all(width: 0, color: glass.border)
+                    : null,
+              ),
+              child: ClipRRect(
+                borderRadius: radius,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Landing spot of the Now Playing ring morph (invisible at
+                    // rest: the bar itself draws the glass).
+                    const Hero(
+                      tag: NowPlayingHero.surfaceTag,
+                      flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
+                      child: SizedBox.expand(),
                     ),
-                  _MiniPlayerProgressFill(progressTint: glass.border),
-                  Row(
-                    children: [
-                      const SizedBox(width: 12),
-
-                      // A swipe on the song changes it: left for the next,
-                      // right for the previous (not back to its start, as
-                      // the button does past 3 s), like the Now Playing
-                      // covers.
-                      Expanded(
-                        child: SwipeActions(
-                          fadeChild: true,
-                          onSwipeLeft: state.hasNext
-                              ? () => context.read<PlayerBloc>().add(
-                                  const SkipNextRequested(),
-                                )
-                              : null,
-                          onSwipeRight: state.hasPrevious
-                              ? () => context.read<PlayerBloc>().add(
-                                  QueueIndexRequested(
-                                    state.queue.currentIndex - 1,
-                                  ),
-                                )
-                              : null,
-                          child: Row(
-                            children: [
-                              // ── Artwork thumbnail ────────────────────────
-                              SizedBox.square(
-                                dimension: 42,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    NowPlayingHero.miniArtworkRadius,
-                                  ),
-                                  child: state.currentTrack.artworkPath != null
-                                      ? Hero(
-                                          tag: NowPlayingHero.artworkTag,
-                                          flightShuttleBuilder:
-                                              NowPlayingHero.artworkShuttle,
-                                          // Full-size decode on purpose: this image
-                                          // is also the morph shuttle's content.
-                                          child: Image.file(
-                                            File(
-                                              state.currentTrack.artworkPath!,
-                                            ),
-                                            fit: BoxFit.cover,
-                                            gaplessPlayback: true,
-                                            errorBuilder: (_, _, _) =>
-                                                const ArtworkPlaceholder(),
-                                          ),
-                                        )
-                                      : const ArtworkPlaceholder(),
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              // ── Track title and artist ─────────────────────────────
-                              Expanded(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Marquee(
-                                      text: state.currentTrack.title,
-                                      style: TextStyle(
-                                        color: colors.labelPrimary,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      context.artistName(
-                                        state.currentTrack.artist,
-                                      ),
-                                      style: TextStyle(
-                                        color: colors.labelSecondary,
-                                        fontSize: 11,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                    if (showTabs)
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
                           ),
                         ),
                       ),
+                    _MiniPlayerProgressFill(progressTint: glass.border),
+                    Row(
+                      children: [
+                        const SizedBox(width: 12),
 
-                      // ── Play / Pause ───────────────────────────────────────
-                      AppIconButton(
-                        icon: state.isPlaying ? AppIcons.pause : AppIcons.play,
-                        tooltip: state.isPlaying
-                            ? context.l10n.playerPause
-                            : context.l10n.actionPlay,
-                        color: context.colors.labelPrimary,
-                        onPressed: () {
-                          context.read<PlayerBloc>().add(
-                            state.isPlaying
-                                ? const PauseRequested()
-                                : const ResumeRequested(),
-                          );
-                        },
-                      ),
+                        // A swipe on the song changes it: left for the next,
+                        // right for the previous (not back to its start, as
+                        // the button does past 3 s), like the Now Playing
+                        // covers.
+                        Expanded(
+                          child: SwipeActions(
+                            fadeChild: true,
+                            onSwipeLeft: state.hasNext
+                                ? () => context.read<PlayerBloc>().add(
+                                    const SkipNextRequested(),
+                                  )
+                                : null,
+                            onSwipeRight: state.hasPrevious
+                                ? () => context.read<PlayerBloc>().add(
+                                    QueueIndexRequested(
+                                      state.queue.currentIndex - 1,
+                                    ),
+                                  )
+                                : null,
+                            child: Row(
+                              children: [
+                                // ── Artwork thumbnail ────────────────────────
+                                SizedBox.square(
+                                  dimension: 42,
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    fit: StackFit.expand,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          NowPlayingHero.miniArtworkRadius,
+                                        ),
+                                        child:
+                                            state.currentTrack.artworkPath !=
+                                                null
+                                            ? Hero(
+                                                tag: NowPlayingHero.artworkTag,
+                                                flightShuttleBuilder:
+                                                    NowPlayingHero
+                                                        .artworkShuttle,
+                                                // Full-size decode on purpose: this image
+                                                // is also the morph shuttle's content.
+                                                child: Image.file(
+                                                  File(
+                                                    state
+                                                        .currentTrack
+                                                        .artworkPath!,
+                                                  ),
+                                                  fit: BoxFit.cover,
+                                                  gaplessPlayback: true,
+                                                  errorBuilder: (_, _, _) =>
+                                                      const ArtworkPlaceholder(),
+                                                ),
+                                              )
+                                            : const ArtworkPlaceholder(),
+                                      ),
+                                      _LikeBurst(burst: _burst),
+                                    ],
+                                  ),
+                                ),
 
-                      // ── Skip next ──────────────────────────────────────────
-                      AppIconButton(
-                        icon: AppIcons.skipNext,
-                        tooltip: context.l10n.playerNext,
-                        color: context.colors.labelPrimary,
-                        onPressed: state.hasNext
-                            ? () {
-                                context.read<PlayerBloc>().add(
-                                  const SkipNextRequested(),
-                                );
-                              }
-                            : null,
-                      ),
-                    ],
-                  ),
-                ],
+                                const SizedBox(width: 12),
+
+                                // ── Track title and artist ─────────────────────────────
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Marquee(
+                                        text: state.currentTrack.title,
+                                        style: TextStyle(
+                                          color: colors.labelPrimary,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      Text(
+                                        context.artistName(
+                                          state.currentTrack.artist,
+                                        ),
+                                        style: TextStyle(
+                                          color: colors.labelSecondary,
+                                          fontSize: 11,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // ── Play / Pause ───────────────────────────────────────
+                        AppIconButton(
+                          icon: state.isPlaying
+                              ? AppIcons.pause
+                              : AppIcons.play,
+                          tooltip: state.isPlaying
+                              ? context.l10n.playerPause
+                              : context.l10n.actionPlay,
+                          color: context.colors.labelPrimary,
+                          onPressed: () {
+                            context.read<PlayerBloc>().add(
+                              state.isPlaying
+                                  ? const PauseRequested()
+                                  : const ResumeRequested(),
+                            );
+                          },
+                        ),
+
+                        // ── Skip next ──────────────────────────────────────────
+                        AppIconButton(
+                          icon: AppIcons.skipNext,
+                          tooltip: context.l10n.playerNext,
+                          color: context.colors.labelPrimary,
+                          onPressed: state.hasNext
+                              ? () {
+                                  context.read<PlayerBloc>().add(
+                                    const SkipNextRequested(),
+                                  );
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// What a long press does, for screen readers: like, or take it back.
+  String _likeLabelOf(BuildContext context) {
+    final likes = context.watch<LikesCubit?>();
+    final liked =
+        likes?.state.isTrackLiked(widget.state.currentTrack.id) ?? false;
+    return liked ? context.l10n.likesRemove : context.l10n.trackLike;
+  }
+}
+
+/// A heart that pops over the mini player's cover and fades: the like,
+/// or a broken heart for one taken back. Still with reduced motion: the
+/// toast says it.
+class _LikeBurst extends StatefulWidget {
+  final ValueNotifier<(int, bool)> burst;
+  const _LikeBurst({required this.burst});
+
+  @override
+  State<_LikeBurst> createState() => _LikeBurstState();
+}
+
+class _LikeBurstState extends State<_LikeBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 750),
+  );
+
+  static final _scale = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: .3,
+        end: 1.25,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 35,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.25,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 25,
+    ),
+    TweenSequenceItem(tween: ConstantTween(1.0), weight: 40),
+  ]);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.burst.addListener(_play);
+  }
+
+  @override
+  void didUpdateWidget(_LikeBurst old) {
+    super.didUpdateWidget(old);
+    if (old.burst != widget.burst) {
+      old.burst.removeListener(_play);
+      widget.burst.addListener(_play);
+    }
+  }
+
+  void _play() {
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _ctrl.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    widget.burst.removeListener(_play);
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final liked = widget.burst.value.$2;
+    final colors = context.colors;
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, _) {
+          final t = _ctrl.value;
+          if (t == 0 || t == 1) return const SizedBox.shrink();
+          return Opacity(
+            opacity: t < .6 ? 1 : 1 - (t - .6) / .4,
+            child: Transform.scale(
+              scale: _scale.transform(t),
+              child: Center(
+                child: Icon(
+                  key: const ValueKey('likeBurst'),
+                  liked ? AppIcons.liked : AppIcons.unlike,
+                  size: 28,
+                  color: liked ? colors.accent : Colors.white,
+                  shadows: const [
+                    Shadow(color: Color(0x99000000), blurRadius: 8),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -533,7 +700,6 @@ class _FillPainter extends CustomPainter {
   bool shouldRepaint(_FillPainter old) =>
       old.ratio != ratio || old.tint != tint;
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 
