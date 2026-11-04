@@ -15,7 +15,6 @@ import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playl
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -24,6 +23,7 @@ import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
 /// header that collapses into the glass bar, then the reorderable tracks.
@@ -311,11 +311,7 @@ class _TrackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isActive = context.select<PlayerBloc, bool>(
-      (b) =>
-          b.state is PlayerActive &&
-          (b.state as PlayerActive).currentTrack.id == track.id,
-    );
+    final (isActive, _) = TrackRowArtwork.statusOf(context, track.id);
 
     return ReorderableDelayedDragStartListener(
       index: index,
@@ -340,36 +336,7 @@ class _TrackTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Artwork thumbnail
-                SizedBox.square(
-                  dimension: 48,
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: ArtworkImage(
-                          track.artworkPath,
-                          width: 48,
-                          height: 48,
-                        ),
-                      ),
-                      if (isActive)
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: .5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              AppIcons.nowPlaying,
-                              color: colors.accent,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                TrackRowArtwork(track: track),
 
                 const SizedBox(width: AppSpacing.md),
 
@@ -385,7 +352,8 @@ class _TrackTile extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: isActive
                               ? FontWeight.w700
-                              : FontWeight.w500,
+                              : FontWeight.w600,
+                          letterSpacing: -0.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

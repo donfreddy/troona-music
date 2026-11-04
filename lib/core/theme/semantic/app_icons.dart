@@ -28,9 +28,6 @@ abstract final class AppIcons {
   static const IconData speed = LucideIcons300.gauge;
   static const IconData volumeLow = LucideIcons300.volume1;
 
-  /// On the row of the song that is playing.
-  static const IconData nowPlaying = LucideIcons300.music2;
-
   // ── Library ───────────────────────────────────────────────────────────────
   /// A song, and the placeholder of a song without a cover.
   static const IconData track = LucideIcons300.music;

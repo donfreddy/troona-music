@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
-import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
 
 class TrendingRow extends StatelessWidget {
   final Track track;
@@ -22,12 +20,7 @@ class TrendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Whether this track is the one playing
-    final isActive = context.select<PlayerBloc, bool>(
-      (b) =>
-          b.state is PlayerActive &&
-          (b.state as PlayerActive).currentTrack.id == track.id,
-    );
+    final (isActive, _) = TrackRowArtwork.statusOf(context, track.id);
 
     return GestureDetector(
       onTap: onTap,
@@ -39,37 +32,7 @@ class TrendingRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Artwork, or the visualizer when active
-            SizedBox.square(
-              dimension: 50,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: ArtworkImage(
-                      track.artworkPath,
-                      width: 50,
-                      height: 50,
-                    ),
-                  ),
-                  // Now playing overlay
-                  if (isActive)
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .4),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          AppIcons.nowPlaying,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            TrackRowArtwork(track: track, size: 50),
 
             const SizedBox(width: AppSpacing.md),
 
@@ -81,7 +44,7 @@ class TrendingRow extends StatelessWidget {
                   Text(
                     track.title,
                     style: TextStyle(
-                      color: isActive ? Colors.white : Colors.white,
+                      color: isActive ? context.colors.accent : Colors.white,
                       fontSize: 14,
                       fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                     ),

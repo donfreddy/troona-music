@@ -18,6 +18,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.
 - The counts under an artist's name read clearly on a light photo.
 - Haptics follow one vocabulary: a firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, a tick for a choice. Playing a song or Play and Shuffle no longer tap twice.
+- The song playing looks the same in every list: its cover dimmed under the moving equalizer, which stops while paused, and its title in the accent colour. Playlists and Home showed a still note instead.
 - The background behind the tabs takes two seconds to follow a new song's colours, instead of switching at once.
 
 ### Fixed
