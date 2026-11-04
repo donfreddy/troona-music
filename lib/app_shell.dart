@@ -28,6 +28,7 @@ import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/shared/widgets/tab_reselect.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 class AppShell extends StatefulWidget {
@@ -59,6 +60,7 @@ class _AppShellState extends State<AppShell> {
   GoRouter? _router;
   StreamSubscription<PlayerNotice>? _noticesSub;
   LibraryLoaded? _rescanBaseline;
+  final _reselect = TabReselectController();
 
   @override
   void initState() {
@@ -178,6 +180,7 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     _noticesSub?.cancel();
     _router?.routerDelegate.removeListener(_onRouteChanged);
+    _reselect.dispose();
     super.dispose();
   }
 
@@ -192,10 +195,11 @@ class _AppShellState extends State<AppShell> {
       _ => 0,
     };
 
-    widget.navigationShell.goBranch(
-      index,
-      initialLocation: index == widget.navigationShell.currentIndex,
-    );
+    final current = widget.navigationShell.currentIndex;
+    // The tab shown, tapped again: its page goes back to the top (iOS).
+    if (index == current && _isRootPage) _reselect.reselect(index);
+
+    widget.navigationShell.goBranch(index, initialLocation: index == current);
   }
 
   @override
@@ -277,45 +281,51 @@ class _AppShellState extends State<AppShell> {
 
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
 
-          // _currentLocation follows both the widget prop and the router
-          // delegate, so it is right after any pop, system back included.
-          final isRootPage = [
-            AppRoute.home,
-            AppRoute.library,
-            AppRoute.search,
-            AppRoute.playlists,
-          ].contains(_currentLocation);
+          final isRootPage = _isRootPage;
 
-          return Scaffold(
-            backgroundColor: Colors.black,
-            body: Stack(
-              children: [
-                const Positioned.fill(child: AmbientBackground()),
+          return TabReselectScope(
+            controller: _reselect,
+            child: Scaffold(
+              backgroundColor: Colors.black,
+              body: Stack(
+                children: [
+                  const Positioned.fill(child: AmbientBackground()),
 
-                // ── The Branch Content ─────────────────────────────────────────
-                Positioned.fill(child: widget.navigationShell),
+                  // ── The Branch Content ─────────────────────────────────────────
+                  Positioned.fill(child: widget.navigationShell),
 
-                // ── Bottom Bar ────────────────────────────────────────────────
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                    child: AppBottomNavBar(
-                      currentTab: currentTab,
-                      onTabChanged: _onTabChanged,
-                      showTabs: isRootPage,
+                  // ── Bottom Bar ────────────────────────────────────────────────
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                      child: AppBottomNavBar(
+                        currentTab: currentTab,
+                        onTabChanged: _onTabChanged,
+                        showTabs: isRootPage,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
       ),
     );
   }
+
+  /// Whether a tab's root page is shown, not a page pushed over it.
+  /// [_currentLocation] follows both the widget prop and the router
+  /// delegate, so it is right after any pop, system back included.
+  bool get _isRootPage => [
+    AppRoute.home,
+    AppRoute.library,
+    AppRoute.search,
+    AppRoute.playlists,
+  ].contains(_currentLocation);
 
   void _announceRescan(LibraryLoaded before, LibraryLoaded after) {
     final beforeIds = {for (final t in before.allTracks) t.id};

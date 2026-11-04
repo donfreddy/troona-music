@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -54,6 +55,11 @@ class GlassSliverHeader extends StatelessWidget {
   /// Overscroll at the top stretches the header instead of moving it down.
   final bool stretch;
 
+  /// A scroll that stops halfway through the collapse finishes it, up or
+  /// down, so the title is never left cut in two (iOS large titles). The
+  /// header must be the scroll view's first sliver.
+  final bool snap;
+
   const GlassSliverHeader({
     super.key,
     this.title,
@@ -66,6 +72,7 @@ class GlassSliverHeader extends StatelessWidget {
     this.pinnedBottom,
     this.pinnedBottomHeight = 0,
     this.stretch = false,
+    this.snap = false,
   });
 
   /// iOS large title: [title] big at the top of the page, which slides
@@ -81,7 +88,8 @@ class GlassSliverHeader extends StatelessWidget {
        expandedHeight = largeTitleHeight,
        expandedTextHeight = _LargeTitle.lineHeight,
        background = null,
-       stretch = false;
+       stretch = false,
+       snap = true;
 
   /// Height of the navigation row, below the status bar.
   static const double navBarHeight = 44;
@@ -98,17 +106,75 @@ class GlassSliverHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final hasNavBar = title != null || leading != null || actions.isNotEmpty;
-    return SliverPersistentHeader(
+    final expandedExtent =
+        expandedHeight + math.max(0, textScale - 1) * expandedTextHeight;
+    final header = SliverPersistentHeader(
       pinned: true,
       delegate: _GlassHeaderDelegate(
         header: this,
         topPadding: MediaQuery.paddingOf(context).top,
         navHeight: hasNavBar ? navBarHeight : 0,
-        expandedExtent:
-            expandedHeight + math.max(0, textScale - 1) * expandedTextHeight,
+        expandedExtent: expandedExtent,
       ),
     );
+    if (!snap || expandedExtent <= 0) return header;
+    return _SnapToEdges(range: expandedExtent, child: header);
   }
+}
+
+/// Finishes a collapse left halfway once the scroll stops: the header's
+/// collapse spans the first [range] pixels of the scroll view.
+class _SnapToEdges extends StatefulWidget {
+  final double range;
+  final Widget child;
+
+  const _SnapToEdges({required this.range, required this.child});
+
+  @override
+  State<_SnapToEdges> createState() => _SnapToEdgesState();
+}
+
+class _SnapToEdgesState extends State<_SnapToEdges> {
+  ScrollPosition? _position;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final position = Scrollable.maybeOf(context)?.position;
+    if (position == _position) return;
+    _position?.isScrollingNotifier.removeListener(_onScrolling);
+    _position = position?..isScrollingNotifier.addListener(_onScrolling);
+  }
+
+  @override
+  void dispose() {
+    _position?.isScrollingNotifier.removeListener(_onScrolling);
+    super.dispose();
+  }
+
+  // Called from within ScrollPosition.beginActivity: starting the snap
+  // there would cut the ending scroll short (no ScrollEndNotification).
+  void _onScrolling() => scheduleMicrotask(_snap);
+
+  void _snap() {
+    final position = _position;
+    if (!mounted || position == null) return;
+    if (position.isScrollingNotifier.value) return;
+    if (!position.hasPixels || !position.hasContentDimensions) return;
+    final pixels = position.pixels;
+    final range = math.min(widget.range, position.maxScrollExtent);
+    if (pixels <= 0 || pixels >= range) return;
+    final target = pixels < widget.range / 2 ? 0.0 : range;
+    if ((target - pixels).abs() < 1) return;
+    position.animateTo(
+      target,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
@@ -175,6 +241,8 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     final expanded = header.expanded;
     final pinnedBottom = header.pinnedBottom;
 
+    // Keyed: a background that comes later (a photo once loaded) must not
+    // shift the other layers and rebuild their state.
     final body = Stack(
       fit: StackFit.expand,
       clipBehavior: Clip.hardEdge,
@@ -182,6 +250,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
         // ── Edge-to-edge background: half speed, fades out ──────────────
         if (background != null)
           Positioned(
+            key: const ValueKey('background'),
             // Stretched (overscroll, shrinkOffset 0): fills the taller box.
             top: shrinkOffset > 0 ? -shrinkOffset / 2 : 0,
             left: 0,
@@ -194,6 +263,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
         // ── Expanded content: scrolls up under the navigation row ───────
         if (expanded != null && expandedExtent > 0)
           Positioned(
+            key: const ValueKey('expanded'),
             top: expandedTop,
             left: 0,
             right: 0,
@@ -214,6 +284,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
         // ── Navigation row: back button, compact title, actions ─────────
         if (navHeight > 0)
           Positioned(
+            key: const ValueKey('nav'),
             top: topPadding,
             left: 0,
             right: 0,
@@ -229,6 +300,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
         // ── Pinned bottom: filter, search field ─────────────────────────
         if (pinnedBottom != null)
           Positioned(
+            key: const ValueKey('pinnedBottom'),
             left: AppSpacing.lg,
             right: AppSpacing.lg,
             bottom: 0,

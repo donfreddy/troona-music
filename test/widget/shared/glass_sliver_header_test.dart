@@ -270,4 +270,43 @@ void main() {
     expect(tester.getSize(find.byKey(bg)).height, greaterThan(rest));
     expect(tester.getTopLeft(find.byKey(bg)).dy, 0);
   });
+
+  for (final (drag, end) in [(40.0, 'expanded'), (75.0, 'collapsed')]) {
+    testWidgets('a large title left halfway ends $end', (tester) async {
+      final controller = await pump(tester, largeTitle());
+      const range = GlassSliverHeader.largeTitleHeight;
+      final gesture = await tester.startGesture(const Offset(180, 400));
+      for (var i = 0; i < 10; i++) {
+        await gesture.moveBy(Offset(0, -drag / 10));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      // Held still before release: no fling.
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(controller.offset, inExclusiveRange(0, range));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(controller.offset, end == 'expanded' ? 0 : range);
+    });
+  }
+
+  testWidgets('an album hero does not snap', (tester) async {
+    final controller = await pump(
+      tester,
+      const GlassSliverHeader(
+        title: 'Album',
+        expandedHeight: 300,
+        expanded: SizedBox(),
+      ),
+    );
+    final gesture = await tester.startGesture(const Offset(180, 500));
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, -12));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    final before = controller.offset;
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(controller.offset, before);
+  });
 }

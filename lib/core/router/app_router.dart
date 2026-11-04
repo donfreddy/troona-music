@@ -30,6 +30,7 @@ import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.da
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
+import 'package:troona/shared/widgets/tab_reselect.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -120,7 +121,10 @@ final appRouter = GoRouter(
                     create: (_) => getIt<WeeklyRecapCubit>()..load(),
                   ),
                 ],
-                child: const HomePage(),
+                child: const ScrollToTopOnReselect(
+                  branch: 0,
+                  child: HomePage(),
+                ),
               ),
               routes: [
                 GoRoute(
@@ -171,7 +175,8 @@ final appRouter = GoRouter(
             GoRoute(
               path: AppRoute.library,
               name: AppRoute.library,
-              builder: (_, _) => const LibraryPage(),
+              builder: (_, _) =>
+                  const ScrollToTopOnReselect(branch: 1, child: LibraryPage()),
               routes: [
                 _buildAlbumDetailRoute(name: AppRoute.albumDetail),
                 _buildArtistDetailRoute(name: AppRoute.artistDetail),
@@ -187,7 +192,10 @@ final appRouter = GoRouter(
               name: AppRoute.search,
               builder: (context, _) => BlocProvider(
                 create: (_) => getIt<SearchBloc>(),
-                child: const SearchPage(),
+                child: const ScrollToTopOnReselect(
+                  branch: 2,
+                  child: SearchPage(),
+                ),
               ),
               routes: [_buildAlbumDetailRoute(), _buildArtistDetailRoute()],
             ),
@@ -202,7 +210,10 @@ final appRouter = GoRouter(
               builder: (context, _) => BlocProvider(
                 create: (_) =>
                     getIt<PlaylistBloc>()..add(PlaylistListRequested()),
-                child: const PlaylistPage(),
+                child: const ScrollToTopOnReselect(
+                  branch: 3,
+                  child: PlaylistPage(),
+                ),
               ),
               routes: [
                 GoRoute(
