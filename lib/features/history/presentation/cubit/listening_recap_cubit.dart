@@ -20,13 +20,26 @@ final class ListeningRecapState extends Equatable {
   /// may still be the previous span's while [loading].
   final ListeningRecap? recap;
 
+  /// The last read failed.
+  final bool failed;
+
+  /// The first day the history covers, from the last read that knew it:
+  /// kept through a failure, so the arrows still work.
+  final int? historyStart;
+
   const ListeningRecapState({
     required this.period,
     required this.firstDay,
     required this.today,
     this.loading = true,
     this.recap,
+    this.failed = false,
+    this.historyStart,
   });
+
+  /// [recap] is the span [period] and [firstDay] name, not the one before.
+  bool get isShown =>
+      recap != null && recap!.period == period && recap!.firstDay == firstDay;
 
   /// The span holds today: it is still being listened to.
   bool get isCurrent => period.rangeOf(today).$1 == firstDay;
@@ -36,7 +49,7 @@ final class ListeningRecapState extends Equatable {
 
   /// An earlier span may hold plays: the history began before this one.
   bool get canGoBack {
-    final start = recap?.historyStart;
+    final start = historyStart;
     return start != null && start < firstDay;
   }
 
@@ -45,18 +58,31 @@ final class ListeningRecapState extends Equatable {
   ListeningRecapState copyWith({
     RecapPeriod? period,
     int? firstDay,
+    int? today,
     bool? loading,
     ListeningRecap? Function()? recap,
+    bool? failed,
+    int? historyStart,
   }) => ListeningRecapState(
     period: period ?? this.period,
     firstDay: firstDay ?? this.firstDay,
-    today: today,
+    today: today ?? this.today,
     loading: loading ?? this.loading,
     recap: recap != null ? recap() : this.recap,
+    failed: failed ?? this.failed,
+    historyStart: historyStart ?? this.historyStart,
   );
 
   @override
-  List<Object?> get props => [period, firstDay, today, loading, recap];
+  List<Object?> get props => [
+    period,
+    firstDay,
+    today,
+    loading,
+    recap,
+    failed,
+    historyStart,
+  ];
 }
 
 /// The recap of one week or month, last week first: the Home card and the
@@ -92,8 +118,12 @@ class ListeningRecapCubit extends Cubit<ListeningRecapState> {
         RecapPeriod.month => ListeningDay.of(now),
       };
 
-  /// Reads the span shown again, or last week on the first call.
-  Future<void> load() => _show(state.period, state.firstDay);
+  /// Reads the span the period opens on, as of now: Home refreshes its
+  /// card with it, so last week moves on on Mondays.
+  Future<void> load() => _show(
+    state.period,
+    state.period.rangeOf(_defaultDayOf(state.period, _now())).$1,
+  );
 
   /// Switches to [period], on the span it opens on.
   Future<void> showPeriod(RecapPeriod period) {
@@ -106,19 +136,30 @@ class ListeningRecapCubit extends Cubit<ListeningRecapState> {
   Future<void> step(int steps) {
     final period = state.period;
     final first = period.shift(state.firstDay, steps);
-    if (first > state.today) return Future.value();
+    if (first > ListeningDay.of(_now())) return Future.value();
     return _show(period, first);
   }
 
   Future<void> _show(RecapPeriod period, int first) async {
     final read = ++_read;
-    emit(state.copyWith(period: period, firstDay: first, loading: true));
+    emit(
+      state.copyWith(
+        period: period,
+        firstDay: first,
+        // The page may stay open past midnight.
+        today: ListeningDay.of(_now()),
+        loading: true,
+      ),
+    );
     final result = await _recap(period, first);
     if (isClosed || read != _read) return;
+    final recap = result.fold((_) => null, (r) => r);
     emit(
       state.copyWith(
         loading: false,
-        recap: () => result.fold((_) => null, (r) => r),
+        recap: () => recap,
+        failed: recap == null,
+        historyStart: recap?.historyStart,
       ),
     );
   }

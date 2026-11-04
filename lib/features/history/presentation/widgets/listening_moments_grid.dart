@@ -49,18 +49,17 @@ class ListeningMomentsGrid extends StatelessWidget {
     DayPart.night => AppIcons.night,
   };
 
-  /// "Peak: Friday evening". The hours after midnight belong to the evening
-  /// before: Saturday at 2 is Friday night.
+  /// "Peak: Friday evening"; a night is the one after its weekday:
+  /// "Peak: Friday night", the night from Friday to Saturday.
   static String? peakOf(BuildContext context, ListeningMoments moments) {
     final peak = moments.peak;
     if (peak == null) return null;
     final (weekday, part) = peak;
     final l10n = context.l10n;
     if (part == DayPart.night) {
-      final eve = weekday == 1 ? 7 : weekday - 1;
       return l10n.recapPeakNight(
-        weekdayName(context, eve),
         weekdayName(context, weekday),
+        weekdayName(context, weekday % 7 + 1),
       );
     }
     return l10n.recapPeak(
@@ -69,12 +68,18 @@ class ListeningMomentsGrid extends StatelessWidget {
     );
   }
 
+  /// The row headers are icons alone, in a fixed column: names would take
+  /// the room of the squares at large font sizes. Each square says its
+  /// part to screen readers, and a tap on an icon names it.
+  static const _headerWidth = 28.0;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final l10n = context.l10n;
     if (moments.isEmpty) {
       return Text(
-        context.l10n.recapMomentsEmpty,
+        l10n.recapMomentsEmpty,
         style: TextStyle(color: colors.labelSecondary, fontSize: 15),
       );
     }
@@ -83,9 +88,26 @@ class ListeningMomentsGrid extends StatelessWidget {
       for (var i = 0; i < 7; i++)
         DateFormat.EEEEE(locale).format(DateTime(2026, 10, 19 + i)),
     ];
-    final max = moments.maxPlays;
+    final weekdays = [for (var w = 1; w <= 7; w++) weekdayName(context, w)];
+    final max = moments.maxRate;
     final peak = peakOf(context, moments);
     const gap = 2.5;
+    // Built once: the cascade rebuilds its wrappers on every frame.
+    final cells = [
+      for (final part in DayPart.values)
+        [
+          for (var weekday = 1; weekday <= 7; weekday++)
+            HeatCell(
+              level: PlayIntensity.relativeLevelOf(
+                moments.rateAt(weekday, part),
+                max,
+              ),
+              semanticLabel:
+                  '${weekdays[weekday - 1]}, ${partName(context, part)}, '
+                  '${l10n.recapPlays(moments.playsAt(weekday, part))}',
+            ),
+        ],
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -105,7 +127,7 @@ class ListeningMomentsGrid extends StatelessWidget {
           key: ValueKey(spanKey),
           steps: DayPart.values.length + 6,
           builder: (context, reveal) => Table(
-            columnWidths: const {0: IntrinsicColumnWidth()},
+            columnWidths: const {0: FixedColumnWidth(_headerWidth)},
             defaultColumnWidth: const FlexColumnWidth(),
             defaultVerticalAlignment: TableCellVerticalAlignment.middle,
             children: [
@@ -133,26 +155,15 @@ class ListeningMomentsGrid extends StatelessWidget {
               for (final (row, part) in DayPart.values.indexed)
                 TableRow(
                   children: [
-                    ExcludeSemantics(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.sm),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _iconOf(part),
-                              size: 16,
-                              color: colors.labelSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              partName(context, part),
-                              style: TextStyle(
-                                color: colors.labelSecondary,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
+                    Tooltip(
+                      message: partName(context, part),
+                      triggerMode: TooltipTriggerMode.tap,
+                      excludeFromSemantics: true,
+                      child: ExcludeSemantics(
+                        child: Icon(
+                          _iconOf(part),
+                          size: 18,
+                          color: colors.labelSecondary,
                         ),
                       ),
                     ),
@@ -161,16 +172,7 @@ class ListeningMomentsGrid extends StatelessWidget {
                         padding: const EdgeInsets.all(gap),
                         child: reveal(
                           row + weekday - 1,
-                          HeatCell(
-                            level: PlayIntensity.relativeLevelOf(
-                              moments.playsAt(weekday, part),
-                              max,
-                            ),
-                            semanticLabel:
-                                '${weekdayName(context, weekday)}, '
-                                '${partName(context, part)}, '
-                                '${context.l10n.recapPlays(moments.playsAt(weekday, part))}',
-                          ),
+                          cells[row][weekday - 1],
                         ),
                       ),
                   ],

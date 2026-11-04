@@ -97,7 +97,16 @@ final class GetListeningRecapUseCase {
           historyStart != null && historyStart <= first - discoveryLookback
           ? stats.discoveries
           : null,
-      moments: ListeningMoments.fromHours(stats.hourPlays),
+      moments: ListeningMoments.fromHours(
+        stats.hourPlays,
+        weekdayCounts: [
+          for (var weekday = 1; weekday <= 7; weekday++)
+            [
+              for (var d = first; d <= last; d++)
+                if (ListeningDay.weekday(d) == weekday) d,
+            ].length,
+        ],
+      ),
       historyStart: historyStart,
     );
   }

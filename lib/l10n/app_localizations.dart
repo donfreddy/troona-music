@@ -1691,7 +1691,7 @@ abstract class AppLocalizations {
   /// No description provided for @recapNothingYet.
   ///
   /// In en, this message translates to:
-  /// **'Nothing played yet. Your next song starts it.'**
+  /// **'Nothing played yet.'**
   String get recapNothingYet;
 
   /// No description provided for @recapNothing.
@@ -1813,12 +1813,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Night'**
   String get recapNight;
-
-  /// No description provided for @recapPlayFrom.
-  ///
-  /// In en, this message translates to:
-  /// **'Play from {title}'**
-  String recapPlayFrom(String title);
 
   /// No description provided for @replayName.
   ///

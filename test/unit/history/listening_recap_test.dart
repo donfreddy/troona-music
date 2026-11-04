@@ -182,15 +182,47 @@ void main() {
 
     test('hours fall in their quarter of the day', () {
       final m = ListeningMoments.fromHours(
-        hours({(1, 5): 1, (1, 6): 2, (1, 11): 3, (1, 12): 4, (7, 23): 5}),
+        hours({(1, 6): 2, (1, 11): 3, (1, 12): 4, (7, 23): 5}),
       );
-      expect(m.playsAt(1, DayPart.night), 1);
       expect(m.playsAt(1, DayPart.morning), 5);
       expect(m.playsAt(1, DayPart.afternoon), 4);
       expect(m.playsAt(7, DayPart.evening), 5);
       expect(m.playsAt(2, DayPart.evening), 0);
-      expect(m.total, 15);
-      expect(m.maxPlays, 5);
+      expect(m.total, 14);
+      expect(m.maxRate, 5);
+    });
+
+    test('a night belongs to the evening before', () {
+      final m = ListeningMoments.fromHours(
+        hours({(6, 2): 3, (1, 5): 1, (1, 6): 1}),
+      );
+      expect(m.playsAt(5, DayPart.night), 3, reason: 'Saturday 2:00');
+      expect(m.playsAt(7, DayPart.night), 1, reason: 'Monday 5:00');
+      expect(m.playsAt(6, DayPart.night), 0);
+      expect(m.playsAt(1, DayPart.morning), 1);
+    });
+
+    test('a weekday held five times weighs as one held four', () {
+      // October 2026: five Thursdays, four Fridays.
+      final counts = [4, 4, 4, 5, 5, 5, 4];
+      final m = ListeningMoments.fromHours(
+        hours({(4, 20): 10, (5, 20): 9}),
+        weekdayCounts: counts,
+      );
+      expect(m.rateAt(4, DayPart.evening), 2);
+      expect(m.rateAt(5, DayPart.evening), 9 / 5);
+      // A Thursday night falls on Fridays.
+      final nights = ListeningMoments.fromHours(
+        hours({(5, 1): 10}),
+        weekdayCounts: counts,
+      );
+      expect(nights.rateAt(4, DayPart.night), 2);
+
+      final habits = ListeningMoments.fromHours(
+        hours({(4, 20): 10, (1, 20): 9}),
+        weekdayCounts: counts,
+      );
+      expect(habits.peak, (1, DayPart.evening), reason: '9 / 4 beats 10 / 5');
     });
 
     test('no plays: empty', () {
@@ -281,6 +313,16 @@ void main() {
         GetListeningRecapUseCase.lastWeekOf(DateTime(2026, 10, 28, 10)),
         _day(2026, 10, 21),
       );
+    });
+
+    test('a month counts each of its weekdays', () async {
+      history.stats = stats({'a1': 1});
+      final r = (await recap(
+        RecapPeriod.month,
+        _day(2026, 10, 9),
+      )).getOrElse(() => throw 'failed');
+      // Monday 20:00 played 7 times; October 2026 holds four Mondays.
+      expect(r.moments.rateAt(1, DayPart.evening), 7 / 4);
     });
 
     test('reads the span of the day', () async {
@@ -485,6 +527,50 @@ void main() {
       await first;
       expect(cubit.state.recap?.period, RecapPeriod.month);
       expect(cubit.state.period, RecapPeriod.month);
+    });
+
+    test('load follows the clock: last week moves on on Monday', () async {
+      var clock = DateTime(2026, 11, 1, 22); // a Sunday
+      final cubit = ListeningRecapCubit(
+        recap: GetListeningRecapUseCase(
+          playedSince(0),
+          GetTracksByIdsUseCase(_Library([a1])),
+        ),
+        now: () => clock,
+      );
+      addTearDown(cubit.close);
+      await cubit.load();
+      expect(cubit.state.firstDay, _day(2026, 10, 19));
+
+      clock = DateTime(2026, 11, 2, 8); // Monday
+      await cubit.load();
+      expect(cubit.state.firstDay, _day(2026, 10, 26));
+      expect(cubit.state.today, _day(2026, 11, 2));
+    });
+
+    test('a failed read keeps the way back', () async {
+      final history = playedSince(0);
+      final cubit = cubitOn(history);
+      addTearDown(cubit.close);
+      await cubit.load();
+
+      history.fail = true;
+      await cubit.step(-1);
+
+      expect(cubit.state.recap, isNull);
+      expect(cubit.state.failed, isTrue);
+      expect(cubit.state.canGoBack, isTrue);
+    });
+
+    test('isShown only once the span read is the one named', () async {
+      final history = playedSince(0)..gates = [Completer<void>()];
+      final cubit = cubitOn(history);
+      addTearDown(cubit.close);
+      final read = cubit.load();
+      expect(cubit.state.isShown, isFalse);
+      history.gates![0].complete();
+      await read;
+      expect(cubit.state.isShown, isTrue);
     });
 
     test('a failed read shows no recap, not an error', () async {

@@ -11,7 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
 - Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
 - Your listening, opened from the Home card, shows any week or month: switch between Week and Month, and step back to earlier ones with the arrows. Each gives its listening time, days with music, busiest day, top five songs (tap one to play the list from it), top artist and top albums.
-- When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening").
+- When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening"). The hours after midnight count for the night before. Backups carry it too.
 - Share a week or a month as a story image (1080 x 1920): listening time, top songs, the days filled with music and your peak, over your top song's colours. A finished month is shared as its Replay.
 
 ### Changed

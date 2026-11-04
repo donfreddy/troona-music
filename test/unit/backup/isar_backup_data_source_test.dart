@@ -14,6 +14,7 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
@@ -116,6 +117,7 @@ void main() {
     List<BackupDay> days = const [],
     List<BackupTrackDay> trackDays = const [],
     List<BackupFirstPlay> firstPlays = const [],
+    List<BackupHour> hours = const [],
   }) => Backup(
     createdAt: t0,
     tracks: {
@@ -126,6 +128,7 @@ void main() {
     days: days,
     trackDays: trackDays,
     firstPlays: firstPlays,
+    hours: hours,
     replayMonth: null,
     settings: const AppSettings(),
   );
@@ -378,6 +381,60 @@ void main() {
       final day = isar.listeningDayModels.get(10)!;
       expect(day.plays, 5);
       expect(day.listenedMs, 900);
+    });
+
+    test('hour totals keep the larger count, and are read back', () async {
+      isar.write(
+        (isar) => isar.listeningHourModels.putAll([
+          ListeningHourModel()
+            ..id = 240
+            ..plays = 5,
+          ListeningHourModel()
+            ..id = 241
+            ..plays = 1,
+        ]),
+      );
+
+      await source.restore(
+        backup(
+          hours: const [
+            BackupHour(hour: 240, plays: 2),
+            BackupHour(hour: 241, plays: 4),
+            BackupHour(hour: 300, plays: 3),
+          ],
+        ),
+        const {},
+      );
+
+      expect(isar.listeningHourModels.get(240)!.plays, 5);
+      expect(isar.listeningHourModels.get(241)!.plays, 4);
+      expect(isar.listeningHourModels.get(300)!.plays, 3);
+      final read = source.read(
+        createdAt: t0,
+        settings: const AppSettings(),
+        replayMonth: null,
+      );
+      expect(read.hours, hasLength(3));
+    });
+
+    test('a backup without hours counts the plays it adds, once', () async {
+      store(tracks: [_track('1')]);
+      final old = backup(
+        plays: [
+          BackupPlay(track: 'a', at: t0.toUtc()),
+          BackupPlay(
+            track: 'a',
+            at: t0.add(const Duration(minutes: 5)).toUtc(),
+          ),
+        ],
+      );
+
+      await source.restore(old, {'a': '1'});
+      await source.restore(old, {'a': '1'});
+
+      final id = ListeningDay.of(t0) * 24 + t0.hour;
+      expect(isar.listeningHourModels.get(id)!.plays, 2);
+      expect(isar.listeningHourModels.count(), 1);
     });
 
     test('two saved songs found as one add up their plays', () async {

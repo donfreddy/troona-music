@@ -51,13 +51,14 @@ List<int> _hours(Map<(int, int), int> plays) {
 
 final class _History implements PlayHistoryRepository {
   ListeningStats stats;
+  bool fail = false;
   _History(this.stats);
 
   @override
   Future<Either<Failure, ListeningStats>> listeningStats({
     required int firstDay,
     required int lastDay,
-  }) async => right(stats);
+  }) async => fail ? left(const DatabaseFailure()) : right(stats);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -310,7 +311,7 @@ void main() {
 
       expect(find.text('Peak: Friday evening'), findsOneWidget);
       expect(find.byType(HeatCell), findsNWidgets(28));
-      expect(find.text('Morning'), findsOneWidget);
+      expect(find.byTooltip('Morning'), findsOneWidget);
     });
 
     testWidgets('a night belongs to the evening before', (tester) async {
@@ -333,6 +334,37 @@ void main() {
         findsOneWidget,
       );
     });
+
+    for (final locale in const [Locale('en'), Locale('fr')]) {
+      testWidgets('${locale.languageCode}, text x2.0 at 360 dp: the squares '
+          'keep their room', (tester) async {
+        tester.view
+          ..devicePixelRatio = 1
+          ..physicalSize = const Size(360, 640);
+        tester.platformDispatcher.textScaleFactorTestValue = 2;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpWidget(
+          _app(
+            Padding(
+              // The page's margins and the panel's padding.
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: ListeningMomentsGrid(
+                moments: ListeningMoments.fromHours(_hours({(5, 20): 6})),
+                spanKey: 1,
+              ),
+            ),
+            locale: locale,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        for (final cell in tester.widgetList<HeatCell>(find.byType(HeatCell))) {
+          final width = tester.getSize(find.byWidget(cell)).width;
+          expect(width, greaterThan(28), reason: cell.semanticLabel);
+        }
+      });
+    }
 
     testWidgets('without plays: a line, no empty grid', (tester) async {
       await tester.pumpWidget(
@@ -357,6 +389,7 @@ void main() {
     Future<(ListeningRecapCubit, FakeAudioPort)> open(
       WidgetTester tester, {
       required ListeningStats stats,
+      _History? history,
       Size size = const Size(400, 2400),
       double textScale = 1,
     }) async {
@@ -372,7 +405,7 @@ void main() {
       final player = buildTestPlayerBloc(port, PlaybackSessionStore(prefs));
       final cubit = ListeningRecapCubit(
         recap: GetListeningRecapUseCase(
-          _History(stats),
+          history ?? _History(stats),
           GetTracksByIdsUseCase(_Library([song, other])),
         ),
         now: () => now,
@@ -495,6 +528,32 @@ void main() {
         tester.widget<RecapStory>(find.byType(RecapStory)).recap.firstDay,
         lastMonday,
       );
+    });
+
+    testWidgets('a failed read says so, and the way back stays', (
+      tester,
+    ) async {
+      final history = _History(full);
+      final (cubit, _) = await open(tester, stats: full, history: history);
+
+      history.fail = true;
+      await tester.tap(find.byTooltip('Earlier'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Something went wrong. Try again.'), findsOneWidget);
+      expect(find.text('Top songs'), findsNothing);
+      expect(cubit.state.canGoBack, isTrue);
+    });
+
+    testWidgets('a week of another year gives its year', (tester) async {
+      final (cubit, _) = await open(tester, stats: full);
+      // From Oct 19 back to Dec 29, 2025.
+      await cubit.step(-42);
+      await tester.pumpAndSettle();
+      expect(find.text('Dec 29, 2025 to Jan 4, 2026'), findsOneWidget);
+      await cubit.step(-1);
+      await tester.pumpAndSettle();
+      expect(find.text('Dec 22 to Dec 28, 2025'), findsOneWidget);
     });
 
     testWidgets('a span without plays says so', (tester) async {

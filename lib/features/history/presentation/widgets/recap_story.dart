@@ -47,7 +47,7 @@ class RecapStory extends StatelessWidget {
     final timed = recap.listened > Duration.zero;
     final peak = ListeningMomentsGrid.peakOf(context, recap.moments);
     final dates = switch (recap.period) {
-      RecapPeriod.week => formatRecapRange(context, recap),
+      RecapPeriod.week => formatRecapRange(context, recap, today: today),
       RecapPeriod.month => formatMonth(context, recap.start),
     };
 
@@ -259,9 +259,12 @@ class RecapStory extends StatelessWidget {
     );
 
     return MediaQuery(
-      data: MediaQuery.of(
-        context,
-      ).copyWith(textScaler: TextScaler.noScaling, disableAnimations: true),
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.noScaling,
+        disableAnimations: true,
+        // Covers decoded for the image's pixels, not the phone's.
+        devicePixelRatio: pixelRatio,
+      ),
       child: SizedBox.fromSize(
         size: size,
         child: ClipRect(

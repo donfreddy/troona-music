@@ -14,15 +14,14 @@ String formatListened(BuildContext context, Duration listened) {
   return l10n.recapMinutes(minutes == 0 ? 1 : minutes);
 }
 
-/// "Oct 19 to 25" style range of the recap's week, in the app's locale.
-String formatRecapRange(BuildContext context, ListeningRecap recap) {
-  final locale = Localizations.localeOf(context).toString();
-  final day = DateFormat.MMMd(locale);
-  return context.l10n.recapRange(
-    day.format(recap.start),
-    day.format(recap.end),
-  );
-}
+/// "Oct 19 to Oct 25", in the app's locale. The year shows when the week
+/// spans two, or when it is not [today]'s year (a `ListeningDay` key):
+/// the history goes back years.
+String formatRecapRange(
+  BuildContext context,
+  ListeningRecap recap, {
+  int? today,
+}) => _range(context, recap.firstDay, recap.lastDay, today: today);
 
 /// "September 2026", capitalised as a title in every language.
 String formatMonth(BuildContext context, DateTime month) {
@@ -40,7 +39,7 @@ String formatSpanTitle(BuildContext context, ListeningRecapState state) {
     RecapPeriod.week when state.isPrevious => l10n.recapLastWeek,
     RecapPeriod.month when state.isCurrent => l10n.recapThisMonth,
     RecapPeriod.month when state.isPrevious => l10n.recapLastMonth,
-    RecapPeriod.week => _range(context, first, last),
+    RecapPeriod.week => _range(context, first, last, today: state.today),
     RecapPeriod.month => formatMonth(context, ListeningDay.date(first)),
   };
 }
@@ -51,16 +50,23 @@ String? formatSpanDates(BuildContext context, ListeningRecapState state) {
   if (!state.isCurrent && !state.isPrevious) return null;
   final (first, last) = state.period.rangeOf(state.firstDay);
   return switch (state.period) {
-    RecapPeriod.week => _range(context, first, last),
+    RecapPeriod.week => _range(context, first, last, today: state.today),
     RecapPeriod.month => formatMonth(context, ListeningDay.date(first)),
   };
 }
 
-String _range(BuildContext context, int first, int last) {
+String _range(BuildContext context, int first, int last, {int? today}) {
   final locale = Localizations.localeOf(context).toString();
+  final start = ListeningDay.date(first);
+  final end = ListeningDay.date(last);
   final day = DateFormat.MMMd(locale);
+  final dated = DateFormat.yMMMd(locale);
+  final otherYear = today != null && end.year != ListeningDay.date(today).year;
+  if (start.year != end.year) {
+    return context.l10n.recapRange(dated.format(start), dated.format(end));
+  }
   return context.l10n.recapRange(
-    day.format(ListeningDay.date(first)),
-    day.format(ListeningDay.date(last)),
+    day.format(start),
+    (otherYear ? dated : day).format(end),
   );
 }

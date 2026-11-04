@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
+import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/history/domain/entities/listening_recap.dart';
 import 'package:troona/features/history/presentation/widgets/recap_story.dart';
@@ -85,7 +86,8 @@ class _RecapShareSheetState extends State<RecapShareSheet> {
       await file.writeAsBytes(bytes!.buffer.asUint8List(), flush: true);
       // share_plus copies the file before the share sheet opens.
       await (widget.share ?? _shareWithSystem)(file.path, subject);
-    } catch (_) {
+    } catch (e, st) {
+      appLogger.e('Sharing the recap story failed', error: e, stackTrace: st);
       AppToast.showOn(overlay, error);
     } finally {
       try {

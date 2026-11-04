@@ -66,6 +66,18 @@ final class BackupDay extends Equatable {
   List<Object?> get props => [day, plays, listenedMs];
 }
 
+/// Plays started in one hour: [hour] is `day * 24 + hour`, the day a
+/// `ListeningDay` key, the hour local.
+final class BackupHour extends Equatable {
+  final int hour;
+  final int plays;
+
+  const BackupHour({required this.hour, required this.plays});
+
+  @override
+  List<Object?> get props => [hour, plays];
+}
+
 final class BackupTrackDay extends Equatable {
   final int day;
   final String track;
@@ -102,6 +114,9 @@ final class Backup extends Equatable {
   final List<BackupTrackDay> trackDays;
   final List<BackupFirstPlay> firstPlays;
 
+  /// Empty in backups made before the hours were counted.
+  final List<BackupHour> hours;
+
   /// The last month whose Replay playlist was made, as `MonthlyReplayLog`
   /// keeps it.
   final int? replayMonth;
@@ -115,6 +130,7 @@ final class Backup extends Equatable {
     required this.days,
     required this.trackDays,
     required this.firstPlays,
+    this.hours = const [],
     required this.replayMonth,
     required this.settings,
   });
@@ -128,6 +144,7 @@ final class Backup extends Equatable {
     days,
     trackDays,
     firstPlays,
+    hours,
     replayMonth,
     settings,
   ];

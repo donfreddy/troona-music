@@ -525,7 +525,7 @@
       }
     }
   },
-  "recapNothingYet": "Nothing played yet. Your next song starts it.",
+  "recapNothingYet": "Nothing played yet.",
   "recapNothing": "Nothing was played.",
   "recapTopSongs": "Top songs",
   "recapPlaysHeader": "Plays",
@@ -586,14 +586,6 @@
   "recapAfternoon": "Afternoon",
   "recapEvening": "Evening",
   "recapNight": "Night",
-  "recapPlayFrom": "Play from {title}",
-  "@recapPlayFrom": {
-    "placeholders": {
-      "title": {
-        "type": "String"
-      }
-    }
-  },
   "replayName": "Replay {month}",
   "@replayName": {
     "placeholders": {

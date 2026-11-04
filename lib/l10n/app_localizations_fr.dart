@@ -994,8 +994,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get recapNothingYet =>
-      'Rien d\'écouté pour l\'instant. Votre prochain morceau le lance.';
+  String get recapNothingYet => 'Aucune écoute pour l\'instant.';
 
   @override
   String get recapNothing => 'Aucune écoute sur cette période.';
@@ -1072,11 +1071,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recapNight => 'Nuit';
-
-  @override
-  String recapPlayFrom(String title) {
-    return 'Lire à partir de $title';
-  }
 
   @override
   String replayName(String month) {

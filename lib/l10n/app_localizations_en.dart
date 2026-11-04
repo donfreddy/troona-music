@@ -985,7 +985,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recapNothingYet => 'Nothing played yet. Your next song starts it.';
+  String get recapNothingYet => 'Nothing played yet.';
 
   @override
   String get recapNothing => 'Nothing was played.';
@@ -1062,11 +1062,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recapNight => 'Night';
-
-  @override
-  String recapPlayFrom(String title) {
-    return 'Play from $title';
-  }
 
   @override
   String replayName(String month) {

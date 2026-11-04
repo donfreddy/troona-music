@@ -4,6 +4,7 @@ import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
@@ -88,6 +89,10 @@ final class IsarBackupDataSource {
           if (tracks.containsKey(f.id))
             BackupFirstPlay(track: f.id, day: f.day),
       ],
+      hours: [
+        for (final h in _isar.listeningHourModels.where().findAll())
+          BackupHour(hour: h.id, plays: h.plays),
+      ],
       replayMonth: replayMonth,
       settings: settings,
     );
@@ -98,8 +103,9 @@ final class IsarBackupDataSource {
   Future<void> restore(Backup backup, Map<String, String> ids) async =>
       _isar.write((isar) {
         _restorePlaylists(isar, backup.playlists, ids);
-        _restorePlays(isar, backup.plays, ids);
+        final added = _restorePlays(isar, backup.plays, ids);
         _restoreTotals(isar, backup, ids);
+        _restoreHours(isar, backup.hours, added);
       });
 
   /// Liked songs join the liked songs. Other playlists pair by name and
@@ -157,7 +163,8 @@ final class IsarBackupDataSource {
   }
 
   /// A play already stored (same song, same time) is not added again.
-  void _restorePlays(
+  /// Returns the times of the plays added.
+  List<DateTime> _restorePlays(
     Isar isar,
     List<BackupPlay> saved,
     Map<String, String> ids,
@@ -166,20 +173,48 @@ final class IsarBackupDataSource {
     final stored = {
       for (final e in events.where().findAll()) _playKey(e.trackId, e.playedAt),
     };
+    final added = <DateTime>[];
     for (final play in saved) {
       final id = ids[play.track];
       if (id == null || !stored.add(_playKey(id, play.at))) continue;
+      final at = play.at.toLocal();
       events.put(
         PlayEventModel()
           ..id = events.autoIncrement()
           ..trackId = id
-          ..playedAt = play.at.toLocal(),
+          ..playedAt = at,
       );
+      added.add(at);
     }
     final excess = events.count() - maxPlays;
     if (excess > 0) {
       final oldest = events.where().sortByPlayedAt().findAll(limit: excess);
       events.deleteAll([for (final e in oldest) e.id]);
+    }
+    return added;
+  }
+
+  /// Hour totals keep the larger count, like the days. A backup made before
+  /// the hours were counted has none: the plays it adds are counted in
+  /// their hour instead, once, since a play already stored is not added.
+  static void _restoreHours(
+    Isar isar,
+    List<BackupHour> saved,
+    List<DateTime> added,
+  ) {
+    final hours = isar.listeningHourModels;
+    if (saved.isEmpty) {
+      for (final at in added) {
+        final id = ListeningDay.of(at) * 24 + at.hour;
+        hours.put(
+          (hours.get(id) ?? (ListeningHourModel()..id = id))..plays += 1,
+        );
+      }
+      return;
+    }
+    for (final h in saved) {
+      final stored = hours.get(h.hour) ?? (ListeningHourModel()..id = h.hour);
+      hours.put(stored..plays = max(stored.plays, h.plays));
     }
   }
 

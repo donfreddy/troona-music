@@ -20,6 +20,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -60,13 +61,19 @@ class ListeningRecapPage extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     _inset(_SpanNavigator(state: state)),
                     const SizedBox(height: AppSpacing.md),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      layoutBuilder: (current, previous) => Stack(
-                        alignment: Alignment.topCenter,
-                        children: [...previous, ?current],
+                    // The span before stays, faded, while the next one is
+                    // read: its figures are not the title's.
+                    AnimatedOpacity(
+                      opacity: state.loading && !state.isShown ? .35 : 1,
+                      duration: const Duration(milliseconds: 160),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        layoutBuilder: (current, previous) => Stack(
+                          alignment: Alignment.topCenter,
+                          children: [...previous, ?current],
+                        ),
+                        child: _content(context, state),
                       ),
-                      child: _content(context, state),
                     ),
                   ],
                 ),
@@ -85,17 +92,21 @@ class ListeningRecapPage extends StatelessWidget {
 
   Widget _content(BuildContext context, ListeningRecapState state) {
     final recap = state.recap;
+    final l10n = context.l10n;
+    final colors = context.colors;
     if (recap == null) {
       return Padding(
-        key: const ValueKey('loading'),
+        key: ValueKey(state.loading ? 'loading' : 'failed'),
         padding: const EdgeInsets.all(AppSpacing.xl3),
         child: state.loading
             ? const Center(child: CircularProgressIndicator())
-            : const SizedBox.shrink(),
+            : Text(
+                l10n.errorGeneric,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: colors.labelSecondary, fontSize: 15),
+              ),
       );
     }
-    final l10n = context.l10n;
-    final colors = context.colors;
     final busiest = recap.activeDays > 1 ? recap.busiestDay : null;
     final locale = Localizations.localeOf(context).toString();
 
@@ -103,7 +114,13 @@ class ListeningRecapPage extends StatelessWidget {
       key: ValueKey((recap.period, recap.firstDay)),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _inset(_Summary(recap: recap, inProgress: state.isCurrent)),
+        _inset(
+          _Summary(
+            recap: recap,
+            inProgress:
+                recap.firstDay <= state.today && state.today <= recap.lastDay,
+          ),
+        ),
         const SizedBox(height: AppSpacing.xl),
         _inset(
           _Panel(
@@ -282,7 +299,9 @@ class _PeriodSwitch extends StatelessWidget {
                         context.read<ListeningRecapCubit>().showPeriod(period);
                       },
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(minHeight: 40),
+                        constraints: const BoxConstraints(
+                          minHeight: AppButton.minTouchTarget,
+                        ),
                         child: Center(
                           child: AnimatedDefaultTextStyle(
                             duration: duration,

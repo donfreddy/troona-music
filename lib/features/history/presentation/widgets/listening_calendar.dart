@@ -42,6 +42,12 @@ class ListeningCalendar extends StatelessWidget {
         DateFormat.EEEEE(locale).format(DateTime(2026, 10, 19 + i)),
     ];
 
+    final dayFormat = DateFormat.MMMMEEEEd(locale);
+    final cells = [
+      for (var i = 0; i < weeks * 7; i++)
+        _cell(context, firstDay + i - leading, dayFormat),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -68,6 +74,7 @@ class ListeningCalendar extends StatelessWidget {
         HeatCascade(
           key: ValueKey(firstDay),
           steps: weeks + 6,
+          // [cells] are built once: the cascade rebuilds on every frame.
           builder: (context, reveal) => Column(
             children: [
               for (var w = 0; w < weeks; w++)
@@ -77,12 +84,7 @@ class ListeningCalendar extends StatelessWidget {
                     children: [
                       for (var d = 0; d < 7; d++) ...[
                         if (d > 0) const SizedBox(width: _gap),
-                        Expanded(
-                          child: reveal(
-                            w + d,
-                            _cell(context, firstDay + w * 7 + d - leading),
-                          ),
-                        ),
+                        Expanded(child: reveal(w + d, cells[w * 7 + d])),
                       ],
                     ],
                   ),
@@ -96,11 +98,10 @@ class ListeningCalendar extends StatelessWidget {
     );
   }
 
-  Widget _cell(BuildContext context, int day) {
+  Widget _cell(BuildContext context, int day, DateFormat dayFormat) {
     if (day < firstDay || day > lastDay) {
       return const AspectRatio(aspectRatio: 1);
     }
-    final locale = Localizations.localeOf(context).toString();
     final date = ListeningDay.date(day);
     final plays = dayPlays[day] ?? 0;
     return HeatCell(
@@ -108,10 +109,7 @@ class ListeningCalendar extends StatelessWidget {
       text: '${date.day}',
       marked: day == today,
       future: day > today,
-      semanticLabel: context.l10n.recapDayPlays(
-        DateFormat.MMMMEEEEd(locale).format(date),
-        plays,
-      ),
+      semanticLabel: context.l10n.recapDayPlays(dayFormat.format(date), plays),
     );
   }
 }
