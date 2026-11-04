@@ -4,6 +4,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
@@ -40,11 +41,19 @@ class AlbumCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: ArtworkImage(album.artworkPath, placeholder: AppIcons.album),
+        AlbumCoverHero(
+          albumId: album.id,
+          artworkPath: album.artworkPath,
+          radius: AppSpacing.radiusMd,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: ArtworkImage(
+                album.artworkPath,
+                placeholder: AppIcons.album,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 6),

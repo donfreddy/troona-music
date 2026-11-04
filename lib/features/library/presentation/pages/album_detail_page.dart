@@ -19,6 +19,7 @@ import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -264,83 +265,91 @@ class _AlbumHeader extends StatelessWidget {
                             ),
                           ),
 
-                          // Front album artwork
+                          // Front album artwork, landing from the card
+                          // that opened the page.
                           Positioned(
                             left: 6,
-                            child: Container(
-                              width: 180,
-                              height: 180,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                // Depth only: an accent glow would
-                                // clash with the cover's own colours.
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.45),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child:
-                                    BlocBuilder<
-                                      AlbumMetadataCubit,
-                                      AlbumMetadataState
-                                    >(
-                                      builder: (context, metaState) {
-                                        final localArt =
-                                            album.artworkPath ??
-                                            (metaState is AlbumMetadataLoaded
-                                                ? metaState.localImagePath
-                                                : null);
-                                        final onlineUrl =
-                                            metaState is AlbumMetadataLoaded
-                                            ? metaState.info.imageUrl
-                                            : null;
+                            child: AlbumCoverHero(
+                              albumId: album.id,
+                              artworkPath: album.artworkPath,
+                              radius: 16,
+                              child: Container(
+                                width: 180,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  // Depth only: an accent glow would
+                                  // clash with the cover's own colours.
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child:
+                                      BlocBuilder<
+                                        AlbumMetadataCubit,
+                                        AlbumMetadataState
+                                      >(
+                                        builder: (context, metaState) {
+                                          final localArt =
+                                              album.artworkPath ??
+                                              (metaState is AlbumMetadataLoaded
+                                                  ? metaState.localImagePath
+                                                  : null);
+                                          final onlineUrl =
+                                              metaState is AlbumMetadataLoaded
+                                              ? metaState.info.imageUrl
+                                              : null;
 
-                                        Widget fallbackIcon() =>
-                                            const ArtworkPlaceholder(
-                                              icon: AppIcons.album,
+                                          Widget fallbackIcon() =>
+                                              const ArtworkPlaceholder(
+                                                icon: AppIcons.album,
+                                                width: 180,
+                                                height: 180,
+                                              );
+
+                                          if (localArt != null &&
+                                              localArt.isNotEmpty) {
+                                            return ArtworkImage(
+                                              localArt,
                                               width: 180,
                                               height: 180,
+                                              errorBuilder: (_, _, _) =>
+                                                  onlineUrl != null &&
+                                                      onlineUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      onlineUrl,
+                                                      width: 180,
+                                                      height: 180,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (_, _, _) =>
+                                                          fallbackIcon(),
+                                                    )
+                                                  : fallbackIcon(),
                                             );
-
-                                        if (localArt != null &&
-                                            localArt.isNotEmpty) {
-                                          return ArtworkImage(
-                                            localArt,
-                                            width: 180,
-                                            height: 180,
-                                            errorBuilder: (_, _, _) =>
-                                                onlineUrl != null &&
-                                                    onlineUrl.isNotEmpty
-                                                ? Image.network(
-                                                    onlineUrl,
-                                                    width: 180,
-                                                    height: 180,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (_, _, _) =>
-                                                        fallbackIcon(),
-                                                  )
-                                                : fallbackIcon(),
-                                          );
-                                        }
-                                        if (onlineUrl != null &&
-                                            onlineUrl.isNotEmpty) {
-                                          return Image.network(
-                                            onlineUrl,
-                                            width: 180,
-                                            height: 180,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                fallbackIcon(),
-                                          );
-                                        }
-                                        return fallbackIcon();
-                                      },
-                                    ),
+                                          }
+                                          if (onlineUrl != null &&
+                                              onlineUrl.isNotEmpty) {
+                                            return Image.network(
+                                              onlineUrl,
+                                              width: 180,
+                                              height: 180,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, _, _) =>
+                                                  fallbackIcon(),
+                                            );
+                                          }
+                                          return fallbackIcon();
+                                        },
+                                      ),
+                                ),
                               ),
                             ),
                           ),
