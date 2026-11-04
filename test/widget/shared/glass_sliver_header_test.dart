@@ -269,6 +269,11 @@ void main() {
     await tester.pump();
     expect(tester.getSize(find.byKey(bg)).height, greaterThan(rest));
     expect(tester.getTopLeft(find.byKey(bg)).dy, 0);
+
+    // Collapsing: its bottom follows the header's edge, never cut short.
+    controller.jumpTo(100);
+    await tester.pump();
+    expect(tester.getBottomLeft(find.byKey(bg)).dy, rest - 100);
   });
 
   for (final (drag, end) in [(40.0, 'expanded'), (75.0, 'collapsed')]) {
@@ -308,5 +313,39 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
     expect(controller.offset, before);
+  });
+
+  testWidgets('a pushed page: the back button at the start, the compact '
+      'title between it and the actions', (tester) async {
+    final back = UniqueKey();
+    final controller = await pump(
+      tester,
+      GlassSliverHeader(
+        // Centres itself, like AppBackButton.
+        leading: Center(key: back, child: const SizedBox.square(dimension: 45)),
+        title: 'Glass Horizons',
+        actions: [
+          GlassIconButton(
+            key: actionKey,
+            icon: Icons.more_vert,
+            tooltip: 'More',
+            onTap: () {},
+          ),
+        ],
+        expandedHeight: 300,
+        expanded: const SizedBox(),
+      ),
+    );
+    await scrollTo(tester, controller, 400);
+    final backRect = tester.getRect(find.byKey(back));
+    expect(backRect.left, 8);
+    expect(backRect.width, 45);
+    final title = tester.getRect(compactTitle('Glass Horizons'));
+    expect(title.width, greaterThan(100));
+    expect(title.left, greaterThanOrEqualTo(backRect.right));
+    expect(
+      title.right,
+      lessThanOrEqualTo(tester.getRect(find.byKey(actionKey)).left),
+    );
   });
 }

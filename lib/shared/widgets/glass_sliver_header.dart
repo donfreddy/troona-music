@@ -44,7 +44,8 @@ class GlassSliverHeader extends StatelessWidget {
   final double expandedTextHeight;
 
   /// Painted edge to edge behind the whole expanded header, status bar
-  /// included (an artist photo). It scrolls at half speed and fades out.
+  /// included (an artist photo). It scrolls with the content, so its bottom
+  /// stays on the header's edge, and fades out.
   final Widget? background;
 
   /// Stays below the navigation row once collapsed (Library filter, Search
@@ -247,12 +248,13 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
       fit: StackFit.expand,
       clipBehavior: Clip.hardEdge,
       children: [
-        // ── Edge-to-edge background: half speed, fades out ──────────────
+        // ── Edge-to-edge background: scrolls with the content ───────────
+        // At half speed (parallax), the header's edge would cut it short.
         if (background != null)
           Positioned(
             key: const ValueKey('background'),
             // Stretched (overscroll, shrinkOffset 0): fills the taller box.
-            top: shrinkOffset > 0 ? -shrinkOffset / 2 : 0,
+            top: shrinkOffset > 0 ? -shrinkOffset : 0,
             left: 0,
             right: 0,
             height: shrinkOffset > 0 ? maxExtent : null,
@@ -400,7 +402,9 @@ class _NavRow extends StatelessWidget {
           right: leading == null ? AppSpacing.lg : AppSpacing.sm,
         ),
         child: NavigationToolbar(
-          leading: leading,
+          // Its own width: [AppBackButton] centres itself and would take
+          // the whole row, leaving the title no room.
+          leading: leading == null ? null : IntrinsicWidth(child: leading),
           middle: title == null
               ? null
               : Opacity(
