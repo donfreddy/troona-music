@@ -1600,4 +1600,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew150BackBody =>
       'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.';
+
+  @override
+  String get whatsNew160RecapTitle => 'Your listening';
+
+  @override
+  String get whatsNew160RecapBody =>
+      'Any week or month at a glance: your listening time, each day as a square filled by how much music it had, your top songs, artist and albums, and when you listen most. Open it from the card on Home.';
+
+  @override
+  String get whatsNew160StoryTitle => 'Share it as a story';
+
+  @override
+  String get whatsNew160StoryBody =>
+      'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.';
+
+  @override
+  String get whatsNew160GesturesTitle => 'Swipe and hold';
+
+  @override
+  String get whatsNew160GesturesBody =>
+      'Swipe a song right to play it next, or left to add it to the queue. Swipe the mini player to change song, and hold it to like the song playing.';
+
+  @override
+  String get whatsNew160ResumeTitle => 'Pick up where you left off';
+
+  @override
+  String get whatsNew160ResumeBody =>
+      'Jump back in on Home goes on from where the song stopped, with the album or playlist it came from and the time left.';
+
+  @override
+  String get whatsNew160ArtistTitle => 'Livelier artist and album pages';
+
+  @override
+  String get whatsNew160ArtistBody =>
+      'Artist pages open on one round Shuffle button and their latest release, with their releases newest first. On album pages, the record turns while the album plays.';
 }

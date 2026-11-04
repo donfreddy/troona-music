@@ -4,16 +4,18 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-04
+
 ### Added
 
-- Artist pages show their latest release on its own, above their albums, when the songs carry a year.
-- Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
-- Long-press the mini player to like the song playing, or to take the like back: a heart pops over its cover. Screen readers offer it as an action.
-- On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
-- Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
 - Your listening, opened from the Home card, shows any week or month: switch between Week and Month, and step back to earlier ones with the arrows. Each gives its listening time, days with music, busiest day, top five songs (tap one to play the list from it), top artist and top albums.
 - When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening"). The hours after midnight count for the night before. Backups carry it too.
 - Share a week or a month as a story image (1080 x 1920): listening time, top songs, the days filled with music and your peak, over your top song's colours. A finished month is shared as its Replay.
+- Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
+- Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
+- Long-press the mini player to like the song playing, or to take the like back: a heart pops over its cover. Screen readers offer it as an action.
+- On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
+- Artist pages show their latest release on its own, above their albums, when the songs carry a year.
 
 ### Changed
 
@@ -213,7 +215,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/donfreddy/troona-music/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/donfreddy/troona-music/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/donfreddy/troona-music/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/donfreddy/troona-music/compare/v1.2.0...v1.3.0

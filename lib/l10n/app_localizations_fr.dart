@@ -1615,4 +1615,40 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew150BackBody =>
       'Ouvrez l\'artiste d\'un album alors que vous venez de cet artiste, et vous revenez sur sa page au lieu de l\'ouvrir une deuxième fois. Pareil dans l\'autre sens.';
+
+  @override
+  String get whatsNew160RecapTitle => 'Vos écoutes';
+
+  @override
+  String get whatsNew160RecapBody =>
+      'Chaque semaine ou chaque mois en un coup d\'œil : votre temps d\'écoute, chaque jour en carré rempli selon la musique écoutée, vos morceaux, artiste et albums phares, et vos moments d\'écoute. Ouvrez-le depuis la carte de l\'accueil.';
+
+  @override
+  String get whatsNew160StoryTitle => 'Partagez-le en story';
+
+  @override
+  String get whatsNew160StoryBody =>
+      'Faites d\'une semaine ou d\'un mois une image pour vos stories, aux couleurs de votre morceau phare. Un mois terminé se partage comme son Replay.';
+
+  @override
+  String get whatsNew160GesturesTitle => 'Glissez, maintenez';
+
+  @override
+  String get whatsNew160GesturesBody =>
+      'Glissez un morceau vers la droite pour le lire ensuite, ou vers la gauche pour l\'ajouter à la file d\'attente. Glissez le mini lecteur pour changer de morceau, et maintenez-le pour aimer le morceau en cours.';
+
+  @override
+  String get whatsNew160ResumeTitle => 'Reprenez où vous en étiez';
+
+  @override
+  String get whatsNew160ResumeBody =>
+      'Reprendre, sur l\'accueil, repart là où le morceau s\'est arrêté, avec l\'album ou la playlist d\'origine et le temps restant.';
+
+  @override
+  String get whatsNew160ArtistTitle =>
+      'Des pages artiste et album plus vivantes';
+
+  @override
+  String get whatsNew160ArtistBody =>
+      'Les pages artiste s\'ouvrent sur un bouton rond Aléatoire et leur dernière sortie, avec leurs sorties de la plus récente à la plus ancienne. Sur les pages album, le disque tourne pendant la lecture.';
 }

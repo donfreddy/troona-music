@@ -2683,6 +2683,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open an album\'s artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.'**
   String get whatsNew150BackBody;
+
+  /// No description provided for @whatsNew160RecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listening'**
+  String get whatsNew160RecapTitle;
+
+  /// No description provided for @whatsNew160RecapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Any week or month at a glance: your listening time, each day as a square filled by how much music it had, your top songs, artist and albums, and when you listen most. Open it from the card on Home.'**
+  String get whatsNew160RecapBody;
+
+  /// No description provided for @whatsNew160StoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share it as a story'**
+  String get whatsNew160StoryTitle;
+
+  /// No description provided for @whatsNew160StoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.'**
+  String get whatsNew160StoryBody;
+
+  /// No description provided for @whatsNew160GesturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe and hold'**
+  String get whatsNew160GesturesTitle;
+
+  /// No description provided for @whatsNew160GesturesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe a song right to play it next, or left to add it to the queue. Swipe the mini player to change song, and hold it to like the song playing.'**
+  String get whatsNew160GesturesBody;
+
+  /// No description provided for @whatsNew160ResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off'**
+  String get whatsNew160ResumeTitle;
+
+  /// No description provided for @whatsNew160ResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump back in on Home goes on from where the song stopped, with the album or playlist it came from and the time left.'**
+  String get whatsNew160ResumeBody;
+
+  /// No description provided for @whatsNew160ArtistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Livelier artist and album pages'**
+  String get whatsNew160ArtistTitle;
+
+  /// No description provided for @whatsNew160ArtistBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages open on one round Shuffle button and their latest release, with their releases newest first. On album pages, the record turns while the album plays.'**
+  String get whatsNew160ArtistBody;
 }
 
 class _AppLocalizationsDelegate

@@ -856,5 +856,15 @@
   "whatsNew150PagesTitle": "Calmer pages",
   "whatsNew150PagesBody": "Album and artist pages state their facts as one line of text instead of pills, and their album cards give the year. Titles are bold, and a dot marks the tab you are on.",
   "whatsNew150BackTitle": "Back where you came from",
-  "whatsNew150BackBody": "Open an album's artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round."
+  "whatsNew150BackBody": "Open an album's artist when you came from that artist, and you go back to their page instead of opening it again. The same goes the other way round.",
+  "whatsNew160RecapTitle": "Your listening",
+  "whatsNew160RecapBody": "Any week or month at a glance: your listening time, each day as a square filled by how much music it had, your top songs, artist and albums, and when you listen most. Open it from the card on Home.",
+  "whatsNew160StoryTitle": "Share it as a story",
+  "whatsNew160StoryBody": "Turn a week or a month into an image for your stories, over your top song's colours. A finished month is shared as its Replay.",
+  "whatsNew160GesturesTitle": "Swipe and hold",
+  "whatsNew160GesturesBody": "Swipe a song right to play it next, or left to add it to the queue. Swipe the mini player to change song, and hold it to like the song playing.",
+  "whatsNew160ResumeTitle": "Pick up where you left off",
+  "whatsNew160ResumeBody": "Jump back in on Home goes on from where the song stopped, with the album or playlist it came from and the time left.",
+  "whatsNew160ArtistTitle": "Livelier artist and album pages",
+  "whatsNew160ArtistBody": "Artist pages open on one round Shuffle button and their latest release, with their releases newest first. On album pages, the record turns while the album plays."
 }

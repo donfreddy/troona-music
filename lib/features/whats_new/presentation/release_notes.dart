@@ -30,6 +30,33 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  Release('1.6.0', date: DateTime(2026, 11, 4), [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160RecapTitle,
+      l10n.whatsNew160RecapBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160StoryTitle,
+      l10n.whatsNew160StoryBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160GesturesTitle,
+      l10n.whatsNew160GesturesBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160ResumeTitle,
+      l10n.whatsNew160ResumeBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160ArtistTitle,
+      l10n.whatsNew160ArtistBody,
+    ),
+  ]),
   Release('1.5.0', date: DateTime(2026, 11, 4), [
     ReleaseNote(
       ReleaseNoteKind.added,
