@@ -192,8 +192,6 @@ class ArtistDetailPage extends StatelessWidget {
                               },
                             ),
 
-                            // ── 5. What the header does not say: the size ───────
-                            _ArtistFootnote(tracks: data.topTracks),
 
                             SliverPadding(
                               padding: EdgeInsets.only(
@@ -720,33 +718,6 @@ class _SimilarArtistsCarousel extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Footnote ──────────────────────────────────────────────────────────────────
-/// At the end of the page, what the header does not say: the space the
-/// artist's songs take.
-class _ArtistFootnote extends StatelessWidget {
-  final List<Track> tracks;
-
-  const _ArtistFootnote({required this.tracks});
-
-  @override
-  Widget build(BuildContext context) {
-    final totalBytes = tracks.fold<int>(0, (sum, t) => sum + t.size);
-    if (totalBytes == 0) return const SliverToBoxAdapter();
-    final totalMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.xl2,
-        AppSpacing.lg,
-        0,
-      ),
-      sliver: SliverToBoxAdapter(
-        child: MetaLine([context.l10n.sizeMegabytes(totalMb)], footnote: true),
-      ),
     );
   }
 }
