@@ -22,6 +22,8 @@ import 'package:troona/features/metadata/domain/repositories/metadata_repository
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
+import 'package:troona/shared/widgets/error_view.dart';
 
 const _album = Album(
   id: '7',
@@ -36,10 +38,13 @@ const _album = Album(
 class _SlowAlbums implements AlbumDetailRepository {
   final release = Completer<void>();
 
+  /// The album cannot be read (its files are gone, the database fails).
+  bool fails = false;
+
   @override
   Future<Either<Failure, Album>> getAlbumById(String id) async {
     await release.future;
-    return right(_album);
+    return fails ? left(const DatabaseFailure()) : right(_album);
   }
 
   @override
@@ -74,23 +79,23 @@ class _UnusedLibrary extends Fake implements LibraryRepository {
   void cancelScan() {}
 }
 
-/// The shell's library, already loaded with [albums].
-LibraryBloc _library(List<Album> albums) {
+LibraryLoaded _loaded(List<Album> albums) => LibraryLoaded(
+  allTracks: const [],
+  allAlbums: albums,
+  allArtists: const [],
+  visibleTracks: const [],
+  visibleAlbums: albums,
+  visibleArtists: const [],
+);
+
+/// The shell's library, in [state].
+LibraryBloc _library(LibraryState state) {
   final bloc = LibraryBloc(
     scanLibrary: ScanLibraryUseCase(_UnusedLibrary()),
     getTracks: GetTracksUseCase(_UnusedLibrary()),
   );
   // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-  bloc.emit(
-    LibraryLoaded(
-      allTracks: const [],
-      allAlbums: albums,
-      allArtists: const [],
-      visibleTracks: const [],
-      visibleAlbums: albums,
-      visibleArtists: const [],
-    ),
-  );
+  bloc.emit(state);
   return bloc;
 }
 
@@ -102,8 +107,12 @@ void main() {
   );
   tearDown(getIt.reset);
 
-  Future<_SlowAlbums> open(WidgetTester tester, List<Album> library) async {
-    final albums = _SlowAlbums();
+  Future<_SlowAlbums> open(
+    WidgetTester tester,
+    LibraryState library, {
+    bool fails = false,
+  }) async {
+    final albums = _SlowAlbums()..fails = fails;
     final bloc = AlbumDetailBloc(repo: albums)..add(AlbumDetailRequested(7));
     final libraryBloc = _library(library);
     final palette = TrackPaletteCubit();
@@ -137,7 +146,7 @@ void main() {
 
   testWidgets('while its songs load, the page already shows the cover the '
       'card flies to, and keeps it once they are in', (tester) async {
-    final albums = await open(tester, [_album]);
+    final albums = await open(tester, _loaded([_album]));
     expect(find.byType(AlbumCoverHero), findsOneWidget);
     expect(find.text('Love, Damini'), findsWidgets);
     final landing = tester.element(find.byType(AlbumCoverHero));
@@ -156,8 +165,30 @@ void main() {
   testWidgets('an album the library does not hold yet waits on a spinner', (
     tester,
   ) async {
-    await open(tester, const []);
+    await open(tester, _loaded(const []));
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(AlbumCoverHero), findsNothing);
+  });
+
+  testWidgets('during a rescan, the cover comes from the library kept on '
+      'screen', (tester) async {
+    await open(
+      tester,
+      LibraryScanning(
+        progress: const ScanProgress(phase: ScanPhase.scanning, progress: 0),
+        cached: _loaded([_album]),
+      ),
+    );
+    expect(find.byType(AlbumCoverHero), findsOneWidget);
+  });
+
+  testWidgets('an album the library holds but that cannot be read shows the '
+      'error, not its stale cover', (tester) async {
+    final albums = await open(tester, _loaded([_album]), fails: true);
+    albums.release.complete();
+    await tester.pump();
+    await tester.pump();
+    expect(find.byType(ErrorView), findsOneWidget);
     expect(find.byType(AlbumCoverHero), findsNothing);
   });
 }
