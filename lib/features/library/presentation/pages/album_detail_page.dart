@@ -102,6 +102,9 @@ class AlbumDetailPage extends StatelessWidget {
                 ),
                 // Loading or loaded: the same tree, so the header (and the
                 // cover landing in it) stays put when the songs arrive.
+                // Online info is asked once, with the album as the library
+                // groups it, which the loaded album is too (same grouping,
+                // same songs).
                 _ => BlocProvider<AlbumMetadataCubit>(
                   create: (_) =>
                       getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
@@ -611,7 +614,12 @@ class _MoreByArtistView extends StatelessWidget {
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) => _animatedAlbumItem(
-                AlbumCard(album: albums[i], size: 135, showArtist: false),
+                AlbumCard(
+                  album: albums[i],
+                  size: 135,
+                  showArtist: false,
+                  markSingles: true,
+                ),
                 key: ValueKey('album-${albums[i].id}'),
                 i,
                 slideY: 0.04,

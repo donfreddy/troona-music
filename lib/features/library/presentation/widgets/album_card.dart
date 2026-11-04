@@ -17,11 +17,16 @@ class AlbumCard extends StatelessWidget {
   /// the line under the name gives the year instead.
   final bool showArtist;
 
+  /// With [showArtist] off, adds Single after a single's year: for a row
+  /// that mixes singles and albums (More by), not under a Singles title.
+  final bool markSingles;
+
   const AlbumCard({
     super.key,
     required this.album,
     this.size,
     this.showArtist = true,
+    this.markSingles = false,
   });
 
   String _subtitle(BuildContext context) {
@@ -30,11 +35,10 @@ class AlbumCard extends StatelessWidget {
         ? l10n.albumSingle
         : l10n.songCount(album.trackCount);
     if (!showArtist) {
-      // A single says so even with its year: More by mixes them with albums.
       return switch (album.year) {
         final year? => MetaLine.join([
           '$year',
-          if (album.isSingle) l10n.albumSingle,
+          if (markSingles && album.isSingle) l10n.albumSingle,
         ])!,
         null => kind,
       };
