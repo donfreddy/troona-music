@@ -80,6 +80,29 @@ GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
   },
 );
 
+/// go_router's indexed stack of tabs, with heroes off in the tabs not shown.
+/// Their pages stay mounted, and a flight on the root navigator (the mini
+/// player into Now Playing) gathers the heroes of every navigator: the same
+/// album cover in two tabs would share a tag, and the flight would throw.
+@visibleForTesting
+Widget tabsContainer(
+  BuildContext context,
+  StatefulNavigationShell shell,
+  List<Widget> children,
+) => IndexedStack(
+  index: shell.currentIndex,
+  children: [
+    for (final (i, child) in children.indexed)
+      Offstage(
+        offstage: i != shell.currentIndex,
+        child: TickerMode(
+          enabled: i == shell.currentIndex,
+          child: HeroMode(enabled: i == shell.currentIndex, child: child),
+        ),
+      ),
+  ],
+);
+
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoute.home,
@@ -90,7 +113,8 @@ final appRouter = GoRouter(
   },
   routes: [
     // ── STATEFUL SHELL ROUTE ────────────────────────────────────────────────
-    StatefulShellRoute.indexedStack(
+    StatefulShellRoute(
+      navigatorContainerBuilder: tabsContainer,
       builder: (context, state, navigationShell) {
         return MultiBlocProvider(
           providers: [

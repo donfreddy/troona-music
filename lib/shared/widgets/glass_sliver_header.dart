@@ -479,10 +479,14 @@ class _Fade extends StatelessWidget {
     final o = opacity.clamp(0.0, 1.0);
     return Opacity(
       opacity: o,
-      // Hidden content takes no tap.
+      // Hidden content takes no tap, and its heroes stay put: a cover
+      // scrolled out of sight would fly back from under the bar, unclipped.
       child: IgnorePointer(
         ignoring: o == 0,
-        child: RepaintBoundary(child: child),
+        child: HeroMode(
+          enabled: o > 0,
+          child: RepaintBoundary(child: child),
+        ),
       ),
     );
   }

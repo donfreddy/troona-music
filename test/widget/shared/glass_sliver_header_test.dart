@@ -253,6 +253,31 @@ void main() {
     expect(ignoring, isTrue);
   });
 
+  testWidgets('a cover scrolled out of sight does not fly back', (
+    tester,
+  ) async {
+    final controller = await pump(
+      tester,
+      const GlassSliverHeader(
+        title: 'Album',
+        expandedHeight: 200,
+        expanded: Hero(tag: 'cover', child: SizedBox(width: 80, height: 80)),
+      ),
+    );
+    bool heroOn() => tester
+        .widgetList<HeroMode>(
+          find.ancestor(of: find.byType(Hero), matching: find.byType(HeroMode)),
+        )
+        .every((m) => m.enabled);
+    expect(heroOn(), isTrue);
+
+    await scrollTo(tester, controller, 100);
+    expect(heroOn(), isTrue, reason: 'still partly in sight');
+
+    await scrollTo(tester, controller, 200);
+    expect(heroOn(), isFalse);
+  });
+
   testWidgets('a hero fades with the collapse, a large title sooner', (
     tester,
   ) async {
