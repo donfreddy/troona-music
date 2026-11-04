@@ -13,6 +13,7 @@ import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_c
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
@@ -72,8 +73,21 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   /// The queue a new source replaced while songs queued by hand were still
   /// to play, for [QueueReplaceUndone]. Only the last one is kept.
-  ({Queue queue, Duration position, bool play, List<String>? sourceIds})?
+  ({
+    Queue queue,
+    Duration position,
+    bool play,
+    List<String>? sourceIds,
+    QueueOrigin? origin,
+  })?
   _replaced;
+
+  final ValueNotifier<QueueOrigin?> _origin = ValueNotifier(null);
+
+  /// The album, artist or playlist the queue was started from, if any. Saved
+  /// with the session. Changes along with a new queue, without a state of
+  /// its own.
+  ValueListenable<QueueOrigin?> get origin => _origin;
   PlaybackSessionSnapshot? _restoringSnapshot;
   bool _isManualSeeking = false;
 
@@ -214,6 +228,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     unawaited(AppHaptics.mediumImpact());
     final replacing = _replaceSource(sourceIds);
+    _origin.value = event.origin;
 
     _requestedTrackId = event.track.id;
     emit(PlayerLoading(event.track));
@@ -281,6 +296,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             position: _progress.value.position,
             play: current.isPlaying,
             sourceIds: source,
+            origin: _origin.value,
           )
         : null;
     _sourceIds = sourceIds;
@@ -297,6 +313,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final current = state;
     _replaced = null;
     _sourceIds = replaced.sourceIds;
+    _origin.value = replaced.origin;
 
     _requestedTrackId = track.id;
     emit(PlayerLoading(track));
@@ -434,6 +451,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         .stop(); // Actually stops the audio engine (e.g. swiped away while playing)
     await _clearPersistedSession();
     _sourceIds = null;
+    _origin.value = null;
     _replaced = null;
     emit(const PlayerIdle());
   }
@@ -510,6 +528,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _restoringSnapshot = snapshot;
     // Songs queued by hand last time are part of the queue now.
     _sourceIds = [for (final t in playbackTracks) t.id];
+    _origin.value = snapshot.origin;
     emit(PlayerLoading(queue.currentTrack ?? playbackTracks[currentIndex]));
 
     final result = await _audioServicePort.restoreQueue(
@@ -828,6 +847,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           repeatMode: state.queue.repeatMode,
           volume: state.volume,
           speed: state.speed,
+          origin: _origin.value,
         ),
       ),
     );
@@ -878,5 +898,6 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // super.close() drains them, so the notifier must outlive it.
     await super.close();
     _progress.dispose();
+    _origin.dispose();
   }
 }

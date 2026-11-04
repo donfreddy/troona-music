@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 PlaybackSessionSnapshot _snapshot({
   List<String> queue = const ['a', 'b', 'c'],
   int positionMs = 0,
+  QueueOrigin? origin,
 }) => PlaybackSessionSnapshot(
   currentTrackId: queue.first,
   originalTrackIds: queue,
@@ -19,6 +21,7 @@ PlaybackSessionSnapshot _snapshot({
   repeatMode: RepeatMode.all,
   volume: .8,
   speed: 1.25,
+  origin: origin,
 );
 
 void main() {
@@ -49,6 +52,35 @@ void main() {
     expect(loaded.repeatMode, RepeatMode.all);
     expect(loaded.volume, .8);
     expect(loaded.speed, 1.25);
+  });
+
+  test('keeps where the queue came from', () async {
+    const origin = QueueOrigin(
+      QueueOriginKind.playlist,
+      id: '12',
+      name: 'Road trip',
+    );
+    await store.save(_snapshot(origin: origin));
+    expect(PlaybackSessionStore(prefs).load()!.origin, origin);
+  });
+
+  test('a session saved before origins loads without one', () async {
+    await store.save(_snapshot());
+    final state = jsonDecode(prefs.getString(stateKey)!) as Map;
+    expect(state.containsKey('origin'), isFalse);
+    expect(PlaybackSessionStore(prefs).load()!.origin, isNull);
+
+    // A broken one is dropped, not the session.
+    await prefs.setString(
+      stateKey,
+      jsonEncode({
+        ...state,
+        'origin': {'kind': 'mixtape'},
+      }),
+    );
+    final loaded = PlaybackSessionStore(prefs).load();
+    expect(loaded, isNotNull);
+    expect(loaded!.origin, isNull);
   });
 
   test('a position update does not rewrite an unchanged queue', () async {

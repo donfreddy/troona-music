@@ -14,11 +14,17 @@ final class PlayTrackRequested extends PlayerEvent {
   /// With [contextQueue]: turn shuffle mode on in the same step. False keeps
   /// the current mode.
   final bool shuffle;
+
+  /// The album, artist or playlist [contextQueue] is, for Home's resume
+  /// card. None for a plain list of songs.
+  final QueueOrigin? origin;
+
   const PlayTrackRequested(
     this.track, {
     this.contextQueue,
     this.contextIndex,
     this.shuffle = false,
+    this.origin,
   });
 }
 

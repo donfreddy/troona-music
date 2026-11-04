@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 final class PlaybackSessionSnapshot {
   final String currentTrackId;
@@ -15,6 +16,9 @@ final class PlaybackSessionSnapshot {
   final double volume;
   final double speed;
 
+  /// What the queue was started from; none for sessions saved before.
+  final QueueOrigin? origin;
+
   const PlaybackSessionSnapshot({
     required this.currentTrackId,
     required this.originalTrackIds,
@@ -26,6 +30,7 @@ final class PlaybackSessionSnapshot {
     required this.repeatMode,
     required this.volume,
     required this.speed,
+    this.origin,
   });
 
   Map<String, Object?> toJson() => {
@@ -39,7 +44,26 @@ final class PlaybackSessionSnapshot {
     'repeat_mode': repeatMode.index,
     'volume': volume,
     'speed': speed,
+    if (origin case final origin?)
+      'origin': {
+        'kind': origin.kind.name,
+        'id': origin.id,
+        'name': origin.name,
+      },
   };
+
+  /// A broken origin is dropped, not the session.
+  static QueueOrigin? _originFrom(Object? json) {
+    if (json case {
+      'kind': final String kind,
+      'id': final String id,
+      'name': final String name,
+    }) {
+      final known = QueueOriginKind.values.where((k) => k.name == kind);
+      if (known.isNotEmpty) return QueueOrigin(known.first, id: id, name: name);
+    }
+    return null;
+  }
 
   static PlaybackSessionSnapshot? fromJson(Map<String, dynamic> json) {
     final currentTrackId = json['current_track_id'];
@@ -85,6 +109,7 @@ final class PlaybackSessionSnapshot {
       repeatMode: RepeatMode.values[repeatModeIndex],
       volume: volume.toDouble(),
       speed: speed.toDouble(),
+      origin: _originFrom(json['origin']),
     );
   }
 }
