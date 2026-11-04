@@ -34,6 +34,7 @@ import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/shared/widgets/meta_line.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -98,6 +99,7 @@ class AlbumDetailPage extends StatelessWidget {
                               album: data.album,
                               tracks: data.albumTracks,
                             ),
+                            _AlbumFootnote(tracks: data.albumTracks),
 
                             // Albums without an artist share nothing else.
                             if (data.album.artist.isNotEmpty &&
@@ -140,11 +142,6 @@ class AlbumDetailPage extends StatelessWidget {
                               },
                             ),
 
-                            // Technical metadata card & storage footprint
-                            _AlbumMetadataFooter(
-                              tracks: data.albumTracks,
-                              album: data.album,
-                            ),
                             SliverPadding(
                               padding: EdgeInsets.only(
                                 bottom: contentCtx.bottomBarInset(tabs: false),
@@ -431,29 +428,25 @@ class _AlbumHeader extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        // Audiophile metadata badges in glass pills
-                        // Wraps on a narrow screen or a large font.
+                        // Facts as one line of text; Lossless, the one rare
+                        // state, keeps a pill. Wraps under a large font.
                         _animatedAlbumItem(
                           Wrap(
                             alignment: WrapAlignment.center,
-                            spacing: 6,
-                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.xs,
                             children: [
-                              if (year != null) AppBadge('$year'),
-                              AppBadge(
-                                context.l10n.detailCountsSummary(
-                                  context.l10n.songCount(album.trackCount),
-                                  totalDuration.toHumanReadable(context.l10n),
-                                ),
-                              ),
-                              if (_formatBadge(context) case final badge?) ...[
+                              MetaLine([
+                                if (year != null) '$year',
+                                context.l10n.songCount(album.trackCount),
+                                totalDuration.toHumanReadable(context.l10n),
+                              ], textAlign: TextAlign.center),
+                              if (AudioFormat.allLossless(tracks))
                                 AppBadge(
-                                  badge,
-                                  icon: badge == context.l10n.formatLossless
-                                      ? AppIcons.lossless
-                                      : null,
+                                  context.l10n.formatLossless,
+                                  icon: AppIcons.lossless,
                                 ),
-                              ],
                             ],
                           ),
                           3,
@@ -481,11 +474,6 @@ class _AlbumHeader extends StatelessWidget {
       ),
     );
   }
-
-  /// "Lossless" when every song is FLAC or WAV: the one format worth a
-  /// badge. Other formats (MP3, M4A) are listed in the About card.
-  String? _formatBadge(BuildContext context) =>
-      AudioFormat.allLossless(tracks) ? context.l10n.formatLossless : null;
 
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
@@ -536,17 +524,8 @@ class _AlbumTracksView extends StatelessWidget {
     final numbers = AlbumOrder.numbers(tracks);
     return SliverMainAxisGroup(
       slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              _animatedAlbumItem(
-                SectionHeader(title: context.l10n.detailSongs),
-                5,
-              ),
-            ],
-          ),
-        ),
+        // No Songs title: an album page is its track list.
+        const SliverPadding(padding: EdgeInsets.only(top: AppSpacing.lg)),
         SliverList.separated(
           itemCount: tracks.length,
           separatorBuilder: (_, _) => Divider(
@@ -615,7 +594,7 @@ class _MoreByArtistView extends StatelessWidget {
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) => _animatedAlbumItem(
-                AlbumCard(album: albums[i], size: 135),
+                AlbumCard(album: albums[i], size: 135, showArtist: false),
                 key: ValueKey('album-${albums[i].id}'),
                 i,
                 slideY: 0.04,
@@ -628,119 +607,31 @@ class _MoreByArtistView extends StatelessWidget {
   }
 }
 
-// ── Technical Metadata & Storage Footprint Footer ─────────────────────────────
-class _AlbumMetadataFooter extends StatelessWidget {
+// ── Footnote ──────────────────────────────────────────────────────────────────
+/// Under the songs, what the header does not say: the album's size and its
+/// formats ("MP3", or every format of a mixed album).
+class _AlbumFootnote extends StatelessWidget {
   final List<Track> tracks;
-  final Album album;
 
-  const _AlbumMetadataFooter({required this.tracks, required this.album});
+  const _AlbumFootnote({required this.tracks});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final totalBytes = tracks.fold<int>(0, (sum, t) => sum + t.size);
     final totalMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
-    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
-    final totalDuration = Duration(milliseconds: totalDurationMs);
-
-    final year = tracks
-        .map((t) => t.year)
-        .where((y) => y != null && y > 0)
-        .firstOrNull;
     final formats = AudioFormat.allOf(tracks);
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xl2,
-          AppSpacing.lg,
-          0,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 0.8,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(AppIcons.info, size: 16, color: colors.accent),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.inYourLibrary,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _MetaRow(
-                label: context.l10n.infoSongs,
-                value: '${tracks.length}',
-              ),
-              _MetaRow(
-                label: context.l10n.infoLength,
-                value: totalDuration.toHumanReadable(context.l10n),
-              ),
-              if (year != null)
-                _MetaRow(label: context.l10n.infoYear, value: '$year'),
-              _MetaRow(
-                label: context.l10n.infoSize,
-                value: context.l10n.sizeMegabytes(totalMb),
-              ),
-              if (formats.isNotEmpty)
-                _MetaRow(
-                  label: context.l10n.infoFormat,
-                  value: formats.map((f) => f.label).join(' • '),
-                ),
-            ],
-          ),
-        ),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        0,
       ),
-    );
-  }
-}
-
-class _MetaRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _MetaRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: context.colors.labelSecondary,
-              fontSize: 13,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      sliver: SliverToBoxAdapter(
+        child: MetaLine([
+          if (totalBytes > 0) context.l10n.sizeMegabytes(totalMb),
+          ...formats.map((f) => f.label),
+        ], footnote: true),
       ),
     );
   }
