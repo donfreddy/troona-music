@@ -2473,6 +2473,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.'**
   String get whatsNew130AlbumsBody;
+
+  /// No description provided for @whatsNew140EdgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge to edge'**
+  String get whatsNew140EdgeTitle;
+
+  /// No description provided for @whatsNew140EdgeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.'**
+  String get whatsNew140EdgeBody;
+
+  /// No description provided for @whatsNew140TitlesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Large titles'**
+  String get whatsNew140TitlesTitle;
+
+  /// No description provided for @whatsNew140TitlesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.'**
+  String get whatsNew140TitlesBody;
+
+  /// No description provided for @whatsNew140TopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the top'**
+  String get whatsNew140TopTitle;
+
+  /// No description provided for @whatsNew140TopBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.'**
+  String get whatsNew140TopBody;
 }
 
 class _AppLocalizationsDelegate

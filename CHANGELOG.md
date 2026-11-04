@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-04
+
 ### Changed
 
 - Pages draw edge to edge: lists scroll under the status bar and the floating tab bar, on every Android version, and fade out under the tab bar instead of stopping on a line.
@@ -162,7 +164,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/donfreddy/troona-music/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/donfreddy/troona-music/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/donfreddy/troona-music/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/donfreddy/troona-music/compare/v1.1.0...v1.1.1

@@ -1507,4 +1507,25 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew130AlbumsBody =>
       'Un album téléchargé dans plusieurs dossiers, ou des singles enregistrés chacun dans le leur, apparaissaient plusieurs fois. C\'est de nouveau un seul album, et son année s\'affiche.';
+
+  @override
+  String get whatsNew140EdgeTitle => 'Bord à bord';
+
+  @override
+  String get whatsNew140EdgeBody =>
+      'Les listes défilent maintenant sous la barre d\'état et sous la barre d\'onglets flottante, qui les estompe en douceur. Les pages album et playlist s\'ouvrent sur leur pochette, et un artiste avec une photo sur celle-ci, bord à bord.';
+
+  @override
+  String get whatsNew140TitlesTitle => 'Grands titres';
+
+  @override
+  String get whatsNew140TitlesBody =>
+      'Chaque page s\'ouvre sur un grand titre qui se replie en barre de verre quand vous défilez, avec le bouton retour et les actions de la page.';
+
+  @override
+  String get whatsNew140TopTitle => 'Retour en haut';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Touchez l\'onglet où vous êtes pour remonter en haut de sa page. Dans la recherche, le champ reste en haut pendant que les résultats défilent dessous.';
 }

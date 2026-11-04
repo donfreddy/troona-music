@@ -1491,4 +1491,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew130AlbumsBody =>
       'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.';
+
+  @override
+  String get whatsNew140EdgeTitle => 'Edge to edge';
+
+  @override
+  String get whatsNew140EdgeBody =>
+      'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.';
+
+  @override
+  String get whatsNew140TitlesTitle => 'Large titles';
+
+  @override
+  String get whatsNew140TitlesBody =>
+      'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.';
+
+  @override
+  String get whatsNew140TopTitle => 'Back to the top';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.';
 }
