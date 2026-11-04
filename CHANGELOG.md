@@ -12,10 +12,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - Large titles are bold, in the same voice as album and artist names and section titles.
 - The selected tab shows a dot under its icon, not only a brighter colour.
-- Album and artist pages state their year, song count and length as one line of text instead of pills. Lossless keeps its badge.
+- Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.
 - Album pages no longer title their track list Songs. Under the songs, a quiet line gives the album's size and formats instead of the In your library card.
-- Artist pages show each song's album and year under its title, instead of repeating the artist's name, and their album and single cards give the year. Their In your library card is gone: the counts it repeated are under the name.
-- More by on album pages gives each album's year instead of the artist's name.
+- Artist pages show each song's album and year under its title, instead of repeating the artist's name, and their album and single cards give the year, with Single on singles. Their In your library card is gone: the counts it repeated are under the name.
+- More by on album pages gives each album's year instead of the artist's name, with Single on singles.
 - The Library no longer shows its counts of songs, albums and artists above All.
 - Opening an artist from one of their albums, when you came to the album from that artist, goes back to their page instead of opening it a second time, and the same the other way round.
 - An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.
