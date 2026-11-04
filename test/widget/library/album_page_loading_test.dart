@@ -21,9 +21,14 @@ import 'package:troona/features/metadata/domain/entities/album_online_info.dart'
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/error_view.dart';
+
+import '../../helpers/fake_player.dart';
 
 const _album = Album(
   id: '7',
@@ -116,9 +121,17 @@ void main() {
     final bloc = AlbumDetailBloc(repo: albums)..add(AlbumDetailRequested(7));
     final libraryBloc = _library(library);
     final palette = TrackPaletteCubit();
+    SharedPreferences.setMockInitialValues({});
+    final port = FakeAudioPort();
+    final player = buildTestPlayerBloc(
+      port,
+      PlaybackSessionStore(await SharedPreferences.getInstance()),
+    );
     addTearDown(() async {
       if (!albums.release.isCompleted) albums.release.complete();
       await tester.pumpWidget(const SizedBox());
+      unawaited(player.close());
+      unawaited(port.close());
       unawaited(bloc.close());
       unawaited(libraryBloc.close());
       unawaited(palette.close());
@@ -129,6 +142,7 @@ void main() {
           BlocProvider<AlbumDetailBloc>.value(value: bloc),
           BlocProvider<LibraryBloc>.value(value: libraryBloc),
           BlocProvider<TrackPaletteCubit>.value(value: palette),
+          BlocProvider<PlayerBloc>.value(value: player),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,

@@ -224,55 +224,14 @@ class _AlbumHeader extends StatelessWidget {
                       height: 190,
                       child: Stack(
                         alignment: Alignment.center,
+                        // The record slides further out while it plays.
+                        clipBehavior: Clip.none,
                         children: [
-                          // Protruding vinyl disc on the right
+                          // The record, out of its sleeve: further out
+                          // and turning while the album plays.
                           Positioned(
                             right: 0,
-                            child: Container(
-                              width: 170,
-                              height: 170,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFF161618),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                    blurRadius: 16,
-                                    offset: const Offset(4, 4),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: colors.accent.withValues(alpha: 0.4),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Container(
-                                      width: 16,
-                                      height: 16,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
+                            child: _AlbumVinyl(album: album, tracks: tracks),
                           ),
 
                           // Front album artwork, landing from the card
@@ -660,4 +619,181 @@ class _AlbumFootnote extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The record behind the album's sleeve. While the album plays it slides
+/// further out and turns, its label (the cover) showing the spin; paused, it
+/// stops where it is; another album playing, it slides back in. A tap on it
+/// plays the album, or pauses and resumes it.
+///
+/// It does not turn when the phone asks for reduced motion.
+class _AlbumVinyl extends StatefulWidget {
+  final Album album;
+  final List<Track> tracks;
+
+  const _AlbumVinyl({required this.album, required this.tracks});
+
+  static const double size = 170;
+
+  /// How much further out it slides while its album plays.
+  static const double slide = 22;
+
+  /// One turn: a calm 33 rpm would be 1.8 s.
+  static const Duration turn = Duration(milliseconds: 3600);
+
+  @override
+  State<_AlbumVinyl> createState() => _AlbumVinylState();
+}
+
+class _AlbumVinylState extends State<_AlbumVinyl>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _spin = AnimationController(
+    vsync: this,
+    duration: _AlbumVinyl.turn,
+  );
+
+  @override
+  void dispose() {
+    _spin.dispose();
+    super.dispose();
+  }
+
+  /// Whether the playing song is one of this album's, and whether it plays.
+  (bool, bool) _status(PlayerState state) {
+    if (state is! PlayerActive) return (false, false);
+    final id = state.currentTrack.id;
+    final ours = widget.tracks.any((t) => t.id == id);
+    return (ours, ours && state.isPlaying);
+  }
+
+  void _tap(bool ours, bool playing) {
+    final tracks = widget.tracks;
+    if (tracks.isEmpty) return;
+    AppHaptics.mediumImpact();
+    final bloc = context.read<PlayerBloc>();
+    bloc.add(switch ((ours, playing)) {
+      (true, true) => const PauseRequested(),
+      (true, false) => const ResumeRequested(),
+      _ => PlayTrackRequested(tracks[0], contextQueue: tracks, contextIndex: 0),
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (ours, playing) = context.select<PlayerBloc, (bool, bool)>(
+      (bloc) => _status(bloc.state),
+    );
+    final still = MediaQuery.disableAnimationsOf(context);
+    if (playing && !still) {
+      if (!_spin.isAnimating) _spin.repeat();
+    } else if (_spin.isAnimating) {
+      _spin.stop();
+    }
+
+    final l10n = context.l10n;
+    return Semantics(
+      button: true,
+      label: playing ? l10n.playerPause : l10n.actionPlay,
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const ValueKey('albumVinyl'),
+        onTap: widget.tracks.isEmpty ? null : () => _tap(ours, playing),
+        child: AnimatedSlide(
+          offset: Offset(ours ? _AlbumVinyl.slide / _AlbumVinyl.size : 0, 0),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeOutCubic,
+          child: RepaintBoundary(
+            child: RotationTransition(
+              turns: _spin,
+              child: _Record(artworkPath: widget.album.artworkPath),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A black record with faint grooves, the album's cover as its label.
+class _Record extends StatelessWidget {
+  final String? artworkPath;
+
+  const _Record({required this.artworkPath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _AlbumVinyl.size,
+      height: _AlbumVinyl.size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF161618),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 16,
+            offset: const Offset(4, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: CustomPaint(
+        painter: const _Grooves(),
+        child: Center(
+          child: Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipOval(
+                  child: ArtworkImage(
+                    artworkPath,
+                    width: 60,
+                    height: 60,
+                    placeholder: AppIcons.album,
+                  ),
+                ),
+                // The spindle hole.
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Grooves extends CustomPainter {
+  const _Grooves();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = .6
+      ..color = Colors.white.withValues(alpha: .05);
+    for (var r = 38.0; r < size.width / 2 - 4; r += 5) {
+      canvas.drawCircle(center, r, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Grooves oldDelegate) => false;
 }
