@@ -306,14 +306,6 @@
       }
     }
   },
-  "inYourLibrary": "In your library",
-  "infoSongs": "Songs",
-  "infoAlbums": "Albums",
-  "infoSingles": "Singles",
-  "infoLength": "Length",
-  "infoYear": "Year",
-  "infoSize": "Size",
-  "infoFormat": "Format",
   "formatLossless": "Lossless",
   "albumLoadError": "We couldn't open this album.",
   "artistLoadError": "We couldn't open this artist.",

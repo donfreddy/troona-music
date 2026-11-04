@@ -18,11 +18,16 @@ class TrackListTile extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
+  /// The line under the title: the artist, unless the page already names
+  /// them (an artist's page gives the album instead).
+  final String? subtitle;
+
   const TrackListTile({
     super.key,
     required this.track,
     required this.onTap,
     this.onLongPress,
+    this.subtitle,
   });
 
   @override
@@ -132,7 +137,7 @@ class _TrackListTileState extends State<TrackListTile> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      context.artistName(widget.track.artist),
+                      widget.subtitle ?? context.artistName(widget.track.artist),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .55),
                         fontSize: 13,

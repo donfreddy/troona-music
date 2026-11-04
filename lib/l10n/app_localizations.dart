@@ -1052,54 +1052,6 @@ abstract class AppLocalizations {
   /// **'{songs} • {albums}'**
   String detailCountsSummary(String songs, String albums);
 
-  /// No description provided for @inYourLibrary.
-  ///
-  /// In en, this message translates to:
-  /// **'In your library'**
-  String get inYourLibrary;
-
-  /// No description provided for @infoSongs.
-  ///
-  /// In en, this message translates to:
-  /// **'Songs'**
-  String get infoSongs;
-
-  /// No description provided for @infoAlbums.
-  ///
-  /// In en, this message translates to:
-  /// **'Albums'**
-  String get infoAlbums;
-
-  /// No description provided for @infoSingles.
-  ///
-  /// In en, this message translates to:
-  /// **'Singles'**
-  String get infoSingles;
-
-  /// No description provided for @infoLength.
-  ///
-  /// In en, this message translates to:
-  /// **'Length'**
-  String get infoLength;
-
-  /// No description provided for @infoYear.
-  ///
-  /// In en, this message translates to:
-  /// **'Year'**
-  String get infoYear;
-
-  /// No description provided for @infoSize.
-  ///
-  /// In en, this message translates to:
-  /// **'Size'**
-  String get infoSize;
-
-  /// No description provided for @infoFormat.
-  ///
-  /// In en, this message translates to:
-  /// **'Format'**
-  String get infoFormat;
-
   /// No description provided for @formatLossless.
   ///
   /// In en, this message translates to:

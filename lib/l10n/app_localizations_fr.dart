@@ -595,30 +595,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get inYourLibrary => 'Dans votre bibliothèque';
-
-  @override
-  String get infoSongs => 'Morceaux';
-
-  @override
-  String get infoAlbums => 'Albums';
-
-  @override
-  String get infoSingles => 'Singles';
-
-  @override
-  String get infoLength => 'Durée';
-
-  @override
-  String get infoYear => 'Année';
-
-  @override
-  String get infoSize => 'Taille';
-
-  @override
-  String get infoFormat => 'Format';
-
-  @override
   String get formatLossless => 'Sans perte';
 
   @override
