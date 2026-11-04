@@ -426,4 +426,47 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.offset, closeTo(before, 0.5));
   });
+
+  testWidgets('collapsed, the glass fades out below the bar instead of '
+      'ending on a line', (tester) async {
+    final controller = await pump(tester, largeTitle());
+    await scrollTo(tester, controller, 400);
+    const barBottom = statusBar + GlassSliverHeader.navBarHeight;
+
+    // The blur stops at the bar's edge; the tint carries on below it and
+    // fades out.
+    expect(tester.getRect(find.byType(BackdropFilter)).bottom, barBottom);
+    final edge = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .firstWhere((box) {
+          final d = box.decoration;
+          return d is BoxDecoration && d.gradient != null;
+        });
+    final edgeRect = tester.getRect(find.byWidget(edge));
+    expect(edgeRect.top, barBottom);
+    expect(edgeRect.bottom, barBottom + GlassSliverHeader.softEdge);
+    final colors = (edge.decoration as BoxDecoration).gradient!.colors;
+    expect(colors.first.a, greaterThan(0));
+    expect(colors.last.a, 0);
+
+    // Content under the soft edge still takes taps.
+    expect(
+      tester
+          .hitTestOnBinding(Offset(180, barBottom + 10))
+          .path
+          .any((entry) => entry.target is RenderParagraph),
+      isTrue,
+    );
+
+    // No hairline: no full-width box draws a border.
+    final borders = [
+      for (final element in find.byType(DecoratedBox).evaluate())
+        if ((element.widget as DecoratedBox).decoration
+            case BoxDecoration(:final border?)
+            when border.bottom.width > 0 &&
+                tester.getRect(find.byWidget(element.widget)).width == 360)
+          element,
+    ];
+    expect(borders, isEmpty);
+  });
 }

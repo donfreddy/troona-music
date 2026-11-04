@@ -99,6 +99,10 @@ class GlassSliverHeader extends StatelessWidget {
   /// Height of the large title's area at the default font size.
   static const double largeTitleHeight = 86;
 
+  /// Height below the header over which its glass fades out, instead of
+  /// stopping on a line.
+  static const double softEdge = 24;
+
   /// Bottom of the navigation row, from the top of the screen: what a
   /// [RefreshIndicator] over the page takes as its edge offset.
   static double navBarBottom(BuildContext context) =>
@@ -274,7 +278,6 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final collapse = collapseOf(shrinkOffset);
-    final colors = context.colors;
     final glass = GlassTheme.bar(context);
     final expandedTop = topPadding + navHeight;
     final background = header.background;
@@ -360,38 +363,101 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
       ],
     );
 
-    final surface = DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, glass.fill, collapse),
-        border: Border(
-          bottom: BorderSide(
-            color: colors.separator.withValues(alpha: collapse),
-            width: 0.5,
+    // The glass reaches [softEdge] below the header and fades out there,
+    // blur and tint together: no line where the bar ends (iOS scroll edge).
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: -GlassSliverHeader.softEdge,
+          child: IgnorePointer(
+            child: _GlassLayer(
+              glass: glass,
+              tint: collapse,
+              // Content passes under a pinned header only once it is
+              // collapsed (or, for one that cannot collapse, scrolled).
+              blur: maxExtent == minExtent
+                  ? collapse > 0
+                  : shrinkOffset >= maxExtent - minExtent,
+            ),
           ),
         ),
-      ),
-      child: body,
+        body,
+      ],
     );
+  }
+}
 
-    return RepaintBoundary(
-      child: ClipRect(
-        child: glass.blurSigma == 0
-            ? surface
-            : BackdropFilter(
-                // One sigma: a filter that changes every frame is rebuilt
-                // every frame, and small sigmas are the costliest to blur.
-                // Content passes under a pinned header only once it is
-                // collapsed (or, for one that cannot collapse, scrolled).
-                enabled: maxExtent == minExtent
-                    ? collapse > 0
-                    : shrinkOffset >= maxExtent - minExtent,
-                filter: GlassFilter.of(
-                  glass.blurSigma,
-                  saturation: glass.saturation,
-                ),
-                child: surface,
+/// The bar's glass, [GlassSliverHeader.softEdge] taller than the header:
+/// the blur stops at the header's edge, and the tint carries on below it,
+/// fading to nothing, so the bar has no line.
+///
+/// The blur cannot fade itself: a [BackdropFilter] under a [ShaderMask]
+/// reads the mask's empty layer, not the page, and blurs nothing (checked
+/// on Impeller).
+class _GlassLayer extends StatelessWidget {
+  final GlassConfig glass;
+
+  /// Share of the bar's tint, 0 to 1.
+  final double tint;
+  final bool blur;
+
+  const _GlassLayer({
+    required this.glass,
+    required this.tint,
+    required this.blur,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = Color.lerp(Colors.transparent, glass.fill, tint)!;
+    final bar = ColoredBox(color: fill);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: GlassSliverHeader.softEdge,
+          child: RepaintBoundary(
+            child: ClipRect(
+              child: glass.blurSigma == 0
+                  ? bar
+                  : BackdropFilter(
+                      // One sigma: a filter that changes every frame is
+                      // rebuilt every frame, and small sigmas are the
+                      // costliest to blur.
+                      enabled: blur,
+                      filter: GlassFilter.of(
+                        glass.blurSigma,
+                        saturation: glass.saturation,
+                      ),
+                      child: bar,
+                    ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: GlassSliverHeader.softEdge,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [fill, fill.withValues(alpha: 0)],
               ),
-      ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
