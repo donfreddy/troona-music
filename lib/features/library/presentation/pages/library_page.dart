@@ -253,20 +253,25 @@ class _AllView extends StatelessWidget {
               ),
             ),
           ),
+          // Ten at most: a row as tall as its names, which wrap under a
+          // large font instead of overflowing a fixed height.
           SliverToBoxAdapter(
-            child: SizedBox(
-              height: 145,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                itemCount: loaded.visibleArtists.take(10).length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.md),
-                itemBuilder: (context, i) => _animatedLibraryItem(
-                  ArtistCard(artist: loaded.visibleArtists[i], size: 95),
-                  i,
-                  slideY: .04,
-                ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, artist)
+                      in loaded.visibleArtists.take(10).indexed) ...[
+                    if (i > 0) const SizedBox(width: AppSpacing.md),
+                    _animatedLibraryItem(
+                      ArtistCard(artist: artist, size: 95),
+                      i,
+                      slideY: .04,
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
