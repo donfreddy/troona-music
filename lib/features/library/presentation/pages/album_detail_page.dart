@@ -9,7 +9,6 @@ import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
 import 'package:troona/features/metadata/presentation/widgets/online_about_card.dart';
 import 'package:troona/core/extensions/string_ext.dart';
-import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -31,10 +30,10 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -91,18 +90,9 @@ class AlbumDetailPage extends StatelessWidget {
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           slivers: [
-                            SliverPersistentHeader(
-                              pinned: true,
-                              delegate: _AlbumHeroDelegate(
-                                album: data.album,
-                                tracks: data.albumTracks,
-                                topPadding: MediaQuery.of(
-                                  contentCtx,
-                                ).padding.top,
-                                textScale: MediaQuery.textScalerOf(
-                                  contentCtx,
-                                ).scale(1),
-                              ),
+                            _AlbumHeader(
+                              album: data.album,
+                              tracks: data.albumTracks,
                             ),
                             _AlbumTracksView(
                               album: data.album,
@@ -174,23 +164,13 @@ class AlbumDetailPage extends StatelessWidget {
   }
 }
 
-// ── Hero Header Delegate ──────────────────────────────────────────────────────
-class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
+// ── Hero Header ──────────────────────────────────────────────────────
+class _AlbumHeader extends StatelessWidget {
   final Album album;
   final List<Track> tracks;
-  final double topPadding;
 
-  /// The phone's font size: the expanded header grows with its text.
-  final double textScale;
+  const _AlbumHeader({required this.album, required this.tracks});
 
-  const _AlbumHeroDelegate({
-    required this.album,
-    required this.tracks,
-    required this.topPadding,
-    required this.textScale,
-  });
-
-  static const double _navBarHeight = 44.0;
   static const double _actionsBarHeight = 64.0;
 
   /// Height of the expanded header's text at the default font size.
@@ -198,38 +178,8 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
   static const double _expandedExtra = 330.0;
 
   @override
-  double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
-
-  @override
-  double get maxExtent =>
-      topPadding +
-      _navBarHeight +
-      _expandedExtra +
-      (textScale - 1) * _expandedText +
-      _actionsBarHeight;
-
-  @override
-  bool shouldRebuild(_AlbumHeroDelegate old) =>
-      old.album != album ||
-      old.tracks != tracks ||
-      old.topPadding != topPadding ||
-      old.textScale != textScale;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-    final currentHeight = (maxExtent - shrinkOffset).clamp(
-      minExtent,
-      maxExtent,
-    );
+  Widget build(BuildContext context) {
     final colors = context.colors;
-    // Same glass as the Library's collapsed header.
-    final glass = GlassTheme.bar(context);
-    final blurSigma = glass.blurSigma * collapse;
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
@@ -238,376 +188,296 @@ class _AlbumHeroDelegate extends SliverPersistentHeaderDelegate {
         .where((y) => y != null && y > 0)
         .firstOrNull;
 
-    final content = DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, glass.fill, collapse),
-        border: Border(
-          bottom: BorderSide(
-            color: colors.separator.withValues(alpha: collapse),
-            width: 0.5,
-          ),
+    return GlassSliverHeader(
+      leading: const AppBackButton(),
+      title: album.name,
+      actions: [
+        GlassIconButton(
+          icon: AppIcons.moreVertical,
+          tooltip: context.l10n.detailMore,
+          onTap: tracks.isEmpty ? null : () => _showAlbumOptions(context),
         ),
-      ),
-      child: SizedBox(
-        height: currentHeight,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            // ── Expanded Content (Vinyl Sleeve + Titles + Badges) ───────────
-            Positioned(
-              top: topPadding + _navBarHeight,
-              left: 0,
-              right: 0,
-              bottom: _actionsBarHeight,
-              child: Opacity(
-                opacity: (1 - collapse * 1.6).clamp(0.0, 1.0),
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: AppSpacing.sm),
+      ],
+      expandedHeight: _expandedExtra + _actionsBarHeight,
+      expandedTextHeight: _expandedText,
+      expanded: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
 
-                      // Vinyl record emerging from case
-                      _animatedAlbumItem(
-                        SizedBox(
-                          width: 220,
-                          height: 190,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Protruding vinyl disc on the right
-                              Positioned(
-                                right: 0,
+                  // Vinyl record emerging from case
+                  _animatedAlbumItem(
+                    SizedBox(
+                      width: 220,
+                      height: 190,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Protruding vinyl disc on the right
+                          Positioned(
+                            right: 0,
+                            child: Container(
+                              width: 170,
+                              height: 170,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF161618),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    blurRadius: 16,
+                                    offset: const Offset(4, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  width: 1.0,
+                                ),
+                              ),
+                              child: Center(
                                 child: Container(
-                                  width: 170,
-                                  height: 170,
+                                  width: 60,
+                                  height: 60,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: const Color(0xFF161618),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                        blurRadius: 16,
-                                        offset: const Offset(4, 4),
-                                      ),
-                                    ],
+                                    color: colors.accent.withValues(alpha: 0.4),
                                     border: Border.all(
                                       color: Colors.white.withValues(
-                                        alpha: 0.12,
+                                        alpha: 0.3,
                                       ),
-                                      width: 1.0,
+                                      width: 1.5,
                                     ),
                                   ),
                                   child: Center(
                                     child: Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: colors.accent.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.3,
-                                          ),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Container(
-                                          width: 16,
-                                          height: 16,
-                                          decoration: const BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.black,
-                                          ),
-                                        ),
+                                        color: Colors.black,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-
-                              // Front album artwork
-                              Positioned(
-                                left: 6,
-                                child: Container(
-                                  width: 180,
-                                  height: 180,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
-                                    // Depth only: an accent glow would
-                                    // clash with the cover's own colours.
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.45,
-                                        ),
-                                        blurRadius: 24,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child:
-                                        BlocBuilder<
-                                          AlbumMetadataCubit,
-                                          AlbumMetadataState
-                                        >(
-                                          builder: (context, metaState) {
-                                            final localArt =
-                                                album.artworkPath ??
-                                                (metaState
-                                                        is AlbumMetadataLoaded
-                                                    ? metaState.localImagePath
-                                                    : null);
-                                            final onlineUrl =
-                                                metaState is AlbumMetadataLoaded
-                                                ? metaState.info.imageUrl
-                                                : null;
-
-                                            Widget fallbackIcon() =>
-                                                const ArtworkPlaceholder(
-                                                  icon: AppIcons.album,
-                                                  width: 180,
-                                                  height: 180,
-                                                );
-
-                                            if (localArt != null &&
-                                                localArt.isNotEmpty) {
-                                              return ArtworkImage(
-                                                localArt,
-                                                width: 180,
-                                                height: 180,
-                                                errorBuilder: (_, _, _) =>
-                                                    onlineUrl != null &&
-                                                        onlineUrl.isNotEmpty
-                                                    ? Image.network(
-                                                        onlineUrl,
-                                                        width: 180,
-                                                        height: 180,
-                                                        fit: BoxFit.cover,
-                                                        errorBuilder:
-                                                            (_, _, _) =>
-                                                                fallbackIcon(),
-                                                      )
-                                                    : fallbackIcon(),
-                                              );
-                                            }
-                                            if (onlineUrl != null &&
-                                                onlineUrl.isNotEmpty) {
-                                              return Image.network(
-                                                onlineUrl,
-                                                width: 180,
-                                                height: 180,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, _, _) =>
-                                                    fallbackIcon(),
-                                              );
-                                            }
-                                            return fallbackIcon();
-                                          },
-                                        ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        0,
-                      ),
 
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Titles & interactive artist link
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl,
-                        ),
-                        child: Column(
-                          children: [
-                            _animatedAlbumItem(
-                              Text(
-                                album.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.4,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              1,
-                            ),
-                            const SizedBox(height: 4),
-
-                            // Clickable artist pill
-                            _animatedAlbumItem(
-                              // Songs by different artists, or none: no
-                              // single artist page to open.
-                              album.artist.isEmpty
-                                  ? Text(
-                                      context.artistName(album.artist),
-                                      style: TextStyle(
-                                        color: colors.labelSecondary,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    )
-                                  : InkWell(
-                                      onTap: () {
-                                        AppHaptics.lightImpact();
-                                        context.pushArtist('${album.artistId}');
-                                      },
-                                      borderRadius: BorderRadius.circular(
-                                        AppSpacing.radiusFull,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              album.artist,
-                                              style: TextStyle(
-                                                color: colors.accent,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              AppIcons.disclosure,
-                                              color: colors.accent,
-                                              size: 16,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                              2,
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // Audiophile metadata badges in glass pills
-                            // Wraps on a narrow screen or a large font.
-                            _animatedAlbumItem(
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  if (year != null) AppBadge('$year'),
-                                  AppBadge(
-                                    context.l10n.detailCountsSummary(
-                                      context.l10n.songCount(album.trackCount),
-                                      totalDuration.toHumanReadable(
-                                        context.l10n,
-                                      ),
-                                    ),
+                          // Front album artwork
+                          Positioned(
+                            left: 6,
+                            child: Container(
+                              width: 180,
+                              height: 180,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                // Depth only: an accent glow would
+                                // clash with the cover's own colours.
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.45),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 10),
                                   ),
-                                  if (_formatBadge(context)
-                                      case final badge?) ...[
-                                    AppBadge(
-                                      badge,
-                                      icon: badge == context.l10n.formatLossless
-                                          ? AppIcons.lossless
-                                          : null,
-                                    ),
-                                  ],
                                 ],
                               ),
-                              3,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child:
+                                    BlocBuilder<
+                                      AlbumMetadataCubit,
+                                      AlbumMetadataState
+                                    >(
+                                      builder: (context, metaState) {
+                                        final localArt =
+                                            album.artworkPath ??
+                                            (metaState is AlbumMetadataLoaded
+                                                ? metaState.localImagePath
+                                                : null);
+                                        final onlineUrl =
+                                            metaState is AlbumMetadataLoaded
+                                            ? metaState.info.imageUrl
+                                            : null;
+
+                                        Widget fallbackIcon() =>
+                                            const ArtworkPlaceholder(
+                                              icon: AppIcons.album,
+                                              width: 180,
+                                              height: 180,
+                                            );
+
+                                        if (localArt != null &&
+                                            localArt.isNotEmpty) {
+                                          return ArtworkImage(
+                                            localArt,
+                                            width: 180,
+                                            height: 180,
+                                            errorBuilder: (_, _, _) =>
+                                                onlineUrl != null &&
+                                                    onlineUrl.isNotEmpty
+                                                ? Image.network(
+                                                    onlineUrl,
+                                                    width: 180,
+                                                    height: 180,
+                                                    fit: BoxFit.cover,
+                                                    errorBuilder: (_, _, _) =>
+                                                        fallbackIcon(),
+                                                  )
+                                                : fallbackIcon(),
+                                          );
+                                        }
+                                        if (onlineUrl != null &&
+                                            onlineUrl.isNotEmpty) {
+                                          return Image.network(
+                                            onlineUrl,
+                                            width: 180,
+                                            height: 180,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, _, _) =>
+                                                fallbackIcon(),
+                                          );
+                                        }
+                                        return fallbackIcon();
+                                      },
+                                    ),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Top Navigation Bar ──────────────────────────────────────────
-            Positioned(
-              top: topPadding,
-              left: 0,
-              right: 0,
-              height: _navBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Opacity(
-                      opacity: collapse,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 60),
-                        child: Text(
-                          album.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
+                        ],
+                      ),
+                    ),
+                    0,
+                  ),
+
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Titles & interactive artist link
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                    ),
+                    child: Column(
+                      children: [
+                        _animatedAlbumItem(
+                          Text(
+                            album.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.4,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          1,
                         ),
-                      ),
+                        const SizedBox(height: 4),
+
+                        // Clickable artist pill
+                        _animatedAlbumItem(
+                          // Songs by different artists, or none: no
+                          // single artist page to open.
+                          album.artist.isEmpty
+                              ? Text(
+                                  context.artistName(album.artist),
+                                  style: TextStyle(
+                                    color: colors.labelSecondary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                )
+                              : InkWell(
+                                  onTap: () {
+                                    AppHaptics.lightImpact();
+                                    context.pushArtist('${album.artistId}');
+                                  },
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusFull,
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          album.artist,
+                                          style: TextStyle(
+                                            color: colors.accent,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          AppIcons.disclosure,
+                                          color: colors.accent,
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                          2,
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Audiophile metadata badges in glass pills
+                        // Wraps on a narrow screen or a large font.
+                        _animatedAlbumItem(
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              if (year != null) AppBadge('$year'),
+                              AppBadge(
+                                context.l10n.detailCountsSummary(
+                                  context.l10n.songCount(album.trackCount),
+                                  totalDuration.toHumanReadable(context.l10n),
+                                ),
+                              ),
+                              if (_formatBadge(context) case final badge?) ...[
+                                AppBadge(
+                                  badge,
+                                  icon: badge == context.l10n.formatLossless
+                                      ? AppIcons.lossless
+                                      : null,
+                                ),
+                              ],
+                            ],
+                          ),
+                          3,
+                        ),
+                      ],
                     ),
-                    Positioned(left: 0, child: const AppBackButton()),
-                    Positioned(
-                      right: 0,
-                      child: GlassIconButton(
-                        icon: AppIcons.moreVertical,
-                        tooltip: context.l10n.detailMore,
-                        onTap: tracks.isEmpty
-                            ? null
-                            : () => _showAlbumOptions(context),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-
-            // ── Twin Action Buttons (Play + Shuffle 50/50) ──────────────
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: _actionsBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: 8,
-                ),
-                child: PlayShuffleButtons(tracks: tracks),
+          ),
+          // Play and shuffle scroll away with the hero: the collapsed bar
+          // keeps the title and actions only.
+          SizedBox(
+            height: _actionsBarHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: 8,
               ),
+              child: PlayShuffleButtons(tracks: tracks),
             ),
-          ],
-        ),
-      ),
-    );
-
-    return RepaintBoundary(
-      child: ClipRect(
-        child: blurSigma > 0
-            ? BackdropFilter(
-                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
-                child: content,
-              )
-            : content,
+          ),
+        ],
       ),
     );
   }

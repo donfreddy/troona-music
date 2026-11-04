@@ -7,7 +7,6 @@ import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
 import 'package:troona/features/metadata/presentation/widgets/online_about_card.dart';
-import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -30,10 +29,10 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
 Widget _animatedArtistItem(
@@ -113,19 +112,10 @@ class ArtistDetailPage extends StatelessWidget {
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           slivers: [
-                            SliverPersistentHeader(
-                              pinned: true,
-                              delegate: _ArtistHeroDelegate(
-                                artist: data.artist,
-                                tracks: data.topTracks,
-                                albums: data.allAlbums,
-                                topPadding: MediaQuery.of(
-                                  contentCtx,
-                                ).padding.top,
-                                textScale: MediaQuery.textScalerOf(
-                                  contentCtx,
-                                ).scale(1),
-                              ),
+                            _ArtistHeader(
+                              artist: data.artist,
+                              tracks: data.topTracks,
+                              albums: data.allAlbums,
                             ),
 
                             // ── 1. Top Tracks FIRST for instant playback ───────────
@@ -225,49 +215,23 @@ class ArtistDetailPage extends StatelessWidget {
   }
 }
 
-// ── Hero Header Delegate ──────────────────────────────────────────────────────
-class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
+// ── Hero Header ──────────────────────────────────────────────────────
+class _ArtistHeader extends StatelessWidget {
   final Artist artist;
   final List<Track> tracks;
   final List<Album> albums;
-  final double topPadding;
 
-  /// The phone's font size: the expanded header grows with its text.
-  final double textScale;
-
-  const _ArtistHeroDelegate({
+  const _ArtistHeader({
     required this.artist,
     required this.tracks,
     required this.albums,
-    required this.topPadding,
-    required this.textScale,
   });
 
-  static const double _navBarHeight = 44.0;
   static const double _actionsBarHeight = 64.0;
 
   /// Height of the expanded header's text at the default font size.
   static const double _expandedText = 100.0;
   static const double _expandedExtra = 260.0;
-
-  @override
-  double get minExtent => topPadding + _navBarHeight + _actionsBarHeight;
-
-  @override
-  double get maxExtent =>
-      topPadding +
-      _navBarHeight +
-      _expandedExtra +
-      (textScale - 1) * _expandedText +
-      _actionsBarHeight;
-
-  @override
-  bool shouldRebuild(_ArtistHeroDelegate old) =>
-      old.artist != artist ||
-      old.tracks != tracks ||
-      old.albums != albums ||
-      old.topPadding != topPadding ||
-      old.textScale != textScale;
 
   String _getInitials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -315,119 +279,70 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    final collapse = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
-    final currentHeight = (maxExtent - shrinkOffset).clamp(
-      minExtent,
-      maxExtent,
-    );
+  Widget build(BuildContext context) {
     final colors = context.colors;
-    // Same glass as the Library's collapsed header.
-    final glass = GlassTheme.bar(context);
-    final blurSigma = glass.blurSigma * collapse;
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
 
-    final content = DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color.lerp(Colors.transparent, glass.fill, collapse),
-        border: Border(
-          bottom: BorderSide(
-            color: colors.separator.withValues(alpha: collapse),
-            width: 0.5,
-          ),
+    return GlassSliverHeader(
+      leading: const AppBackButton(),
+      title: context.artistName(artist.name),
+      actions: [
+        GlassIconButton(
+          icon: AppIcons.moreVertical,
+          tooltip: context.l10n.detailMore,
+          onTap: tracks.isEmpty ? null : () => _showArtistOptions(context),
         ),
-      ),
-      child: SizedBox(
-        height: currentHeight,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            // ── Expanded Content (Avatar + Name + Stats Badges) ─────────────
-            Positioned(
-              top: topPadding + _navBarHeight,
-              left: 0,
-              right: 0,
-              bottom: _actionsBarHeight,
-              child: Opacity(
-                opacity: (1 - collapse * 1.6).clamp(0.0, 1.0),
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: AppSpacing.sm),
+      ],
+      expandedHeight: _expandedExtra + _actionsBarHeight,
+      expandedTextHeight: _expandedText,
+      expanded: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
 
-                      // Circular artist photo. Depth only, like the album
-                      // cover: an accent ring and glow would clash with the
-                      // photo's own colours.
-                      _animatedArtistItem(
-                        Container(
-                          width: 130,
-                          height: 130,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.45),
-                                blurRadius: 24,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
+                  // Circular artist photo. Depth only, like the album
+                  // cover: an accent ring and glow would clash with the
+                  // photo's own colours.
+                  _animatedArtistItem(
+                    Container(
+                      width: 130,
+                      height: 130,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
                           ),
-                          child: ClipOval(
-                            child:
-                                BlocBuilder<
-                                  ArtistMetadataCubit,
-                                  ArtistMetadataState
-                                >(
-                                  builder: (context, metaState) {
-                                    final downloaded =
-                                        metaState is ArtistMetadataLoaded
-                                        ? metaState.localImagePath
-                                        : null;
-                                    final onlineUrl =
-                                        metaState is ArtistMetadataLoaded
-                                        ? metaState.info.imageUrl
-                                        : null;
-                                    final localAlbumArt = artist.artworkPath;
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
+                          builder: (context, metaState) {
+                            final downloaded = metaState is ArtistMetadataLoaded
+                                ? metaState.localImagePath
+                                : null;
+                            final onlineUrl = metaState is ArtistMetadataLoaded
+                                ? metaState.info.imageUrl
+                                : null;
+                            final localAlbumArt = artist.artworkPath;
 
-                                    // 1. Prefer downloaded HD artist photo
-                                    if (downloaded != null &&
-                                        downloaded.isNotEmpty) {
-                                      return ArtworkImage(
-                                        downloaded,
-                                        width: 130,
-                                        height: 130,
-                                        errorBuilder: (_, _, _) =>
-                                            onlineUrl != null &&
-                                                onlineUrl.isNotEmpty
-                                            ? Image.network(
-                                                onlineUrl,
-                                                width: 130,
-                                                height: 130,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, _, _) =>
-                                                    _fallbackLocalOrMonogram(
-                                                      localAlbumArt,
-                                                      colors,
-                                                    ),
-                                              )
-                                            : _fallbackLocalOrMonogram(
-                                                localAlbumArt,
-                                                colors,
-                                              ),
-                                      );
-                                    }
-
-                                    // 2. Next prefer online HD artist photo (Deezer/Last.fm)
-                                    if (onlineUrl != null &&
-                                        onlineUrl.isNotEmpty) {
-                                      return Image.network(
+                            // 1. Prefer downloaded HD artist photo
+                            if (downloaded != null && downloaded.isNotEmpty) {
+                              return ArtworkImage(
+                                downloaded,
+                                width: 130,
+                                height: 130,
+                                errorBuilder: (_, _, _) =>
+                                    onlineUrl != null && onlineUrl.isNotEmpty
+                                    ? Image.network(
                                         onlineUrl,
                                         width: 130,
                                         height: 130,
@@ -437,154 +352,113 @@ class _ArtistHeroDelegate extends SliverPersistentHeaderDelegate {
                                               localAlbumArt,
                                               colors,
                                             ),
-                                      );
-                                    }
+                                      )
+                                    : _fallbackLocalOrMonogram(
+                                        localAlbumArt,
+                                        colors,
+                                      ),
+                              );
+                            }
 
-                                    // 3. Fallback to local track album art or monogram
-                                    return _fallbackLocalOrMonogram(
+                            // 2. Next prefer online HD artist photo (Deezer/Last.fm)
+                            if (onlineUrl != null && onlineUrl.isNotEmpty) {
+                              return Image.network(
+                                onlineUrl,
+                                width: 130,
+                                height: 130,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) =>
+                                    _fallbackLocalOrMonogram(
                                       localAlbumArt,
                                       colors,
-                                    );
-                                  },
-                                ),
-                          ),
-                        ),
-                        0,
-                      ),
-
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Artist Name
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.xl,
-                        ),
-                        child: Column(
-                          children: [
-                            _animatedArtistItem(
-                              Text(
-                                context.artistName(artist.name),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.5,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              1,
-                            ),
-                            const SizedBox(height: 6),
-
-                            // Stats Pill Badges
-                            // Wraps on a narrow screen or a large font.
-                            _animatedArtistItem(
-                              Wrap(
-                                alignment: WrapAlignment.center,
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: [
-                                  AppBadge(
-                                    context.l10n.songCount(artist.trackCount),
-                                    icon: AppIcons.track,
-                                  ),
-                                  // A guest only has no release of their own.
-                                  if (context.artistReleases(artist)
-                                      case final releases?)
-                                    AppBadge(releases, icon: AppIcons.album),
-                                  if (totalDuration > Duration.zero) ...[
-                                    AppBadge(
-                                      totalDuration.toHumanReadable(
-                                        context.l10n,
-                                      ),
-                                      icon: AppIcons.duration,
                                     ),
-                                  ],
-                                ],
-                              ),
-                              2,
-                            ),
-                          ],
+                              );
+                            }
+
+                            // 3. Fallback to local track album art or monogram
+                            return _fallbackLocalOrMonogram(
+                              localAlbumArt,
+                              colors,
+                            );
+                          },
                         ),
                       ),
-                    ],
+                    ),
+                    0,
                   ),
-                ),
-              ),
-            ),
 
-            // ── Top Navigation Bar ──────────────────────────────────────────
-            Positioned(
-              top: topPadding,
-              left: 0,
-              right: 0,
-              height: _navBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Opacity(
-                      opacity: collapse,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 60),
-                        child: Text(
-                          context.artistName(artist.name),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Artist Name
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                    ),
+                    child: Column(
+                      children: [
+                        _animatedArtistItem(
+                          Text(
+                            context.artistName(artist.name),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
+                          1,
                         ),
-                      ),
+                        const SizedBox(height: 6),
+
+                        // Stats Pill Badges
+                        // Wraps on a narrow screen or a large font.
+                        _animatedArtistItem(
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              AppBadge(
+                                context.l10n.songCount(artist.trackCount),
+                                icon: AppIcons.track,
+                              ),
+                              // A guest only has no release of their own.
+                              if (context.artistReleases(artist)
+                                  case final releases?)
+                                AppBadge(releases, icon: AppIcons.album),
+                              if (totalDuration > Duration.zero) ...[
+                                AppBadge(
+                                  totalDuration.toHumanReadable(context.l10n),
+                                  icon: AppIcons.duration,
+                                ),
+                              ],
+                            ],
+                          ),
+                          2,
+                        ),
+                      ],
                     ),
-                    Positioned(left: 0, child: const AppBackButton()),
-                    Positioned(
-                      right: 0,
-                      child: GlassIconButton(
-                        icon: AppIcons.moreVertical,
-                        tooltip: context.l10n.detailMore,
-                        onTap: tracks.isEmpty
-                            ? null
-                            : () => _showArtistOptions(context),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-
-            // ── Play and shuffle, side by side ──────────────────────────────
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: _actionsBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: 8,
-                ),
-                child: PlayShuffleButtons(tracks: tracks),
+          ),
+          // Play and shuffle scroll away with the hero: the collapsed bar
+          // keeps the title and actions only.
+          SizedBox(
+            height: _actionsBarHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: 8,
               ),
+              child: PlayShuffleButtons(tracks: tracks),
             ),
-          ],
-        ),
-      ),
-    );
-
-    return RepaintBoundary(
-      child: ClipRect(
-        child: blurSigma > 0
-            ? BackdropFilter(
-                filter: GlassFilter.of(blurSigma, saturation: glass.saturation),
-                child: content,
-              )
-            : content,
+          ),
+        ],
       ),
     );
   }
