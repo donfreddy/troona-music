@@ -192,7 +192,6 @@ class ArtistDetailPage extends StatelessWidget {
                               },
                             ),
 
-
                             SliverPadding(
                               padding: EdgeInsets.only(
                                 bottom: contentCtx.bottomBarInset(tabs: false),

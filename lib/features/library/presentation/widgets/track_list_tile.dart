@@ -137,7 +137,8 @@ class _TrackListTileState extends State<TrackListTile> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      widget.subtitle ?? context.artistName(widget.track.artist),
+                      widget.subtitle ??
+                          context.artistName(widget.track.artist),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: .55),
                         fontSize: 13,
