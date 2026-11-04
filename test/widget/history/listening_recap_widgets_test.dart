@@ -19,6 +19,8 @@ import 'package:troona/features/history/presentation/pages/listening_recap_page.
 import 'package:troona/features/history/presentation/widgets/heat_cell.dart';
 import 'package:troona/features/history/presentation/widgets/listening_calendar.dart';
 import 'package:troona/features/history/presentation/widgets/listening_moments_grid.dart';
+import 'package:troona/features/history/presentation/widgets/recap_share_sheet.dart';
+import 'package:troona/features/history/presentation/widgets/recap_story.dart';
 import 'package:troona/features/history/presentation/widgets/weekly_recap_card.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
@@ -481,6 +483,20 @@ void main() {
       expect(find.text('Oct 12 to Oct 18'), findsOneWidget);
     });
 
+    testWidgets('Share opens the story of the span shown', (tester) async {
+      await open(tester, stats: full);
+
+      await tester.tap(find.byTooltip('Share'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecapShareSheet), findsOneWidget);
+      expect(find.byType(RecapStory), findsOneWidget);
+      expect(
+        tester.widget<RecapStory>(find.byType(RecapStory)).recap.firstDay,
+        lastMonday,
+      );
+    });
+
     testWidgets('a span without plays says so', (tester) async {
       await open(
         tester,
@@ -494,6 +510,7 @@ void main() {
       );
 
       expect(find.text('Nothing was played.'), findsOneWidget);
+      expect(find.byTooltip('Share'), findsNothing);
       expect(find.byType(HeatCell), findsNWidgets(7));
       expect(find.text('Top songs'), findsNothing);
       expect(find.text('When you listen'), findsNothing);

@@ -1007,6 +1007,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recapPlaysHeader => 'Écoutes';
 
   @override
+  String get recapShare => 'Partager';
+
+  @override
+  String get recapStoryWeek => 'Ma semaine en musique';
+
+  @override
+  String get recapStoryMonth => 'Mon mois en musique';
+
+  @override
   String get recapTopAlbums => 'Top albums';
 
   @override

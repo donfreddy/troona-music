@@ -1712,6 +1712,24 @@ abstract class AppLocalizations {
   /// **'Plays'**
   String get recapPlaysHeader;
 
+  /// No description provided for @recapShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get recapShare;
+
+  /// No description provided for @recapStoryWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'My week in music'**
+  String get recapStoryWeek;
+
+  /// No description provided for @recapStoryMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'My month in music'**
+  String get recapStoryMonth;
+
   /// No description provided for @recapTopAlbums.
   ///
   /// In en, this message translates to:

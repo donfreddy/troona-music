@@ -15,6 +15,7 @@ import 'package:troona/features/history/presentation/cubit/listening_recap_cubit
 import 'package:troona/features/history/presentation/utils/recap_format.dart';
 import 'package:troona/features/history/presentation/widgets/listening_calendar.dart';
 import 'package:troona/features/history/presentation/widgets/listening_moments_grid.dart';
+import 'package:troona/features/history/presentation/widgets/recap_share_sheet.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -22,6 +23,7 @@ import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 
 /// A week or a month of listening: how much, day by day, the songs, artist
@@ -42,6 +44,7 @@ class ListeningRecapPage extends StatelessWidget {
           GlassSliverHeader.largeTitle(
             leading: const AppBackButton(),
             title: context.l10n.recapPageTitle,
+            actions: const [_ShareButton()],
           ),
           SliverPadding(
             padding: EdgeInsets.only(
@@ -190,6 +193,29 @@ class ListeningRecapPage extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Shares the span shown as a story; hidden while it has no plays.
+class _ShareButton extends StatelessWidget {
+  const _ShareButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
+      builder: (context, state) {
+        final recap = state.recap;
+        if (recap == null || recap.plays == 0 || state.loading) {
+          return const SizedBox.shrink();
+        }
+        return GlassIconButton(
+          icon: AppIcons.share,
+          tooltip: context.l10n.recapShare,
+          onTap: () =>
+              showRecapShareSheet(context, recap: recap, today: state.today),
+        );
+      },
     );
   }
 }
