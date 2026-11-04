@@ -306,7 +306,6 @@ class _ArtistHeader extends StatelessWidget {
       buildWhen: (a, b) => _photoOf(a) != _photoOf(b),
       builder: (context, meta) {
         final photo = _photoOf(meta);
-        final textScale = MediaQuery.textScalerOf(context).scale(1);
         final expandedHeight = _expandedExtra + _actionsBarHeight;
         return GlassSliverHeader(
           leading: const AppBackButton(),
@@ -328,10 +327,12 @@ class _ArtistHeader extends StatelessWidget {
                   // scales it instead of decoding it again.
                   side: math.max(
                     MediaQuery.sizeOf(context).width,
-                    MediaQuery.paddingOf(context).top +
-                        GlassSliverHeader.navBarHeight +
-                        expandedHeight +
-                        math.max(0, textScale - 1) * _expandedText,
+                    GlassSliverHeader.navBarBottom(context) +
+                        GlassSliverHeader.expandedExtentOf(
+                          context,
+                          expandedHeight,
+                          _expandedText,
+                        ),
                   ),
                   fallback: _buildMonogram(context.colors, initials: false),
                 ),
@@ -398,56 +399,9 @@ class _ArtistHeader extends StatelessWidget {
                   ),
                 ],
               ),
+              // Shown only without a photo: the local cover or the monogram.
               child: ClipOval(
-                child: BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
-                  builder: (context, metaState) {
-                    final downloaded = metaState is ArtistMetadataLoaded
-                        ? metaState.localImagePath
-                        : null;
-                    final onlineUrl = metaState is ArtistMetadataLoaded
-                        ? metaState.info.imageUrl
-                        : null;
-                    final localAlbumArt = artist.artworkPath;
-
-                    // 1. Prefer downloaded HD artist photo
-                    if (downloaded != null && downloaded.isNotEmpty) {
-                      return ArtworkImage(
-                        downloaded,
-                        width: 130,
-                        height: 130,
-                        errorBuilder: (_, _, _) =>
-                            onlineUrl != null && onlineUrl.isNotEmpty
-                            ? Image.network(
-                                onlineUrl,
-                                width: 130,
-                                height: 130,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) =>
-                                    _fallbackLocalOrMonogram(
-                                      localAlbumArt,
-                                      colors,
-                                    ),
-                              )
-                            : _fallbackLocalOrMonogram(localAlbumArt, colors),
-                      );
-                    }
-
-                    // 2. Next prefer online HD artist photo (Deezer/Last.fm)
-                    if (onlineUrl != null && onlineUrl.isNotEmpty) {
-                      return Image.network(
-                        onlineUrl,
-                        width: 130,
-                        height: 130,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            _fallbackLocalOrMonogram(localAlbumArt, colors),
-                      );
-                    }
-
-                    // 3. Fallback to local track album art or monogram
-                    return _fallbackLocalOrMonogram(localAlbumArt, colors);
-                  },
-                ),
+                child: _fallbackLocalOrMonogram(artist.artworkPath, colors),
               ),
             ),
             0,
@@ -926,6 +880,7 @@ class _ArtistPhoto extends StatelessWidget {
             width: side,
             height: side,
             fit: BoxFit.cover,
+            cacheWidth: (side * MediaQuery.devicePixelRatioOf(context)).round(),
             errorBuilder: (_, _, _) => fallback,
           );
     final file = this.file;
