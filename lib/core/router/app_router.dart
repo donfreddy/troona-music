@@ -288,14 +288,6 @@ final appRouter = GoRouter(
   ],
 );
 
-/// The page a detail page was pushed from, handed to it as `extra` by
-/// [NavigationContextExt.pushAlbum] and [NavigationContextExt.pushArtist].
-final class OpenedFrom {
-  final String location;
-
-  const OpenedFrom(this.location);
-}
-
 extension NavigationContextExt on BuildContext {
   void pushAlbum(String albumId) => _pushDetail('albums', albumId);
 
@@ -305,16 +297,20 @@ extension NavigationContextExt on BuildContext {
   /// is the one this page was opened from (an album's artist, opened from
   /// the artist), goes back to it instead: artist, album, artist, album...
   /// would pile up copies, and back would walk through them all.
+  ///
+  /// The pushed page gets the location it was opened from as `extra`, a
+  /// plain string: go_router encodes `extra` when it saves the route, and
+  /// drops (with a warning) any type it cannot write as JSON.
   void _pushDetail(String section, String id) {
     final state = GoRouterState.of(this);
     final here = state.uri.path;
     final target = '${_tabOf(here)}/$section/$id';
-    if (state.extra case OpenedFrom(:final location)
-        when location == target && canPop()) {
+    if (state.extra case final String openedFrom
+        when openedFrom == target && canPop()) {
       pop();
       return;
     }
-    push(target, extra: OpenedFrom(here));
+    push(target, extra: here);
   }
 
   static String _tabOf(String location) => switch (location) {
