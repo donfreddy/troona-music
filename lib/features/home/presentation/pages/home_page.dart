@@ -9,6 +9,7 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/history/presentation/cubit/listening_recap_cubit.dart';
+import 'package:troona/features/history/presentation/widgets/recap_clock.dart';
 import 'package:troona/features/history/presentation/widgets/weekly_recap_card.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
@@ -386,36 +387,40 @@ class _WeeklySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
-      builder: (context, state) {
-        final recap = state.recap;
-        final Widget? content = recap != null && recap.plays > 0
-            ? Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: EntranceFader.staggered(
-                  index: 0,
-                  slideY: 0.04,
-                  child: WeeklyRecapCard(
-                    recap: recap,
-                    onTap: () => context.push(
-                      '${AppRoute.home}/${AppRoute.weeklyRecap}',
+    return RecapClock(
+      child: BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
+        builder: (context, state) {
+          final recap = state.recap;
+          final Widget? content = recap != null && recap.plays > 0
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
+                  child: EntranceFader.staggered(
+                    index: 0,
+                    slideY: 0.04,
+                    child: WeeklyRecapCard(
+                      recap: recap,
+                      onTap: () => context.push(
+                        '${AppRoute.home}/${AppRoute.weeklyRecap}',
+                      ),
                     ),
                   ),
-                ),
-              )
-            : playCount > 0
-            ? _WeeklyStatsBanner(playCount: playCount)
-            : null;
-        if (content == null) {
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
-        }
-        return SliverMainAxisGroup(
-          slivers: [
-            SliverToBoxAdapter(child: content),
-            const _SectionGap(),
-          ],
-        );
-      },
+                )
+              : playCount > 0
+              ? _WeeklyStatsBanner(playCount: playCount)
+              : null;
+          if (content == null) {
+            return const SliverToBoxAdapter(child: SizedBox.shrink());
+          }
+          return SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(child: content),
+              const _SectionGap(),
+            ],
+          );
+        },
+      ),
     );
   }
 }

@@ -107,7 +107,9 @@ final class IsarPlayHistoryDataSource {
     for (final h
         in _isar.listeningHourModels
             .where()
-            .idBetween(firstDay * 24, lastDay * 24 + 23)
+            // From 6:00 on the first day to 6:00 after the last: a night
+            // belongs to the evening before, so the span holds its own.
+            .idBetween(firstDay * 24 + 6, lastDay * 24 + 29)
             .findAll()) {
       final weekday = ListeningDay.weekday(h.id ~/ 24);
       hourPlays[(weekday - 1) * 24 + h.id % 24] += h.plays;

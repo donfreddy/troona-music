@@ -437,6 +437,27 @@ void main() {
       expect(isar.listeningHourModels.count(), 1);
     });
 
+    test('plays pruned at once by the cap add no hours', () async {
+      store(
+        tracks: [_track('1')],
+        plays: [
+          for (var i = 1; i <= 3; i++) play('1', t0.add(Duration(days: i))),
+        ],
+      );
+      final old = backup(
+        plays: [
+          BackupPlay(track: 'a', at: t0.toUtc()),
+          BackupPlay(track: 'a', at: t0.add(const Duration(hours: 1)).toUtc()),
+        ],
+      );
+
+      await source.restore(old, {'a': '1'});
+      await source.restore(old, {'a': '1'});
+
+      expect(isar.listeningHourModels.count(), 0);
+      expect(isar.playEventModels.count(), 3);
+    });
+
     test('two saved songs found as one add up their plays', () async {
       await source.restore(
         backup(

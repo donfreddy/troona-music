@@ -104,32 +104,42 @@ class ListeningRecapCubit extends Cubit<ListeningRecapState> {
 
   static ListeningRecapState _initial(DateTime now) => ListeningRecapState(
     period: RecapPeriod.week,
-    firstDay: RecapPeriod.week
-        .rangeOf(GetListeningRecapUseCase.lastWeekOf(now))
-        .$1,
+    firstDay: _defaultFirstDay(RecapPeriod.week, ListeningDay.of(now)),
     today: ListeningDay.of(now),
   );
 
-  /// The span each period opens on: last week, the one the Home card
-  /// tells about; this month, the one the calendar used to show.
-  static int _defaultDayOf(RecapPeriod period, DateTime now) =>
-      switch (period) {
-        RecapPeriod.week => GetListeningRecapUseCase.lastWeekOf(now),
-        RecapPeriod.month => ListeningDay.of(now),
-      };
+  /// The first day of the span each period opens on, as of [today]: last
+  /// week, the one the Home card tells about; this month.
+  static int _defaultFirstDay(RecapPeriod period, int today) =>
+      period.rangeOf(switch (period) {
+        RecapPeriod.week => today - 7,
+        RecapPeriod.month => today,
+      }).$1;
 
   /// Reads the span the period opens on, as of now: Home refreshes its
   /// card with it, so last week moves on on Mondays.
   Future<void> load() => _show(
     state.period,
-    state.period.rangeOf(_defaultDayOf(state.period, _now())).$1,
+    _defaultFirstDay(state.period, ListeningDay.of(_now())),
   );
+
+  /// Catches up with a new day (the app comes back after midnight): the
+  /// span a period opens on moves on with it; another span stays, with
+  /// today moved, so the arrows reach the new week or month.
+  Future<void> refreshClock() {
+    final today = ListeningDay.of(_now());
+    if (today == state.today) return Future.value();
+    if (state.firstDay == _defaultFirstDay(state.period, state.today)) {
+      return load();
+    }
+    emit(state.copyWith(today: today));
+    return Future.value();
+  }
 
   /// Switches to [period], on the span it opens on.
   Future<void> showPeriod(RecapPeriod period) {
     if (period == state.period) return Future.value();
-    final first = period.rangeOf(_defaultDayOf(period, _now())).$1;
-    return _show(period, first);
+    return _show(period, _defaultFirstDay(period, ListeningDay.of(_now())));
   }
 
   /// Moves [steps] spans away: back when negative. Never past today.
@@ -151,7 +161,7 @@ class ListeningRecapCubit extends Cubit<ListeningRecapState> {
         loading: true,
       ),
     );
-    final result = await _recap(period, first);
+    final result = await _recap(period, first, today: state.today);
     if (isClosed || read != _read) return;
     final recap = result.fold((_) => null, (r) => r);
     emit(

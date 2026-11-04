@@ -163,7 +163,7 @@ final class IsarBackupDataSource {
   }
 
   /// A play already stored (same song, same time) is not added again.
-  /// Returns the times of the plays added.
+  /// Returns the times of the plays added and kept under the cap.
   List<DateTime> _restorePlays(
     Isar isar,
     List<BackupPlay> saved,
@@ -173,30 +173,37 @@ final class IsarBackupDataSource {
     final stored = {
       for (final e in events.where().findAll()) _playKey(e.trackId, e.playedAt),
     };
-    final added = <DateTime>[];
+    final added = <int, DateTime>{};
     for (final play in saved) {
       final id = ids[play.track];
       if (id == null || !stored.add(_playKey(id, play.at))) continue;
       final at = play.at.toLocal();
+      final eventId = events.autoIncrement();
       events.put(
         PlayEventModel()
-          ..id = events.autoIncrement()
+          ..id = eventId
           ..trackId = id
           ..playedAt = at,
       );
-      added.add(at);
+      added[eventId] = at;
     }
     final excess = events.count() - maxPlays;
     if (excess > 0) {
       final oldest = events.where().sortByPlayedAt().findAll(limit: excess);
       events.deleteAll([for (final e in oldest) e.id]);
+      // A play pruned at once is added again by the next restore: only
+      // the plays kept may be counted.
+      for (final e in oldest) {
+        added.remove(e.id);
+      }
     }
-    return added;
+    return added.values.toList();
   }
 
   /// Hour totals keep the larger count, like the days. A backup made before
-  /// the hours were counted has none: the plays it adds are counted in
-  /// their hour instead, once, since a play already stored is not added.
+  /// the hours were counted has none: the plays it adds and keeps are
+  /// counted in their hour instead, once, since a play still stored is not
+  /// added again.
   static void _restoreHours(
     Isar isar,
     List<BackupHour> saved,

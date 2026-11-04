@@ -36,8 +36,8 @@ final class ListeningMoments {
   static const none = ListeningMoments._([], []);
 
   /// From plays per hour of the week, index `(weekday - 1) * 24 + hour`,
-  /// and how many of each weekday the span holds ([weekdayCounts], Monday
-  /// first; one of each by default).
+  /// and how many of each weekday the span has lived ([weekdayCounts],
+  /// Monday first; one of each by default).
   factory ListeningMoments.fromHours(
     List<int> hourPlays, {
     List<int>? weekdayCounts,
@@ -49,9 +49,9 @@ final class ListeningMoments {
     final occurrences = List.filled(7 * parts, 0);
     for (var weekday = 1; weekday <= 7; weekday++) {
       for (final part in DayPart.values) {
-        // A night's hours fall on the next day.
-        final day = part == DayPart.night ? weekday % 7 + 1 : weekday;
-        occurrences[_index(weekday, part)] = counts[day - 1];
+        // A night counts with its evening: the span's hours end at 6:00
+        // after its last day.
+        occurrences[_index(weekday, part)] = counts[weekday - 1];
       }
     }
     for (var i = 0; i < hourPlays.length; i++) {

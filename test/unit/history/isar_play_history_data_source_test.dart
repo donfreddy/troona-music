@@ -123,6 +123,18 @@ void main() {
       final stats = source.listeningStats(day, day);
       expect(stats.hourPlays[(t0.weekday - 1) * 24 + 9], 7);
     }, skip: skip);
+
+    test('a span holds its own nights, not the one before', () async {
+      final saturday = (DateTime.saturday - 1) * 24;
+      await play('a', -4 * 60); // Saturday 5:00, Friday's night
+      await play('b', 15 * 60 + 30); // Sunday 0:30, Saturday's night
+      await play('c', 21 * 60); // Sunday 6:00
+
+      final stats = source.listeningStats(day, day);
+      expect(stats.hourPlays[saturday + 5], 0);
+      expect(stats.hourPlays[saturday + 24], 1, reason: 'Sunday 0:30');
+      expect(stats.hourPlays.fold(0, (a, b) => a + b), 1);
+    }, skip: skip);
   });
 
   group('daily totals', () {

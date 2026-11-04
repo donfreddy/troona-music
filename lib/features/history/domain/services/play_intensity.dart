@@ -23,6 +23,7 @@ abstract final class PlayIntensity {
   /// 0 for nothing: where only the shape matters, not the volume.
   static int relativeLevelOf(num value, num max) {
     if (value <= 0 || max <= 0) return 0;
-    return (value / max * maxLevel).ceil().clamp(1, maxLevel);
+    // Rates are doubles: 21/5 against 28/5 is 3.0000000000000004 steps.
+    return (value / max * maxLevel - 1e-9).ceil().clamp(1, maxLevel);
   }
 }

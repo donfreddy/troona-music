@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/domain/entities/listening_recap.dart';
@@ -26,14 +28,13 @@ final class GetListeningRecapUseCase {
   /// Songs and albums listed at most.
   static const topCount = 5;
 
-  /// The last finished week, Monday to Sunday: the Home card's. It changes
-  /// on Mondays only.
-  static int lastWeekOf(DateTime now) => ListeningDay.of(now) - 7;
-
+  /// [today] bounds the days the span has lived, for When you listen: a
+  /// month in progress has not had its last Sundays yet.
   Future<Either<Failure, ListeningRecap>> call(
     RecapPeriod period,
-    int day,
-  ) async {
+    int day, {
+    required int today,
+  }) async {
     final (first, last) = period.rangeOf(day);
     final result = await _history.listeningStats(
       firstDay: first,
@@ -52,7 +53,7 @@ final class GetListeningRecapUseCase {
           ),
         );
       }
-      return right(await _recap(period, first, last, stats));
+      return right(await _recap(period, first, last, today, stats));
     });
   }
 
@@ -60,6 +61,7 @@ final class GetListeningRecapUseCase {
     RecapPeriod period,
     int first,
     int last,
+    int today,
     ListeningStats stats,
   ) async {
     final ranked = stats.trackPlays.entries.toList()
@@ -99,16 +101,23 @@ final class GetListeningRecapUseCase {
           : null,
       moments: ListeningMoments.fromHours(
         stats.hourPlays,
-        weekdayCounts: [
-          for (var weekday = 1; weekday <= 7; weekday++)
-            [
-              for (var d = first; d <= last; d++)
-                if (ListeningDay.weekday(d) == weekday) d,
-            ].length,
-        ],
+        weekdayCounts: _weekdaysLived(
+          max(first, historyStart ?? first),
+          min(last, today),
+        ),
       ),
       historyStart: historyStart,
     );
+  }
+
+  /// How many of each weekday, Monday first, the days from [first] to
+  /// [last] hold: the span's days already lived, since the history began.
+  static List<int> _weekdaysLived(int first, int last) {
+    final counts = List.filled(7, 0);
+    for (var d = first; d <= last; d++) {
+      counts[ListeningDay.weekday(d) - 1]++;
+    }
+    return counts;
   }
 
   /// The artist credited on the most plays, with their most played track

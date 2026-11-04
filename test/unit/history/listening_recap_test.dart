@@ -168,6 +168,7 @@ void main() {
       expect(PlayIntensity.relativeLevelOf(6, 10), 3);
       expect(PlayIntensity.relativeLevelOf(10, 10), 4);
       expect(PlayIntensity.relativeLevelOf(3, 0), 0);
+      expect(PlayIntensity.relativeLevelOf(21 / 5, 28 / 5), 3);
     });
   });
 
@@ -305,29 +306,75 @@ void main() {
           historyStart: historyStart,
         );
 
-    Future<ListeningRecap> week(int day) async =>
-        (await recap(RecapPeriod.week, day)).getOrElse(() => throw 'failed');
+    // Long after every span read here.
+    final later = _day(2027, 1, 1);
 
-    test('last week for the Home card', () {
-      expect(
-        GetListeningRecapUseCase.lastWeekOf(DateTime(2026, 10, 28, 10)),
-        _day(2026, 10, 21),
-      );
-    });
+    Future<ListeningRecap> week(int day) async => (await recap(
+      RecapPeriod.week,
+      day,
+      today: later,
+    )).getOrElse(() => throw 'failed');
 
     test('a month counts each of its weekdays', () async {
       history.stats = stats({'a1': 1});
       final r = (await recap(
         RecapPeriod.month,
         _day(2026, 10, 9),
+        today: later,
       )).getOrElse(() => throw 'failed');
       // Monday 20:00 played 7 times; October 2026 holds four Mondays.
       expect(r.moments.rateAt(1, DayPart.evening), 7 / 4);
     });
 
+    test('a month in progress counts only the days lived', () async {
+      history.stats = ListeningStats(
+        plays: 19,
+        listened: Duration.zero,
+        trackPlays: const {'a1': 19},
+        hourPlays: [
+          for (var i = 0; i < 168; i++)
+            i == 6 * 24 + 20
+                ? 10 // Sunday evening
+                : i == 1 * 24 + 20
+                ? 9 // Tuesday evening
+                : 0,
+        ],
+        discoveries: 0,
+        historyStart: 0,
+      );
+      // Wednesday, November 4, 2026: one Sunday and one Tuesday lived,
+      // though the month holds five Sundays and four Tuesdays.
+      final r = (await recap(
+        RecapPeriod.month,
+        _day(2026, 11, 4),
+        today: _day(2026, 11, 4),
+      )).getOrElse(() => throw 'failed');
+      expect(r.moments.rateAt(7, DayPart.evening), 10);
+      expect(r.moments.rateAt(2, DayPart.evening), 9);
+      expect(r.moments.peak, (7, DayPart.evening));
+    });
+
+    test('a month the history began in counts from its start', () async {
+      history.stats = ListeningStats(
+        plays: 4,
+        listened: Duration.zero,
+        trackPlays: const {'a1': 4},
+        hourPlays: [for (var i = 0; i < 168; i++) i == 20 ? 4 : 0],
+        discoveries: 0,
+        historyStart: _day(2026, 10, 20), // a Tuesday
+      );
+      final r = (await recap(
+        RecapPeriod.month,
+        _day(2026, 10, 9),
+        today: later,
+      )).getOrElse(() => throw 'failed');
+      // Mondays from October 20: the 26th only.
+      expect(r.moments.rateAt(1, DayPart.evening), 4);
+    });
+
     test('reads the span of the day', () async {
-      await recap(RecapPeriod.month, _day(2026, 10, 9));
-      await recap(RecapPeriod.week, lastMonday + 3);
+      await recap(RecapPeriod.month, _day(2026, 10, 9), today: later);
+      await recap(RecapPeriod.week, lastMonday + 3, today: later);
       expect(history.asked, [
         (_day(2026, 10, 1), _day(2026, 10, 31)),
         (lastMonday, lastMonday + 6),
@@ -571,6 +618,33 @@ void main() {
       history.gates![0].complete();
       await read;
       expect(cubit.state.isShown, isTrue);
+    });
+
+    test('a new day: the default span moves on, another one stays', () async {
+      var clock = DateTime(2026, 11, 1, 22); // a Sunday
+      final cubit = ListeningRecapCubit(
+        recap: GetListeningRecapUseCase(
+          playedSince(0),
+          GetTracksByIdsUseCase(_Library([a1])),
+        ),
+        now: () => clock,
+      );
+      addTearDown(cubit.close);
+      await cubit.load();
+      await cubit.refreshClock();
+      expect(cubit.state.firstDay, _day(2026, 10, 19), reason: 'same day');
+
+      clock = DateTime(2026, 11, 2, 8); // Monday
+      await cubit.refreshClock();
+      expect(cubit.state.firstDay, _day(2026, 10, 26));
+
+      // This week, then a new Monday: the week stays, the arrow opens.
+      await cubit.step(1);
+      expect(cubit.state.isCurrent, isTrue);
+      clock = DateTime(2026, 11, 9, 8);
+      await cubit.refreshClock();
+      expect(cubit.state.firstDay, _day(2026, 11, 2));
+      expect(cubit.state.canGoForward, isTrue);
     });
 
     test('a failed read shows no recap, not an error', () async {

@@ -15,6 +15,7 @@ import 'package:troona/features/history/presentation/cubit/listening_recap_cubit
 import 'package:troona/features/history/presentation/utils/recap_format.dart';
 import 'package:troona/features/history/presentation/widgets/listening_calendar.dart';
 import 'package:troona/features/history/presentation/widgets/listening_moments_grid.dart';
+import 'package:troona/features/history/presentation/widgets/recap_clock.dart';
 import 'package:troona/features/history/presentation/widgets/recap_share_sheet.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
@@ -35,52 +36,59 @@ class ListeningRecapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          GlassSliverHeader.largeTitle(
-            leading: const AppBackButton(),
-            title: context.l10n.recapPageTitle,
-            actions: const [_ShareButton()],
+    return RecapClock(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          SliverPadding(
-            padding: EdgeInsets.only(
-              top: AppSpacing.sm,
-              bottom: context.bottomBarInset(tabs: false),
+          slivers: [
+            GlassSliverHeader.largeTitle(
+              leading: const AppBackButton(),
+              title: context.l10n.recapPageTitle,
+              actions: const [_ShareButton()],
             ),
-            sliver: SliverToBoxAdapter(
-              child: BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
-                builder: (context, state) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _inset(_PeriodSwitch(selected: state.period)),
-                    const SizedBox(height: AppSpacing.md),
-                    _inset(_SpanNavigator(state: state)),
-                    const SizedBox(height: AppSpacing.md),
-                    // The span before stays, faded, while the next one is
-                    // read: its figures are not the title's.
-                    AnimatedOpacity(
-                      opacity: state.loading && !state.isShown ? .35 : 1,
-                      duration: const Duration(milliseconds: 160),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        layoutBuilder: (current, previous) => Stack(
-                          alignment: Alignment.topCenter,
-                          children: [...previous, ?current],
+            SliverPadding(
+              padding: EdgeInsets.only(
+                top: AppSpacing.sm,
+                bottom: context.bottomBarInset(tabs: false),
+              ),
+              sliver: SliverToBoxAdapter(
+                child: BlocBuilder<ListeningRecapCubit, ListeningRecapState>(
+                  builder: (context, state) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _inset(_PeriodSwitch(selected: state.period)),
+                      const SizedBox(height: AppSpacing.md),
+                      _inset(_SpanNavigator(state: state)),
+                      const SizedBox(height: AppSpacing.md),
+                      // The span before stays, faded, while the next one is
+                      // read: its figures are not the title's.
+                      AnimatedOpacity(
+                        opacity:
+                            state.loading &&
+                                state.recap != null &&
+                                !state.isShown
+                            ? .35
+                            : 1,
+                        duration: const Duration(milliseconds: 160),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 220),
+                          layoutBuilder: (current, previous) => Stack(
+                            alignment: Alignment.topCenter,
+                            children: [...previous, ?current],
+                          ),
+                          child: _content(context, state),
                         ),
-                        child: _content(context, state),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -96,9 +104,9 @@ class ListeningRecapPage extends StatelessWidget {
     final colors = context.colors;
     if (recap == null) {
       return Padding(
-        key: ValueKey(state.loading ? 'loading' : 'failed'),
+        key: ValueKey(state.failed ? 'failed' : 'loading'),
         padding: const EdgeInsets.all(AppSpacing.xl3),
-        child: state.loading
+        child: !state.failed
             ? const Center(child: CircularProgressIndicator())
             : Text(
                 l10n.errorGeneric,
