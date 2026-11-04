@@ -1493,23 +1493,44 @@ class AppLocalizationsEn extends AppLocalizations {
       'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.';
 
   @override
+  String get whatsNew140TopTitle => 'Back to the top';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Tap the tab you are on to scroll its page back to the top.';
+
+  @override
   String get whatsNew140EdgeTitle => 'Edge to edge';
 
   @override
   String get whatsNew140EdgeBody =>
-      'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.';
+      'Lists now scroll under the status bar and the floating tab bar, on every Android version, and fade out softly under the tab bar instead of stopping on a line.';
 
   @override
   String get whatsNew140TitlesTitle => 'Large titles';
 
   @override
   String get whatsNew140TitlesBody =>
-      'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.';
+      'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions. A title left halfway settles open or closed.';
 
   @override
-  String get whatsNew140TopTitle => 'Back to the top';
+  String get whatsNew140CoversTitle => 'Album and playlist pages';
 
   @override
-  String get whatsNew140TopBody =>
-      'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.';
+  String get whatsNew140CoversBody =>
+      'Their cover and buttons scroll away under the same glass bar, which then shows their name.';
+
+  @override
+  String get whatsNew140ArtistPhotoTitle => 'Artist photos';
+
+  @override
+  String get whatsNew140ArtistPhotoBody =>
+      'An artist with a photo opens on it, edge to edge, with their name over it. Pull down to enlarge it.';
+
+  @override
+  String get whatsNew140SearchTitle => 'Search';
+
+  @override
+  String get whatsNew140SearchBody =>
+      'The search field stays pinned at the top in a glass bar while the results scroll under it, and scrolling the results closes the keyboard.';
 }

@@ -1509,23 +1509,44 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un album téléchargé dans plusieurs dossiers, ou des singles enregistrés chacun dans le leur, apparaissaient plusieurs fois. C\'est de nouveau un seul album, et son année s\'affiche.';
 
   @override
+  String get whatsNew140TopTitle => 'Retour en haut';
+
+  @override
+  String get whatsNew140TopBody =>
+      'Touchez l\'onglet où vous êtes pour remonter en haut de sa page.';
+
+  @override
   String get whatsNew140EdgeTitle => 'Bord à bord';
 
   @override
   String get whatsNew140EdgeBody =>
-      'Les listes défilent maintenant sous la barre d\'état et sous la barre d\'onglets flottante, qui les estompe en douceur. Les pages album et playlist s\'ouvrent sur leur pochette, et un artiste avec une photo sur celle-ci, bord à bord.';
+      'Les listes défilent maintenant sous la barre d\'état et sous la barre d\'onglets flottante, sur toutes les versions d\'Android, et s\'estompent en douceur sous la barre d\'onglets au lieu de s\'arrêter net.';
 
   @override
   String get whatsNew140TitlesTitle => 'Grands titres';
 
   @override
   String get whatsNew140TitlesBody =>
-      'Chaque page s\'ouvre sur un grand titre qui se replie en barre de verre quand vous défilez, avec le bouton retour et les actions de la page.';
+      'Chaque page s\'ouvre sur un grand titre qui se replie en barre de verre quand vous défilez, avec le bouton retour et les actions de la page. Un titre laissé à mi-chemin s\'ouvre ou se replie de lui-même.';
 
   @override
-  String get whatsNew140TopTitle => 'Retour en haut';
+  String get whatsNew140CoversTitle => 'Pages album et playlist';
 
   @override
-  String get whatsNew140TopBody =>
-      'Touchez l\'onglet où vous êtes pour remonter en haut de sa page. Dans la recherche, le champ reste en haut pendant que les résultats défilent dessous.';
+  String get whatsNew140CoversBody =>
+      'Leur pochette et leurs boutons défilent sous la même barre de verre, qui affiche alors leur nom.';
+
+  @override
+  String get whatsNew140ArtistPhotoTitle => 'Photos d\'artiste';
+
+  @override
+  String get whatsNew140ArtistPhotoBody =>
+      'Un artiste avec une photo s\'ouvre sur celle-ci, bord à bord, avec son nom par-dessus. Tirez vers le bas pour l\'agrandir.';
+
+  @override
+  String get whatsNew140SearchTitle => 'Recherche';
+
+  @override
+  String get whatsNew140SearchBody =>
+      'Le champ de recherche reste en haut dans une barre de verre pendant que les résultats défilent dessous, et faire défiler les résultats ferme le clavier.';
 }

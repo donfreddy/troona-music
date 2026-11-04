@@ -2474,6 +2474,18 @@ abstract class AppLocalizations {
   /// **'An album downloaded in several folders, or singles saved one folder each, showed up several times. It is one album again, and its year shows.'**
   String get whatsNew130AlbumsBody;
 
+  /// No description provided for @whatsNew140TopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the top'**
+  String get whatsNew140TopTitle;
+
+  /// No description provided for @whatsNew140TopBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the tab you are on to scroll its page back to the top.'**
+  String get whatsNew140TopBody;
+
   /// No description provided for @whatsNew140EdgeTitle.
   ///
   /// In en, this message translates to:
@@ -2483,7 +2495,7 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew140EdgeBody.
   ///
   /// In en, this message translates to:
-  /// **'Lists now scroll under the status bar and the floating tab bar, which fades them out softly. Album and playlist pages open on their cover, and an artist with a photo on it, edge to edge.'**
+  /// **'Lists now scroll under the status bar and the floating tab bar, on every Android version, and fade out softly under the tab bar instead of stopping on a line.'**
   String get whatsNew140EdgeBody;
 
   /// No description provided for @whatsNew140TitlesTitle.
@@ -2495,20 +2507,44 @@ abstract class AppLocalizations {
   /// No description provided for @whatsNew140TitlesBody.
   ///
   /// In en, this message translates to:
-  /// **'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions.'**
+  /// **'Every page opens on a large title that shrinks into a glass bar as you scroll, with the back button and the page\'s actions. A title left halfway settles open or closed.'**
   String get whatsNew140TitlesBody;
 
-  /// No description provided for @whatsNew140TopTitle.
+  /// No description provided for @whatsNew140CoversTitle.
   ///
   /// In en, this message translates to:
-  /// **'Back to the top'**
-  String get whatsNew140TopTitle;
+  /// **'Album and playlist pages'**
+  String get whatsNew140CoversTitle;
 
-  /// No description provided for @whatsNew140TopBody.
+  /// No description provided for @whatsNew140CoversBody.
   ///
   /// In en, this message translates to:
-  /// **'Tap the tab you are on to scroll its page back to the top. In search, the field stays at the top while the results scroll under it.'**
-  String get whatsNew140TopBody;
+  /// **'Their cover and buttons scroll away under the same glass bar, which then shows their name.'**
+  String get whatsNew140CoversBody;
+
+  /// No description provided for @whatsNew140ArtistPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist photos'**
+  String get whatsNew140ArtistPhotoTitle;
+
+  /// No description provided for @whatsNew140ArtistPhotoBody.
+  ///
+  /// In en, this message translates to:
+  /// **'An artist with a photo opens on it, edge to edge, with their name over it. Pull down to enlarge it.'**
+  String get whatsNew140ArtistPhotoBody;
+
+  /// No description provided for @whatsNew140SearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get whatsNew140SearchTitle;
+
+  /// No description provided for @whatsNew140SearchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The search field stays pinned at the top in a glass bar while the results scroll under it, and scrolling the results closes the keyboard.'**
+  String get whatsNew140SearchBody;
 }
 
 class _AppLocalizationsDelegate
