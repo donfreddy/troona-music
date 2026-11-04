@@ -20,4 +20,18 @@ final class ArtistAlbums {
 
   /// [own], [singles], then [appearsOn].
   List<Album> get all => [...own, ...singles, ...appearsOn];
+
+  /// Their newest album or single, by year. None when no release has a
+  /// year (MediaStore often reads none), nor with a single release: its
+  /// card is right below.
+  Album? get latest {
+    final releases = [...own, ...singles];
+    if (releases.length < 2) return null;
+    Album? newest;
+    for (final album in releases) {
+      final year = album.year;
+      if (year != null && year > (newest?.year ?? 0)) newest = album;
+    }
+    return newest;
+  }
 }
