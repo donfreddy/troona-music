@@ -25,10 +25,13 @@ class SearchSuggestions extends StatelessWidget {
     final libState = context.watch<LibraryBloc>().state;
 
     if (libState is! LibraryLoaded || libState.allTracks.isEmpty) {
-      return EmptyState(
-        icon: AppIcons.search,
-        title: context.l10n.searchIdleTitle,
-        body: context.l10n.searchIdleBody,
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: EmptyState(
+          icon: AppIcons.search,
+          title: context.l10n.searchIdleTitle,
+          body: context.l10n.searchIdleBody,
+        ),
       );
     }
 
@@ -46,78 +49,82 @@ class SearchSuggestions extends StatelessWidget {
             .take(5)
             .toList();
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
+    // A sliver: the suggestions scroll under the search page's glass bar.
+    return SliverPadding(
       padding: EdgeInsets.only(
         top: AppSpacing.md,
         bottom: context.bottomBarInset(),
       ),
-      children: [
-        if (artists.isNotEmpty) ...[
-          SectionHeader(
-            title: context.l10n.searchSuggestedArtists,
-            onViewAll: () => context.go(AppRoute.library),
-          ),
-          SizedBox(
-            height: 120,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: min(artists.length, 10),
-              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final artist = artists[index];
-                return SearchArtistChip(artist: artist);
-              },
+      sliver: SliverList.list(
+        children: [
+          if (artists.isNotEmpty) ...[
+            SectionHeader(
+              title: context.l10n.searchSuggestedArtists,
+              onViewAll: () => context.go(AppRoute.library),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-        ],
-
-        if (albums.isNotEmpty) ...[
-          SectionHeader(
-            title: context.l10n.searchSuggestedAlbums,
-            onViewAll: () => context.go(AppRoute.library),
-          ),
-          SizedBox(
-            height: 220,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: min(albums.length, 10),
-              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final album = albums[index];
-                return AlbumCard(album: album, size: 150);
-              },
+            SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: min(artists.length, 10),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final artist = artists[index];
+                  return SearchArtistChip(artist: artist);
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+            const SizedBox(height: AppSpacing.xl),
+          ],
 
-        if (suggestedTracks.isNotEmpty) ...[
-          SectionHeader(
-            title: context.l10n.searchRecentlyAdded,
-            onViewAll: () => context.go(AppRoute.library),
-          ),
-          ...suggestedTracks.asMap().entries.map((entry) {
-            final index = entry.key;
-            final track = entry.value;
-            return TrackListTile(
-              track: track,
-              onTap: () {
-                context.read<PlayerBloc>().add(
-                  PlayTrackRequested(
-                    track,
-                    contextQueue: suggestedTracks,
-                    contextIndex: index,
-                  ),
-                );
-              },
-            );
-          }),
+          if (albums.isNotEmpty) ...[
+            SectionHeader(
+              title: context.l10n.searchSuggestedAlbums,
+              onViewAll: () => context.go(AppRoute.library),
+            ),
+            SizedBox(
+              height: 220,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: min(albums.length, 10),
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final album = albums[index];
+                  return AlbumCard(album: album, size: 150);
+                },
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+
+          if (suggestedTracks.isNotEmpty) ...[
+            SectionHeader(
+              title: context.l10n.searchRecentlyAdded,
+              onViewAll: () => context.go(AppRoute.library),
+            ),
+            ...suggestedTracks.asMap().entries.map((entry) {
+              final index = entry.key;
+              final track = entry.value;
+              return TrackListTile(
+                track: track,
+                onTap: () {
+                  context.read<PlayerBloc>().add(
+                    PlayTrackRequested(
+                      track,
+                      contextQueue: suggestedTracks,
+                      contextIndex: index,
+                    ),
+                  );
+                },
+              );
+            }),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

@@ -26,6 +26,7 @@ import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
+import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,6 +45,8 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: RefreshIndicator(
+        // Below the glass bar, which stays on top of the scroll view.
+        edgeOffset: GlassSliverHeader.navBarBottom(context),
         onRefresh: () async {
           context.read<HomeBloc>().add(HomeRefreshRequested());
           await context.read<WeeklyRecapCubit>().load();
@@ -53,11 +56,21 @@ class HomePage extends StatelessWidget {
             parent: AlwaysScrollableScrollPhysics(),
           ),
           slivers: [
+            GlassSliverHeader.largeTitle(
+              title: _greeting(context),
+              actions: [
+                GlassIconButton(
+                  icon: AppIcons.settings,
+                  tooltip: context.l10n.settingsTitle,
+                  onTap: () => context.pushNamed(AppRoute.settings),
+                ),
+              ],
+            ),
             SliverToBoxAdapter(
               child: BlocBuilder<HomeBloc, HomeState>(
                 buildWhen: (a, b) => _subtitleKey(a) != _subtitleKey(b),
                 builder: (context, state) =>
-                    _HomeHeader(subtitle: _subtitleOf(context, state)),
+                    _HomeSubtitle(subtitle: _subtitleOf(context, state)),
               ),
             ),
             BlocBuilder<HomeBloc, HomeState>(
@@ -87,6 +100,16 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static String _greeting(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (DateTime.now().hour) {
+      >= 5 && < 12 => l10n.homeGreetingMorning,
+      >= 12 && < 18 => l10n.homeGreetingAfternoon,
+      >= 18 && < 23 => l10n.homeGreetingEvening,
+      _ => l10n.homeGreetingNight,
+    };
   }
 
   static Object? _subtitleKey(HomeState state) => switch (state) {
@@ -323,72 +346,29 @@ class _HomeBody extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Header: greeting and settings button
+// Subtitle under the greeting, which is the page's large title
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HomeHeader extends StatelessWidget {
+class _HomeSubtitle extends StatelessWidget {
   final String? subtitle;
 
-  const _HomeHeader({required this.subtitle});
-
-  static String _greeting(BuildContext context) {
-    final l10n = context.l10n;
-    return switch (DateTime.now().hour) {
-      >= 5 && < 12 => l10n.homeGreetingMorning,
-      >= 12 && < 18 => l10n.homeGreetingAfternoon,
-      >= 18 && < 23 => l10n.homeGreetingEvening,
-      _ => l10n.homeGreetingNight,
-    };
-  }
+  const _HomeSubtitle({required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      bottom: false,
-      child:
-          Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.lg,
-                  AppSpacing.md,
-                  AppSpacing.lg,
-                  AppSpacing.xl,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _greeting(context),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (subtitle != null)
-                            Text(
-                              subtitle!,
-                              style: TextStyle(
-                                color: context.colors.labelSecondary,
-                                fontSize: 17,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    GlassIconButton(
-                      icon: AppIcons.settings,
-                      tooltip: context.l10n.settingsTitle,
-                      onTap: () => context.pushNamed(AppRoute.settings),
-                    ),
-                  ],
-                ),
-              )
-              .animate()
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: -0.1, end: 0, curve: Curves.easeOutCubic),
+    final subtitle = this.subtitle;
+    if (subtitle == null) return const SizedBox(height: AppSpacing.md);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.xl,
+      ),
+      child: Text(
+        subtitle,
+        style: TextStyle(color: context.colors.labelSecondary, fontSize: 17),
+      ).animate().fadeIn(duration: 400.ms),
     );
   }
 }

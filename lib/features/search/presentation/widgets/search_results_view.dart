@@ -27,104 +27,111 @@ class SearchResultsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (result.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: EmptyState(
-            title: context.l10n.searchNoResultsTitle(query),
-            body: context.l10n.searchNoResultsBody,
-            icon: AppIcons.noResults,
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+            child: EmptyState(
+              title: context.l10n.searchNoResultsTitle(query),
+              body: context.l10n.searchNoResultsBody,
+              icon: AppIcons.noResults,
+            ),
           ),
         ),
       );
     }
 
-    return ListView(
-      physics: const BouncingScrollPhysics(),
+    // A sliver: the results scroll under the search page's glass bar.
+    return SliverPadding(
       padding: EdgeInsets.only(
         top: AppSpacing.sm,
         bottom: context.bottomBarInset(),
       ),
-      children: [
-        // ── Top Result ────────────────────────────────────────────────────
-        SearchTopResult(result: result, query: query),
-        const SizedBox(height: AppSpacing.md),
+      sliver: SliverList.list(
+        children: [
+          // ── Top Result ────────────────────────────────────────────────────
+          SearchTopResult(result: result, query: query),
+          const SizedBox(height: AppSpacing.md),
 
-        // ── Artistes ──────────────────────────────────────────────────────
-        if (result.artists.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: context.l10n.libraryFilterArtists,
-            count: result.artists.length,
-          ),
-          SizedBox(
-            height: 120,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: result.artists.length,
-              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final artist = result.artists[index];
-                return SearchArtistChip(artist: artist);
-              },
+          // ── Artistes ──────────────────────────────────────────────────────
+          if (result.artists.isNotEmpty) ...[
+            _SearchSectionTitle(
+              title: context.l10n.libraryFilterArtists,
+              count: result.artists.length,
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
-
-        // ── Albums ────────────────────────────────────────────────────────
-        if (result.albums.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: context.l10n.libraryFilterAlbums,
-            count: result.albums.length,
-          ),
-          SizedBox(
-            height: 220,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: result.albums.length,
-              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final album = result.albums[index];
-                return AlbumCard(album: album, size: 150);
-              },
+            SizedBox(
+              height: 120,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: result.artists.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final artist = result.artists[index];
+                  return SearchArtistChip(artist: artist);
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+          ],
 
-        // ── Morceaux ──────────────────────────────────────────────────────
-        if (result.tracks.isNotEmpty) ...[
-          _SearchSectionTitle(
-            title: context.l10n.libraryFilterSongs,
-            count: result.tracks.length,
-          ),
-          ...result.tracks.asMap().entries.map((entry) {
-            final index = entry.key;
-            final track = entry.value;
-            return TrackListTile(
-              track: track,
-              onTap: () {
-                context.read<PlayerBloc>().add(
-                  PlayTrackRequested(
+          // ── Albums ────────────────────────────────────────────────────────
+          if (result.albums.isNotEmpty) ...[
+            _SearchSectionTitle(
+              title: context.l10n.libraryFilterAlbums,
+              count: result.albums.length,
+            ),
+            SizedBox(
+              height: 220,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: result.albums.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final album = result.albums[index];
+                  return AlbumCard(album: album, size: 150);
+                },
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+
+          // ── Morceaux ──────────────────────────────────────────────────────
+          if (result.tracks.isNotEmpty) ...[
+            _SearchSectionTitle(
+              title: context.l10n.libraryFilterSongs,
+              count: result.tracks.length,
+            ),
+            ...result.tracks.asMap().entries.map((entry) {
+              final index = entry.key;
+              final track = entry.value;
+              return TrackListTile(
+                track: track,
+                onTap: () {
+                  context.read<PlayerBloc>().add(
+                    PlayTrackRequested(
+                      track,
+                      contextQueue: result.tracks,
+                      contextIndex: index,
+                    ),
+                  );
+                },
+                onLongPress: () {
+                  showTrackActions(
+                    context,
                     track,
-                    contextQueue: result.tracks,
-                    contextIndex: index,
-                  ),
-                );
-              },
-              onLongPress: () {
-                showTrackActions(
-                  context,
-                  track,
-                  origin: TrackActionOrigin.library,
-                );
-              },
-            );
-          }),
+                    origin: TrackActionOrigin.library,
+                  );
+                },
+              );
+            }),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

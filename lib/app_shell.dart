@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -28,6 +29,7 @@ import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/error_view.dart';
+import 'package:troona/shared/widgets/tab_reselect.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 class AppShell extends StatefulWidget {
@@ -59,6 +61,7 @@ class _AppShellState extends State<AppShell> {
   GoRouter? _router;
   StreamSubscription<PlayerNotice>? _noticesSub;
   LibraryLoaded? _rescanBaseline;
+  final _reselect = TabReselectController();
 
   @override
   void initState() {
@@ -178,6 +181,7 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     _noticesSub?.cancel();
     _router?.routerDelegate.removeListener(_onRouteChanged);
+    _reselect.dispose();
     super.dispose();
   }
 
@@ -192,10 +196,11 @@ class _AppShellState extends State<AppShell> {
       _ => 0,
     };
 
-    widget.navigationShell.goBranch(
-      index,
-      initialLocation: index == widget.navigationShell.currentIndex,
-    );
+    final current = widget.navigationShell.currentIndex;
+    // The tab shown, tapped again: its page goes back to the top (iOS).
+    if (index == current && _isRootPage) _reselect.reselect(index);
+
+    widget.navigationShell.goBranch(index, initialLocation: index == current);
   }
 
   @override
@@ -277,45 +282,64 @@ class _AppShellState extends State<AppShell> {
 
           final currentTab = _tabForIndex(widget.navigationShell.currentIndex);
 
-          // _currentLocation follows both the widget prop and the router
-          // delegate, so it is right after any pop, system back included.
-          final isRootPage = [
-            AppRoute.home,
-            AppRoute.library,
-            AppRoute.search,
-            AppRoute.playlists,
-          ].contains(_currentLocation);
+          final isRootPage = _isRootPage;
 
-          return Scaffold(
-            backgroundColor: Colors.black,
-            body: Stack(
-              children: [
-                const Positioned.fill(child: AmbientBackground()),
+          return TabReselectScope(
+            controller: _reselect,
+            child: Scaffold(
+              backgroundColor: Colors.black,
+              body: Stack(
+                children: [
+                  const Positioned.fill(child: AmbientBackground()),
 
-                // ── The Branch Content ─────────────────────────────────────────
-                Positioned.fill(child: widget.navigationShell),
+                  // ── The Branch Content ─────────────────────────────────────────
+                  Positioned.fill(child: widget.navigationShell),
 
-                // ── Bottom Bar ────────────────────────────────────────────────
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                    child: AppBottomNavBar(
-                      currentTab: currentTab,
-                      onTabChanged: _onTabChanged,
-                      showTabs: isRootPage,
+                  // ── Floor: content fades out under the floating bar ─────
+                  // As tall as the room pages keep for the bar: content at
+                  // rest is never dimmed, only what scrolls under the bar.
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: context.bottomBarInset(tabs: isRootPage),
+                    child: const IgnorePointer(child: _BottomFade()),
+                  ),
+
+                  // ── Bottom Bar ────────────────────────────────────────────────
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
+                      child: AppBottomNavBar(
+                        currentTab: currentTab,
+                        onTabChanged: _onTabChanged,
+                        showTabs: isRootPage,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
       ),
     );
   }
+
+  /// Whether a tab's root page is shown, not a page pushed over it.
+  /// [_currentLocation] follows both the widget prop and the router
+  /// delegate, so it is right after any pop, system back included.
+  bool get _isRootPage => [
+    AppRoute.home,
+    AppRoute.library,
+    AppRoute.search,
+    AppRoute.playlists,
+  ].contains(_currentLocation);
 
   void _announceRescan(LibraryLoaded before, LibraryLoaded after) {
     final beforeIds = {for (final t in before.allTracks) t.id};
@@ -508,6 +532,32 @@ class _LibraryBootstrapContent extends StatelessWidget {
         else
           const CupertinoActivityIndicator(radius: 14),
       ],
+    );
+  }
+}
+
+/// The floor under the floating bar: content scrolling down to the screen's
+/// edge fades into the page's background instead of being cut by the bar.
+/// A gradient, no blur: the bar holds the screen's second blur.
+class _BottomFade extends StatelessWidget {
+  const _BottomFade();
+
+  @override
+  Widget build(BuildContext context) {
+    final floor = context.colors.bgPrimary;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            floor.withValues(alpha: 0),
+            floor.withValues(alpha: .55),
+            floor.withValues(alpha: .85),
+          ],
+          stops: const [0, .55, 1],
+        ),
+      ),
     );
   }
 }

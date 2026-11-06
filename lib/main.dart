@@ -40,6 +40,12 @@ Future<void> main() async {
       DeviceOrientation.portraitDown,
     ]),
   );
+  // Edge to edge from Android 10, as Android 15 does by itself (earlier
+  // versions keep an opaque navigation bar):
+  // pages draw under the status and navigation bars, and the glass headers
+  // and the floating tab bar pad for them. Not awaited, for the same reason.
+  unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+  SystemChrome.setSystemUIOverlayStyle(AppTheme.systemOverlay);
 
   try {
     await configureDependencies();
