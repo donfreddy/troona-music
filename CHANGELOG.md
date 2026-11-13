@@ -26,7 +26,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - With a large font, the Library's row of artists cut their names short.
 
-## [1.4.0] - 2026-11-04
+## [1.4.0] - 2026-11-06
 
 ### Changed
 
