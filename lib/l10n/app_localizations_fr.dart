@@ -532,39 +532,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String statSongs(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'morceaux',
-      one: 'morceau',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String statAlbums(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'albums',
-      one: 'album',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String statArtists(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'artistes',
-      one: 'artiste',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String durationMinutes(int minutes) {
     return '$minutes min';
   }
@@ -626,30 +593,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String detailCountsSummary(String songs, String albums) {
     return '$songs • $albums';
   }
-
-  @override
-  String get inYourLibrary => 'Dans votre bibliothèque';
-
-  @override
-  String get infoSongs => 'Morceaux';
-
-  @override
-  String get infoAlbums => 'Albums';
-
-  @override
-  String get infoSingles => 'Singles';
-
-  @override
-  String get infoLength => 'Durée';
-
-  @override
-  String get infoYear => 'Année';
-
-  @override
-  String get infoSize => 'Taille';
-
-  @override
-  String get infoFormat => 'Format';
 
   @override
   String get formatLossless => 'Sans perte';
@@ -1549,4 +1492,81 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew140SearchBody =>
       'Le champ de recherche reste en haut dans une barre de verre pendant que les résultats défilent dessous, et faire défiler les résultats ferme le clavier.';
+
+  @override
+  String get whatsNew150CoverTitle => 'La pochette s\'envole';
+
+  @override
+  String get whatsNew150CoverBody =>
+      'Touchez un album : sa pochette part de la carte et vient se poser sur la page de l\'album, puis y retourne quand vous la quittez.';
+
+  @override
+  String get whatsNew150TitlesTitle => 'Titres en gras';
+
+  @override
+  String get whatsNew150TitlesBody =>
+      'Les grands titres sont en gras, dans le même ton que les noms d\'albums et d\'artistes et les titres de section.';
+
+  @override
+  String get whatsNew150TabTitle => 'Un point sous l\'onglet';
+
+  @override
+  String get whatsNew150TabBody =>
+      'L\'onglet où vous êtes affiche un point sous son icône, pas seulement une couleur plus vive.';
+
+  @override
+  String get whatsNew150PagesTitle => 'Les infos sur une ligne';
+
+  @override
+  String get whatsNew150PagesBody =>
+      'Les pages album donnent leur année, leur nombre de morceaux et leur durée, et les pages artiste leurs morceaux, sorties et durée, sur une ligne de texte au lieu de pastilles. Sans perte garde son badge.';
+
+  @override
+  String get whatsNew150AlbumTitle => 'Pages album';
+
+  @override
+  String get whatsNew150AlbumBody =>
+      'La liste des morceaux n\'a plus de titre Morceaux. Sous les morceaux, une ligne discrète donne la taille et les formats de l\'album à la place de la carte Dans votre bibliothèque.';
+
+  @override
+  String get whatsNew150ArtistTitle => 'Pages artiste';
+
+  @override
+  String get whatsNew150ArtistBody =>
+      'Chaque morceau affiche son album et son année sous son titre au lieu de répéter le nom de l\'artiste, et les cartes d\'albums et de singles indiquent l\'année. La carte Dans votre bibliothèque disparaît : ses chiffres sont sous le nom.';
+
+  @override
+  String get whatsNew150MoreByTitle => 'Plus de';
+
+  @override
+  String get whatsNew150MoreByBody =>
+      'Sur les pages album, Plus de donne l\'année de chaque album au lieu du nom de l\'artiste, avec Single sur les singles.';
+
+  @override
+  String get whatsNew150LibraryTitle => 'Une bibliothèque plus légère';
+
+  @override
+  String get whatsNew150LibraryBody =>
+      'La bibliothèque n\'affiche plus ses nombres de morceaux, d\'albums et d\'artistes au-dessus de Tout.';
+
+  @override
+  String get whatsNew150BackTitle => 'Retour d\'où vous venez';
+
+  @override
+  String get whatsNew150BackBody =>
+      'Ouvrez l\'artiste d\'un album alors que vous venez de cet artiste, et vous revenez sur sa page au lieu de l\'ouvrir une deuxième fois. Pareil dans l\'autre sens.';
+
+  @override
+  String get whatsNew150ScrollTitle => 'Plus de bande vide';
+
+  @override
+  String get whatsNew150ScrollBody =>
+      'Une page album ou playlist garde sa pochette et ses boutons en vue pendant qu\'ils défilent, au lieu de laisser une bande vide sous la barre.';
+
+  @override
+  String get whatsNew150NamesTitle => 'Noms d\'artistes en grande police';
+
+  @override
+  String get whatsNew150NamesBody =>
+      'Avec une grande police, la rangée d\'artistes de la bibliothèque ne coupe plus leurs noms.';
 }

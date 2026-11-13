@@ -4,14 +4,48 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
 class AlbumCard extends StatelessWidget {
   final Album album;
   final double? size;
 
-  const AlbumCard({super.key, required this.album, this.size});
+  /// False where the page already names the artist (their page, More by):
+  /// the line under the name gives the year instead.
+  final bool showArtist;
+
+  /// With [showArtist] off, adds Single after a single's year: for a row
+  /// that mixes singles and albums (More by), not under a Singles title.
+  final bool markSingles;
+
+  const AlbumCard({
+    super.key,
+    required this.album,
+    this.size,
+    this.showArtist = true,
+    this.markSingles = false,
+  });
+
+  String _subtitle(BuildContext context) {
+    final l10n = context.l10n;
+    final kind = album.isSingle
+        ? l10n.albumSingle
+        : l10n.songCount(album.trackCount);
+    if (!showArtist) {
+      return switch (album.year) {
+        final year? => MetaLine.join([
+          '$year',
+          if (markSingles && album.isSingle) l10n.albumSingle,
+        ])!,
+        null => kind,
+      };
+    }
+    final artist = context.artistName(album.artist);
+    return album.trackCount > 0 ? l10n.albumByArtist(artist, kind) : artist;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +53,19 @@ class AlbumCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: ArtworkImage(album.artworkPath, placeholder: AppIcons.album),
+        AlbumCoverHero(
+          albumId: album.id,
+          artworkPath: album.artworkPath,
+          radius: AppSpacing.radiusMd,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: ArtworkImage(
+                album.artworkPath,
+                placeholder: AppIcons.album,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 6),
@@ -46,14 +88,7 @@ class AlbumCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                album.trackCount > 0
-                    ? context.l10n.albumByArtist(
-                        context.artistName(album.artist),
-                        album.isSingle
-                            ? context.l10n.albumSingle
-                            : context.l10n.songCount(album.trackCount),
-                      )
-                    : context.artistName(album.artist),
+                _subtitle(context),
                 style: TextStyle(
                   color: context.colors.labelSecondary,
                   fontSize: 12,

@@ -142,7 +142,16 @@ abstract final class LibraryGrouping {
       trackCount: group.length,
       artworkPath: _firstArtwork(group),
       isSingle: _isSingle(group),
+      year: _yearOf(group),
     );
+  }
+
+  /// The first year a song of [group] has, as the album page shows it.
+  static int? _yearOf(List<Track> group) {
+    for (final t in group) {
+      if (t.year case final year? when year > 0) return year;
+    }
+    return null;
   }
 
   static bool _isSingle(List<Track> group) => SingleRelease.matches(

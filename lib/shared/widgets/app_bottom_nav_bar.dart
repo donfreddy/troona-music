@@ -569,9 +569,15 @@ class _TabItem extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _duration = Duration(milliseconds: 200);
+
+  /// Size of the selection dot, and its distance below the icon's centre.
+  static const dotSize = 4.0;
+  static const dotOffset = 19.0;
+
   @override
   Widget build(BuildContext context) {
-    final labelColor = context.colors.labelPrimary;
+    final colors = context.colors;
 
     // Icon-only tabs: the label lives in semantics for screen readers.
     return Semantics(
@@ -584,10 +590,33 @@ class _TabItem extends StatelessWidget {
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: SizedBox.expand(
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isActive ? 1.0 : 0.4,
-            child: Center(child: Icon(icon, color: labelColor, size: 24)),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Centred, in line with the artwork disc of the middle slot.
+              AnimatedOpacity(
+                duration: _duration,
+                opacity: isActive ? 1.0 : 0.4,
+                child: Icon(icon, color: colors.labelPrimary, size: 24),
+              ),
+              // The selected tab is told by more than its colour.
+              Transform.translate(
+                offset: const Offset(0, dotOffset),
+                child: AnimatedScale(
+                  duration: _duration,
+                  curve: Curves.easeOutBack,
+                  scale: isActive ? 1 : 0,
+                  child: DecoratedBox(
+                    key: const ValueKey('tabDot'),
+                    decoration: BoxDecoration(
+                      color: colors.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const SizedBox.square(dimension: dotSize),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

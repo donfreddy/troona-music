@@ -18,7 +18,10 @@ import 'package:troona/features/library/domain/services/album_order.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -34,6 +37,7 @@ import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/shared/widgets/meta_line.dart';
 
 Widget _animatedAlbumItem(
   Widget child,
@@ -57,104 +61,75 @@ class AlbumDetailPage extends StatelessWidget {
 
   const AlbumDetailPage({super.key, required this.id});
 
+  /// The album as the library already holds it, read at once: the page
+  /// shows its cover from its first frame, while its songs load, so the
+  /// cover can fly in from the card that opened it.
+  Album? _fromLibrary(BuildContext context) {
+    final loaded = switch (context.read<LibraryBloc>().state) {
+      LibraryLoaded() && final state => state,
+      LibraryScanning(:final cached) => cached,
+      LibraryError(:final lastLoaded) => lastLoaded,
+      LibraryInitial() => null,
+    };
+    return loaded?.allAlbums.where((a) => a.id == id).firstOrNull;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: BlocBuilder<AlbumDetailBloc, AlbumDetailState>(
         builder: (context, state) {
+          final data = switch (state) {
+            AlbumDetailLoaded(:final data) => data,
+            _ => null,
+          };
+          final album = data?.album ?? _fromLibrary(context);
           return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
             builder: (_, palette) => DynamicBackground(
               colorA: palette.backgroundColorA,
               colorB: palette.backgroundColorB,
               tone: DynamicBackgroundTone.immersive,
               child: switch (state) {
-                AlbumDetailInitial() || AlbumDetailLoading() => const Center(
-                  child: CircularProgressIndicator(),
-                ),
                 AlbumDetailError() => ErrorView(
                   body: context.l10n.albumLoadError,
                   onRetry: () => context.read<AlbumDetailBloc>().add(
                     AlbumDetailRequested(int.parse(id)),
                   ),
                 ),
-                AlbumDetailLoaded(:final data) =>
-                  BlocProvider<AlbumMetadataCubit>(
-                    create: (_) =>
-                        getIt<AlbumMetadataCubit>()
-                          ..loadAlbumMetadata(data.album),
-                    child: Builder(
-                      builder: (contentCtx) {
-                        return CustomScrollView(
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
+                _ when album == null => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                // Loading or loaded: the same tree, so the header (and the
+                // cover landing in it) stays put when the songs arrive.
+                // Online info is asked once, with the album as the library
+                // groups it, which the loaded album is too (same grouping,
+                // same songs).
+                _ => BlocProvider<AlbumMetadataCubit>(
+                  create: (_) =>
+                      getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
+                  child: Builder(
+                    builder: (contentCtx) {
+                      return CustomScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        slivers: [
+                          _AlbumHeader(
+                            album: album,
+                            tracks: data?.albumTracks ?? const [],
                           ),
-                          slivers: [
-                            _AlbumHeader(
-                              album: data.album,
-                              tracks: data.albumTracks,
+                          if (data != null) ..._content(contentCtx, data),
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: contentCtx.bottomBarInset(tabs: false),
                             ),
-                            _AlbumTracksView(
-                              album: data.album,
-                              tracks: data.albumTracks,
-                            ),
-
-                            // Albums without an artist share nothing else.
-                            if (data.album.artist.isNotEmpty &&
-                                data.artistAlbums.any(
-                                  (a) => a.id != data.album.id,
-                                ))
-                              _MoreByArtistView(
-                                artistName: data.album.artist,
-                                albums: data.artistAlbums
-                                    .where((a) => a.id != data.album.id)
-                                    .toList(),
-                              ),
-
-                            // ── About: only with a wiki ─────────────────────
-                            BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
-                              builder: (context, meta) => switch (meta) {
-                                AlbumMetadataLoaded(
-                                  info: AlbumOnlineInfo(:final wiki?),
-                                ) =>
-                                  SliverToBoxAdapter(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: AppSpacing.xl2,
-                                      ),
-                                      child: OnlineAboutCard(
-                                        title: context.l10n.metaAbout,
-                                        text: wiki,
-                                        listeners: meta.info.listeners,
-                                        tags: meta.info.tags,
-                                        names: [
-                                          data.album.name,
-                                          ...data.album.artist.split(', '),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                _ => const SliverToBoxAdapter(
-                                  child: SizedBox.shrink(),
-                                ),
-                              },
-                            ),
-
-                            // Technical metadata card & storage footprint
-                            _AlbumMetadataFooter(
-                              tracks: data.albumTracks,
-                              album: data.album,
-                            ),
-                            SliverPadding(
-                              padding: EdgeInsets.only(
-                                bottom: contentCtx.bottomBarInset(tabs: false),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
+                ),
               },
             ),
           );
@@ -162,6 +137,40 @@ class AlbumDetailPage extends StatelessWidget {
       ),
     );
   }
+
+  /// Everything under the header, once the songs are loaded.
+  List<Widget> _content(BuildContext context, AlbumDetail data) => [
+    _AlbumTracksView(album: data.album, tracks: data.albumTracks),
+    _AlbumFootnote(tracks: data.albumTracks),
+
+    // Albums without an artist share nothing else.
+    if (data.album.artist.isNotEmpty &&
+        data.artistAlbums.any((a) => a.id != data.album.id))
+      _MoreByArtistView(
+        artistName: data.album.artist,
+        albums: data.artistAlbums.where((a) => a.id != data.album.id).toList(),
+      ),
+
+    // ── About: only with a wiki ─────────────────────
+    BlocBuilder<AlbumMetadataCubit, AlbumMetadataState>(
+      builder: (context, meta) => switch (meta) {
+        AlbumMetadataLoaded(info: AlbumOnlineInfo(:final wiki?)) =>
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xl2),
+              child: OnlineAboutCard(
+                title: context.l10n.metaAbout,
+                text: wiki,
+                listeners: meta.info.listeners,
+                tags: meta.info.tags,
+                names: [data.album.name, ...data.album.artist.split(', ')],
+              ),
+            ),
+          ),
+        _ => const SliverToBoxAdapter(child: SizedBox.shrink()),
+      },
+    ),
+  ];
 }
 
 // ── Hero Header ──────────────────────────────────────────────────────
@@ -183,10 +192,9 @@ class _AlbumHeader extends StatelessWidget {
 
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
-    final year = tracks
-        .map((t) => t.year)
-        .where((y) => y != null && y > 0)
-        .firstOrNull;
+    // Before the songs load (the page's first frames), the library's
+    // album already knows its year and song count.
+    final year = album.year;
 
     return GlassSliverHeader(
       leading: const AppBackButton(),
@@ -267,83 +275,91 @@ class _AlbumHeader extends StatelessWidget {
                             ),
                           ),
 
-                          // Front album artwork
+                          // Front album artwork, landing from the card
+                          // that opened the page.
                           Positioned(
                             left: 6,
-                            child: Container(
-                              width: 180,
-                              height: 180,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                // Depth only: an accent glow would
-                                // clash with the cover's own colours.
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.45),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child:
-                                    BlocBuilder<
-                                      AlbumMetadataCubit,
-                                      AlbumMetadataState
-                                    >(
-                                      builder: (context, metaState) {
-                                        final localArt =
-                                            album.artworkPath ??
-                                            (metaState is AlbumMetadataLoaded
-                                                ? metaState.localImagePath
-                                                : null);
-                                        final onlineUrl =
-                                            metaState is AlbumMetadataLoaded
-                                            ? metaState.info.imageUrl
-                                            : null;
+                            child: AlbumCoverHero(
+                              albumId: album.id,
+                              artworkPath: album.artworkPath,
+                              radius: 16,
+                              child: Container(
+                                width: 180,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  // Depth only: an accent glow would
+                                  // clash with the cover's own colours.
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child:
+                                      BlocBuilder<
+                                        AlbumMetadataCubit,
+                                        AlbumMetadataState
+                                      >(
+                                        builder: (context, metaState) {
+                                          final localArt =
+                                              album.artworkPath ??
+                                              (metaState is AlbumMetadataLoaded
+                                                  ? metaState.localImagePath
+                                                  : null);
+                                          final onlineUrl =
+                                              metaState is AlbumMetadataLoaded
+                                              ? metaState.info.imageUrl
+                                              : null;
 
-                                        Widget fallbackIcon() =>
-                                            const ArtworkPlaceholder(
-                                              icon: AppIcons.album,
+                                          Widget fallbackIcon() =>
+                                              const ArtworkPlaceholder(
+                                                icon: AppIcons.album,
+                                                width: 180,
+                                                height: 180,
+                                              );
+
+                                          if (localArt != null &&
+                                              localArt.isNotEmpty) {
+                                            return ArtworkImage(
+                                              localArt,
                                               width: 180,
                                               height: 180,
+                                              errorBuilder: (_, _, _) =>
+                                                  onlineUrl != null &&
+                                                      onlineUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      onlineUrl,
+                                                      width: 180,
+                                                      height: 180,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (_, _, _) =>
+                                                          fallbackIcon(),
+                                                    )
+                                                  : fallbackIcon(),
                                             );
-
-                                        if (localArt != null &&
-                                            localArt.isNotEmpty) {
-                                          return ArtworkImage(
-                                            localArt,
-                                            width: 180,
-                                            height: 180,
-                                            errorBuilder: (_, _, _) =>
-                                                onlineUrl != null &&
-                                                    onlineUrl.isNotEmpty
-                                                ? Image.network(
-                                                    onlineUrl,
-                                                    width: 180,
-                                                    height: 180,
-                                                    fit: BoxFit.cover,
-                                                    errorBuilder: (_, _, _) =>
-                                                        fallbackIcon(),
-                                                  )
-                                                : fallbackIcon(),
-                                          );
-                                        }
-                                        if (onlineUrl != null &&
-                                            onlineUrl.isNotEmpty) {
-                                          return Image.network(
-                                            onlineUrl,
-                                            width: 180,
-                                            height: 180,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                fallbackIcon(),
-                                          );
-                                        }
-                                        return fallbackIcon();
-                                      },
-                                    ),
+                                          }
+                                          if (onlineUrl != null &&
+                                              onlineUrl.isNotEmpty) {
+                                            return Image.network(
+                                              onlineUrl,
+                                              width: 180,
+                                              height: 180,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, _, _) =>
+                                                  fallbackIcon(),
+                                            );
+                                          }
+                                          return fallbackIcon();
+                                        },
+                                      ),
+                                ),
                               ),
                             ),
                           ),
@@ -431,29 +447,26 @@ class _AlbumHeader extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        // Audiophile metadata badges in glass pills
-                        // Wraps on a narrow screen or a large font.
+                        // Facts as one line of text; Lossless, the one rare
+                        // state, keeps a pill. Wraps under a large font.
                         _animatedAlbumItem(
                           Wrap(
                             alignment: WrapAlignment.center,
-                            spacing: 6,
-                            runSpacing: 6,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.xs,
                             children: [
-                              if (year != null) AppBadge('$year'),
-                              AppBadge(
-                                context.l10n.detailCountsSummary(
-                                  context.l10n.songCount(album.trackCount),
+                              MetaLine([
+                                if (year != null) '$year',
+                                context.l10n.songCount(album.trackCount),
+                                if (totalDuration > Duration.zero)
                                   totalDuration.toHumanReadable(context.l10n),
-                                ),
-                              ),
-                              if (_formatBadge(context) case final badge?) ...[
+                              ], textAlign: TextAlign.center),
+                              if (AudioFormat.allLossless(tracks))
                                 AppBadge(
-                                  badge,
-                                  icon: badge == context.l10n.formatLossless
-                                      ? AppIcons.lossless
-                                      : null,
+                                  context.l10n.formatLossless,
+                                  icon: AppIcons.lossless,
                                 ),
-                              ],
                             ],
                           ),
                           3,
@@ -481,11 +494,6 @@ class _AlbumHeader extends StatelessWidget {
       ),
     );
   }
-
-  /// "Lossless" when every song is FLAC or WAV: the one format worth a
-  /// badge. Other formats (MP3, M4A) are listed in the About card.
-  String? _formatBadge(BuildContext context) =>
-      AudioFormat.allLossless(tracks) ? context.l10n.formatLossless : null;
 
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
@@ -536,17 +544,8 @@ class _AlbumTracksView extends StatelessWidget {
     final numbers = AlbumOrder.numbers(tracks);
     return SliverMainAxisGroup(
       slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              _animatedAlbumItem(
-                SectionHeader(title: context.l10n.detailSongs),
-                5,
-              ),
-            ],
-          ),
-        ),
+        // No Songs title: an album page is its track list.
+        const SliverPadding(padding: EdgeInsets.only(top: AppSpacing.lg)),
         SliverList.separated(
           itemCount: tracks.length,
           separatorBuilder: (_, _) => Divider(
@@ -615,7 +614,12 @@ class _MoreByArtistView extends StatelessWidget {
               itemCount: albums.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
               itemBuilder: (context, i) => _animatedAlbumItem(
-                AlbumCard(album: albums[i], size: 135),
+                AlbumCard(
+                  album: albums[i],
+                  size: 135,
+                  showArtist: false,
+                  markSingles: true,
+                ),
                 key: ValueKey('album-${albums[i].id}'),
                 i,
                 slideY: 0.04,
@@ -628,119 +632,31 @@ class _MoreByArtistView extends StatelessWidget {
   }
 }
 
-// ── Technical Metadata & Storage Footprint Footer ─────────────────────────────
-class _AlbumMetadataFooter extends StatelessWidget {
+// ── Footnote ──────────────────────────────────────────────────────────────────
+/// Under the songs, what the header does not say: the album's size and its
+/// formats ("MP3", or every format of a mixed album).
+class _AlbumFootnote extends StatelessWidget {
   final List<Track> tracks;
-  final Album album;
 
-  const _AlbumMetadataFooter({required this.tracks, required this.album});
+  const _AlbumFootnote({required this.tracks});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     final totalBytes = tracks.fold<int>(0, (sum, t) => sum + t.size);
     final totalMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
-    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
-    final totalDuration = Duration(milliseconds: totalDurationMs);
-
-    final year = tracks
-        .map((t) => t.year)
-        .where((y) => y != null && y > 0)
-        .firstOrNull;
     final formats = AudioFormat.allOf(tracks);
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xl2,
-          AppSpacing.lg,
-          0,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 0.8,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(AppIcons.info, size: 16, color: colors.accent),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.inYourLibrary,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _MetaRow(
-                label: context.l10n.infoSongs,
-                value: '${tracks.length}',
-              ),
-              _MetaRow(
-                label: context.l10n.infoLength,
-                value: totalDuration.toHumanReadable(context.l10n),
-              ),
-              if (year != null)
-                _MetaRow(label: context.l10n.infoYear, value: '$year'),
-              _MetaRow(
-                label: context.l10n.infoSize,
-                value: context.l10n.sizeMegabytes(totalMb),
-              ),
-              if (formats.isNotEmpty)
-                _MetaRow(
-                  label: context.l10n.infoFormat,
-                  value: formats.map((f) => f.label).join(' • '),
-                ),
-            ],
-          ),
-        ),
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        0,
       ),
-    );
-  }
-}
-
-class _MetaRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _MetaRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: context.colors.labelSecondary,
-              fontSize: 13,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+      sliver: SliverToBoxAdapter(
+        child: MetaLine([
+          if (totalBytes > 0) context.l10n.sizeMegabytes(totalMb),
+          ...formats.map((f) => f.label),
+        ], footnote: true),
       ),
     );
   }

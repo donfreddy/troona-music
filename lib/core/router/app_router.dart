@@ -80,6 +80,29 @@ GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
   },
 );
 
+/// go_router's indexed stack of tabs, with heroes off in the tabs not shown.
+/// Their pages stay mounted, and a flight on the root navigator (the mini
+/// player into Now Playing) gathers the heroes of every navigator: the same
+/// album cover in two tabs would share a tag, and the flight would throw.
+@visibleForTesting
+Widget tabsContainer(
+  BuildContext context,
+  StatefulNavigationShell shell,
+  List<Widget> children,
+) => IndexedStack(
+  index: shell.currentIndex,
+  children: [
+    for (final (i, child) in children.indexed)
+      Offstage(
+        offstage: i != shell.currentIndex,
+        child: TickerMode(
+          enabled: i == shell.currentIndex,
+          child: HeroMode(enabled: i == shell.currentIndex, child: child),
+        ),
+      ),
+  ],
+);
+
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: AppRoute.home,
@@ -90,7 +113,8 @@ final appRouter = GoRouter(
   },
   routes: [
     // ── STATEFUL SHELL ROUTE ────────────────────────────────────────────────
-    StatefulShellRoute.indexedStack(
+    StatefulShellRoute(
+      navigatorContainerBuilder: tabsContainer,
       builder: (context, state, navigationShell) {
         return MultiBlocProvider(
           providers: [
@@ -265,31 +289,36 @@ final appRouter = GoRouter(
 );
 
 extension NavigationContextExt on BuildContext {
-  void pushAlbum(String albumId) {
-    final location = GoRouterState.of(this).matchedLocation;
-    if (location.startsWith(AppRoute.home)) {
-      push('${AppRoute.home}/albums/$albumId');
-    } else if (location.startsWith(AppRoute.search)) {
-      push('${AppRoute.search}/albums/$albumId');
-    } else if (location.startsWith(AppRoute.playlists)) {
-      push('${AppRoute.playlists}/albums/$albumId');
-    } else {
-      push('${AppRoute.library}/albums/$albumId');
+  void pushAlbum(String albumId) => _pushDetail('albums', albumId);
+
+  void pushArtist(String artistId) => _pushDetail('artists', artistId);
+
+  /// Pushes the album or artist page within the current tab. When that page
+  /// is the one this page was opened from (an album's artist, opened from
+  /// the artist), goes back to it instead: artist, album, artist, album...
+  /// would pile up copies, and back would walk through them all.
+  ///
+  /// The pushed page gets the location it was opened from as `extra`, a
+  /// plain string: go_router encodes `extra` when it saves the route, and
+  /// drops (with a warning) any type it cannot write as JSON.
+  void _pushDetail(String section, String id) {
+    final state = GoRouterState.of(this);
+    final here = state.uri.path;
+    final target = '${_tabOf(here)}/$section/$id';
+    if (state.extra case final String openedFrom
+        when openedFrom == target && canPop()) {
+      pop();
+      return;
     }
+    push(target, extra: here);
   }
 
-  void pushArtist(String artistId) {
-    final location = GoRouterState.of(this).matchedLocation;
-    if (location.startsWith(AppRoute.home)) {
-      push('${AppRoute.home}/artists/$artistId');
-    } else if (location.startsWith(AppRoute.search)) {
-      push('${AppRoute.search}/artists/$artistId');
-    } else if (location.startsWith(AppRoute.playlists)) {
-      push('${AppRoute.playlists}/artists/$artistId');
-    } else {
-      push('${AppRoute.library}/artists/$artistId');
-    }
-  }
+  static String _tabOf(String location) => switch (location) {
+    _ when location.startsWith(AppRoute.home) => AppRoute.home,
+    _ when location.startsWith(AppRoute.search) => AppRoute.search,
+    _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
+    _ => AppRoute.library,
+  };
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

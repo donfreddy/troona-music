@@ -30,7 +30,64 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
-  Release('1.4.0', date: DateTime(2026, 11, 6), [
+  Release('1.5.0', date: DateTime(2026, 11, 4), [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew150CoverTitle,
+      l10n.whatsNew150CoverBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150TitlesTitle,
+      l10n.whatsNew150TitlesBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150TabTitle,
+      l10n.whatsNew150TabBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150PagesTitle,
+      l10n.whatsNew150PagesBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150AlbumTitle,
+      l10n.whatsNew150AlbumBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150ArtistTitle,
+      l10n.whatsNew150ArtistBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150MoreByTitle,
+      l10n.whatsNew150MoreByBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150LibraryTitle,
+      l10n.whatsNew150LibraryBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150BackTitle,
+      l10n.whatsNew150BackBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew150ScrollTitle,
+      l10n.whatsNew150ScrollBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew150NamesTitle,
+      l10n.whatsNew150NamesBody,
+    ),
+  ]),
+  Release('1.4.0', date: DateTime(2026, 11, 4), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew140TopTitle,

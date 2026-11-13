@@ -10,6 +10,9 @@ class Album {
   /// (`SingleRelease`).
   final bool isSingle;
 
+  /// The year its songs were released, when their tags say.
+  final int? year;
+
   const Album({
     required this.id,
     required this.name,
@@ -18,6 +21,7 @@ class Album {
     required this.trackCount,
     this.artworkPath,
     this.isSingle = false,
+    this.year,
   });
 
   Album copyWith({String? artworkPath}) {
@@ -29,6 +33,7 @@ class Album {
       trackCount: trackCount,
       artworkPath: artworkPath ?? this.artworkPath,
       isSingle: isSingle,
+      year: year,
     );
   }
 }

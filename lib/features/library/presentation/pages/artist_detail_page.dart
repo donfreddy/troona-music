@@ -31,10 +31,10 @@ import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/section_header.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
 Widget _animatedArtistItem(
@@ -147,6 +147,8 @@ class ArtistDetailPage extends StatelessWidget {
                                 title: context.l10n.detailAppearsOn,
                                 albums: data.albums.appearsOn,
                                 order: 7,
+                                // Someone else's albums: name them.
+                                showArtist: true,
                                 spaced:
                                     data.albums.own.isEmpty &&
                                     data.albums.singles.isEmpty,
@@ -188,13 +190,6 @@ class ArtistDetailPage extends StatelessWidget {
                                   child: SizedBox.shrink(),
                                 ),
                               },
-                            ),
-
-                            // ── 5. Collection Stats Footer ─────────────────────────
-                            _ArtistCollectionFooter(
-                              artist: data.artist,
-                              tracks: data.topTracks,
-                              albums: data.allAlbums,
                             ),
 
                             SliverPadding(
@@ -431,9 +426,7 @@ class _ArtistHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
 
-                // Stats Pill Badges
-                // Wraps on a narrow screen or a large font.
-                _animatedArtistItem(_badges(context, WrapAlignment.center), 2),
+                _animatedArtistItem(_summary(context, TextAlign.center), 2),
               ],
             ),
           ),
@@ -474,37 +467,24 @@ class _ArtistHeader extends StatelessWidget {
               1,
             ),
             const SizedBox(height: AppSpacing.sm),
-            _animatedArtistItem(_badges(context, WrapAlignment.start), 2),
+            _animatedArtistItem(_summary(context, TextAlign.start), 2),
           ],
         ),
       ),
     );
   }
 
-  /// Song count, releases and listening time. Wraps on a narrow screen or
-  /// a large font.
-  Widget _badges(BuildContext context, WrapAlignment alignment) {
+  /// Song count, releases and listening time, as one line of text. Wraps
+  /// on a narrow screen or a large font.
+  Widget _summary(BuildContext context, TextAlign textAlign) {
     final totalDuration = _totalDuration;
-    return Wrap(
-      alignment: alignment,
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        AppBadge(
-          context.l10n.songCount(artist.trackCount),
-          icon: AppIcons.track,
-        ),
-        // A guest only has no release of their own.
-        if (context.artistReleases(artist) case final releases?)
-          AppBadge(releases, icon: AppIcons.album),
-        if (totalDuration > Duration.zero) ...[
-          AppBadge(
-            totalDuration.toHumanReadable(context.l10n),
-            icon: AppIcons.duration,
-          ),
-        ],
-      ],
-    );
+    return MetaLine([
+      context.l10n.songCount(artist.trackCount),
+      // A guest only has no release of their own.
+      context.artistReleases(artist),
+      if (totalDuration > Duration.zero)
+        totalDuration.toHumanReadable(context.l10n),
+    ], textAlign: textAlign);
   }
 
   void _showArtistOptions(BuildContext context) {
@@ -597,6 +577,11 @@ class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
             TrackListTile(
               key: ValueKey('artist-track-${tracks[i].id}'),
               track: tracks[i],
+              // The page names the artist: the album says more.
+              subtitle: MetaLine.join([
+                tracks[i].album,
+                if (tracks[i].year case final year? when year > 0) '$year',
+              ]),
               // The whole list plays on, folded or not.
               onTap: () => context.read<PlayerBloc>().add(
                 PlayTrackRequested(
@@ -645,11 +630,15 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
   /// carousels.
   final bool spaced;
 
+  /// False for the artist's own releases: the cards give the year instead.
+  final bool showArtist;
+
   const _ArtistAlbumsCarousel({
     required this.title,
     required this.albums,
     required this.order,
     this.spaced = true,
+    this.showArtist = false,
   });
 
   @override
@@ -677,6 +666,7 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
                   key: ValueKey('artist-album-${albums[i].id}'),
                   album: albums[i],
                   size: 140,
+                  showArtist: showArtist,
                 ),
                 i + order + 1,
                 slideY: 0.04,
@@ -727,125 +717,6 @@ class _SimilarArtistsCarousel extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ── Collection Stats Footer ───────────────────────────────────────────────────
-class _ArtistCollectionFooter extends StatelessWidget {
-  final Artist artist;
-  final List<Track> tracks;
-  final List<Album> albums;
-
-  const _ArtistCollectionFooter({
-    required this.artist,
-    required this.tracks,
-    required this.albums,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final totalBytes = tracks.fold<int>(0, (sum, t) => sum + t.size);
-    final totalMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
-    final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
-    final totalDuration = Duration(milliseconds: totalDurationMs);
-
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.xl2,
-          AppSpacing.lg,
-          0,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-              width: 0.8,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(AppIcons.library, size: 16, color: colors.accent),
-                  const SizedBox(width: 8),
-                  Text(
-                    context.l10n.inYourLibrary,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              _MetaRow(
-                label: context.l10n.infoSongs,
-                value: '${artist.trackCount}',
-              ),
-              _MetaRow(
-                label: context.l10n.infoAlbums,
-                value: '${artist.albumCount}',
-              ),
-              if (artist.singleCount > 0)
-                _MetaRow(
-                  label: context.l10n.infoSingles,
-                  value: '${artist.singleCount}',
-                ),
-              _MetaRow(
-                label: context.l10n.infoLength,
-                value: totalDuration.toHumanReadable(context.l10n),
-              ),
-              _MetaRow(
-                label: context.l10n.infoSize,
-                value: context.l10n.sizeMegabytes(totalMb),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MetaRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _MetaRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: context.colors.labelSecondary,
-              fontSize: 13,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -21,7 +21,6 @@ import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/error_view.dart';
-import 'package:troona/features/library/presentation/widgets/library_stats_banner.dart';
 import 'package:troona/features/library/presentation/widgets/shuffle_banner.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -174,25 +173,14 @@ class _LibraryBody extends StatelessWidget {
         child: _NoMusicEmpty(),
       );
     }
-    final statsBanner = SliverToBoxAdapter(
-      child: LibraryStatsBanner(
-        trackCount: loaded.allTracks.length,
-        albumCount: loaded.allAlbums.length,
-        artistCount: loaded.allArtists.length,
-      ),
-    );
-
-    return SliverMainAxisGroup(
-      slivers: [
-        if (loaded.filter == LibraryFilter.all) statsBanner,
-        switch (loaded.filter) {
-          LibraryFilter.all => _AllView(loaded: loaded),
-          LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
-          LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
-          LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
-        },
-      ],
-    );
+    // No counts banner: the filter and the sections' See all already lead
+    // to each list.
+    return switch (loaded.filter) {
+      LibraryFilter.all => _AllView(loaded: loaded),
+      LibraryFilter.tracks => _TracksView(tracks: loaded.visibleTracks),
+      LibraryFilter.albums => _AlbumsView(albums: loaded.visibleAlbums),
+      LibraryFilter.artists => _ArtistsView(artists: loaded.visibleArtists),
+    };
   }
 }
 
@@ -265,20 +253,25 @@ class _AllView extends StatelessWidget {
               ),
             ),
           ),
+          // Ten at most: a row as tall as its names, which wrap under a
+          // large font instead of overflowing a fixed height.
           SliverToBoxAdapter(
-            child: SizedBox(
-              height: 145,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                itemCount: loaded.visibleArtists.take(10).length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.md),
-                itemBuilder: (context, i) => _animatedLibraryItem(
-                  ArtistCard(artist: loaded.visibleArtists[i], size: 95),
-                  i,
-                  slideY: .04,
-                ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, artist)
+                      in loaded.visibleArtists.take(10).indexed) ...[
+                    if (i > 0) const SizedBox(width: AppSpacing.md),
+                    _animatedLibraryItem(
+                      ArtistCard(artist: artist, size: 95),
+                      i,
+                      slideY: .04,
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
