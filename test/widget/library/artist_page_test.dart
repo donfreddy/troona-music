@@ -42,16 +42,15 @@ class _NoMetadata implements MetadataRepository {
 
 class _UnusedArtists extends Fake implements ArtistDetailRepository {}
 
-Album _album(String id, String name, {int? year, bool single = false}) =>
-    Album(
-      id: id,
-      name: name,
-      artist: 'Khaid',
-      artistId: 1,
-      trackCount: single ? 1 : 10,
-      isSingle: single,
-      year: year,
-    );
+Album _album(String id, String name, {int? year, bool single = false}) => Album(
+  id: id,
+  name: name,
+  artist: 'Khaid',
+  artistId: 1,
+  trackCount: single ? 1 : 10,
+  isSingle: single,
+  year: year,
+);
 
 void main() {
   setUp(() {
@@ -161,10 +160,7 @@ void main() {
   });
 
   testWidgets('no latest release when no release has a year', (tester) async {
-    await open(
-      tester,
-      ArtistAlbums(own: [_album('2', 'A'), _album('3', 'B')]),
-    );
+    await open(tester, ArtistAlbums(own: [_album('2', 'A'), _album('3', 'B')]));
     expect(find.text('Latest release'), findsNothing);
   });
 

@@ -107,7 +107,7 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
       l10n.whatsNew160HapticsOffBody,
     ),
   ]),
-  Release('1.5.0', date: DateTime(2026, 11,13), [
+  Release('1.5.0', date: DateTime(2026, 11, 13), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew150CoverTitle,

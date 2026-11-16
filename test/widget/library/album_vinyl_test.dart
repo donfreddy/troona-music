@@ -43,8 +43,7 @@ final _tracks = [
 
 class _Albums implements AlbumDetailRepository {
   @override
-  Future<Either<Failure, Album>> getAlbumById(String id) async =>
-      right(_album);
+  Future<Either<Failure, Album>> getAlbumById(String id) async => right(_album);
 
   @override
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id) async =>
@@ -175,9 +174,7 @@ void main() {
     expect(port.lastSetQueue?.tracks, _tracks);
   });
 
-  testWidgets('while the album plays, out further and turning', (
-    tester,
-  ) async {
+  testWidgets('while the album plays, out further and turning', (tester) async {
     await open(tester, playing: _tracks);
     expect(slide(tester), greaterThan(0));
     final before = turns(tester);
