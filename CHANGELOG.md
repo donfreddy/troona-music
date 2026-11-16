@@ -4,7 +4,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
-## [1.6.0] - 2026-11-04
+## [1.6.0] - 2026-11-16
 
 ### Added
 
