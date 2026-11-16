@@ -562,6 +562,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get detailSingles => 'Singles';
 
   @override
+  String get detailLatestRelease => 'Dernière sortie';
+
+  @override
   String get detailAppearsOn => 'Apparaît dans';
 
   @override
@@ -824,6 +827,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeJumpBackIn => 'Reprendre';
 
   @override
+  String get homeNowPlaying => 'En cours';
+
+  @override
+  String get queueOriginAlbum => 'Album';
+
+  @override
+  String get queueOriginArtist => 'Artiste';
+
+  @override
+  String get queueOriginPlaylist => 'Playlist';
+
+  @override
+  String homeTimeLeft(String time) {
+    return 'encore $time';
+  }
+
+  @override
   String get homeQuickRecent => 'Ajouts récents';
 
   @override
@@ -906,7 +926,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count morceaux écoutés pour la première fois',
       one: '$count morceau écouté pour la première fois',
-      zero: 'Aucun nouveau morceau cette semaine',
+      zero: 'Aucun nouveau morceau',
     );
     return '$_temp0';
   }
@@ -933,16 +953,124 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get recapEmpty => 'Rien n\'a été écouté la semaine dernière.';
+  String get recapPageTitle => 'Vos écoutes';
 
   @override
-  String get recapCalendarCaption =>
-      'Un point plein marque un jour avec de la musique.';
+  String get recapWeek => 'Semaine';
 
   @override
-  String recapCalendarDay(String date) {
-    return '$date, musique écoutée';
+  String get recapMonth => 'Mois';
+
+  @override
+  String get recapThisWeek => 'Cette semaine';
+
+  @override
+  String get recapLastWeek => 'La semaine dernière';
+
+  @override
+  String get recapThisMonth => 'Ce mois-ci';
+
+  @override
+  String get recapLastMonth => 'Le mois dernier';
+
+  @override
+  String get recapPreviousSpan => 'Période précédente';
+
+  @override
+  String get recapNextSpan => 'Période suivante';
+
+  @override
+  String get recapInProgress => 'En cours';
+
+  @override
+  String recapActiveDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jours en musique',
+      one: '$count jour en musique',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String get recapNothingYet => 'Aucune écoute pour l\'instant.';
+
+  @override
+  String get recapNothing => 'Aucune écoute sur cette période.';
+
+  @override
+  String get recapTopSongs => 'Top morceaux';
+
+  @override
+  String get recapPlaysHeader => 'Écoutes';
+
+  @override
+  String get recapShare => 'Partager';
+
+  @override
+  String get recapStoryWeek => 'Ma semaine en musique';
+
+  @override
+  String get recapStoryMonth => 'Mon mois en musique';
+
+  @override
+  String get recapTopAlbums => 'Top albums';
+
+  @override
+  String get recapDayByDay => 'Jour après jour';
+
+  @override
+  String get recapLess => 'Moins';
+
+  @override
+  String get recapMore => 'Plus';
+
+  @override
+  String recapDayPlays(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count écoutes',
+      one: '$count écoute',
+      zero: 'pas de musique',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String recapBusiestDay(String date, String plays) {
+    return 'Plus grosse journée : $date, $plays';
+  }
+
+  @override
+  String get recapMoments => 'Quand vous écoutez';
+
+  @override
+  String get recapMomentsEmpty =>
+      'Vos moments d\'écoute apparaissent au fil des morceaux.';
+
+  @override
+  String recapPeak(String weekday, String part) {
+    return 'Pic d\'écoute : $weekday $part';
+  }
+
+  @override
+  String recapPeakNight(String eve, String day) {
+    return 'Pic d\'écoute : la nuit du $eve au $day';
+  }
+
+  @override
+  String get recapMorning => 'Matin';
+
+  @override
+  String get recapAfternoon => 'Après-midi';
+
+  @override
+  String get recapEvening => 'Soir';
+
+  @override
+  String get recapNight => 'Nuit';
 
   @override
   String replayName(String month) {
@@ -952,11 +1080,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String replayReady(String name) {
     return '$name est dans vos playlists : vos morceaux les plus écoutés le mois dernier.';
-  }
-
-  @override
-  String recapCalendarQuietDay(String date) {
-    return '$date, pas de musique';
   }
 
   @override
@@ -1569,4 +1692,110 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew150NamesBody =>
       'Avec une grande police, la rangée d\'artistes de la bibliothèque ne coupe plus leurs noms.';
+
+  @override
+  String get whatsNew160RecapTitle => 'Vos écoutes';
+
+  @override
+  String get whatsNew160RecapBody =>
+      'Chaque semaine ou chaque mois en un coup d\'œil : votre temps d\'écoute, les jours où vous avez écouté de la musique, vos morceaux, artiste et albums phares. Ouvrez-le depuis la carte de l\'accueil, et remontez le temps avec les flèches.';
+
+  @override
+  String get whatsNew160StoryTitle => 'Partagez-le en story';
+
+  @override
+  String get whatsNew160StoryBody =>
+      'Faites d\'une semaine ou d\'un mois une image pour vos stories, aux couleurs de votre morceau phare. Un mois terminé se partage comme son Replay.';
+
+  @override
+  String get whatsNew160SwipeTitle => 'Glissez un morceau';
+
+  @override
+  String get whatsNew160SwipeBody =>
+      'Dans la bibliothèque, les albums, les artistes et la recherche, glissez un morceau vers la droite pour le lire ensuite, ou vers la gauche pour l\'ajouter à la file d\'attente.';
+
+  @override
+  String get whatsNew160MiniPlayerTitle =>
+      'Glissez et maintenez le mini lecteur';
+
+  @override
+  String get whatsNew160MiniPlayerBody =>
+      'Glissez-le vers la gauche pour le morceau suivant, vers la droite pour le précédent. Maintenez-le pour aimer le morceau en cours, ou retirer votre j\'aime.';
+
+  @override
+  String get whatsNew160CalendarTitle => 'Un calendrier de vos écoutes';
+
+  @override
+  String get whatsNew160CalendarBody =>
+      'Chaque jour est un carré, rempli en cinq niveaux, d\'aucune écoute à 30 lectures ou plus. Touchez un jour pour voir son total.';
+
+  @override
+  String get whatsNew160MomentsTitle => 'Quand vous écoutez';
+
+  @override
+  String get whatsNew160MomentsBody =>
+      'Vos lectures par jour de la semaine et moment de la journée, avec celui qui se démarque, comme le vendredi soir. Les morceaux écoutés après minuit comptent pour la veille au soir.';
+
+  @override
+  String get whatsNew160RecordTitle => 'Le disque tourne';
+
+  @override
+  String get whatsNew160RecordBody =>
+      'Sur une page album, le disque sort de sa pochette et tourne pendant la lecture. Touchez-le pour lire, mettre en pause ou reprendre.';
+
+  @override
+  String get whatsNew160LatestTitle => 'Dernière sortie';
+
+  @override
+  String get whatsNew160LatestBody =>
+      'Les pages artiste montrent leur album ou single le plus récent à part, au-dessus du reste.';
+
+  @override
+  String get whatsNew160ResumeTitle => 'Reprenez où vous en étiez';
+
+  @override
+  String get whatsNew160ResumeBody =>
+      'Reprendre, sur l\'accueil, repart là où le morceau s\'est arrêté, avec l\'album, l\'artiste ou la playlist d\'origine et le temps restant. Pendant la lecture, il ouvre l\'écran En lecture.';
+
+  @override
+  String get whatsNew160ArtistTitle => 'Pages artiste';
+
+  @override
+  String get whatsNew160ArtistBody =>
+      'Un seul bouton rond Aléatoire sur leur photo, puisque les morceaux d\'un artiste n\'ont pas d\'ordre ; touchez un morceau pour lire dans l\'ordre à partir de lui. Les sorties vont de la plus récente à la plus ancienne, aussi dans Plus de sur les pages album. Un artiste sans photo s\'ouvre sur un halo aux couleurs de sa pochette.';
+
+  @override
+  String get whatsNew160PlayingTitle => 'Le morceau en cours, partout pareil';
+
+  @override
+  String get whatsNew160PlayingBody =>
+      'Dans chaque liste, sa pochette est assombrie sous l\'égaliseur animé, qui s\'arrête en pause, et son titre prend la couleur d\'accent.';
+
+  @override
+  String get whatsNew160HapticsTitle => 'Des vibrations cohérentes';
+
+  @override
+  String get whatsNew160HapticsBody =>
+      'Un appui ferme quand la lecture démarre ou s\'arrête, un léger pour un saut, une actualisation ou un menu, et un petit clic pour un choix. Lancer un morceau ne vibre plus deux fois.';
+
+  @override
+  String get whatsNew160BackgroundTitle => 'Un fond plus calme';
+
+  @override
+  String get whatsNew160BackgroundBody =>
+      'Les couleurs derrière les onglets mettent deux secondes à suivre un nouveau morceau au lieu de changer d\'un coup.';
+
+  @override
+  String get whatsNew160BackupTitle => 'Sauvegardes';
+
+  @override
+  String get whatsNew160BackupBody =>
+      'Elles gardent aussi vos moments d\'écoute.';
+
+  @override
+  String get whatsNew160HapticsOffTitle => 'Vibrations désactivées respectées';
+
+  @override
+  String get whatsNew160HapticsOffBody =>
+      'Les onglets en haut de la bibliothèque vibraient même avec les vibrations désactivées dans les réglages. Ils suivent maintenant le réglage.';
 }

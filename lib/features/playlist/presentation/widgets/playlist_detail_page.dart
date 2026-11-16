@@ -15,7 +15,6 @@ import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playl
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -24,6 +23,8 @@ import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
 /// header that collapses into the glass bar, then the reorderable tracks.
@@ -56,15 +57,14 @@ class PlaylistDetailPage extends StatelessWidget {
                   slivers: [
                     _PlaylistHeader(
                       playlist: data.playlist,
-                      name: id == Playlist.likesId
-                          ? context.l10n.likedSongs
-                          : data.playlist.name,
+                      name: _nameOf(context, data.playlist),
                       tracks: data.tracks,
                     ),
                     _TrackList(
                       playlistId: id,
                       tracks: data.tracks,
                       isLikes: id == Playlist.likesId,
+                      origin: _originOf(context, data.playlist),
                     ),
                     SliverToBoxAdapter(
                       child: SizedBox(
@@ -200,7 +200,10 @@ class _PlaylistHeader extends StatelessWidget {
                 horizontal: AppSpacing.lg,
                 vertical: 8,
               ),
-              child: PlayShuffleButtons(tracks: tracks),
+              child: PlayShuffleButtons(
+                tracks: tracks,
+                origin: _originOf(context, playlist),
+              ),
             ),
           ),
         ],
@@ -220,11 +223,13 @@ class _TrackList extends StatelessWidget {
   final String playlistId;
   final List<Track> tracks;
   final bool isLikes;
+  final QueueOrigin origin;
 
   const _TrackList({
     required this.playlistId,
     required this.tracks,
     required this.isLikes,
+    required this.origin,
   });
 
   @override
@@ -260,6 +265,7 @@ class _TrackList extends StatelessWidget {
           playlistId: playlistId,
           index: index,
           isLikes: isLikes,
+          origin: origin,
         );
       },
     );
@@ -272,6 +278,7 @@ class _TrackTile extends StatelessWidget {
   final String playlistId;
   final int index;
   final bool isLikes;
+  final QueueOrigin origin;
 
   const _TrackTile({
     super.key,
@@ -280,6 +287,7 @@ class _TrackTile extends StatelessWidget {
     required this.playlistId,
     required this.index,
     required this.isLikes,
+    required this.origin,
   });
 
   void _showTrackOptions(BuildContext context) {
@@ -311,11 +319,7 @@ class _TrackTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final isActive = context.select<PlayerBloc, bool>(
-      (b) =>
-          b.state is PlayerActive &&
-          (b.state as PlayerActive).currentTrack.id == track.id,
-    );
+    final (isActive, _) = TrackRowArtwork.statusOf(context, track.id);
 
     return ReorderableDelayedDragStartListener(
       index: index,
@@ -328,6 +332,7 @@ class _TrackTile extends StatelessWidget {
                 track,
                 contextQueue: tracks,
                 contextIndex: index,
+                origin: origin,
               ),
             );
           },
@@ -340,36 +345,7 @@ class _TrackTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Artwork thumbnail
-                SizedBox.square(
-                  dimension: 48,
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: ArtworkImage(
-                          track.artworkPath,
-                          width: 48,
-                          height: 48,
-                        ),
-                      ),
-                      if (isActive)
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: .5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              AppIcons.nowPlaying,
-                              color: colors.accent,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                TrackRowArtwork(track: track),
 
                 const SizedBox(width: AppSpacing.md),
 
@@ -385,7 +361,8 @@ class _TrackTile extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: isActive
                               ? FontWeight.w700
-                              : FontWeight.w500,
+                              : FontWeight.w600,
+                          letterSpacing: -0.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -433,3 +410,16 @@ class _TrackTile extends StatelessWidget {
     );
   }
 }
+
+/// The playlist's name as its page shows it: Liked songs in the app's
+/// language.
+String _nameOf(BuildContext context, Playlist playlist) =>
+    playlist.id == Playlist.likesId ? context.l10n.likedSongs : playlist.name;
+
+/// The playlist a queue started on its page comes from, for Home's resume
+/// card.
+QueueOrigin _originOf(BuildContext context, Playlist playlist) => QueueOrigin(
+  QueueOriginKind.playlist,
+  id: playlist.id,
+  name: _nameOf(context, playlist),
+);

@@ -123,6 +123,48 @@ void main() {
     );
   });
 
+  group('releases newest first', () {
+    final khaid = TrackTags.artistIdFor('Khaid');
+
+    test('by year, those without one last, in library order', () {
+      final albums = LibraryGrouping.albumsOfArtist(khaid, [
+        _t('1', ['Khaid'], album: 'Old', title: 'a', year: 2019),
+        _t('2', ['Khaid'], albumId: 2, album: 'Undated', title: 'b'),
+        _t('3', ['Khaid'], albumId: 3, album: 'New', title: 'c', year: 2024),
+        _t('4', ['Khaid'], albumId: 4, album: 'Undated 2', title: 'd'),
+        _t('5', ['Khaid'], albumId: 5, album: 'Mid', title: 'e', year: 2021),
+      ]);
+      expect(
+        [for (final a in albums.own) a.name],
+        ['New', 'Mid', 'Old', 'Undated', 'Undated 2'],
+      );
+    });
+
+    test('the latest release is the newest album or single', () {
+      final albums = LibraryGrouping.albumsOfArtist(khaid, [
+        _t('1', ['Khaid'], album: 'Emotions', title: 'a', year: 2023),
+        _t('2', ['Khaid'], albumId: 2, album: 'Anabella', year: 2024),
+        // Someone else's album, newer still: not theirs.
+        _t('3', ['Mata', 'Khaid'], albumId: 3, album: '2039', year: 2025),
+        _t('4', ['Mata'], albumId: 3, album: '2039', year: 2025),
+      ]);
+      expect(albums.latest?.name, 'Anabella');
+    });
+
+    test('no latest release without a year, nor with one release only', () {
+      final undated = LibraryGrouping.albumsOfArtist(khaid, [
+        _t('1', ['Khaid'], album: 'A', title: 'a'),
+        _t('2', ['Khaid'], albumId: 2, album: 'B', title: 'b'),
+      ]);
+      expect(undated.latest, isNull);
+
+      final one = LibraryGrouping.albumsOfArtist(khaid, [
+        _t('1', ['Khaid'], album: 'A', title: 'a', year: 2024),
+      ]);
+      expect(one.latest, isNull, reason: 'its card is right below');
+    });
+  });
+
   test('an album of one song belongs to the artist credited first', () {
     final khaid = TrackTags.artistIdFor('Khaid');
     final tracks = [

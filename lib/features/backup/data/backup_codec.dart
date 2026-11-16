@@ -84,6 +84,9 @@ abstract final class BackupCodec {
         'firstPlays': [
           for (final f in backup.firstPlays) {'track': f.track, 'day': f.day},
         ],
+        'hours': [
+          for (final h in backup.hours) {'hour': h.hour, 'plays': h.plays},
+        ],
         'replayMonth': backup.replayMonth,
       },
       'settings': _encodeSettings(backup.settings),
@@ -186,6 +189,18 @@ abstract final class BackupCodec {
           );
         }))
           if (inRange(f.day)) f,
+      ],
+      // Absent from backups made before the hours were counted.
+      hours: [
+        if (history['hours'] != null)
+          for (final h in _list(history['hours'], 'hours', (h) {
+            final m = _map(h, 'hour');
+            return BackupHour(
+              hour: _int(m['hour'], 'hour'),
+              plays: _int(m['plays'], 'plays'),
+            );
+          }))
+            if (fair(h.hour ~/ 24, plays: h.plays)) h,
       ],
       replayMonth: switch (history['replayMonth']) {
         null => null,

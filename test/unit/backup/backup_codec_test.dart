@@ -25,6 +25,7 @@ final _backup = Backup(
   days: const [BackupDay(day: 20390, plays: 3, listenedMs: 600000)],
   trackDays: const [BackupTrackDay(day: 20390, track: '1', plays: 3)],
   firstPlays: const [BackupFirstPlay(track: '1', day: 20101)],
+  hours: const [BackupHour(hour: 20390 * 24 + 18, plays: 3)],
   replayMonth: 24321,
   settings: const AppSettings(
     fetchArtistArtwork: true,
@@ -43,6 +44,19 @@ Matcher _rejected = throwsA(isA<BackupFormatException>());
 void main() {
   test('a backup reads back as it was written', () {
     expect(BackupCodec.decode(BackupCodec.encode(_backup)), _backup);
+  });
+
+  test('a backup made before the hours were counted has none', () {
+    final json = _json();
+    (json['history'] as Map).remove('hours');
+    expect(BackupCodec.decode(_bytes(json)).hours, isEmpty);
+    expect(BackupCodec.decode(_bytes(json)).days, _backup.days);
+  });
+
+  test('an hour to come is dropped', () {
+    final json = _json();
+    (json['history']['hours'] as List).add({'hour': 1 << 30, 'plays': 1});
+    expect(BackupCodec.decode(_bytes(json)).hours, _backup.hours);
   });
 
   test('the glass quality is not carried', () {

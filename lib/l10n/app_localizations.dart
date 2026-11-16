@@ -998,6 +998,12 @@ abstract class AppLocalizations {
   /// **'Singles'**
   String get detailSingles;
 
+  /// No description provided for @detailLatestRelease.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest release'**
+  String get detailLatestRelease;
+
   /// No description provided for @detailAppearsOn.
   ///
   /// In en, this message translates to:
@@ -1436,6 +1442,36 @@ abstract class AppLocalizations {
   /// **'Jump back in'**
   String get homeJumpBackIn;
 
+  /// No description provided for @homeNowPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Now playing'**
+  String get homeNowPlaying;
+
+  /// No description provided for @queueOriginAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get queueOriginAlbum;
+
+  /// No description provided for @queueOriginArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get queueOriginArtist;
+
+  /// No description provided for @queueOriginPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist'**
+  String get queueOriginPlaylist;
+
+  /// Home resume card: listening time left in the queue, e.g. 12 min left.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left'**
+  String homeTimeLeft(String time);
+
   /// No description provided for @homeQuickRecent.
   ///
   /// In en, this message translates to:
@@ -1565,7 +1601,7 @@ abstract class AppLocalizations {
   /// No description provided for @recapDiscoveriesValue.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{No new songs this week} =1{1 song heard for the first time} other{{count} songs heard for the first time}}'**
+  /// **'{count, plural, =0{No new songs} =1{1 song heard for the first time} other{{count} songs heard for the first time}}'**
   String recapDiscoveriesValue(int count);
 
   /// No description provided for @recapPlays.
@@ -1586,23 +1622,197 @@ abstract class AppLocalizations {
   /// **'{minutes} min'**
   String recapMinutes(int minutes);
 
-  /// No description provided for @recapEmpty.
+  /// No description provided for @recapPageTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nothing was played last week.'**
-  String get recapEmpty;
+  /// **'Your listening'**
+  String get recapPageTitle;
 
-  /// No description provided for @recapCalendarCaption.
+  /// No description provided for @recapWeek.
   ///
   /// In en, this message translates to:
-  /// **'A filled dot is a day with music.'**
-  String get recapCalendarCaption;
+  /// **'Week'**
+  String get recapWeek;
 
-  /// No description provided for @recapCalendarDay.
+  /// No description provided for @recapMonth.
   ///
   /// In en, this message translates to:
-  /// **'{date}, music played'**
-  String recapCalendarDay(String date);
+  /// **'Month'**
+  String get recapMonth;
+
+  /// No description provided for @recapThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get recapThisWeek;
+
+  /// No description provided for @recapLastWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Last week'**
+  String get recapLastWeek;
+
+  /// No description provided for @recapThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get recapThisMonth;
+
+  /// No description provided for @recapLastMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last month'**
+  String get recapLastMonth;
+
+  /// No description provided for @recapPreviousSpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get recapPreviousSpan;
+
+  /// No description provided for @recapNextSpan.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get recapNextSpan;
+
+  /// No description provided for @recapInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get recapInProgress;
+
+  /// No description provided for @recapActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day with music} other{{count} days with music}}'**
+  String recapActiveDays(int count);
+
+  /// No description provided for @recapNothingYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing played yet.'**
+  String get recapNothingYet;
+
+  /// No description provided for @recapNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was played.'**
+  String get recapNothing;
+
+  /// No description provided for @recapTopSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Top songs'**
+  String get recapTopSongs;
+
+  /// No description provided for @recapPlaysHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays'**
+  String get recapPlaysHeader;
+
+  /// No description provided for @recapShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get recapShare;
+
+  /// No description provided for @recapStoryWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'My week in music'**
+  String get recapStoryWeek;
+
+  /// No description provided for @recapStoryMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'My month in music'**
+  String get recapStoryMonth;
+
+  /// No description provided for @recapTopAlbums.
+  ///
+  /// In en, this message translates to:
+  /// **'Top albums'**
+  String get recapTopAlbums;
+
+  /// No description provided for @recapDayByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day by day'**
+  String get recapDayByDay;
+
+  /// No description provided for @recapLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get recapLess;
+
+  /// No description provided for @recapMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get recapMore;
+
+  /// No description provided for @recapDayPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {count, plural, =0{no music} =1{1 play} other{{count} plays}}'**
+  String recapDayPlays(String date, int count);
+
+  /// No description provided for @recapBusiestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest day: {date}, {plays}'**
+  String recapBusiestDay(String date, String plays);
+
+  /// No description provided for @recapMoments.
+  ///
+  /// In en, this message translates to:
+  /// **'When you listen'**
+  String get recapMoments;
+
+  /// No description provided for @recapMomentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listening moments show up as you play music.'**
+  String get recapMomentsEmpty;
+
+  /// No description provided for @recapPeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak: {weekday} {part}'**
+  String recapPeak(String weekday, String part);
+
+  /// No description provided for @recapPeakNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak: {eve} night'**
+  String recapPeakNight(String eve, String day);
+
+  /// No description provided for @recapMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get recapMorning;
+
+  /// No description provided for @recapAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get recapAfternoon;
+
+  /// No description provided for @recapEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get recapEvening;
+
+  /// No description provided for @recapNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get recapNight;
 
   /// No description provided for @replayName.
   ///
@@ -1615,12 +1825,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} is in your playlists: last month\'s most played songs.'**
   String replayReady(String name);
-
-  /// No description provided for @recapCalendarQuietDay.
-  ///
-  /// In en, this message translates to:
-  /// **'{date}, no music'**
-  String recapCalendarQuietDay(String date);
 
   /// No description provided for @queueTitle.
   ///
@@ -2611,6 +2815,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'With a large font, the Library\'s row of artists no longer cuts their names short.'**
   String get whatsNew150NamesBody;
+
+  /// No description provided for @whatsNew160RecapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your listening'**
+  String get whatsNew160RecapTitle;
+
+  /// No description provided for @whatsNew160RecapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Any week or month at a glance: your listening time, the days you played music, your top songs, artist and albums. Open it from the card on Home, and step back with the arrows.'**
+  String get whatsNew160RecapBody;
+
+  /// No description provided for @whatsNew160StoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share it as a story'**
+  String get whatsNew160StoryTitle;
+
+  /// No description provided for @whatsNew160StoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.'**
+  String get whatsNew160StoryBody;
+
+  /// No description provided for @whatsNew160SwipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe a song'**
+  String get whatsNew160SwipeTitle;
+
+  /// No description provided for @whatsNew160SwipeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In the Library, albums, artists and search, swipe a song right to play it next, or left to add it to the queue.'**
+  String get whatsNew160SwipeBody;
+
+  /// No description provided for @whatsNew160MiniPlayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe and hold the mini player'**
+  String get whatsNew160MiniPlayerTitle;
+
+  /// No description provided for @whatsNew160MiniPlayerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe it left for the next song or right for the previous one. Hold it to like the song playing, or to take the like back.'**
+  String get whatsNew160MiniPlayerBody;
+
+  /// No description provided for @whatsNew160CalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A calendar of your listening'**
+  String get whatsNew160CalendarTitle;
+
+  /// No description provided for @whatsNew160CalendarBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Each day is a square, filled in five steps from no music to 30 plays or more. Tap a day for its count.'**
+  String get whatsNew160CalendarBody;
+
+  /// No description provided for @whatsNew160MomentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When you listen'**
+  String get whatsNew160MomentsTitle;
+
+  /// No description provided for @whatsNew160MomentsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plays by weekday and time of day, with the moment that stands out, such as Friday evening. Songs played after midnight count for the night before.'**
+  String get whatsNew160MomentsBody;
+
+  /// No description provided for @whatsNew160RecordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The record turns'**
+  String get whatsNew160RecordTitle;
+
+  /// No description provided for @whatsNew160RecordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On an album page, the record slides out of its sleeve and turns while the album plays. Tap it to play, pause or resume.'**
+  String get whatsNew160RecordBody;
+
+  /// No description provided for @whatsNew160LatestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest release'**
+  String get whatsNew160LatestTitle;
+
+  /// No description provided for @whatsNew160LatestBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages show their newest album or single on its own, above the rest.'**
+  String get whatsNew160LatestBody;
+
+  /// No description provided for @whatsNew160ResumeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick up where you left off'**
+  String get whatsNew160ResumeTitle;
+
+  /// No description provided for @whatsNew160ResumeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump back in on Home goes on from where the song stopped, with the album, artist or playlist it came from and the time left. While music plays, it opens Now Playing.'**
+  String get whatsNew160ResumeBody;
+
+  /// No description provided for @whatsNew160ArtistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist pages'**
+  String get whatsNew160ArtistTitle;
+
+  /// No description provided for @whatsNew160ArtistBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One round Shuffle button on their photo, since an artist\'s songs have no order; tap a song to play in order from it. Releases come newest first, also in More by on album pages. An artist without a photo opens on a soft glow of their cover\'s colours.'**
+  String get whatsNew160ArtistBody;
+
+  /// No description provided for @whatsNew160PlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The song playing looks the same everywhere'**
+  String get whatsNew160PlayingTitle;
+
+  /// No description provided for @whatsNew160PlayingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In every list, its cover is dimmed under the moving equalizer, which stops while paused, and its title is in the accent colour.'**
+  String get whatsNew160PlayingBody;
+
+  /// No description provided for @whatsNew160HapticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One feel for haptics'**
+  String get whatsNew160HapticsTitle;
+
+  /// No description provided for @whatsNew160HapticsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, and a tick for a choice. Playing a song no longer taps twice.'**
+  String get whatsNew160HapticsBody;
+
+  /// No description provided for @whatsNew160BackgroundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A calmer background'**
+  String get whatsNew160BackgroundTitle;
+
+  /// No description provided for @whatsNew160BackgroundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The colours behind the tabs take two seconds to follow a new song instead of switching at once.'**
+  String get whatsNew160BackgroundBody;
+
+  /// No description provided for @whatsNew160BackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups'**
+  String get whatsNew160BackupTitle;
+
+  /// No description provided for @whatsNew160BackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They now also carry when you listen.'**
+  String get whatsNew160BackupBody;
+
+  /// No description provided for @whatsNew160HapticsOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrations with haptics off'**
+  String get whatsNew160HapticsOffTitle;
+
+  /// No description provided for @whatsNew160HapticsOffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.'**
+  String get whatsNew160HapticsOffBody;
 }
 
 class _AppLocalizationsDelegate

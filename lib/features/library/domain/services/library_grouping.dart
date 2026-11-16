@@ -28,6 +28,9 @@ abstract final class LibraryGrouping {
   /// albums and singles (they are the album's artist) and the ones they
   /// appear on. [tracks] are the whole albums, so counts are the albums'
   /// own.
+  ///
+  /// Each list comes newest first, then the albums without a year in the
+  /// order their first song comes.
   static ArtistAlbums albumsOfArtist(int artistId, List<Track> tracks) {
     final own = <Album>[];
     final singles = <Album>[];
@@ -47,7 +50,11 @@ abstract final class LibraryGrouping {
         own.add(album);
       }
     }
-    return ArtistAlbums(own: own, singles: singles, appearsOn: appearsOn);
+    return ArtistAlbums(
+      own: _newestFirst(own),
+      singles: _newestFirst(singles),
+      appearsOn: _newestFirst(appearsOn),
+    );
   }
 
   /// The artists of [tracks], in the order their first song comes.
@@ -144,6 +151,18 @@ abstract final class LibraryGrouping {
       isSingle: _isSingle(group),
       year: _yearOf(group),
     );
+  }
+
+  /// [albums] by year, newest first; the ones without a year last, in
+  /// their order ([List.sort] alone is not stable).
+  static List<Album> _newestFirst(List<Album> albums) {
+    final order = {for (final (i, album) in albums.indexed) album: i};
+    int compare(Album a, Album b) {
+      final byYear = (b.year ?? 0).compareTo(a.year ?? 0);
+      return byYear != 0 ? byYear : order[a]!.compareTo(order[b]!);
+    }
+
+    return [...albums]..sort(compare);
   }
 
   /// The first year a song of [group] has, as the album page shows it.

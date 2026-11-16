@@ -28,9 +28,6 @@ abstract final class AppIcons {
   static const IconData speed = LucideIcons300.gauge;
   static const IconData volumeLow = LucideIcons300.volume1;
 
-  /// On the row of the song that is playing.
-  static const IconData nowPlaying = LucideIcons300.music2;
-
   // ── Library ───────────────────────────────────────────────────────────────
   /// A song, and the placeholder of a song without a cover.
   static const IconData track = LucideIcons300.music;
@@ -103,6 +100,13 @@ abstract final class AppIcons {
   static const IconData stats = LucideIcons300.barChart3;
   static const IconData weeklyRecap = LucideIcons300.calendarHeart;
   static const IconData monthlyReplay = LucideIcons300.calendarSync;
+  static const IconData share = LucideIcons300.share2;
+  static const IconData previousSpan = LucideIcons300.chevronLeft;
+  static const IconData nextSpan = LucideIcons300.chevronRight;
+  static const IconData morning = LucideIcons300.sunrise;
+  static const IconData afternoon = LucideIcons300.sun;
+  static const IconData evening = LucideIcons300.sunset;
+  static const IconData night = LucideIcons300.moon;
   static const IconData whatsNew = LucideIcons300.sparkles;
   static const IconData update = LucideIcons300.circleArrowUp;
   static const IconData glassEffect = LucideIcons300.sparkles;

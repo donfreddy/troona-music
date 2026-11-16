@@ -61,4 +61,36 @@ void main() {
       expect(HSLColor.fromColor(yellow).lightness, lessThan(.25));
     });
   });
+
+  for (final (tone, settles, stillMoving) in [
+    (
+      DynamicBackgroundTone.ambient,
+      const Duration(milliseconds: 2100),
+      const Duration(seconds: 1),
+    ),
+    (DynamicBackgroundTone.immersive, const Duration(milliseconds: 400), null),
+  ]) {
+    testWidgets('${tone.name}: a new song\'s colours take '
+        '${DynamicBackground.transitionOf(tone).inMilliseconds} ms', (
+      tester,
+    ) async {
+      Widget glow(Color a) => Directionality(
+        textDirection: TextDirection.ltr,
+        child: DynamicBackground(
+          colorA: a,
+          colorB: a,
+          tone: tone,
+          child: const SizedBox.expand(),
+        ),
+      );
+      await tester.pumpWidget(glow(const Color(0xFF203080)));
+      await tester.pumpWidget(glow(const Color(0xFF802030)));
+      if (stillMoving != null) {
+        await tester.pump(stillMoving);
+        expect(tester.hasRunningAnimations, isTrue);
+      }
+      await tester.pump(settles);
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+  }
 }

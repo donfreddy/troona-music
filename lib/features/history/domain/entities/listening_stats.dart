@@ -6,6 +6,14 @@ final class ListeningStats {
   /// Plays per track id.
   final Map<String, int> trackPlays;
 
+  /// Plays per day (`ListeningDay` keys), days without any left out.
+  final Map<int, int> dayPlays;
+
+  /// Plays started in each hour of the week: index `(weekday - 1) * 24 +
+  /// hour`, Monday first, local hours. They run from 6:00 on the first day
+  /// to 6:00 after the last: the span's nights, not the one before it.
+  final List<int> hourPlays;
+
   /// Tracks played for the first time in the span.
   final int discoveries;
 
@@ -17,6 +25,8 @@ final class ListeningStats {
     required this.plays,
     required this.listened,
     required this.trackPlays,
+    this.dayPlays = const {},
+    this.hourPlays = const [],
     required this.discoveries,
     required this.historyStart,
   });

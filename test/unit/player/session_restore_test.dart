@@ -5,6 +5,7 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 
@@ -44,6 +45,7 @@ void main() {
         repeatMode: RepeatMode.off,
         volume: 1,
         speed: 1,
+        origin: QueueOrigin(QueueOriginKind.album, id: '7', name: 'Damini'),
       ),
     );
   });
@@ -66,6 +68,14 @@ void main() {
     expect(bloc.state, isA<PlayerLoading>());
     expect((bloc.state as PlayerLoading).track, b);
     expect(port.restoredPlaying, isFalse);
+  });
+
+  test('restores where the queue came from', () async {
+    final bloc = await restoreWith(right([a, b]));
+    expect(
+      bloc.origin.value,
+      const QueueOrigin(QueueOriginKind.album, id: '7', name: 'Damini'),
+    );
   });
 
   test('the media controls restore it playing', () async {

@@ -14,6 +14,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 /// Hero banner for the liked songs playlist: one-tap playback and a deck of
 /// recent favourite covers.
@@ -90,7 +91,16 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
 
     if (tracks.isNotEmpty && context.mounted) {
       context.read<PlayerBloc>().add(
-        PlayTrackRequested(tracks.first, contextQueue: tracks, contextIndex: 0),
+        PlayTrackRequested(
+          tracks.first,
+          contextQueue: tracks,
+          contextIndex: 0,
+          origin: QueueOrigin(
+            QueueOriginKind.playlist,
+            id: widget.playlist.id,
+            name: context.l10n.likedSongs,
+          ),
+        ),
       );
     }
   }

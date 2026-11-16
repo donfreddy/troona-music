@@ -6,8 +6,8 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
-import 'package:troona/features/history/presentation/cubit/weekly_recap_cubit.dart';
-import 'package:troona/features/history/presentation/pages/weekly_recap_page.dart';
+import 'package:troona/features/history/presentation/cubit/listening_recap_cubit.dart';
+import 'package:troona/features/history/presentation/pages/listening_recap_page.dart';
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/pages/home_page.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
@@ -142,7 +142,7 @@ final appRouter = GoRouter(
                         getIt<HomeBloc>()..add(HomeRefreshRequested()),
                   ),
                   BlocProvider(
-                    create: (_) => getIt<WeeklyRecapCubit>()..load(),
+                    create: (_) => getIt<ListeningRecapCubit>()..load(),
                   ),
                 ],
                 child: const ScrollToTopOnReselect(
@@ -156,8 +156,8 @@ final appRouter = GoRouter(
                   name: AppRoute.weeklyRecap,
                   builder: (_, _) => _overTab(
                     BlocProvider(
-                      create: (_) => getIt<WeeklyRecapCubit>()..load(),
-                      child: const WeeklyRecapPage(),
+                      create: (_) => getIt<ListeningRecapCubit>()..load(),
+                      child: const ListeningRecapPage(),
                     ),
                   ),
                 ),

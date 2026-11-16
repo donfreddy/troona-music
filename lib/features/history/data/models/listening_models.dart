@@ -36,3 +36,13 @@ class TrackFirstPlayModel {
   @Index()
   late int day;
 }
+
+/// Plays started in one hour of one day, for "When you listen". Never
+/// pruned either: at most 24 small rows a day.
+@collection
+class ListeningHourModel {
+  /// `day * 24 + hour`, the day as `ListeningDay.of`, the hour local.
+  late int id;
+
+  int plays = 0;
+}

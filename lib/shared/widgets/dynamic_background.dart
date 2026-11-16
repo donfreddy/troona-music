@@ -25,6 +25,16 @@ class DynamicBackground extends StatefulWidget {
     this.tone = DynamicBackgroundTone.ambient,
   });
 
+  /// How long the glow takes to follow a new song: slowly behind the tabs,
+  /// where it sets the mood; quickly on Now Playing and the detail pages,
+  /// where it follows a swipe of the covers. A transition costs a re-blur
+  /// of every [BackdropFilter] above it on each frame, so it stays short
+  /// where two of them sit on screen for long.
+  static Duration transitionOf(DynamicBackgroundTone tone) => switch (tone) {
+    DynamicBackgroundTone.ambient => const Duration(seconds: 2),
+    DynamicBackgroundTone.immersive => const Duration(milliseconds: 380),
+  };
+
   /// Brightest a glow may paint: secondary labels (60 % white) keep 4.5:1
   /// over it. Measured as relative luminance: by HSL lightness, a yellow
   /// cover comes out five times brighter than a blue one.
@@ -70,7 +80,7 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: DynamicBackground.transitionOf(widget.tone),
     )..value = 1;
     final a = DynamicBackground.fitForText(widget.colorA ?? _defaultColorA);
     final b = DynamicBackground.fitForText(widget.colorB ?? _defaultColorB);
@@ -83,6 +93,7 @@ class _DynamicBackgroundState extends State<DynamicBackground>
   @override
   void didUpdateWidget(DynamicBackground old) {
     super.didUpdateWidget(old);
+    _ctrl.duration = DynamicBackground.transitionOf(widget.tone);
     final newA = widget.colorA ?? _defaultColorA;
     final newB = widget.colorB ?? _defaultColorB;
     final oldA = old.colorA ?? _defaultColorA;

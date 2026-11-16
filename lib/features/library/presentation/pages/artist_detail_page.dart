@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -36,6 +37,7 @@ import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -125,7 +127,11 @@ class ArtistDetailPage extends StatelessWidget {
                               _ArtistTopTracksList(
                                 tracks: data.topTracks,
                                 byPlays: data.topTracksByPlays,
+                                artist: data.artist,
                               ),
+
+                            if (data.albums.latest case final latest?)
+                              _LatestRelease(album: latest),
 
                             // ── 2. Their albums and singles, then the ones they
                             // appear on ─────────────────────────────────────────
@@ -224,11 +230,9 @@ class _ArtistHeader extends StatelessWidget {
     required this.albums,
   });
 
-  static const double _actionsBarHeight = 64.0;
-
   /// Height of the expanded header's text at the default font size.
   static const double _expandedText = 100.0;
-  static const double _expandedExtra = 260.0;
+  static const double _expandedHeight = 324.0;
 
   String _getInitials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -301,7 +305,7 @@ class _ArtistHeader extends StatelessWidget {
       buildWhen: (a, b) => _photoOf(a) != _photoOf(b),
       builder: (context, meta) {
         final photo = _photoOf(meta);
-        final expandedHeight = _expandedExtra + _actionsBarHeight;
+        const expandedHeight = _expandedHeight;
         return GlassSliverHeader(
           leading: const AppBackButton(),
           title: context.artistName(artist.name),
@@ -314,7 +318,10 @@ class _ArtistHeader extends StatelessWidget {
           ],
           stretch: true,
           background: photo == null
-              ? null
+              ? switch (artist.artworkPath) {
+                  final path? when path.isNotEmpty => _CoverGlow(path: path),
+                  _ => null,
+                }
               : _ArtistPhoto(
                   file: photo.file,
                   url: photo.url,
@@ -333,35 +340,19 @@ class _ArtistHeader extends StatelessWidget {
                 ),
           expandedHeight: expandedHeight,
           expandedTextHeight: _expandedText,
-          expanded: Column(
-            children: [
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: photo == null
-                      ? KeyedSubtree(
-                          key: const ValueKey('circle'),
-                          child: _circleHero(context),
-                        )
-                      : KeyedSubtree(
-                          key: const ValueKey('photo'),
-                          child: _photoCaption(context),
-                        ),
-                ),
-              ),
-              // Play and shuffle scroll away with the hero: the collapsed
-              // bar keeps the title and actions only.
-              SizedBox(
-                height: _actionsBarHeight,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: 8,
+          // Shuffle scrolls away with the hero: the collapsed bar keeps
+          // the title and actions only.
+          expanded: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: photo == null
+                ? KeyedSubtree(
+                    key: const ValueKey('circle'),
+                    child: _circleHero(context),
+                  )
+                : KeyedSubtree(
+                    key: const ValueKey('photo'),
+                    child: _photoCaption(context),
                   ),
-                  child: PlayShuffleButtons(tracks: tracks),
-                ),
-              ),
-            ],
           ),
         );
       },
@@ -427,6 +418,14 @@ class _ArtistHeader extends StatelessWidget {
                 const SizedBox(height: 6),
 
                 _animatedArtistItem(_summary(context, TextAlign.center), 2),
+                const SizedBox(height: AppSpacing.lg),
+                _animatedArtistItem(
+                  ShuffleRoundButton(
+                    tracks: tracks,
+                    origin: _originOf(context, artist),
+                  ),
+                  3,
+                ),
               ],
             ),
           ),
@@ -435,7 +434,8 @@ class _ArtistHeader extends StatelessWidget {
     );
   }
 
-  /// Over the photo: the name and counts at its bottom left.
+  /// Over the photo: the name and counts at its bottom left, Shuffle at
+  /// its bottom right.
   Widget _photoCaption(BuildContext context) {
     return Align(
       alignment: Alignment.bottomLeft,
@@ -444,41 +444,65 @@ class _ArtistHeader extends StatelessWidget {
           AppSpacing.lg,
           0,
           AppSpacing.lg,
-          AppSpacing.sm,
+          AppSpacing.md,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            Expanded(child: _caption(context)),
+            const SizedBox(width: AppSpacing.md),
             _animatedArtistItem(
-              Text(
-                context.artistName(artist.name),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 34,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
-                  height: 1.1,
-                  shadows: [Shadow(color: Colors.black54, blurRadius: 12)],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              ShuffleRoundButton(
+                tracks: tracks,
+                origin: _originOf(context, artist),
               ),
-              1,
+              3,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _animatedArtistItem(_summary(context, TextAlign.start), 2),
           ],
         ),
       ),
     );
   }
 
+  Widget _caption(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _animatedArtistItem(
+          Text(
+            context.artistName(artist.name),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.8,
+              height: 1.1,
+              shadows: [Shadow(color: Colors.black54, blurRadius: 12)],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          1,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        _animatedArtistItem(
+          _summary(context, TextAlign.start, onPhoto: true),
+          2,
+        ),
+      ],
+    );
+  }
+
   /// Song count, releases and listening time, as one line of text. Wraps
   /// on a narrow screen or a large font.
-  Widget _summary(BuildContext context, TextAlign textAlign) {
+  Widget _summary(
+    BuildContext context,
+    TextAlign textAlign, {
+    bool onPhoto = false,
+  }) {
     final totalDuration = _totalDuration;
-    return MetaLine([
+    return MetaLine(onPhoto: onPhoto, [
       context.l10n.songCount(artist.trackCount),
       // A guest only has no release of their own.
       context.artistReleases(artist),
@@ -530,7 +554,13 @@ class _ArtistTopTracksList extends StatefulWidget {
   /// Whether [tracks] are ranked by plays: the section is Popular.
   final bool byPlays;
 
-  const _ArtistTopTracksList({required this.tracks, required this.byPlays});
+  final Artist artist;
+
+  const _ArtistTopTracksList({
+    required this.tracks,
+    required this.byPlays,
+    required this.artist,
+  });
 
   /// Songs shown before "See all": the albums stay within reach.
   static const shown = 5;
@@ -588,6 +618,7 @@ class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
                   tracks[i],
                   contextQueue: tracks,
                   contextIndex: i,
+                  origin: _originOf(context, widget.artist),
                 ),
               ),
             ),
@@ -614,6 +645,105 @@ class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Their newest album or single, on its own above the carousels: what
+/// they put out last, for the listener who follows them.
+///
+/// No cover hero: the same album is in a carousel below, and two heroes of
+/// one album on a page would share a tag.
+class _LatestRelease extends StatelessWidget {
+  final Album album;
+
+  const _LatestRelease({required this.album});
+
+  static const double _cover = 96;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final colors = context.colors;
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: AppSpacing.xl2),
+          _animatedArtistItem(
+            SectionHeader(title: l10n.detailLatestRelease),
+            4,
+          ),
+          _animatedArtistItem(
+            Semantics(
+              button: true,
+              child: InkWell(
+                onTap: () => context.pushAlbum(album.id),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.xs,
+                  ),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
+                        child: ArtworkImage(
+                          album.artworkPath,
+                          width: _cover,
+                          height: _cover,
+                          placeholder: AppIcons.album,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${album.year}',
+                              style: TextStyle(
+                                color: colors.labelSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              album.name,
+                              style: TextStyle(
+                                color: colors.labelPrimary,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              album.isSingle
+                                  ? l10n.albumSingle
+                                  : l10n.songCount(album.trackCount),
+                              style: TextStyle(
+                                color: colors.labelSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            5,
+            slideY: 0.04,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -721,6 +851,51 @@ class _SimilarArtistsCarousel extends StatelessWidget {
   }
 }
 
+/// Without a photo, the artist's cover behind the circle: decoded a few
+/// pixels wide and stretched over the header, it reads as a soft blur of its
+/// colours, at no cost. No `BackdropFilter` nor `ImageFiltered`: the blur
+/// is the upscale. It melts into the page at its bottom, like a photo.
+class _CoverGlow extends StatelessWidget {
+  final String path;
+
+  const _CoverGlow({required this.path});
+
+  /// Logical width the cover is decoded at: about 36 px on most phones.
+  static const double _decodedWidth = 12;
+
+  @override
+  Widget build(BuildContext context) {
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (bounds) => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Colors.white, Colors.white, Colors.transparent],
+        stops: [0, .5, 1],
+      ).createShader(bounds),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: ArtworkImage(
+              path,
+              width: _decodedWidth,
+              height: _decodedWidth,
+              // A missing cover leaves the page's own background.
+              errorBuilder: (_, _, _) =>
+                  const SizedBox.square(dimension: _decodedWidth),
+            ),
+          ),
+          // Keeps the name and counts readable on a light cover.
+          ColoredBox(color: Colors.black.withValues(alpha: .4)),
+        ],
+      ),
+    );
+  }
+}
+
 /// The artist's photo behind the expanded header, edge to edge: it melts
 /// into the page at its bottom, and dark gradients keep the status bar, the
 /// back button and the name readable on any photo.
@@ -807,3 +982,11 @@ class _ArtistPhoto extends StatelessWidget {
     );
   }
 }
+
+/// The artist a queue started on their page comes from, for Home's resume
+/// card, named as the page names them.
+QueueOrigin _originOf(BuildContext context, Artist artist) => QueueOrigin(
+  QueueOriginKind.artist,
+  id: artist.id,
+  name: context.artistName(artist.name),
+);

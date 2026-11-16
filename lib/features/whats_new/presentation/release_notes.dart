@@ -30,6 +30,84 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  Release('1.6.0', date: DateTime(2026, 11, 4), [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160RecapTitle,
+      l10n.whatsNew160RecapBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160StoryTitle,
+      l10n.whatsNew160StoryBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160SwipeTitle,
+      l10n.whatsNew160SwipeBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160MiniPlayerTitle,
+      l10n.whatsNew160MiniPlayerBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160CalendarTitle,
+      l10n.whatsNew160CalendarBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160MomentsTitle,
+      l10n.whatsNew160MomentsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160RecordTitle,
+      l10n.whatsNew160RecordBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew160LatestTitle,
+      l10n.whatsNew160LatestBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160ResumeTitle,
+      l10n.whatsNew160ResumeBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160ArtistTitle,
+      l10n.whatsNew160ArtistBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160PlayingTitle,
+      l10n.whatsNew160PlayingBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160HapticsTitle,
+      l10n.whatsNew160HapticsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160BackgroundTitle,
+      l10n.whatsNew160BackgroundBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew160BackupTitle,
+      l10n.whatsNew160BackupBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew160HapticsOffTitle,
+      l10n.whatsNew160HapticsOffBody,
+    ),
+  ]),
+  Release('1.5.0', date: DateTime(2026, 11, 4), [
   Release('1.5.0', date: DateTime(2026, 11,13), [
     ReleaseNote(
       ReleaseNoteKind.added,

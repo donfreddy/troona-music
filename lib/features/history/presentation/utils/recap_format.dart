@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/features/history/domain/entities/weekly_recap.dart';
+import 'package:troona/features/history/domain/entities/listening_recap.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
+import 'package:troona/features/history/presentation/cubit/listening_recap_cubit.dart';
 
 /// "2 h 40 min", or "40 min" under an hour; a few seconds read as 1 min.
 String formatListened(BuildContext context, Duration listened) {
@@ -12,12 +14,59 @@ String formatListened(BuildContext context, Duration listened) {
   return l10n.recapMinutes(minutes == 0 ? 1 : minutes);
 }
 
-/// "Oct 19 to 25" style range of the recap's week, in the app's locale.
-String formatRecapRange(BuildContext context, WeeklyRecap recap) {
+/// "Oct 19 to Oct 25", in the app's locale. The year shows when the week
+/// spans two, or when it is not [today]'s year (a `ListeningDay` key):
+/// the history goes back years.
+String formatRecapRange(
+  BuildContext context,
+  ListeningRecap recap, {
+  int? today,
+}) => _range(context, recap.firstDay, recap.lastDay, today: today);
+
+/// "September 2026", capitalised as a title in every language.
+String formatMonth(BuildContext context, DateTime month) {
   final locale = Localizations.localeOf(context).toString();
+  final text = DateFormat.yMMMM(locale).format(month);
+  return text[0].toUpperCase() + text.substring(1);
+}
+
+/// The name of a span: "This week", "Last month", else its dates.
+String formatSpanTitle(BuildContext context, ListeningRecapState state) {
+  final l10n = context.l10n;
+  final (first, last) = state.period.rangeOf(state.firstDay);
+  return switch (state.period) {
+    RecapPeriod.week when state.isCurrent => l10n.recapThisWeek,
+    RecapPeriod.week when state.isPrevious => l10n.recapLastWeek,
+    RecapPeriod.month when state.isCurrent => l10n.recapThisMonth,
+    RecapPeriod.month when state.isPrevious => l10n.recapLastMonth,
+    RecapPeriod.week => _range(context, first, last, today: state.today),
+    RecapPeriod.month => formatMonth(context, ListeningDay.date(first)),
+  };
+}
+
+/// The dates under a span named in words ("This week": "Oct 19 to 25"),
+/// null when its title already gives them.
+String? formatSpanDates(BuildContext context, ListeningRecapState state) {
+  if (!state.isCurrent && !state.isPrevious) return null;
+  final (first, last) = state.period.rangeOf(state.firstDay);
+  return switch (state.period) {
+    RecapPeriod.week => _range(context, first, last, today: state.today),
+    RecapPeriod.month => formatMonth(context, ListeningDay.date(first)),
+  };
+}
+
+String _range(BuildContext context, int first, int last, {int? today}) {
+  final locale = Localizations.localeOf(context).toString();
+  final start = ListeningDay.date(first);
+  final end = ListeningDay.date(last);
   final day = DateFormat.MMMd(locale);
+  final dated = DateFormat.yMMMd(locale);
+  final otherYear = today != null && end.year != ListeningDay.date(today).year;
+  if (start.year != end.year) {
+    return context.l10n.recapRange(dated.format(start), dated.format(end));
+  }
   return context.l10n.recapRange(
-    day.format(recap.weekStart),
-    day.format(recap.weekEnd),
+    day.format(start),
+    (otherYear ? dated : day).format(end),
   );
 }

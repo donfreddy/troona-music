@@ -4,6 +4,36 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-04
+
+### Added
+
+- Your listening, opened from the Home card, shows any week or month: switch between Week and Month, and step back to earlier ones with the arrows. Each gives its listening time, days with music, busiest day, top five songs (tap one to play the list from it), top artist and top albums.
+- When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening"). The hours after midnight count for the night before. Backups carry it too.
+- Share a week or a month as a story image (1080 x 1920): listening time, top songs, the days filled with music and your peak, over your top song's colours. A finished month is shared as its Replay.
+- Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
+- Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
+- Long-press the mini player to like the song playing, or to take the like back: a heart pops over its cover. Screen readers offer it as an action.
+- On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
+- Artist pages show their latest release on its own, above their albums, when the songs carry a year.
+
+### Changed
+
+- Home's Jump back in card goes on with the session where it stopped, instead of playing the last song again from its start. It names the album, artist or playlist it was started from, the listening time left and how far along it is; while it plays, it reads Now playing and opens Now Playing.
+- Artist pages have one action, Shuffle, as a round button on their photo: an artist's songs have no order. Tap a song to play in order from it.
+- An artist without a photo opens on a soft glow of their cover's colours instead of a plain background.
+- An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.
+- The counts under an artist's name read clearly on a light photo.
+- Haptics follow one vocabulary: a firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, a tick for a choice. Playing a song or Play and Shuffle no longer tap twice.
+- The song playing looks the same in every list: its cover dimmed under the moving equalizer, which stops while paused, and its title in the accent colour. Playlists and Home showed a still note instead.
+- The background behind the tabs takes two seconds to follow a new song's colours, instead of switching at once.
+- The listening calendar shows each day as a square filled by how much music it had, in five steps from none to 30 plays or more, instead of a dot for any music at all. Tap a day for its count. The squares light up one after the other, unless the phone asks for less motion.
+
+### Fixed
+
+- The Library's segments vibrated even with haptics turned off in Settings.
+
+## [1.5.0] - 2026-11-04
 ## [1.5.0] - 2026-11-13
 
 ### Added
@@ -186,7 +216,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/donfreddy/troona-music/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/donfreddy/troona-music/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/donfreddy/troona-music/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/donfreddy/troona-music/compare/v1.2.0...v1.3.0

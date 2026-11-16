@@ -1827,3 +1827,380 @@ extension TrackFirstPlayModelQueryProperty3<R1, R2>
     });
   }
 }
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
+// ignore_for_file: type=lint
+
+extension GetListeningHourModelCollection on Isar {
+  IsarCollection<int, ListeningHourModel> get listeningHourModels =>
+      this.collection();
+}
+
+final ListeningHourModelSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'ListeningHourModel',
+    idName: 'id',
+    embedded: false,
+    properties: [IsarPropertySchema(name: 'plays', type: IsarType.long)],
+    indexes: [],
+  ),
+  converter: IsarObjectConverter<int, ListeningHourModel>(
+    serialize: serializeListeningHourModel,
+    deserialize: deserializeListeningHourModel,
+    deserializeProperty: deserializeListeningHourModelProp,
+  ),
+  getEmbeddedSchemas: () => [],
+);
+
+@isarProtected
+int serializeListeningHourModel(IsarWriter writer, ListeningHourModel object) {
+  IsarCore.writeLong(writer, 1, object.plays);
+  return object.id;
+}
+
+@isarProtected
+ListeningHourModel deserializeListeningHourModel(IsarReader reader) {
+  final object = ListeningHourModel();
+  object.id = IsarCore.readId(reader);
+  object.plays = IsarCore.readLong(reader, 1);
+  return object;
+}
+
+@isarProtected
+dynamic deserializeListeningHourModelProp(IsarReader reader, int property) {
+  switch (property) {
+    case 0:
+      return IsarCore.readId(reader);
+    case 1:
+      return IsarCore.readLong(reader, 1);
+    default:
+      throw ArgumentError('Unknown property: $property');
+  }
+}
+
+sealed class _ListeningHourModelUpdate {
+  bool call({required int id, int? plays});
+}
+
+class _ListeningHourModelUpdateImpl implements _ListeningHourModelUpdate {
+  const _ListeningHourModelUpdateImpl(this.collection);
+
+  final IsarCollection<int, ListeningHourModel> collection;
+
+  @override
+  bool call({required int id, Object? plays = ignore}) {
+    return collection.updateProperties(
+          [id],
+          {if (plays != ignore) 1: plays as int?},
+        ) >
+        0;
+  }
+}
+
+sealed class _ListeningHourModelUpdateAll {
+  int call({required List<int> id, int? plays});
+}
+
+class _ListeningHourModelUpdateAllImpl implements _ListeningHourModelUpdateAll {
+  const _ListeningHourModelUpdateAllImpl(this.collection);
+
+  final IsarCollection<int, ListeningHourModel> collection;
+
+  @override
+  int call({required List<int> id, Object? plays = ignore}) {
+    return collection.updateProperties(id, {
+      if (plays != ignore) 1: plays as int?,
+    });
+  }
+}
+
+extension ListeningHourModelUpdate on IsarCollection<int, ListeningHourModel> {
+  _ListeningHourModelUpdate get update => _ListeningHourModelUpdateImpl(this);
+
+  _ListeningHourModelUpdateAll get updateAll =>
+      _ListeningHourModelUpdateAllImpl(this);
+}
+
+sealed class _ListeningHourModelQueryUpdate {
+  int call({int? plays});
+}
+
+class _ListeningHourModelQueryUpdateImpl
+    implements _ListeningHourModelQueryUpdate {
+  const _ListeningHourModelQueryUpdateImpl(this.query, {this.limit});
+
+  final IsarQuery<ListeningHourModel> query;
+  final int? limit;
+
+  @override
+  int call({Object? plays = ignore}) {
+    return query.updateProperties(limit: limit, {
+      if (plays != ignore) 1: plays as int?,
+    });
+  }
+}
+
+extension ListeningHourModelQueryUpdate on IsarQuery<ListeningHourModel> {
+  _ListeningHourModelQueryUpdate get updateFirst =>
+      _ListeningHourModelQueryUpdateImpl(this, limit: 1);
+
+  _ListeningHourModelQueryUpdate get updateAll =>
+      _ListeningHourModelQueryUpdateImpl(this);
+}
+
+class _ListeningHourModelQueryBuilderUpdateImpl
+    implements _ListeningHourModelQueryUpdate {
+  const _ListeningHourModelQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<ListeningHourModel, ListeningHourModel, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({Object? plays = ignore}) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (plays != ignore) 1: plays as int?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ListeningHourModelQueryBuilderUpdate
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QOperations> {
+  _ListeningHourModelQueryUpdate get updateFirst =>
+      _ListeningHourModelQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ListeningHourModelQueryUpdate get updateAll =>
+      _ListeningHourModelQueryBuilderUpdateImpl(this);
+}
+
+extension ListeningHourModelQueryFilter
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QFilterCondition> {
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 0, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idGreaterThan(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(property: 0, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idGreaterThanOrEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(property: 0, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idLessThan(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(LessCondition(property: 0, value: value));
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idLessThanOrEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(property: 0, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  idBetween(int lower, int upper) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(property: 0, lower: lower, upper: upper),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 1, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsGreaterThan(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(property: 1, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsGreaterThanOrEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(property: 1, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsLessThan(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(LessCondition(property: 1, value: value));
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsLessThanOrEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(property: 1, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterFilterCondition>
+  playsBetween(int lower, int upper) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(property: 1, lower: lower, upper: upper),
+      );
+    });
+  }
+}
+
+extension ListeningHourModelQueryObject
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QFilterCondition> {}
+
+extension ListeningHourModelQuerySortBy
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QSortBy> {
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  sortByPlays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  sortByPlaysDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, sort: Sort.desc);
+    });
+  }
+}
+
+extension ListeningHourModelQuerySortThenBy
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QSortThenBy> {
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  thenByPlays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterSortBy>
+  thenByPlaysDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, sort: Sort.desc);
+    });
+  }
+}
+
+extension ListeningHourModelQueryWhereDistinct
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QDistinct> {
+  QueryBuilder<ListeningHourModel, ListeningHourModel, QAfterDistinct>
+  distinctByPlays() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(1);
+    });
+  }
+}
+
+extension ListeningHourModelQueryProperty1
+    on QueryBuilder<ListeningHourModel, ListeningHourModel, QProperty> {
+  QueryBuilder<ListeningHourModel, int, QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, int, QAfterProperty> playsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+}
+
+extension ListeningHourModelQueryProperty2<R>
+    on QueryBuilder<ListeningHourModel, R, QAfterProperty> {
+  QueryBuilder<ListeningHourModel, (R, int), QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, (R, int), QAfterProperty> playsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+}
+
+extension ListeningHourModelQueryProperty3<R1, R2>
+    on QueryBuilder<ListeningHourModel, (R1, R2), QAfterProperty> {
+  QueryBuilder<ListeningHourModel, (R1, R2, int), QOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<ListeningHourModel, (R1, R2, int), QOperations> playsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+}

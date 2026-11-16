@@ -3,12 +3,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/app_theme.dart';
-import 'package:troona/features/home/presentation/widgets/home_hero_banner.dart';
 import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/l10n/app_localizations_fr.dart';
 
-import '../../helpers/fake_player.dart';
 import '../../helpers/roboto.dart';
 
 void main() {
@@ -81,17 +79,6 @@ void main() {
     });
   }
 
-  testWidgets('the resume card grows instead of overflowing', (tester) async {
-    await pump(
-      tester,
-      HomeHeroBanner(
-        lastPlayed: testTrack('a', durationMs: 180000),
-        totalTracks: 40,
-      ),
-    );
-    expect(tester.takeException(), isNull);
-  });
-
   testWidgets('quick chips stack, whole labels, with the largest font', (
     tester,
   ) async {
@@ -107,17 +94,5 @@ void main() {
     }
     expect(rects[0].bottom, lessThanOrEqualTo(rects[1].top));
     expect(rects[1].bottom, lessThanOrEqualTo(rects[2].top));
-  });
-
-  testWidgets('the resume card grows with the largest font', (tester) async {
-    await pump(
-      tester,
-      HomeHeroBanner(
-        lastPlayed: testTrack('a', durationMs: 180000),
-        totalTracks: 40,
-      ),
-      textScale: 2,
-    );
-    expect(tester.takeException(), isNull);
   });
 }

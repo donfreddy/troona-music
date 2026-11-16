@@ -557,6 +557,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSingles => 'Singles';
 
   @override
+  String get detailLatestRelease => 'Latest release';
+
+  @override
   String get detailAppearsOn => 'Appears on';
 
   @override
@@ -816,6 +819,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeJumpBackIn => 'Jump back in';
 
   @override
+  String get homeNowPlaying => 'Now playing';
+
+  @override
+  String get queueOriginAlbum => 'Album';
+
+  @override
+  String get queueOriginArtist => 'Artist';
+
+  @override
+  String get queueOriginPlaylist => 'Playlist';
+
+  @override
+  String homeTimeLeft(String time) {
+    return '$time left';
+  }
+
+  @override
   String get homeQuickRecent => 'Recently added';
 
   @override
@@ -897,7 +917,7 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count songs heard for the first time',
       one: '1 song heard for the first time',
-      zero: 'No new songs this week',
+      zero: 'No new songs',
     );
     return '$_temp0';
   }
@@ -924,15 +944,124 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recapEmpty => 'Nothing was played last week.';
+  String get recapPageTitle => 'Your listening';
 
   @override
-  String get recapCalendarCaption => 'A filled dot is a day with music.';
+  String get recapWeek => 'Week';
 
   @override
-  String recapCalendarDay(String date) {
-    return '$date, music played';
+  String get recapMonth => 'Month';
+
+  @override
+  String get recapThisWeek => 'This week';
+
+  @override
+  String get recapLastWeek => 'Last week';
+
+  @override
+  String get recapThisMonth => 'This month';
+
+  @override
+  String get recapLastMonth => 'Last month';
+
+  @override
+  String get recapPreviousSpan => 'Earlier';
+
+  @override
+  String get recapNextSpan => 'Later';
+
+  @override
+  String get recapInProgress => 'In progress';
+
+  @override
+  String recapActiveDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days with music',
+      one: '1 day with music',
+    );
+    return '$_temp0';
   }
+
+  @override
+  String get recapNothingYet => 'Nothing played yet.';
+
+  @override
+  String get recapNothing => 'Nothing was played.';
+
+  @override
+  String get recapTopSongs => 'Top songs';
+
+  @override
+  String get recapPlaysHeader => 'Plays';
+
+  @override
+  String get recapShare => 'Share';
+
+  @override
+  String get recapStoryWeek => 'My week in music';
+
+  @override
+  String get recapStoryMonth => 'My month in music';
+
+  @override
+  String get recapTopAlbums => 'Top albums';
+
+  @override
+  String get recapDayByDay => 'Day by day';
+
+  @override
+  String get recapLess => 'Less';
+
+  @override
+  String get recapMore => 'More';
+
+  @override
+  String recapDayPlays(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+      zero: 'no music',
+    );
+    return '$date, $_temp0';
+  }
+
+  @override
+  String recapBusiestDay(String date, String plays) {
+    return 'Busiest day: $date, $plays';
+  }
+
+  @override
+  String get recapMoments => 'When you listen';
+
+  @override
+  String get recapMomentsEmpty =>
+      'Your listening moments show up as you play music.';
+
+  @override
+  String recapPeak(String weekday, String part) {
+    return 'Peak: $weekday $part';
+  }
+
+  @override
+  String recapPeakNight(String eve, String day) {
+    return 'Peak: $eve night';
+  }
+
+  @override
+  String get recapMorning => 'Morning';
+
+  @override
+  String get recapAfternoon => 'Afternoon';
+
+  @override
+  String get recapEvening => 'Evening';
+
+  @override
+  String get recapNight => 'Night';
 
   @override
   String replayName(String month) {
@@ -942,11 +1071,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String replayReady(String name) {
     return '$name is in your playlists: last month\'s most played songs.';
-  }
-
-  @override
-  String recapCalendarQuietDay(String date) {
-    return '$date, no music';
   }
 
   @override
@@ -1553,4 +1677,109 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew150NamesBody =>
       'With a large font, the Library\'s row of artists no longer cuts their names short.';
+
+  @override
+  String get whatsNew160RecapTitle => 'Your listening';
+
+  @override
+  String get whatsNew160RecapBody =>
+      'Any week or month at a glance: your listening time, the days you played music, your top songs, artist and albums. Open it from the card on Home, and step back with the arrows.';
+
+  @override
+  String get whatsNew160StoryTitle => 'Share it as a story';
+
+  @override
+  String get whatsNew160StoryBody =>
+      'Turn a week or a month into an image for your stories, over your top song\'s colours. A finished month is shared as its Replay.';
+
+  @override
+  String get whatsNew160SwipeTitle => 'Swipe a song';
+
+  @override
+  String get whatsNew160SwipeBody =>
+      'In the Library, albums, artists and search, swipe a song right to play it next, or left to add it to the queue.';
+
+  @override
+  String get whatsNew160MiniPlayerTitle => 'Swipe and hold the mini player';
+
+  @override
+  String get whatsNew160MiniPlayerBody =>
+      'Swipe it left for the next song or right for the previous one. Hold it to like the song playing, or to take the like back.';
+
+  @override
+  String get whatsNew160CalendarTitle => 'A calendar of your listening';
+
+  @override
+  String get whatsNew160CalendarBody =>
+      'Each day is a square, filled in five steps from no music to 30 plays or more. Tap a day for its count.';
+
+  @override
+  String get whatsNew160MomentsTitle => 'When you listen';
+
+  @override
+  String get whatsNew160MomentsBody =>
+      'Your plays by weekday and time of day, with the moment that stands out, such as Friday evening. Songs played after midnight count for the night before.';
+
+  @override
+  String get whatsNew160RecordTitle => 'The record turns';
+
+  @override
+  String get whatsNew160RecordBody =>
+      'On an album page, the record slides out of its sleeve and turns while the album plays. Tap it to play, pause or resume.';
+
+  @override
+  String get whatsNew160LatestTitle => 'Latest release';
+
+  @override
+  String get whatsNew160LatestBody =>
+      'Artist pages show their newest album or single on its own, above the rest.';
+
+  @override
+  String get whatsNew160ResumeTitle => 'Pick up where you left off';
+
+  @override
+  String get whatsNew160ResumeBody =>
+      'Jump back in on Home goes on from where the song stopped, with the album, artist or playlist it came from and the time left. While music plays, it opens Now Playing.';
+
+  @override
+  String get whatsNew160ArtistTitle => 'Artist pages';
+
+  @override
+  String get whatsNew160ArtistBody =>
+      'One round Shuffle button on their photo, since an artist\'s songs have no order; tap a song to play in order from it. Releases come newest first, also in More by on album pages. An artist without a photo opens on a soft glow of their cover\'s colours.';
+
+  @override
+  String get whatsNew160PlayingTitle =>
+      'The song playing looks the same everywhere';
+
+  @override
+  String get whatsNew160PlayingBody =>
+      'In every list, its cover is dimmed under the moving equalizer, which stops while paused, and its title is in the accent colour.';
+
+  @override
+  String get whatsNew160HapticsTitle => 'One feel for haptics';
+
+  @override
+  String get whatsNew160HapticsBody =>
+      'A firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, and a tick for a choice. Playing a song no longer taps twice.';
+
+  @override
+  String get whatsNew160BackgroundTitle => 'A calmer background';
+
+  @override
+  String get whatsNew160BackgroundBody =>
+      'The colours behind the tabs take two seconds to follow a new song instead of switching at once.';
+
+  @override
+  String get whatsNew160BackupTitle => 'Backups';
+
+  @override
+  String get whatsNew160BackupBody => 'They now also carry when you listen.';
+
+  @override
+  String get whatsNew160HapticsOffTitle => 'Vibrations with haptics off';
+
+  @override
+  String get whatsNew160HapticsOffBody =>
+      'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.';
 }

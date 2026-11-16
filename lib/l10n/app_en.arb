@@ -270,6 +270,7 @@
   "detailSongs": "Songs",
   "detailAlbums": "Albums",
   "detailSingles": "Singles",
+  "detailLatestRelease": "Latest release",
   "detailAppearsOn": "Appears on",
   "detailAlsoInLibrary": "Also in your library",
   "@detailAlsoInLibrary": {
@@ -420,6 +421,19 @@
   "homeEmptyBody": "Copy songs to your phone's Music folder, then scan again.",
   "homeFreshTitle": "Your library is ready",
   "homeJumpBackIn": "Jump back in",
+  "homeNowPlaying": "Now playing",
+  "queueOriginAlbum": "Album",
+  "queueOriginArtist": "Artist",
+  "queueOriginPlaylist": "Playlist",
+  "homeTimeLeft": "{time} left",
+  "@homeTimeLeft": {
+    "description": "Home resume card: listening time left in the queue, e.g. 12 min left.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "homeQuickRecent": "Recently added",
   "homeRecentlyPlayed": "Recently played",
   "homeOnRepeat": "On repeat this week",
@@ -458,7 +472,7 @@
   "recapTopArtist": "Top artist",
   "recapTopSong": "Top song",
   "recapDiscoveries": "First listens",
-  "recapDiscoveriesValue": "{count, plural, =0{No new songs this week} =1{1 song heard for the first time} other{{count} songs heard for the first time}}",
+  "recapDiscoveriesValue": "{count, plural, =0{No new songs} =1{1 song heard for the first time} other{{count} songs heard for the first time}}",
   "@recapDiscoveriesValue": {
     "placeholders": {
       "count": {
@@ -493,16 +507,85 @@
       }
     }
   },
-  "recapEmpty": "Nothing was played last week.",
-  "recapCalendarCaption": "A filled dot is a day with music.",
-  "recapCalendarDay": "{date}, music played",
-  "@recapCalendarDay": {
+  "recapPageTitle": "Your listening",
+  "recapWeek": "Week",
+  "recapMonth": "Month",
+  "recapThisWeek": "This week",
+  "recapLastWeek": "Last week",
+  "recapThisMonth": "This month",
+  "recapLastMonth": "Last month",
+  "recapPreviousSpan": "Earlier",
+  "recapNextSpan": "Later",
+  "recapInProgress": "In progress",
+  "recapActiveDays": "{count, plural, =1{1 day with music} other{{count} days with music}}",
+  "@recapActiveDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapNothingYet": "Nothing played yet.",
+  "recapNothing": "Nothing was played.",
+  "recapTopSongs": "Top songs",
+  "recapPlaysHeader": "Plays",
+  "recapShare": "Share",
+  "recapStoryWeek": "My week in music",
+  "recapStoryMonth": "My month in music",
+  "recapTopAlbums": "Top albums",
+  "recapDayByDay": "Day by day",
+  "recapLess": "Less",
+  "recapMore": "More",
+  "recapDayPlays": "{date}, {count, plural, =0{no music} =1{1 play} other{{count} plays}}",
+  "@recapDayPlays": {
     "placeholders": {
       "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recapBusiestDay": "Busiest day: {date}, {plays}",
+  "@recapBusiestDay": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "plays": {
         "type": "String"
       }
     }
   },
+  "recapMoments": "When you listen",
+  "recapMomentsEmpty": "Your listening moments show up as you play music.",
+  "recapPeak": "Peak: {weekday} {part}",
+  "@recapPeak": {
+    "placeholders": {
+      "weekday": {
+        "type": "String"
+      },
+      "part": {
+        "type": "String"
+      }
+    }
+  },
+  "recapPeakNight": "Peak: {eve} night",
+  "@recapPeakNight": {
+    "placeholders": {
+      "eve": {
+        "type": "String"
+      },
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "recapMorning": "Morning",
+  "recapAfternoon": "Afternoon",
+  "recapEvening": "Evening",
+  "recapNight": "Night",
   "replayName": "Replay {month}",
   "@replayName": {
     "placeholders": {
@@ -515,14 +598,6 @@
   "@replayReady": {
     "placeholders": {
       "name": {
-        "type": "String"
-      }
-    }
-  },
-  "recapCalendarQuietDay": "{date}, no music",
-  "@recapCalendarQuietDay": {
-    "placeholders": {
-      "date": {
         "type": "String"
       }
     }
@@ -803,5 +878,35 @@
   "whatsNew150ScrollTitle": "No empty band",
   "whatsNew150ScrollBody": "An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.",
   "whatsNew150NamesTitle": "Artist names with a large font",
-  "whatsNew150NamesBody": "With a large font, the Library's row of artists no longer cuts their names short."
+  "whatsNew150NamesBody": "With a large font, the Library's row of artists no longer cuts their names short.",
+  "whatsNew160RecapTitle": "Your listening",
+  "whatsNew160RecapBody": "Any week or month at a glance: your listening time, the days you played music, your top songs, artist and albums. Open it from the card on Home, and step back with the arrows.",
+  "whatsNew160StoryTitle": "Share it as a story",
+  "whatsNew160StoryBody": "Turn a week or a month into an image for your stories, over your top song's colours. A finished month is shared as its Replay.",
+  "whatsNew160SwipeTitle": "Swipe a song",
+  "whatsNew160SwipeBody": "In the Library, albums, artists and search, swipe a song right to play it next, or left to add it to the queue.",
+  "whatsNew160MiniPlayerTitle": "Swipe and hold the mini player",
+  "whatsNew160MiniPlayerBody": "Swipe it left for the next song or right for the previous one. Hold it to like the song playing, or to take the like back.",
+  "whatsNew160CalendarTitle": "A calendar of your listening",
+  "whatsNew160CalendarBody": "Each day is a square, filled in five steps from no music to 30 plays or more. Tap a day for its count.",
+  "whatsNew160MomentsTitle": "When you listen",
+  "whatsNew160MomentsBody": "Your plays by weekday and time of day, with the moment that stands out, such as Friday evening. Songs played after midnight count for the night before.",
+  "whatsNew160RecordTitle": "The record turns",
+  "whatsNew160RecordBody": "On an album page, the record slides out of its sleeve and turns while the album plays. Tap it to play, pause or resume.",
+  "whatsNew160LatestTitle": "Latest release",
+  "whatsNew160LatestBody": "Artist pages show their newest album or single on its own, above the rest.",
+  "whatsNew160ResumeTitle": "Pick up where you left off",
+  "whatsNew160ResumeBody": "Jump back in on Home goes on from where the song stopped, with the album, artist or playlist it came from and the time left. While music plays, it opens Now Playing.",
+  "whatsNew160ArtistTitle": "Artist pages",
+  "whatsNew160ArtistBody": "One round Shuffle button on their photo, since an artist's songs have no order; tap a song to play in order from it. Releases come newest first, also in More by on album pages. An artist without a photo opens on a soft glow of their cover's colours.",
+  "whatsNew160PlayingTitle": "The song playing looks the same everywhere",
+  "whatsNew160PlayingBody": "In every list, its cover is dimmed under the moving equalizer, which stops while paused, and its title is in the accent colour.",
+  "whatsNew160HapticsTitle": "One feel for haptics",
+  "whatsNew160HapticsBody": "A firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, and a tick for a choice. Playing a song no longer taps twice.",
+  "whatsNew160BackgroundTitle": "A calmer background",
+  "whatsNew160BackgroundBody": "The colours behind the tabs take two seconds to follow a new song instead of switching at once.",
+  "whatsNew160BackupTitle": "Backups",
+  "whatsNew160BackupBody": "They now also carry when you listen.",
+  "whatsNew160HapticsOffTitle": "Vibrations with haptics off",
+  "whatsNew160HapticsOffBody": "The Library's tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting."
 }
