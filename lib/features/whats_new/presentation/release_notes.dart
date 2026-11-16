@@ -108,6 +108,7 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
     ),
   ]),
   Release('1.5.0', date: DateTime(2026, 11, 4), [
+  Release('1.5.0', date: DateTime(2026, 11,13), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew150CoverTitle,
@@ -164,7 +165,7 @@ List<Release> releaseNotes(AppLocalizations l10n) => [
       l10n.whatsNew150NamesBody,
     ),
   ]),
-  Release('1.4.0', date: DateTime(2026, 11, 4), [
+  Release('1.4.0', date: DateTime(2026, 11, 6), [
     ReleaseNote(
       ReleaseNoteKind.added,
       l10n.whatsNew140TopTitle,
