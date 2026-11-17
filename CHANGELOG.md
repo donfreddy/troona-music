@@ -4,6 +4,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Fixed
+
+- The mini player's progress moved stop and go, a step about every second. It now moves smoothly, like the one in Now Playing.
+
 ## [1.6.0] - 2026-11-16
 
 ### Added
