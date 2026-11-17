@@ -668,14 +668,27 @@ class _MiniPlayerProgressFill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      child: ValueListenableBuilder<PlaybackProgress>(
-        valueListenable: context.read<PlayerBloc>().progress,
-        builder: (_, p, _) => CustomPaint(
-          painter: _FillPainter(
-            ratio: (p.ratio * 200).round() / 200,
-            tint: progressTint,
-          ),
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // One step per physical pixel: each position tick moves the fill
+          // like the Now Playing ring, and a long track repaints only when
+          // the edge actually moves. Coarser steps (a 200th of the bar)
+          // made it stop and go.
+          final pixels =
+              constraints.maxWidth * MediaQuery.devicePixelRatioOf(context);
+          return ValueListenableBuilder<PlaybackProgress>(
+            valueListenable: context.read<PlayerBloc>().progress,
+            builder: (_, p, _) => CustomPaint(
+              key: const ValueKey('miniPlayerFill'),
+              painter: _FillPainter(
+                ratio: pixels.isFinite && pixels > 0
+                    ? (p.ratio * pixels).round() / pixels
+                    : p.ratio,
+                tint: progressTint,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
