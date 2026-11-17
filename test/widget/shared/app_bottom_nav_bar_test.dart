@@ -207,6 +207,30 @@ void main() {
     expect(port.skipNextCalls, 1);
   });
 
+  testWidgets('the mini player\'s fill moves on every position tick', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 180000)],
+    );
+    CustomPainter painter() => tester
+        .widget<CustomPaint>(find.byKey(const ValueKey('miniPlayerFill')))
+        .painter!;
+
+    // just_audio ticks every 200 ms on a 3 minute song: each tick must
+    // repaint, not one in five.
+    var previous = painter();
+    for (var ms = 200; ms <= 1000; ms += 200) {
+      port.position.add(Duration(milliseconds: ms));
+      await tester.pump();
+      final current = painter();
+      expect(current.shouldRepaint(previous), isTrue, reason: 'at $ms ms');
+      previous = current;
+    }
+  });
+
   testWidgets('a long press on the mini player likes the song, and again '
       'takes it back', (tester) async {
     await pump(tester, AppTab.home, queue: [testTrack('a', durationMs: 60000)]);
