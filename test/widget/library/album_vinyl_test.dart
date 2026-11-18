@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
@@ -326,7 +327,7 @@ void main() {
 
   group('opening the album that plays', () {
     final long = [
-      for (var i = 0; i < 30; i++) testTrack('s$i', durationMs: 60000),
+      for (var i = 0; i < 40; i++) testTrack('s$i', durationMs: 60000),
     ];
     ScrollPosition scroll(WidgetTester tester) => tester
         .state<ScrollableState>(
@@ -350,6 +351,18 @@ void main() {
       () => TestWidgetsFlutterBinding.instance.platformDispatcher.views.first
           .reset(),
     );
+
+    /// The middle of what the mini player leaves on screen.
+    double middle(WidgetTester tester) {
+      final view = tester.getRect(find.byType(CustomScrollView));
+      return view.top +
+          (view.height - AppSpacing.miniPlayerHeight - AppSpacing.xl) / 2;
+    }
+
+    Finder playingRow() => find.byWidgetPredicate(
+      (w) => w is AlbumTrackListTile && w.track.id == 's24',
+    );
+
     Future<void> settle(WidgetTester tester) async {
       // The record turns: frames, not pumpAndSettle.
       for (var i = 0; i < 12; i++) {
@@ -370,7 +383,7 @@ void main() {
       expect(rect.top, greaterThanOrEqualTo(view.top));
       expect(rect.bottom, lessThanOrEqualTo(view.bottom - 100));
       // Brought near the middle, not left at the bottom edge.
-      expect(rect.center.dy, closeTo(view.center.dy, view.height / 4));
+      expect(rect.center.dy, closeTo(middle(tester), 1));
     });
 
     testWidgets('reduced motion: there at once', (tester) async {
@@ -415,6 +428,55 @@ void main() {
       expect(scroll(tester).pixels, 40);
     });
 
+    testWidgets('the record pulled out as the page comes in: left alone', (
+      tester,
+    ) async {
+      _albumTracks = long;
+      final nav = GlobalKey<NavigatorState>();
+      await open(tester, playing: [long[24]], pushedOn: nav);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final pull = await tester.startGesture(const Offset(200, 500));
+      for (var i = 0; i < 3; i++) {
+        await pull.moveBy(const Offset(0, 30));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      // The transition is over, the finger still down.
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(scroll(tester).pixels, lessThan(0));
+      await pull.up();
+      await settle(tester);
+      expect(scroll(tester).pixels, closeTo(0, 1));
+    });
+
+    testWidgets('a touch on its way stops it there', (tester) async {
+      _albumTracks = long;
+      final nav = GlobalKey<NavigatorState>();
+      await open(tester, playing: [long[24]], pushedOn: nav);
+      // Frames until the list starts moving, once the page is in.
+      bool moving() =>
+          find.byType(CustomScrollView).evaluate().isNotEmpty &&
+          scroll(tester).pixels > 0;
+      for (var i = 0; i < 30 && !moving(); i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await tester.pump(const Duration(milliseconds: 50));
+      final touch = await tester.startGesture(const Offset(200, 600));
+      await tester.pump();
+      await touch.up();
+      final stopped = scroll(tester).pixels;
+      expect(stopped, greaterThan(0), reason: 'it was on its way');
+      await settle(tester);
+      expect(scroll(tester).pixels, closeTo(stopped, 1));
+      // Not brought on to the middle afterwards.
+      if (playingRow().evaluate().isNotEmpty) {
+        final row = tester.getRect(playingRow());
+        expect((row.center.dy - middle(tester)).abs(), greaterThan(50));
+      }
+    });
+
     testWidgets('pushed: it waits for the page to be in, then comes to it', (
       tester,
     ) async {
@@ -430,8 +492,7 @@ void main() {
       final row = find.byWidgetPredicate(
         (w) => w is AlbumTrackListTile && w.track.id == 's24',
       );
-      final view = tester.getRect(find.byType(CustomScrollView));
-      expect(tester.getRect(row).center.dy, closeTo(view.center.dy, 20));
+      expect(tester.getRect(row).center.dy, closeTo(middle(tester), 1));
     });
 
     testWidgets('rows above taller than the first: still brought to the '
@@ -451,8 +512,7 @@ void main() {
       final row = find.byWidgetPredicate(
         (w) => w is AlbumTrackListTile && w.track.id == 's24',
       );
-      final view = tester.getRect(find.byType(CustomScrollView));
-      expect(tester.getRect(row).center.dy, closeTo(view.center.dy, 20));
+      expect(tester.getRect(row).center.dy, closeTo(middle(tester), 1));
     });
   });
 

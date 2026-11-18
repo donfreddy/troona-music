@@ -444,13 +444,14 @@ class _AlbumTracksView extends StatefulWidget {
 /// showing that the app knows where you are. Once per page, and never
 /// over a scroll of the user's.
 class _AlbumTracksViewState extends State<_AlbumTracksView> {
-  /// One per row, to measure the rows built: the song is found from the
-  /// built row nearest to it.
-  final _rows = <int, GlobalKey>{};
+  /// One per song, to measure the rows built: the song playing is found
+  /// from the built row nearest to it. By song, not by place: a rescan
+  /// may reorder the list while the page comes in.
+  final _rows = <String, GlobalKey>{};
 
-  /// Place of the song playing when the page opened; null when it plays
-  /// another album, or nothing.
-  int? _playingAt;
+  /// The song playing when the page opened, when it is one of this
+  /// album's, past the first; else null.
+  String? _playingId;
 
   @override
   void initState() {
@@ -459,9 +460,9 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
       :final currentTrack,
     )) {
       final at = widget.tracks.indexWhere((t) => t.id == currentTrack.id);
-      if (at > 0) _playingAt = at;
+      if (at > 0) _playingId = currentTrack.id;
     }
-    if (_playingAt != null) {
+    if (_playingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _whenIn());
     }
   }
@@ -483,55 +484,70 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
     animation.addStatusListener(listener);
   }
 
-  RenderBox? _built(int i) {
-    final box = _rows[i]?.currentContext?.findRenderObject();
+  RenderBox? _built(String id) {
+    final box = _rows[id]?.currentContext?.findRenderObject();
     return box is RenderBox && box.attached && box.hasSize ? box : null;
   }
 
   Future<void> _reveal() async {
-    final at = _playingAt;
-    if (!mounted || at == null) return;
+    if (!mounted) return;
+    final tracks = widget.tracks;
+    final at = tracks.indexWhere((t) => t.id == _playingId);
     final position = Scrollable.maybeOf(context)?.position;
-    // Scrolled already: the user went somewhere of their own.
-    if (position == null || position.pixels > 0) return;
+    // Moved already (scrolled, or the record pulled out), or moving: the
+    // user went somewhere of their own.
+    if (at <= 0 ||
+        position == null ||
+        position.pixels != 0 ||
+        position.isScrollingNotifier.value) {
+      return;
+    }
     final still = MediaQuery.disableAnimationsOf(context);
     final visible =
         position.viewportDimension - context.bottomBarInset(tabs: false);
+    // Where a row is in the list, from where the list lays it out now (the
+    // offset a viewport gives to reveal it is thrown off by the pinned
+    // header). Measured on the list's own child, which the row's entrance
+    // does not move.
+    double topOf(RenderBox row) {
+      RenderObject child = row;
+      while (child.parent != null && child.parent is! RenderSliver) {
+        child = child.parent!;
+      }
+      final viewport = RenderAbstractViewport.of(row) as RenderBox;
+      return position.pixels +
+          (child as RenderBox)
+              .localToGlobal(Offset.zero, ancestor: viewport)
+              .dy;
+    }
 
     // Rows far down are not built: aimed at from the nearest built row,
-    // as tall as it, then again from closer, until the song's is built.
+    // as tall as it, then again from closer, until the song's own row is
+    // built and gives the place itself. The row ends in the middle of
+    // what the mini player leaves.
     for (var pass = 0; pass < 3; pass++) {
-      if (_built(at) case final row?) {
-        final top = RenderAbstractViewport.of(
-          row,
-        ).getOffsetToReveal(row, 0).offset;
+      final row = _built(tracks[at].id);
+      final double top;
+      final double height;
+      if (row != null) {
+        top = topOf(row);
+        height = row.size.height;
         final shown =
-            top >= position.pixels &&
-            top + row.size.height <= position.pixels + visible;
+            top >= position.pixels && top + height <= position.pixels + visible;
         if (pass == 0 && shown) return;
-        await Scrollable.ensureVisible(
-          _rows[at]!.currentContext!,
-          alignment: 0.5,
-          duration: still ? Duration.zero : const Duration(milliseconds: 300),
-          curve: Curves.easeInOutCubic,
-        );
-        return;
-      }
-      int? near;
-      for (final i in _rows.keys) {
-        if (_built(i) != null &&
-            (near == null || (i - at).abs() < (near - at).abs())) {
-          near = i;
+      } else {
+        int? near;
+        for (var i = 0; i < tracks.length; i++) {
+          if (_built(tracks[i].id) != null &&
+              (near == null || (i - at).abs() < (near - at).abs())) {
+            near = i;
+          }
         }
+        if (near == null) return;
+        final anchor = _built(tracks[near].id)!;
+        height = anchor.size.height;
+        top = topOf(anchor) + (at - near) * (height + _divider);
       }
-      final anchor = near == null ? null : _built(near);
-      if (anchor == null) return;
-      final height = anchor.size.height;
-      final top =
-          RenderAbstractViewport.of(
-            anchor,
-          ).getOffsetToReveal(anchor, 0).offset +
-          (at - near!) * (height + _divider);
       final target = (top - (visible - height) / 2).clamp(
         position.minScrollExtent,
         position.maxScrollExtent,
@@ -545,6 +561,7 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
           curve: Curves.easeInOutCubic,
         );
       }
+      if (row != null) return;
       // The rows the scroll brought in are built in the next frame.
       await WidgetsBinding.instance.endOfFrame;
       // Stopped on its way by a drag: left where the user took it.
@@ -574,7 +591,7 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
             // Measures the row, under its own key, which the list keeps
             // its rows by.
             KeyedSubtree(
-              key: _rows.putIfAbsent(i, GlobalKey.new),
+              key: _rows.putIfAbsent(tracks[i].id, GlobalKey.new),
               child: AlbumTrackListTile(
                 key: ValueKey('track-${tracks[i].id}'),
                 track: tracks[i],
