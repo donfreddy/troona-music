@@ -31,6 +31,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Playlist covers no longer repeat one album: songs of the same album count once, and a playlist with fewer than four albums shows its first song's cover alone instead of a grid of copies.
 - Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
 - The name on an artist's photo stays readable over a photo with its own lettering.
 - The title of a collapsed page header stays readable over light covers scrolling under it: the glass now lets through half their brightness, which leaves dark content as it was.

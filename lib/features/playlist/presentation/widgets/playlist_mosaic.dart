@@ -1,21 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/di/injection.dart';
-import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 
-/// Intelligent mosaic cover for playlists.
-///
-/// Automatically adapts based on available covers:
-/// - 0 covers: Elegant subtle dark gradient with a music icon.
-/// - 1 cover: Full 100% artwork view.
-/// - 2+ covers: Balanced 2x2 mosaic grid with fine dividers.
+/// The cover of a playlist made of its songs' covers: four albums in a
+/// 2 x 2 grid, else the first song's cover alone (two or three would repeat
+/// in the grid), else a placeholder.
 class PlaylistMosaic extends StatefulWidget {
   final List<String> trackIds;
   final double? size;
 
   const PlaylistMosaic({super.key, required this.trackIds, this.size});
+
+  /// Songs read to find four albums.
+  static const scanned = 32;
+
+  /// The covers to show for [tracks] of a playlist whose songs are [ids],
+  /// in that order: one per album, four or one, none without any.
+  ///
+  /// Covers are stored per song, so two songs of one album have two files
+  /// of the same image: albums are told apart by id, not by path.
+  @visibleForTesting
+  static List<String> coversOf(List<String> ids, List<Track> tracks) {
+    final byId = {for (final track in tracks) track.id: track};
+    final albums = <int>{};
+    final covers = <String>[];
+    for (final id in ids) {
+      final track = byId[id];
+      final path = track?.artworkPath;
+      if (track == null || path == null || path.isEmpty) continue;
+      if (!albums.add(track.albumId)) continue;
+      covers.add(path);
+      if (covers.length == 4) return covers;
+    }
+    return covers.take(1).toList();
+  }
 
   @override
   State<PlaylistMosaic> createState() => _PlaylistMosaicState();
@@ -46,21 +67,14 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
       return;
     }
 
+    final first = ids.take(PlaylistMosaic.scanned).toList();
     final tracks = (await getIt<GetTracksByIdsUseCase>()(
-      ids.take(16).toList(),
+      first,
     )).getOrElse(() => const []);
-    final found = <String>[];
-    final seen = <String>{};
+    final found = PlaylistMosaic.coversOf(first, tracks);
 
-    for (final track in tracks) {
-      final path = track.artworkPath;
-      if (path != null && path.isNotEmpty && seen.add(path)) {
-        found.add(path);
-        if (found.length >= 4) break;
-      }
-    }
-
-    if (mounted) {
+    // A later list may have been read first.
+    if (mounted && identical(widget.trackIds, ids)) {
       setState(() {
         _artworks = found;
         _loaded = true;
@@ -70,54 +84,31 @@ class _PlaylistMosaicState extends State<PlaylistMosaic> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
-    // Loading / Empty state
+    final size = widget.size;
     if (!_loaded || _artworks.isEmpty) {
       return const ArtworkPlaceholder(icon: AppIcons.playlist);
     }
-
-    // 1 single cover: Show full size!
-    if (_artworks.length == 1) {
-      return ArtworkImage(_artworks[0]);
+    if (_artworks.length < 4) {
+      return ArtworkImage(_artworks.first, width: size, height: size);
     }
 
-    // 2 or 3 or 4 covers: Show 2x2 grid with fine micro-divider
+    final cell = size == null ? null : size / 2;
+    Widget tile(int i) => Expanded(
+      child: ArtworkImage(_artworks[i], width: cell, height: cell),
+    );
     return ColoredBox(
       color: Colors.black,
       child: Column(
         children: [
           Expanded(
             child: Row(
-              children: [
-                Expanded(child: ArtworkImage(_artworks[0])),
-                const SizedBox(width: 1.5),
-                Expanded(
-                  child: _artworks.length > 1
-                      ? ArtworkImage(_artworks[1])
-                      : Container(color: colors.glassFill),
-                ),
-              ],
+              children: [tile(0), const SizedBox(width: 1.5), tile(1)],
             ),
           ),
           const SizedBox(height: 1.5),
           Expanded(
             child: Row(
-              children: [
-                Expanded(
-                  child: _artworks.length > 2
-                      ? ArtworkImage(_artworks[2])
-                      : ArtworkImage(_artworks[0]),
-                ),
-                const SizedBox(width: 1.5),
-                Expanded(
-                  child: _artworks.length > 3
-                      ? ArtworkImage(_artworks[3])
-                      : (_artworks.length > 1
-                            ? ArtworkImage(_artworks[1])
-                            : Container(color: colors.glassFill)),
-                ),
-              ],
+              children: [tile(2), const SizedBox(width: 1.5), tile(3)],
             ),
           ),
         ],
