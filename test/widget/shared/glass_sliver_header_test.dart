@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -305,6 +307,172 @@ void main() {
     final titled = await pump(tester, largeTitle());
     await scrollTo(tester, titled, GlassSliverHeader.largeTitleHeight / 2);
     expect(fadeOf(largeTitleText('Library')), closeTo(1 - .5 * 1.6, .01));
+  });
+
+  for (final large in [false, true]) {
+    testWidgets('${large ? 'a large title' : 'a hero'}: the compact title '
+        'comes in only once the expanded one is nearly gone', (tester) async {
+      double fadeOf(Finder text) => tester
+          .widget<Opacity>(
+            find.ancestor(of: text, matching: find.byType(Opacity)).first,
+          )
+          .opacity;
+      final controller = await pump(
+        tester,
+        large
+            ? largeTitle(title: 'Khaid')
+            : const GlassSliverHeader(
+                title: 'Khaid',
+                expandedHeight: 200,
+                expanded: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text('Khaid', key: ValueKey('big')),
+                ),
+              ),
+      );
+      final big = large
+          ? largeTitleText('Khaid')
+          : find.byKey(const ValueKey('big'));
+      final range = large ? GlassSliverHeader.largeTitleHeight : 200.0;
+
+      for (var step = 0; step <= 20; step++) {
+        await scrollTo(tester, controller, range * step / 20);
+        final compact = compactTitleOpacity(tester, 'Khaid');
+        final expanded = big.evaluate().isEmpty ? 0.0 : fadeOf(big);
+        expect(
+          math.min(compact, expanded),
+          lessThanOrEqualTo(GlassSliverHeader.titleHandover + 1e-9),
+          reason: 'both names at once, at ${step * 5} %',
+        );
+      }
+      expect(compactTitleOpacity(tester, 'Khaid'), 1, reason: 'collapsed');
+
+      await scrollTo(tester, controller, range * 0.1);
+      expect(compactTitleOpacity(tester, 'Khaid'), 0, reason: 'early');
+
+      // Not late either: in by the time the expanded title is gone.
+      await scrollTo(tester, controller, range * (large ? 0.75 : 0.9));
+      expect(compactTitleOpacity(tester, 'Khaid'), greaterThan(0.3));
+    });
+  }
+
+  /// An album-like hero: the title in the middle, 120 px of buttons below.
+  const markedHero = GlassSliverHeader(
+    title: 'Album',
+    expandedHeight: 240,
+    expanded: Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        GlassHeaderTitle(
+          child: SizedBox(
+            key: ValueKey('big'),
+            height: 30,
+            child: Text('Album'),
+          ),
+        ),
+        SizedBox(height: 120),
+      ],
+    ),
+  );
+
+  testWidgets('a marked title: the compact one comes in as it goes under '
+      'the bar, not when the hero below it has scrolled away', (tester) async {
+    final controller = await pump(tester, markedHero);
+    final bar = statusBar + GlassSliverHeader.navBarHeight;
+    final big = find.byKey(const ValueKey('big'));
+    // The first scroll frame measures the mark as last laid out.
+    await scrollTo(tester, controller, 1);
+    expect(compactTitleOpacity(tester, 'Album'), 0);
+
+    // Its top reaches the bar after 90 px, its bottom after 120.
+    await scrollTo(tester, controller, 90);
+    expect(tester.getRect(big).top, closeTo(bar, 0.01));
+    expect(compactTitleOpacity(tester, 'Album'), 0, reason: 'still whole');
+
+    await scrollTo(tester, controller, 105);
+    expect(compactTitleOpacity(tester, 'Album'), 0, reason: 'half under');
+    await scrollTo(tester, controller, 112.5);
+    expect(compactTitleOpacity(tester, 'Album'), closeTo(0.5, 0.01));
+
+    // Hidden: the bar has the title, half of the hero still to go. By
+    // collapse alone it would not have started (0.8 of 240 is 192).
+    await scrollTo(tester, controller, 120);
+    expect(tester.getRect(big).bottom, closeTo(bar, 0.01));
+    expect(compactTitleOpacity(tester, 'Album'), 1);
+    await scrollTo(tester, controller, 240);
+    expect(compactTitleOpacity(tester, 'Album'), 1);
+
+    await scrollTo(tester, controller, 0);
+    expect(compactTitleOpacity(tester, 'Album'), 0);
+  });
+
+  testWidgets('a marked title the content cannot take under the bar stays, '
+      'with no compact one', (tester) async {
+    // 7 rows: the page scrolls less than the 120 px that hide the title.
+    final controller = await pump(tester, markedHero, rows: 7);
+    final end = controller.position.maxScrollExtent;
+    expect(end, inExclusiveRange(0, 120));
+    await scrollTo(tester, controller, end);
+    expect(compactTitleOpacity(tester, 'Album'), 0);
+
+    // Pulled past the end (a short playlist dragged up): the title keeps
+    // its strength while it is in sight...
+    final big = find.byKey(const ValueKey('big'));
+    double bigOpacity() => tester
+        .widget<Opacity>(
+          find.ancestor(of: big, matching: find.byType(Opacity)).first,
+        )
+        .opacity;
+    final atRest = bigOpacity();
+    await scrollTo(tester, controller, end + 30);
+    expect(bigOpacity(), atRest, reason: 'no dimming under the finger');
+    expect(compactTitleOpacity(tester, 'Album'), 0);
+
+    // ...and once it is under the bar, the bar has it.
+    await scrollTo(tester, controller, 121);
+    expect(
+      tester.getRect(big).bottom,
+      lessThanOrEqualTo(statusBar + GlassSliverHeader.navBarHeight),
+      reason: 'the pull took the title under the bar',
+    );
+    expect(compactTitleOpacity(tester, 'Album'), 1);
+
+    await tester.pumpAndSettle();
+    expect(controller.offset, closeTo(end, 0.5), reason: 'sprung back');
+    expect(compactTitleOpacity(tester, 'Album'), 0, reason: 'back at rest');
+  });
+
+  test('an unmarked title on short content: none at rest, in when pulled '
+      'past the handover', () {
+    expect(GlassSliverHeader.titleOpacityAt(0.3, reach: 0.3), 0);
+    expect(
+      GlassSliverHeader.titleOpacityAt(0.9, reach: 0.3),
+      closeTo(0.5, 1e-9),
+    );
+    expect(GlassSliverHeader.titleOpacityAt(1, reach: 0.3), 1);
+  });
+
+  const shortHero = GlassSliverHeader(
+    title: 'Album',
+    expandedHeight: 200,
+    expanded: Align(alignment: Alignment.bottomLeft, child: Text('Big')),
+  );
+
+  testWidgets('content too short to collapse the header fully: the compact '
+      'title is whole at the end of the scroll', (tester) async {
+    // 10 rows: the page scrolls 188 of the header's 200.
+    final controller = await pump(tester, shortHero, rows: 10);
+    final end = controller.position.maxScrollExtent;
+    expect(end, inExclusiveRange(160, 200));
+    await scrollTo(tester, controller, end);
+    expect(compactTitleOpacity(tester, 'Album'), 1);
+  });
+
+  testWidgets('a page that barely scrolls keeps its expanded title, no '
+      'compact one', (tester) async {
+    final controller = await pump(tester, shortHero, rows: 7);
+    await scrollTo(tester, controller, controller.position.maxScrollExtent);
+    expect(compactTitleOpacity(tester, 'Album'), 0);
   });
 
   testWidgets('a header without a navigation row takes its glass once '

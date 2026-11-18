@@ -339,17 +339,22 @@ class _AlbumHeader extends StatelessWidget {
                     child: Column(
                       children: [
                         _animatedAlbumItem(
-                          Text(
-                            album.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.4,
+                          // Marked: the bar takes the title over when
+                          // this one goes under it, well before the
+                          // buttons below have scrolled away.
+                          GlassHeaderTitle(
+                            child: Text(
+                              album.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.4,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           1,
                         ),
