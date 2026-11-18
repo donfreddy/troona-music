@@ -476,71 +476,82 @@ void main() {
     expect(find.byType(ArtistPhotoHero), findsNothing);
   });
 
-  testWidgets('the photo flies in from the card tapped while the page is '
-      'still loading the artist', (tester) async {
-    // A hero that is not there on the page's first frame never flies: the
-    // header shows at once, from the artist as the library groups them.
-    metadata.downloaded = '/photos/artists/1.jpg';
-    const khaid = Artist(id: '1', name: 'Khaid', albumCount: 2, trackCount: 2);
-    final library = _library(
-      const LibraryLoaded(
-        allTracks: [],
-        allAlbums: [],
-        allArtists: [khaid],
-        visibleTracks: [],
-        visibleAlbums: [],
-        visibleArtists: [khaid],
-      ),
-    );
-    // Never answered: the page stays loading.
-    final detail = ArtistDetailBloc(repo: _UnusedArtists());
-    SharedPreferences.setMockInitialValues({});
-    final port = FakeAudioPort();
-    final player = buildTestPlayerBloc(
-      port,
-      PlaybackSessionStore(await SharedPreferences.getInstance()),
-    );
-    final palette = TrackPaletteCubit();
-    addTearDown(() async {
-      await tester.pumpWidget(const SizedBox());
-      unawaited(library.close());
-      unawaited(detail.close());
-      unawaited(player.close());
-      unawaited(palette.close());
-      unawaited(port.close());
-    });
-    const card = ValueKey('card');
-    await tester.pumpWidget(
-      MultiBlocProvider(
-        providers: [
-          BlocProvider<ArtistDetailBloc>.value(value: detail),
-          BlocProvider<PlayerBloc>.value(value: player),
-          BlocProvider<TrackPaletteCubit>.value(value: palette),
-          BlocProvider<LibraryBloc>.value(value: library),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.dark,
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const ArtistDetailPage(id: '1'),
+  for (final guest in [false, true]) {
+    testWidgets('the photo flies in from the card tapped while the page is '
+        'still loading the artist${guest ? ', a guest only' : ''}', (
+      tester,
+    ) async {
+      // A hero that is not there on the page's first frame never flies: the
+      // header shows at once, from the artist as the library groups them.
+      metadata.downloaded = '/photos/artists/1.jpg';
+      const khaid = Artist(
+        id: '1',
+        name: 'Khaid',
+        albumCount: 2,
+        trackCount: 2,
+      );
+      // A guest only is left out of the artists, still in the songs.
+      final songs = [testTrack('a', durationMs: 1000)];
+      final library = _library(
+        LibraryLoaded(
+          allTracks: songs,
+          allAlbums: const [],
+          allArtists: guest ? const [] : const [khaid],
+          visibleTracks: songs,
+          visibleAlbums: const [],
+          visibleArtists: guest ? const [] : const [khaid],
+        ),
+      );
+      // Never answered: the page stays loading.
+      final detail = ArtistDetailBloc(repo: _UnusedArtists());
+      SharedPreferences.setMockInitialValues({});
+      final port = FakeAudioPort();
+      final player = buildTestPlayerBloc(
+        port,
+        PlaybackSessionStore(await SharedPreferences.getInstance()),
+      );
+      final palette = TrackPaletteCubit();
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox());
+        unawaited(library.close());
+        unawaited(detail.close());
+        unawaited(player.close());
+        unawaited(palette.close());
+        unawaited(port.close());
+      });
+      const card = ValueKey('card');
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<ArtistDetailBloc>.value(value: detail),
+            BlocProvider<PlayerBloc>.value(value: player),
+            BlocProvider<TrackPaletteCubit>.value(value: palette),
+            BlocProvider<LibraryBloc>.value(value: library),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.dark,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ArtistDetailPage(id: '1'),
+                      ),
                     ),
-                  ),
-                  child: const SizedBox.square(
-                    dimension: 100,
-                    child: ArtistPhotoHero(
-                      artistId: '1',
-                      photo: '/photos/artists/1.jpg',
-                      round: true,
-                      child: ClipOval(
-                        key: card,
-                        child: ColoredBox(color: Colors.red),
+                    child: const SizedBox.square(
+                      dimension: 100,
+                      child: ArtistPhotoHero(
+                        artistId: '1',
+                        photo: '/photos/artists/1.jpg',
+                        round: true,
+                        child: ClipOval(
+                          key: card,
+                          child: ColoredBox(color: Colors.red),
+                        ),
                       ),
                     ),
                   ),
@@ -549,20 +560,24 @@ void main() {
             ),
           ),
         ),
-      ),
-    );
-    await tester.tap(find.byKey(card));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 16));
-    expect(find.byKey(ArtistPhotoHero.shuttleKey), findsOneWidget);
-    expect(find.text('Khaid'), findsWidgets, reason: 'the header, at once');
-    // Its spinner turns: frames, not pumpAndSettle.
-    for (var i = 0; i < 10; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
-    }
-    expect(find.byKey(ArtistPhotoHero.shuttleKey), findsNothing);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-  });
+      );
+      await tester.tap(find.byKey(card));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.byKey(ArtistPhotoHero.shuttleKey), findsOneWidget);
+      expect(
+        find.text(guest ? 'Artist' : 'Khaid'),
+        findsWidgets,
+        reason: 'the header, at once',
+      );
+      // Its spinner turns: frames, not pumpAndSettle.
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byKey(ArtistPhotoHero.shuttleKey), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  }
 
   testWidgets('without a photo nor a cover, no glow', (tester) async {
     await open(tester, const ArtistAlbums());

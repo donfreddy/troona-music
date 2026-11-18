@@ -20,6 +20,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_detail.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
@@ -81,7 +82,17 @@ class ArtistDetailPage extends StatelessWidget {
       LibraryError(:final lastLoaded) => lastLoaded,
       LibraryInitial() => null,
     };
-    return loaded?.allArtists.where((a) => a.id == id).firstOrNull;
+    if (loaded == null) return null;
+    // An artist only ever credited as a guest is left out of the list,
+    // not out of the library (Also in your library shows them).
+    return loaded.allArtists.where((a) => a.id == id).firstOrNull ??
+        switch (int.tryParse(id)) {
+          final artistId? => LibraryGrouping.artistOf(
+            artistId,
+            loaded.allTracks,
+          ),
+          null => null,
+        };
   }
 
   static void _loadMetadata(ArtistMetadataCubit cubit, ArtistDetail data) =>
