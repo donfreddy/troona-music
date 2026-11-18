@@ -47,14 +47,13 @@ class _CoverBackgroundState extends State<CoverBackground> {
       _colours = TrackPaletteState.initial();
       return;
     }
-    final cached = CoverPalette.cached(path);
-    if (cached != null) {
-      _colours = cached;
-      return;
-    }
+    // Known colours at once, then checked against the file: an artist's
+    // photo may have been downloaded again since.
+    _colours = CoverPalette.cached(path) ?? _colours;
     CoverPalette.of(path).then((colours) {
       if (!mounted || widget.path != path) return;
-      setState(() => _colours = colours ?? TrackPaletteState.initial());
+      final read = colours ?? TrackPaletteState.initial();
+      if (read != _colours) setState(() => _colours = read);
     });
   }
 

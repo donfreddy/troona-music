@@ -100,6 +100,9 @@ final class _History implements PlayHistoryRepository {
 
   /// Plays of the span asked for, and the spans asked.
   int weekPlays = 0;
+
+  /// The daily totals cannot be read.
+  bool statsFail = false;
   final spans = <(int, int)>[];
 
   @override
@@ -108,6 +111,7 @@ final class _History implements PlayHistoryRepository {
     required int lastDay,
   }) async {
     spans.add((firstDay, lastDay));
+    if (statsFail) return left(const DatabaseFailure());
     return right(
       ListeningStats(
         plays: weekPlays,
@@ -183,6 +187,42 @@ void main() {
     final today = ListeningDay.of(DateTime.now());
     expect(feed.weeklyPlayCount, 13);
     expect(history.spans, [(ListeningDay.weekStart(today), today)]);
+  });
+
+  test("a week's count that cannot be read is not shown as none", () async {
+    final history = _History(const [])..statsFail = true;
+    final repo = HomeRepositoryImpl(db: _Library(library), history: history);
+    expect((await repo.getFeed()).isLeft(), isTrue);
+  });
+
+  test('a reload that fails keeps the feed on screen', () async {
+    final history = _History(['p1']);
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: _Library(library), history: history),
+    );
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
+    addTearDown(bloc.close);
+    await pumpEventQueue();
+    final loaded = bloc.state;
+    expect(loaded, isA<HomeLoaded>());
+
+    history.statsFail = true;
+    bloc.add(const HomeRefreshRequested());
+    await pumpEventQueue();
+    expect(repo.feeds, 2);
+    expect(bloc.state, same(loaded));
+  });
+
+  test('a first load that fails shows the error', () async {
+    final history = _History(const [])..statsFail = true;
+    final bloc = HomeBloc(
+      repo: HomeRepositoryImpl(db: _Library(library), history: history),
+      refreshDelay: Duration.zero,
+    )..add(const HomeFeedRequested());
+    addTearDown(bloc.close);
+    await pumpEventQueue();
+    expect(bloc.state, isA<HomeError>());
   });
 
   test(

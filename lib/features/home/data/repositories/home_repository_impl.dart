@@ -48,8 +48,7 @@ final class HomeRepositoryImpl implements HomeRepository {
 
       final recentTracks = results[0] as List<Track>;
 
-      // Artists in the order the library found them, albums newest first,
-      // both grouped the way the library groups them.
+      // Albums newest first, grouped the way the library groups them.
       final library = results[1] as List<TrackModel>;
       final newestFirst = List.of(library)
         ..sort((a, b) => b.indexedAt.compareTo(a.indexedAt));
@@ -86,13 +85,15 @@ final class HomeRepositoryImpl implements HomeRepository {
 
   /// Plays of this calendar week, Monday to today, from the daily totals
   /// the recap reads too: never pruned, and the same week as its card.
+  /// A count that cannot be read fails the feed rather than show none: a
+  /// reload keeps the feed on screen.
   Future<int> _thisWeek() async {
     final today = ListeningDay.of(DateTime.now());
     final stats = await _history.listeningStats(
       firstDay: ListeningDay.weekStart(today),
       lastDay: today,
     );
-    return stats.fold((_) => 0, (s) => s.plays);
+    return stats.fold((failure) => throw failure, (s) => s.plays);
   }
 
   /// Resolves track IDs + play counts into [TrackPlayCount] entities.

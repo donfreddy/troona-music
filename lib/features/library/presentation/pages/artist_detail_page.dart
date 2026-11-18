@@ -74,14 +74,9 @@ class ArtistDetailPage extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: BlocBuilder<ArtistDetailBloc, ArtistDetailState>(
         builder: (context, state) {
-          // The artist's own colours: from their photo once it is on disk,
-          // else from the cover their header glows with.
-          return CoverBackground(
-            path: switch (state) {
-              ArtistDetailLoaded(:final data) =>
-                _ArtistHeader.downloadedPhoto(data.artist.id) ??
-                    data.artist.artworkPath ??
-                    '',
+          return _ArtistBackground(
+            artist: switch (state) {
+              ArtistDetailLoaded(:final data) => data.artist,
               _ => null,
             },
             child: switch (state) {
@@ -220,6 +215,56 @@ class ArtistDetailPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+/// The artist's own colours: from their photo once it is on disk, else
+/// from the cover their header glows with. A photo downloaded or deleted
+/// while the page is open turns them, as it does the header.
+class _ArtistBackground extends StatefulWidget {
+  /// Null while the page loads: the colours of the song playing stay.
+  final Artist? artist;
+  final Widget child;
+
+  const _ArtistBackground({required this.artist, required this.child});
+
+  @override
+  State<_ArtistBackground> createState() => _ArtistBackgroundState();
+}
+
+class _ArtistBackgroundState extends State<_ArtistBackground> {
+  late final StreamSubscription<String> _photoChanged;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoChanged = getIt<MetadataRepository>().onArtistArtworkUpdated
+        .where(
+          (id) =>
+              id == MetadataRepository.allArtists || id == widget.artist?.id,
+        )
+        .listen((_) {
+          if (mounted) setState(() {});
+        });
+  }
+
+  @override
+  void dispose() {
+    _photoChanged.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final artist = widget.artist;
+    return CoverBackground(
+      path: artist == null
+          ? null
+          : _ArtistHeader.downloadedPhoto(artist.id) ??
+                artist.artworkPath ??
+                '',
+      child: widget.child,
     );
   }
 }

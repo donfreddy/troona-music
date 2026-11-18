@@ -39,20 +39,36 @@ class TrackPaletteState {
 class TrackPaletteCubit extends Cubit<TrackPaletteState> {
   TrackPaletteCubit() : super(TrackPaletteState.initial());
 
+  /// Bumped by every change of song: a read for a song no longer playing
+  /// is dropped when it ends.
   int _requestId = 0;
 
+  /// The song whose cover is being read.
+  String? _pending;
+
+  /// Called on every player state: most of them repeat the same song.
   Future<void> updateTrack(Track? track) async {
     final path = track?.artworkPath;
     if (track == null || path == null || path.isEmpty) {
       _requestId++;
+      _pending = null;
       emit(TrackPaletteState.initial());
       return;
     }
-    if (track.id == state.trackId) return;
+    if (track.id == _pending) return;
+    // Back to the song shown (A, B, A before B's cover is read): B's read
+    // must not land.
+    if (track.id == state.trackId) {
+      _requestId++;
+      _pending = null;
+      return;
+    }
 
     final requestId = ++_requestId;
+    _pending = track.id;
     final colours = await CoverPalette.of(path);
     if (requestId != _requestId) return;
+    _pending = null;
     emit((colours ?? TrackPaletteState.initial()).forTrack(track.id));
   }
 }

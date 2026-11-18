@@ -61,11 +61,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final feedResult = results[0];
     final countResult = results[1];
 
-    feedResult.fold((f) => emit(HomeError(f.message)), (feed) {
-      final homeFeed = feed as HomeFeed;
-      final count = countResult.fold((_) => 0, (c) => c as int);
-      _loadedDay = day;
-      emit(HomeLoaded(homeFeed, totalTracks: count));
-    });
+    feedResult.fold(
+      (f) {
+        // A reload that fails keeps the feed on screen (and the card the
+        // user was answering).
+        if (state is! HomeLoaded) emit(HomeError(f.message));
+      },
+      (feed) {
+        final homeFeed = feed as HomeFeed;
+        final count = countResult.fold((_) => 0, (c) => c as int);
+        _loadedDay = day;
+        emit(HomeLoaded(homeFeed, totalTracks: count));
+      },
+    );
   }
 }

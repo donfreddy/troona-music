@@ -12,7 +12,7 @@ import 'package:troona/features/updates/presentation/widgets/update_card.dart';
 ///
 /// An offer on screen stays until it is answered: a release found by the
 /// check that runs at launch does not pull it from under the user's
-/// finger. The release shows the next time Home opens.
+/// finger. The release shows once the offer is answered.
 class HomeSystemCard extends StatefulWidget {
   final bool offerExtras;
 

@@ -260,6 +260,27 @@ void main() {
     expect(path(), '', reason: 'no picture at all: the neutral glow');
   });
 
+  testWidgets('a photo downloaded, then deleted, while the page is open '
+      'turns its colours', (tester) async {
+    String? path() =>
+        tester.widget<CoverBackground>(find.byType(CoverBackground)).path;
+    await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
+    expect(path(), '/covers/k.jpg');
+
+    metadata.downloaded = '/photos/artists/1.jpg';
+    metadata.updates.add('1');
+    await tester.pump();
+    await tester.pump();
+    expect(path(), '/photos/artists/1.jpg');
+
+    metadata.downloaded = null;
+    metadata.updates.add(MetadataRepository.allArtists);
+    await tester.pump();
+    await tester.pump();
+    expect(path(), '/covers/k.jpg');
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('without a photo nor a cover, no glow', (tester) async {
     await open(tester, const ArtistAlbums());
     expect(find.byKey(const ValueKey('coverGlow')), findsNothing);
