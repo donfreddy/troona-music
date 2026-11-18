@@ -6,210 +6,162 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- Library: an index of letters down the right edge of Songs, Albums and Artists when they are sorted by name, title, artist or album. Touch a letter, or slide along them, to go to its first item; the letter shows large in the middle, with a light tick for each new one. Short lists and songs sorted by date added have none.
-- Album pages: the artists' line opens an album by several artists to any of them: a tap asks which one. Go to album and Go to artist, and the artist's name in Now Playing, open the page in the tab you are in, instead of jumping to the Library.
-- Album and artist cards show a small equalizer while one of their songs plays, still while paused, as song rows do.
-- A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue. The album page's menu is the same one.
-- The mini player acknowledges songs you queue: its cover pulses once and a small count (+1, or +12 for an album) shows on it for a moment. With less motion asked, only the count shows.
-- An artist's Play next and Add to queue say so in a message, as an album's do.
-- Artist pages: for an artist with more than twenty songs, See all opens them on a page of their own, sorted by plays, title, album or date added, instead of unfolding a long list above their albums.
-- A like answers the same way everywhere: the heart that pops over the mini player now pops over Now Playing's heart, with a light vibration, and over a song's row when you like it from its menu.
-- Album pages: pulling the page down draws the record a little further out of its sleeve, and it slides back on release.
-- Album pages: opening the album that plays brings the song playing into view when it lies below the screen, once the page is in. A scroll of yours comes first.
-- Search and Home: See all next to Recently added, and Home's Recently added shortcut, open a page of the hundred songs added last, newest first, in the tab you are in, instead of the Library in its own order. The Library keeps the sort you picked there.
-- Home: See all next to Recently added opens Recent albums, the fifty albums added last, newest first, in Home, instead of the Library's albums in their own order. The row and the page follow the date songs were added to the phone, so the row is the start of the page.
-- Artist pages open from the photo you tapped: the round photo on an artist's card grows into the picture at the top of their page, and shrinks back into the card when you go back.
-- Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
+- Library: an alphabetical index down the right edge of Songs, Albums and Artists when they are sorted by name.
+- Recently added and Recent albums: the songs and albums added last, newest first, opened from Search and Home.
+- An artist's photo grows from their card into their page, and back.
+- Now Playing: the artist's name opens their page. Songs and albums by several artists ask which one.
+- A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue.
+- Album and artist cards show an equalizer while one of their songs plays.
+- Artist pages: See all opens every song of an artist on a page of its own, sorted by plays, title, album or date added.
+- Album pages: the song playing comes into view on opening, and pulling down draws the record further out.
+- The mini player counts the songs you queue, and a like pops the same heart everywhere.
 
 ### Changed
 
-- Seeking on the Now Playing ring: a finger on the glass turns the progress into the whole band, lit like light through frosted glass and brightest under the finger, and the lens rises a little. On release the light goes, then the band narrows back to the line. A plain tap shows it without seeking. Nothing grows when the phone asks for less motion.
-- Closing Now Playing: the lens alone travels into the mini player while the rest fades around it. The title and controls go at once, the covers beside the current one go with the ring, and the page below shows only once the lens has nearly landed, then settles into place. The cover stays centred in the lens all the way.
-- Dragging Now Playing down moves its content only: the background and the tabs stay put.
-- Library: artists show three across, and the rows of albums and artists are as tall as their cards, so no empty band sits between them and more fit on a screen, at any font size.
-- Album and artist pages take the colours of their own cover (an artist's photo once downloaded), instead of the colours of the song playing. They open in the colours of the page below and turn to theirs. A cover that cannot be read gives the neutral glow at once, instead of after a long wait.
-- Home is lighter: music starts right after the resume card and the shortcuts. Only one card about the app shows at a time (a new version, else the offer of online extras), this week's plays are a line under the greeting instead of a banner, last week's recap comes after Recently played, and Your artists and Your playlists are gone (the Library and the Playlists tab hold them).
-- Album pages: a tap on the record pauses and resumes the album while it plays, anywhere on its edge out of the sleeve. It no longer starts the album, which replaced the queue from what looks like decoration: Play, just below, does.
-- Album pages: the record reads on a dark page, with a lit edge, clearer grooves and a soft light on it that stays put while it turns.
-- Home and Settings have fewer outlines: cards in the page (the resume card, the shortcuts, Recently played, the recap, Settings' groups) have a slightly lighter fill and no edge, which is left to what floats, the tab bar, headers and sheets. The tabs not selected are easier to read.
-- Artist pages fit small discographies: Latest release shows from four releases (below, its cover is right under it), albums and singles share one Discography under five releases, newest first, and a section of one or two albums lists them as rows instead of a lone card, which light up when touched.
-- Songs' durations and their options button are easier to read in every list.
-- Settings: every switch that is on shows the app's accent colour, instead of one colour per row (a red switch read as an error).
-- Library: the selected filter keeps the accent colour instead of following the song playing, and the other filters' icons are easier to read.
-- Library: only the items shown when a list opens play their entrance. Songs and cards that scrolling brings in show at once, instead of fading in after a pause.
-- Artist pages have one layout, with or without a photo: the name at the bottom left, Shuffle on its right. Without a photo, their cover's colours glow behind it, and the name and Shuffle sit at the same place on every artist's page. The page no longer switches layout while it loads, and a photo that arrives later fades in without moving anything.
+- Now Playing: seeking turns the ring into a lit band, closing sends the lens alone into the mini player, and dragging down moves the content only.
+- Album and artist pages take the colours of their own cover.
+- Album, artist and recent pages open in the tab you are in, instead of jumping to the Library, and the Library keeps its sort.
+- Home is lighter: one card about the app at a time, this week's plays under the greeting, no more Your artists and Your playlists.
+- Artist pages have one layout, with or without a photo, and small discographies fit better.
+- Album pages: a tap on the record only pauses and resumes (Play starts the album), and the record reads better on a dark page.
+- Library: artists three across, tighter grids, and only the items shown on opening play their entrance.
+- Fewer outlines on Home and Settings, easier to read durations and tabs, and switches in the accent colour.
 
 ### Fixed
 
-- Search: See all next to the suggested artists, or albums, opens the Library on its artists, or albums, instead of everything.
-- Artist pages: Play next and Add to queue, asked while the page still loads, queue the songs most played first, as once it is loaded, instead of in the library's order.
-- An artist without a photo opens on the same cover as their card, and under the same spelling of their name, instead of switching to another album's cover once the page has loaded.
-- Search shows artists with their downloaded photo, as the Library does, instead of an album cover, and an artist opens in the Search tab instead of switching to the Library.
-- Play next and Add to queue with nothing playing, including after the mini player was swiped away: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone. Songs queued while the first one loads are no longer lost, and wait no longer than that song: if it cannot be played, they play instead. An album or an artist goes into the queue in one step, so a skip, another album or shuffle can no longer split it, and a long album no longer makes the player redo the queue once per song. Songs queued while a new album fades in go into it rather than the one leaving. A saved queue that can no longer be played after a restart leaves the player empty instead of loading forever.
-- A long press on a song vibrates once, as its menu opens, instead of two or three times.
-- "Added to queue" and "Plays next" show once the songs are really in the queue: no longer when the player refused them, and the mini player no longer counts songs that went into a queue replaced meanwhile.
-- An artist page whose songs or albums cannot be read says so, instead of showing the artist with none.
-- Playlist covers no longer repeat one album: songs of the same album count once, and a playlist with fewer than four albums shows its first song's cover alone instead of a grid of copies.
-- Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
-- The name on an artist's photo stays readable over a photo with its own lettering.
-- The title of a collapsed page header stays readable over light covers scrolling under it: the glass now lets through half their brightness, which leaves dark content as it was.
-- Scrolling a page with a large header, the small title in the bar showed up from the first pixel, over the big one still there. It now comes in once the big one is nearly gone.
-- The mini player's progress moved stop and go, a step about every second. It now moves smoothly, like the one in Now Playing.
+- Play next and Add to queue with nothing playing now start the music, and an album or artist goes into the queue in one step, never split or lost.
+- "Added to queue" shows only once the songs are in, and a long press on a song vibrates once.
+- Search shows artists with their downloaded photo and opens them in the Search tab. See all of artists or albums opens that list in the Library.
+- Artist pages keep their card's cover and name while loading, and say so when their songs cannot be read.
+- Artist photos: no more grey silhouettes or photos of namesakes, and names stay readable over them.
+- Playlist covers no longer repeat one album.
+- Page headers: the small title stays readable over light covers and no longer shows over the large one.
+- The mini player's progress moves smoothly.
 
 ## [1.6.0] - 2026-11-16
 
 ### Added
 
-- Your listening, opened from the Home card, shows any week or month: switch between Week and Month, and step back to earlier ones with the arrows. Each gives its listening time, days with music, busiest day, top five songs (tap one to play the list from it), top artist and top albums.
-- When you listen: the plays of the week or month by weekday and time of day, with the moment that stands out in words ("Peak: Friday evening"). The hours after midnight count for the night before. Backups carry it too.
-- Share a week or a month as a story image (1080 x 1920): listening time, top songs, the days filled with music and your peak, over your top song's colours. A finished month is shared as its Replay.
-- Swipe a song right to play it next, or left to add it to the queue, in the Library, albums, artists and search. Screen readers offer both as actions of the song.
-- Swipe the song in the mini player left for the next one, right for the previous one. A light tick tells when the swipe will count.
-- Long-press the mini player to like the song playing, or to take the like back: a heart pops over its cover. Screen readers offer it as an action.
-- On an album page, the record slides further out of its sleeve and turns while the album plays, with the cover as its label. Tap it to play the album, or to pause and resume it. It stays still when the phone asks for less motion.
-- Artist pages show their latest release on its own, above their albums, when the songs carry a year.
+- Your listening: any week or month, with listening time, top songs, artist and albums, and when you listen most.
+- Share a week or a month as a story image.
+- Swipe a song to play it next or add it to the queue. Swipe the mini player to change song, hold it to like.
+- Album pages: the record turns while the album plays.
+- Artist pages show their latest release.
 
 ### Changed
 
-- Home's Jump back in card goes on with the session where it stopped, instead of playing the last song again from its start. It names the album, artist or playlist it was started from, the listening time left and how far along it is; while it plays, it reads Now playing and opens Now Playing.
-- Artist pages have one action, Shuffle, as a round button on their photo: an artist's songs have no order. Tap a song to play in order from it.
-- An artist without a photo opens on a soft glow of their cover's colours instead of a plain background.
-- An artist's albums, singles and the albums they appear on come newest first, also in More by on album pages.
-- The counts under an artist's name read clearly on a light photo.
-- Haptics follow one vocabulary: a firm tap when playback starts or stops, a light one for a skip, a refresh or a menu, a tick for a choice. Playing a song or Play and Shuffle no longer tap twice.
-- The song playing looks the same in every list: its cover dimmed under the moving equalizer, which stops while paused, and its title in the accent colour. Playlists and Home showed a still note instead.
-- The background behind the tabs takes two seconds to follow a new song's colours, instead of switching at once.
-- The listening calendar shows each day as a square filled by how much music it had, in five steps from none to 30 plays or more, instead of a dot for any music at all. Tap a day for its count. The squares light up one after the other, unless the phone asks for less motion.
+- Jump back in resumes the session where it stopped.
+- Artist pages: one round Shuffle button, releases newest first, and a glow of their cover when they have no photo.
+- One set of haptics across the app, and the song playing looks the same in every list.
+- The listening calendar fills each day by how much music it had.
+- The background follows a new song's colours over two seconds.
 
 ### Fixed
 
-- The Library's segments vibrated even with haptics turned off in Settings.
+- The Library's segments vibrated with haptics turned off.
 
-## [1.5.0] - 2026-11-04
 ## [1.5.0] - 2026-11-13
 
 ### Added
 
-- Tapping an album's cover opens its page with the cover flying into place, and back takes it home.
+- An album's cover flies into its page, and back.
 
 ### Changed
 
-- Large titles are bold, in the same voice as album and artist names and section titles.
-- The selected tab shows a dot under its icon, not only a brighter colour.
-- Album pages state their year, song count and length, and artist pages their song count, releases and length, as one line of text instead of pills. Lossless keeps its badge.
-- Album pages no longer title their track list Songs. Under the songs, a quiet line gives the album's size and formats instead of the In your library card.
-- Artist pages show each song's album and year under its title, instead of repeating the artist's name, and their album and single cards give the year. Their In your library card is gone: the counts it repeated are under the name.
-- More by on album pages gives each album's year instead of the artist's name, with Single on singles.
-- The Library no longer shows its counts of songs, albums and artists above All.
-- Opening an artist from one of their albums, when you came to the album from that artist, goes back to their page instead of opening it a second time, and the same the other way round.
-- An album or playlist page keeps its cover and buttons in sight while they scroll away, instead of leaving an empty band under the bar.
+- Bold large titles, and a dot under the selected tab.
+- Album and artist pages give their facts in one line, show years on songs and cards, and drop the In your library cards.
+- Going from an album to its artist and back returns to the page instead of opening a copy.
+- The Library no longer shows its counts.
 
 ### Fixed
 
-- With a large font, the Library's row of artists cut their names short.
+- Large fonts cut artist names short in the Library.
 
 ## [1.4.0] - 2026-11-06
 
 ### Changed
 
-- Pages draw edge to edge: lists scroll under the status bar and the floating tab bar, on every Android version, and fade out under the tab bar instead of stopping on a line.
-- Every page opens on a large title (Home, Library, Playlists, Settings, the privacy policy, Your week in music) that shrinks into a glass bar as you scroll, with the back button and the page's actions. A title left halfway settles open or closed.
-- Album and playlist pages scroll their cover and buttons away under the same glass bar, which then shows their name.
-- An artist with a photo opens on it, edge to edge, with their name over it; pulling down enlarges it.
-- The search field stays pinned at the top in a glass bar while the results scroll under it, and scrolling the results closes the keyboard.
-- Tapping the tab you are on scrolls its page back to the top.
+- Pages run edge to edge, under the status bar and the floating tab bar.
+- Every page opens on a large title that shrinks into a glass bar as you scroll.
+- An artist's photo fills the top of their page, and pulling down enlarges it.
+- The search field stays pinned, and scrolling the results closes the keyboard.
+- Tapping the tab you are on scrolls back to the top.
 
 ## [1.3.0] - 2026-11-03
 
 ### Added
 
-- Songs that credit several artists ("Nicki Minaj, Beyoncé", "Chiké feat Mohbad") count for each of them: every artist's page lists the songs they are featured on, and shows their albums apart from the ones they only appear on, in a new Appears on section, and their singles in a Singles section of their own. Search finds each artist of a collaboration. A name that holds a comma, such as "Tyler, The Creator", stays one artist, and "&" never separates names.
+- Songs that credit several artists count for each of them, with Appears on and Singles sections on their pages. A name with a comma, such as "Tyler, The Creator", stays one artist.
 
 ### Changed
 
-- An artist page starts with five songs, their most played first (Popular), and See all shows the rest; their albums come within reach right after. Without plays yet, the songs are by title.
-- An artist's album count, on their page, in the Artists list and in search, counts their own albums only, not their singles nor the ones they appear on. An artist with singles only shows their singles count, and one only ever featured shows none.
-- Album cards of singles read Single instead of a song count. An album named after one of its at most three songs counts as a single.
-- The Artists list no longer shows each collaboration as an artist of its own, nor artists only ever credited as guests. Their pages still open from search.
-- Your week in music counts a collaboration for each of its artists when it picks the top artist.
-- A rescan picks up files whose tags were edited since they were first found.
-- Album pages show the album's year and, as the only format badge, Lossless when every song is; MP3 and other formats stay in About. More by the artist comes right after the songs.
-- Songs of an album without track numbers, as downloaders save them, come in the order they were downloaded, numbered by place, instead of by title with a dash. A song with a guest its title does not name, or any song of a compilation, shows its artists under its title.
-- Artist photos and bios turned on in Settings are downloaded again once, as artists are now identified by name.
-- Artist and album pages show About only when Last.fm has a bio or a review, with the listeners and up to three genres under it, and where it comes from. Most artists have none: their page no longer shows an About card of counts and tags. The play count, the On tour badge and the date the review was written are gone.
-- Similar artists show in their own section, Also in your library, and only the ones in your library: a tap opens their page. They were names in the About card that opened nothing, most of them not in the library.
-- Now Playing no longer shows a drag handle above the cover.
+- Artist pages start with their five most played songs.
+- Album counts leave out singles and guest appearances, and singles are marked as such.
+- The Artists list leaves out collaborations and artists only ever featured.
+- Album pages show the year and a Lossless badge, and songs without numbers keep their download order.
+- About shows only when Last.fm has a text, and similar artists only when they are in your library.
+- A rescan picks up edited tags.
 
 ### Fixed
 
-- The year of songs and albums was never read, so album pages showed none.
-- Album pages had two sections titled About this album: the one about the files now reads In your library, as on artist pages.
-- An album downloaded in several folders, or a playlist of singles saved one folder per song, showed up as several copies of the same album. They are one album again; compilations stay whole.
-- An album with a featured artist on some of its songs showed "Unknown artist" instead of its artist.
-- A single an artist is only featured on, such as "Medusa (feat. Khaid)", counted as one of their albums, and its page named the guest as its artist too.
-- An artist's page could merge two of their albums that share a name, and an album page hid the artist's other albums of the same name from "More by".
+- Years were never read.
+- An album saved across several folders shows as one.
+- A featured artist no longer turns an album into "Unknown artist" or claims a single they only appear on.
+- Two albums sharing a name are no longer merged.
 
 ## [1.2.0] - 2026-10-31
 
 ### Added
 
-- Songs downloaded without an artist tag take their artist from a file name such as "Artist - Title", and appear under that artist next to its tagged songs. Backups made earlier still find them.
-- Starting another album or playlist while songs added with Play next or Add to queue are still to come shows "Queue replaced" with Undo, which brings the previous queue back where it was. Another song of the album or playlist that is playing plays within the current queue, and keeps them.
+- Songs without an artist tag take it from an "Artist - Title" file name.
+- Replacing a queue that holds songs you added offers Undo.
 
 ### Changed
 
-- Menus (song, album, artist and playlist actions, sort, sleep timer, playback speed) open as a sheet in Troona's style, with icons for song, album, artist and playlist actions and a check on the current sort and speed, instead of the iOS-style menu. They close with a tap outside, a swipe down or back.
-- Dialogs (confirmations, playlist names) match the app and fade in smoothly.
-- Add to playlist opens above the mini player, and its height follows the number of playlists.
-- The labels on album, artist and playlist pages and in search share one style.
-- Buttons share one style in two sizes. See all, Shuffle all and the action in messages are easier to tap.
-- Settings, the privacy policy and Your week in music have the same back button as album, artist and playlist pages.
-- The options button on song rows is easier to tap and screen readers announce it.
-- Icons share one style across the app, including the Now Playing controls, with a thinner stroke.
-- Songs, albums and artists without a cover show the same placeholder everywhere, also when a cover file can no longer be read.
+- Menus and dialogs in Troona's own style.
+- One style for labels, buttons, back buttons and icons, with larger touch targets.
+- The same placeholder everywhere for a missing cover.
 
 ### Fixed
 
-- Opening Settings, the privacy policy or Your week in music showed the previous page through the new one while it slid in, then made it vanish at once.
-- Songs without an artist showed "<unknown>": they now read "Unknown artist" in the app's language and come after the named artists.
-- On an album page without a cover, the record behind the sleeve showed through it.
+- A page opened over a tab no longer shows the page below while it slides in.
+- Songs without an artist read "Unknown artist".
+- The record no longer shows through an album's sleeve without a cover.
 
 ## [1.1.1] - 2026-10-31
 
 ### Changed
 
-- What's new shows every release, not only the latest: the installed one first, with its date and how many changes of each kind, then the earlier ones, each opening on tap.
+- What's new lists every release.
 
 ### Fixed
 
-- Home kept its "No music here yet" card after the first scan found songs, until it was refreshed by hand. It now follows scans and playlist changes on its own.
-- Troona could stay on its launch screen, then stop responding, when it was opened after Android had started its playback service on its own (resuming from the system media controls, a headset button).
-- Now Playing: after a swipe to another cover, the title could lag behind the song for a frame.
+- Home follows scans and playlist changes on its own.
+- Troona could hang on launch after Android had started playback by itself.
+- Now Playing's title could lag behind the song for a frame.
 
 ## [1.1.0] - 2026-10-30
 
 ### Added
 
-- Rename a playlist: long press it, then Edit playlist.
-- Android 13 and later: a heart in the system media controls (notification and lock screen) likes or unlikes the current song.
-- Android 11 and later: after Troona is closed, the system media controls offer to resume the last song where it stopped. A headset play button does the same.
-- Backup and restore, in Settings: playlists, likes, listening history and settings go to a file you keep, and come back on this phone or another one. Songs are found again by file, then by title, artist and album; the ones missing are listed, and restoring the same file after adding them links them. Restoring adds to what is there and never doubles anything. Online extras keep this phone's choice.
-- Update check, off by default, in Settings: once a day Troona asks GitHub for its latest version and, when there is a newer one, shows a card on Home with View (opens the release page) and Skip this version. Check for updates now, in Support, works with the switch off. Troona never downloads or installs anything itself.
+- Rename a playlist.
+- Like the song playing from the system media controls (Android 13 and later).
+- Resume the last song from the system media controls after closing Troona (Android 11 and later).
+- Backup and restore of playlists, likes, listening history and settings.
+- An optional daily update check against GitHub releases.
 
 ### Changed
 
-- The Playlists tab follows changes made elsewhere, such as a restored backup, without being reopened.
-- A long press on a playlist opens Edit playlist and Delete, instead of going straight to the delete confirmation.
-- The like heart on Now Playing uses the accent colour, like the liked songs playlist, instead of red.
+- The Playlists tab follows changes made elsewhere, a long press on a playlist offers Edit and Delete, and the like heart uses the accent colour.
 
 ### Removed
 
-- The description field of the playlist editor: it was never saved.
+- The playlist description field, which was never saved.
 
 ### Fixed
 
-- Small and 16:9 screens (360 x 640, Galaxy S7 class) and large fonts: Now Playing shrinks its cover ring instead of pushing the playback controls under the tab bar; the Home resume card, the quick chips, the Library counts, section titles and the album and artist headers grow, wrap or stack instead of being cut; the last items of Playlists, Search and the detail pages scroll clear of the mini player. The tab bar, mini player, Now Playing, its queue and the Library filter follow the font size up to 1.3x, everything else follows it fully.
-- Android: the playback notification shows the Troona note in the status bar instead of a plain disc.
+- Small screens and large fonts: nothing is cut short or hidden under the bars.
+- The playback notification shows Troona's icon.
 
 ## [1.0.0] - 2026-10-30
 
@@ -217,46 +169,37 @@ First public release. Troona plays the music stored on your phone: no account, n
 
 ### Library
 
-- Songs, albums and artists read from the device, with album and artist pages.
-- Search across songs, artists and albums.
-- Scans show their progress live; later scans run silently, keep the library on screen and report songs added or removed.
-- "Lossless" badge when every song of an album is FLAC or WAV.
+- Songs, albums and artists read from the phone, with album and artist pages and search.
+- Scans show their progress, and later ones run in the background.
+- A Lossless badge for albums in FLAC or WAV.
 
 ### Playback
 
-- Background playback with lock screen and notification controls, including the playback speed.
-- Shuffle and repeat (all, one). Every Shuffle button starts on a random song; turning shuffle off brings back the original order.
-- Soft fades: play and resume fade in, pause fades out, a skip fades briefly. Gapless auto-advance.
-- Unplugged headphones and phone calls pause at once.
-- Sleep timer: 15, 30 or 45 minutes, an hour, or the end of the song, with a 30 s fade out.
-- Playback speed from 0.75x to 2x.
-- The queue and position are restored on the next launch.
+- Background playback with lock screen and notification controls.
+- Shuffle, repeat, soft fades and gapless playback.
+- Pauses when headphones are unplugged or a call comes in.
+- Sleep timer and playback speed from 0.75x to 2x.
+- The queue and position come back on the next launch.
 
 ### Now Playing
 
-- Cover carousel under a glass lens, with the elapsed time on a ring you can drag to seek.
-- Background colours taken from the cover.
-- Morphs from and back to the mini player.
-- Queue sheet: what played, what is playing and what comes next in one list. Drag to reorder, swipe to remove, undo for 4 s.
+- A cover carousel under a glass lens, with a ring to seek and colours taken from the cover.
+- A queue sheet to reorder, remove and undo.
 
 ### Playlists and likes
 
-- Create and delete playlists, and reorder their songs.
-- Liked songs gathered in their own playlist.
-- Monthly Replay: on the first launch of a month, last month's 25 most played songs become a playlist.
+- Playlists, liked songs, and a monthly Replay of last month's 25 most played songs.
 
 ### Listening history
 
-- A play counts after 30 s of listening, or half a song shorter than a minute.
-- Home: recently played songs and "Your week in music" (listening time, top artist and top song of last week, and a calendar of this month's listening days).
+- A play counts after 30 s, or half a song shorter than a minute.
+- Home shows recently played songs and your week in music.
 
 ### Settings and privacy
 
-- Optional online extras, both off by default: artist bios (Last.fm) and artist photos (Deezer). Turning photos off deletes the downloaded ones.
-- Glass quality: automatic by device, or high, low and off.
-- Maintenance: clear cached covers, clear online info, report a problem (device info and recent errors, readable before sending).
-- Privacy policy in the app and in [`docs/privacy-policy.md`](docs/privacy-policy.md).
-- "What's new" sheet after updates, also available from Settings.
+- Optional online extras, off by default: artist bios (Last.fm) and photos (Deezer).
+- Glass quality, cache cleanup and problem reports.
+- A privacy policy in the app and in [`docs/privacy-policy.md`](docs/privacy-policy.md), and What's new after updates.
 
 ### Languages and accessibility
 
@@ -265,7 +208,7 @@ First public release. Troona plays the music stored on your phone: no account, n
 
 ### Android
 
-- Reads audio files only, never photos, videos or documents. Notifications carry the playback controls; network access is used by the online extras alone.
+- Reads audio files only. Network access is used by the online extras alone.
 - App backup is off.
 
 [Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.6.0...HEAD
