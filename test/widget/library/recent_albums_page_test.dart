@@ -16,6 +16,7 @@ import 'package:troona/features/library/presentation/pages/recent_albums_page.da
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -44,27 +45,35 @@ Track _song(String id, int album, int day) {
 }
 
 void main() {
-  Future<void> open(WidgetTester tester, List<Track> tracks) async {
+  late LibraryBloc library;
+
+  Future<void> open(
+    WidgetTester tester,
+    List<Track> tracks, {
+    LibraryState? state,
+    GoRouter? router,
+  }) async {
     tester.view
       ..devicePixelRatio = 1
       ..physicalSize = const Size(400, 900);
     addTearDown(tester.view.reset);
     final (:player, port: _) = await testPlayer(addTearDown);
-    final library = LibraryBloc(
+    library = LibraryBloc(
       scanLibrary: ScanLibraryUseCase(_UnusedLibrary()),
       getTracks: GetTracksUseCase(_UnusedLibrary()),
     );
     final albums = LibraryGrouping.albumsOf(tracks);
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     library.emit(
-      LibraryLoaded(
-        allTracks: tracks,
-        allAlbums: albums,
-        allArtists: const [],
-        visibleTracks: tracks,
-        visibleAlbums: albums,
-        visibleArtists: const [],
-      ),
+      state ??
+          LibraryLoaded(
+            allTracks: tracks,
+            allAlbums: albums,
+            allArtists: const [],
+            visibleTracks: tracks,
+            visibleAlbums: albums,
+            visibleArtists: const [],
+          ),
     );
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
@@ -76,16 +85,25 @@ void main() {
           BlocProvider<PlayerBloc>.value(value: player),
           BlocProvider<LibraryBloc>.value(value: library),
         ],
-        child: MaterialApp(
-          theme: AppTheme.dark,
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const RecentAlbumsPage(),
-        ),
+        child: router != null
+            ? MaterialApp.router(
+                theme: AppTheme.dark,
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                routerConfig: router,
+              )
+            : MaterialApp(
+                theme: AppTheme.dark,
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: const RecentAlbumsPage(),
+              ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
   }
 
   List<String> shown(WidgetTester tester) => [
@@ -146,5 +164,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('recent albums'), findsOneWidget);
     expect(router.canPop(), isTrue);
+  });
+
+  testWidgets('the first scan, nothing stored yet: it loads, it does not '
+      'say nothing was added', (tester) async {
+    await open(
+      tester,
+      const [],
+      state: const LibraryScanning(
+        progress: ScanProgress(phase: ScanPhase.scanning, progress: 0),
+      ),
+    );
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Nothing added yet'), findsNothing);
   });
 }

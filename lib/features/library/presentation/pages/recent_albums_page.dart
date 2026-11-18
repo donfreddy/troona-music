@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/services/recently_added.dart';
-import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/card_grid.dart';
+import 'package:troona/features/library/presentation/widgets/library_snapshot_builder.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
@@ -26,14 +25,8 @@ class RecentAlbumsPage extends StatelessWidget {
     final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: BlocBuilder<LibraryBloc, LibraryState>(
-        builder: (context, state) {
-          final loaded = switch (state) {
-            LibraryLoaded() && final state => state,
-            LibraryScanning(:final cached) => cached,
-            LibraryError(:final lastLoaded) => lastLoaded,
-            LibraryInitial() => null,
-          };
+      body: LibrarySnapshotBuilder(
+        builder: (context, loaded, {required loading}) {
           final albums = loaded == null
               ? const <Album>[]
               : RecentlyAdded.albumsOf(
@@ -50,7 +43,14 @@ class RecentAlbumsPage extends StatelessWidget {
                 leading: const AppBackButton(),
                 title: l10n.recentAlbumsTitle,
               ),
-              if (albums.isEmpty)
+              // The first scan has stored nothing yet: Home's row may
+              // already show albums the Library has not read.
+              if (loading)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (albums.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyState(
@@ -75,16 +75,16 @@ class RecentAlbumsPage extends StatelessWidget {
                 SliverPadding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   sliver: SliverGrid.builder(
-                    gridDelegate: CardGrid(
-                      columns: 2,
-                      textHeight: AlbumCard.textHeight(context),
+                      gridDelegate: CardGrid(
+                        columns: 2,
+                        textHeight: AlbumCard.textHeight(context),
+                      ),
+                      itemCount: albums.length,
+                      itemBuilder: (context, i) => AlbumCard(
+                        key: ValueKey('recent-album-${albums[i].id}'),
+                        album: albums[i],
+                      ),
                     ),
-                    itemCount: albums.length,
-                    itemBuilder: (context, i) => AlbumCard(
-                      key: ValueKey('recent-album-${albums[i].id}'),
-                      album: albums[i],
-                    ),
-                  ),
                 ),
               ],
               SliverToBoxAdapter(

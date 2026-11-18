@@ -12,8 +12,10 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/recently_added_page.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
+import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -43,7 +45,11 @@ Track _song(String id, int day) {
 void main() {
   tearDown(getIt.reset);
 
-  Future<FakeAudioPort> open(WidgetTester tester, List<Track> tracks) async {
+  Future<FakeAudioPort> open(
+    WidgetTester tester,
+    List<Track> tracks, {
+    LibraryState? state,
+  }) async {
     tester.view
       ..devicePixelRatio = 1
       ..physicalSize = const Size(400, 900);
@@ -55,14 +61,15 @@ void main() {
     );
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     library.emit(
-      LibraryLoaded(
-        allTracks: tracks,
-        allAlbums: const [],
-        allArtists: const [],
-        visibleTracks: tracks,
-        visibleAlbums: const [],
-        visibleArtists: const [],
-      ),
+      state ??
+          LibraryLoaded(
+            allTracks: tracks,
+            allAlbums: const [],
+            allArtists: const [],
+            visibleTracks: tracks,
+            visibleAlbums: const [],
+            visibleArtists: const [],
+          ),
     );
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
@@ -83,7 +90,8 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
     return port;
   }
 
@@ -128,5 +136,18 @@ void main() {
     await open(tester, const []);
     expect(find.text('Nothing added yet'), findsOneWidget);
     expect(find.byType(TrackListTile), findsNothing);
+  });
+
+  testWidgets('the first scan, nothing stored yet: it loads, as the Library '
+      'does', (tester) async {
+    await open(
+      tester,
+      const [],
+      state: const LibraryScanning(
+        progress: ScanProgress(phase: ScanPhase.scanning, progress: 0),
+      ),
+    );
+    expect(find.byType(TrackShimmer), findsWidgets);
+    expect(find.text('Nothing added yet'), findsNothing);
   });
 }

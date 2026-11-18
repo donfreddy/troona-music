@@ -7,8 +7,9 @@ import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/recently_added.dart';
-import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/presentation/widgets/library_snapshot_builder.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
+import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
@@ -26,14 +27,8 @@ class RecentlyAddedPage extends StatelessWidget {
     final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: BlocBuilder<LibraryBloc, LibraryState>(
-        builder: (context, state) {
-          final loaded = switch (state) {
-            LibraryLoaded() && final state => state,
-            LibraryScanning(:final cached) => cached,
-            LibraryError(:final lastLoaded) => lastLoaded,
-            LibraryInitial() => null,
-          };
+      body: LibrarySnapshotBuilder(
+        builder: (context, loaded, {required loading}) {
           final tracks = loaded == null
               ? const <Track>[]
               : RecentlyAdded.of(loaded.allTracks, limit: RecentlyAdded.limit);
@@ -46,7 +41,14 @@ class RecentlyAddedPage extends StatelessWidget {
                 leading: const AppBackButton(),
                 title: l10n.recentlyAddedTitle,
               ),
-              if (tracks.isEmpty)
+              // The first scan has stored nothing yet, as the Library
+              // shows it.
+              if (loading)
+                SliverList.builder(
+                  itemCount: 20,
+                  itemBuilder: (_, _) => const TrackShimmer(),
+                )
+              else if (tracks.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyState(
