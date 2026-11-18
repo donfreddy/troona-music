@@ -96,8 +96,8 @@ GoRoute _buildArtistSongsRoute() => GoRoute(
   },
 );
 
-/// The songs added last (`/search/recent`), opened from Search's
-/// suggestions.
+/// The songs added last (`recent`), opened from Home's Recently added
+/// chip and Search's suggestions, in their own tab.
 GoRoute _buildRecentlyAddedRoute() => GoRoute(
   path: 'recent',
   builder: (_, _) => _overTab(const RecentlyAddedPage()),
@@ -210,6 +210,7 @@ final appRouter = GoRouter(
                     ),
                   ],
                 ),
+                _buildRecentlyAddedRoute(),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
                 _buildArtistSongsRoute(),
@@ -401,9 +402,10 @@ extension NavigationContextExt on BuildContext {
     push('${tabOf(here)}/artists/$artistId/songs', extra: here);
   }
 
-  /// Pushes the songs added last, in the Search tab, the only one that
-  /// opens them.
-  void pushRecentlyAdded() => push('${AppRoute.search}/recent');
+  /// Pushes the songs added last, in the current tab (Home or Search,
+  /// the two that declare the route).
+  void pushRecentlyAdded() =>
+      push('${tabOf(GoRouterState.of(this).uri.path)}/recent');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

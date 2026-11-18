@@ -24,7 +24,7 @@ void shuffleWholeLibrary(BuildContext context) {
 ///
 /// - **Liked songs**: opens Playlists, with a badge count.
 /// - **Shuffle**: shuffles the entire library.
-/// - **Recently added**: opens the song list sorted by date added.
+/// - **Recently added**: opens the songs added last, in Home.
 class QuickAccessRow extends StatelessWidget {
   final int likesCount;
   final int totalTracks;
@@ -71,12 +71,9 @@ class QuickAccessRow extends StatelessWidget {
           label: context.l10n.homeQuickRecent,
           opacity: opacity,
           onTap: isActive
-              ? () {
-                  context.read<LibraryBloc>()
-                    ..add(const LibraryFilterChanged(LibraryFilter.tracks))
-                    ..add(const LibrarySortChanged(LibrarySort.dateAdded));
-                  context.go(AppRoute.library);
-                }
+              // Its own page, in Home: the Library keeps the sort the
+              // user picked there.
+              ? context.pushRecentlyAdded
               : null,
         ),
       ),
