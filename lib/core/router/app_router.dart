@@ -15,6 +15,9 @@ import 'package:troona/features/library/presentation/bloc/artist_detail/artist_d
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
+import 'package:troona/features/library/presentation/pages/artist_songs_page.dart';
+import 'package:troona/features/library/presentation/pages/recent_albums_page.dart';
+import 'package:troona/features/library/presentation/pages/recently_added_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
@@ -78,6 +81,35 @@ GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
       child: ArtistDetailPage(id: id.toString()),
     );
   },
+);
+
+/// Every song of an artist (`artists/:id/songs`), beside their page rather
+/// than under it: pushed, a nested route would bring a second copy of the
+/// artist page along.
+GoRoute _buildArtistSongsRoute() => GoRoute(
+  path: 'artists/:id/songs',
+  builder: (context, state) {
+    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+    return BlocProvider(
+      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+      child: _overTab(ArtistSongsPage(id: id)),
+    );
+  },
+);
+
+/// The songs added last (`recent`), opened from Home's Recently added
+/// chip and Search's suggestions, in their own tab.
+GoRoute _buildRecentlyAddedRoute() => GoRoute(
+  path: 'recent',
+  builder: (_, _) => _overTab(const RecentlyAddedPage()),
+);
+
+/// The albums added last (`/home/recent/albums`), opened from Home's
+/// Recently added row. A sibling of `recent`, not nested, or the pushed
+/// page would bring the songs' page under it.
+GoRoute _buildRecentAlbumsRoute() => GoRoute(
+  path: 'recent/albums',
+  builder: (_, _) => _overTab(const RecentAlbumsPage()),
 );
 
 /// go_router's indexed stack of tabs, with heroes off in the tabs not shown.
@@ -187,8 +219,11 @@ final appRouter = GoRouter(
                     ),
                   ],
                 ),
+                _buildRecentlyAddedRoute(),
+                _buildRecentAlbumsRoute(),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -204,6 +239,7 @@ final appRouter = GoRouter(
               routes: [
                 _buildAlbumDetailRoute(name: AppRoute.albumDetail),
                 _buildArtistDetailRoute(name: AppRoute.artistDetail),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -221,7 +257,12 @@ final appRouter = GoRouter(
                   child: SearchPage(),
                 ),
               ),
-              routes: [_buildAlbumDetailRoute(), _buildArtistDetailRoute()],
+              routes: [
+                _buildRecentlyAddedRoute(),
+                _buildAlbumDetailRoute(),
+                _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
+              ],
             ),
           ],
         ),
@@ -255,6 +296,7 @@ final appRouter = GoRouter(
                 ),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -290,6 +332,53 @@ final appRouter = GoRouter(
   ],
 );
 
+/// The tab a location belongs to, as its root path.
+String tabOf(String location) => switch (location) {
+  _ when location.startsWith(AppRoute.home) => AppRoute.home,
+  _ when location.startsWith(AppRoute.search) => AppRoute.search,
+  _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
+  _ => AppRoute.library,
+};
+
+/// Pushes an album or artist page ([section] `albums` or `artists`) in the
+/// tab shown, from where no page context says which (a sheet, Now Playing
+/// once closed), handing it the page shown as the one it was opened from.
+/// The page already shown stays as it is, and the page it was opened from
+/// is gone back to, as [NavigationContextExt.pushAlbum] does.
+void pushDetailInTab(GoRouter router, String section, String id) {
+  final (path: here, :extra) = shownPage(router);
+  final target = '${tabOf(here)}/$section/$id';
+  if (target == here) return;
+  if (extra == target && router.canPop()) {
+    router.pop();
+    return;
+  }
+  router.push(target, extra: here);
+}
+
+/// The page shown in the tabs, Now Playing left out: its location and the
+/// `extra` it was opened with. The router's own location keeps the last
+/// `go` (a tab root): pages pushed since are matches of their own, the last
+/// one on top, inside the tabs' shell for the pages of a tab.
+@visibleForTesting
+({String path, Object? extra}) shownPage(GoRouter router) {
+  ({String path, Object? extra})? pushed(List<RouteMatchBase> matches) {
+    for (final match in matches.reversed) {
+      if (match is ShellRouteMatch) {
+        final inside = pushed(match.matches);
+        if (inside != null) return inside;
+      } else if (match is ImperativeRouteMatch &&
+          match.matches.uri.path != AppRoute.player) {
+        return (path: match.matches.uri.path, extra: match.matches.extra);
+      }
+    }
+    return null;
+  }
+
+  final config = router.routerDelegate.currentConfiguration;
+  return pushed(config.matches) ?? (path: config.uri.path, extra: null);
+}
+
 extension NavigationContextExt on BuildContext {
   void pushAlbum(String albumId) => _pushDetail('albums', albumId);
 
@@ -306,7 +395,7 @@ extension NavigationContextExt on BuildContext {
   void _pushDetail(String section, String id) {
     final state = GoRouterState.of(this);
     final here = state.uri.path;
-    final target = '${_tabOf(here)}/$section/$id';
+    final target = '${tabOf(here)}/$section/$id';
     if (state.extra case final String openedFrom
         when openedFrom == target && canPop()) {
       pop();
@@ -315,12 +404,21 @@ extension NavigationContextExt on BuildContext {
     push(target, extra: here);
   }
 
-  static String _tabOf(String location) => switch (location) {
-    _ when location.startsWith(AppRoute.home) => AppRoute.home,
-    _ when location.startsWith(AppRoute.search) => AppRoute.search,
-    _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
-    _ => AppRoute.library,
-  };
+  /// Pushes every song of an artist, in the current tab, handed the page
+  /// it was opened from (their page): opening that artist again from the
+  /// songs goes back to it instead of piling up a copy.
+  void pushArtistSongs(String artistId) {
+    final here = GoRouterState.of(this).uri.path;
+    push('${tabOf(here)}/artists/$artistId/songs', extra: here);
+  }
+
+  /// Pushes the songs added last, in the current tab (Home or Search,
+  /// the two that declare the route).
+  void pushRecentlyAdded() =>
+      push('${tabOf(GoRouterState.of(this).uri.path)}/recent');
+
+  /// Pushes the albums added last, in Home, the only tab that opens them.
+  void pushRecentAlbums() => push('${AppRoute.home}/recent/albums');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

@@ -49,6 +49,31 @@ void main() {
       _t('2', ['Sarz', 'BNXN']),
     ]).single;
     expect(album.artist, 'BNXN, Sarz');
+    // Each with their own page, in the first song's order.
+    expect(album.credits, [_c('BNXN'), _c('Sarz')]);
+  });
+
+  test('a comma in one name stays one credit', () {
+    final tyler = ArtistCredit(
+      id: TrackTags.artistIdFor('Tyler, The Creator'),
+      name: 'Tyler, The Creator',
+    );
+    Track song(String id) => Track(
+      id: id,
+      title: id,
+      artist: tyler.name,
+      artistId: tyler.id,
+      credits: [tyler],
+      album: 'Igor',
+      albumId: 1,
+      path: '/$id.mp3',
+      uri: '',
+      size: 0,
+      durationMs: 0,
+      fileName: '$id.mp3',
+    );
+    final album = LibraryGrouping.albumsOf([song('1'), song('2')]).single;
+    expect(album.credits, [tyler]);
   });
 
   test("an album's year is the first one its songs have", () {
@@ -68,6 +93,7 @@ void main() {
       _t('2', ['Drake']),
     ]).single;
     expect(album.artist, TrackTags.unknownArtist);
+    expect(album.credits, isEmpty);
   });
 
   test('artists: each one credited first is listed, guests only on '
@@ -144,6 +170,15 @@ void main() {
       final albums = LibraryGrouping.albumsOfArtist(khaid, [
         _t('1', ['Khaid'], album: 'Emotions', title: 'a', year: 2023),
         _t('2', ['Khaid'], albumId: 2, album: 'Anabella', year: 2024),
+        _t('5', ['Khaid'], albumId: 5, album: 'Early', title: 'e', year: 2019),
+        _t(
+          '6',
+          ['Khaid'],
+          albumId: 6,
+          album: 'Earlier',
+          title: 'f',
+          year: 2018,
+        ),
         // Someone else's album, newer still: not theirs.
         _t('3', ['Mata', 'Khaid'], albumId: 3, album: '2039', year: 2025),
         _t('4', ['Mata'], albumId: 3, album: '2039', year: 2025),
@@ -151,17 +186,25 @@ void main() {
       expect(albums.latest?.name, 'Anabella');
     });
 
-    test('no latest release without a year, nor with one release only', () {
+    test('no latest release without a year, nor under four releases', () {
       final undated = LibraryGrouping.albumsOfArtist(khaid, [
-        _t('1', ['Khaid'], album: 'A', title: 'a'),
-        _t('2', ['Khaid'], albumId: 2, album: 'B', title: 'b'),
+        for (var i = 1; i <= 4; i++)
+          _t('$i', ['Khaid'], albumId: i, album: 'A$i', title: 't$i'),
       ]);
       expect(undated.latest, isNull);
 
-      final one = LibraryGrouping.albumsOfArtist(khaid, [
-        _t('1', ['Khaid'], album: 'A', title: 'a', year: 2024),
+      final three = LibraryGrouping.albumsOfArtist(khaid, [
+        for (var i = 1; i <= 3; i++)
+          _t(
+            '$i',
+            ['Khaid'],
+            albumId: i,
+            album: 'A$i',
+            title: 't$i',
+            year: 2020 + i,
+          ),
       ]);
-      expect(one.latest, isNull, reason: 'its card is right below');
+      expect(three.latest, isNull, reason: 'its cover is right below');
     });
   });
 
@@ -211,5 +254,26 @@ void main() {
       tracks,
     ).firstWhere((a) => a.name == 'Khaid');
     expect((listed.albumCount, listed.singleCount), (2, 1));
+  });
+
+  test("an artist's name and cover do not hang on the order of their "
+      'songs: the Library and their page show the same artist', () {
+    // The same songs, as the Library reads them and as the artist page
+    // does (by album and track): the name and cover of the song added
+    // first (the lowest id).
+    final songs = [
+      _t('30', ['KHAID'], albumId: 2)..artworkPath = '/covers/b.jpg',
+      _t('12', ['Khaid'])..artworkPath = '/covers/a.jpg',
+      // Added first: '7' comes before '12' by number, not by text.
+      _t('7', ['Khaid'])..artworkPath = '/covers/c.jpg',
+    ];
+    final id = TrackTags.artistIdFor('Khaid');
+    for (final order in [songs, songs.reversed.toList()]) {
+      final listed = LibraryGrouping.artistsOf(order).single;
+      final page = LibraryGrouping.artistOf(id, order)!;
+      for (final artist in [listed, page]) {
+        expect((artist.name, artist.artworkPath), ('Khaid', '/covers/c.jpg'));
+      }
+    }
   });
 }

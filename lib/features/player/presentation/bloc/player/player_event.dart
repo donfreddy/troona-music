@@ -106,6 +106,28 @@ sealed class QueueEditEvent extends PlayerEvent {
   const QueueEditEvent();
 }
 
+/// Songs queued by hand in one action (an album's or an artist's Play next
+/// or Add to queue): right after the current song, in their order ([next]),
+/// or at the end. With nothing loaded they play instead, from the first,
+/// as songs of [origin].
+final class TracksQueued extends QueueEditEvent {
+  final List<Track> tracks;
+  final bool next;
+  final QueueOrigin? origin;
+
+  /// Runs once the songs are in the queue: not when the player refuses
+  /// them, nor when they play instead (nothing loaded), nor when another
+  /// queue replaced this one meanwhile. Where an action says it queued.
+  final void Function()? onQueued;
+
+  const TracksQueued(
+    this.tracks, {
+    required this.next,
+    this.origin,
+    this.onQueued,
+  });
+}
+
 final class TrackAddedToQueue extends QueueEditEvent {
   final Track track;
 
@@ -117,7 +139,17 @@ final class TrackAddedToQueue extends QueueEditEvent {
   /// otherwise queue the track twice.
   final TrackRemovedFromQueue? undoing;
 
-  const TrackAddedToQueue(this.track, {this.index, this.undoing});
+  /// Runs once the songs are in the queue: not when the player refuses
+  /// them, nor when they play instead (nothing loaded), nor when another
+  /// queue replaced this one meanwhile. Where an action says it queued.
+  final void Function()? onQueued;
+
+  const TrackAddedToQueue(
+    this.track, {
+    this.index,
+    this.undoing,
+    this.onQueued,
+  });
 }
 
 /// Edits address tracks by index, computed on the queue the UI shows. When
@@ -180,5 +212,11 @@ final class _AudioErrorOccurred extends PlayerEvent {
 
 final class TrackQueuedNext extends QueueEditEvent {
   final Track track;
-  const TrackQueuedNext(this.track);
+
+  /// Runs once the songs are in the queue: not when the player refuses
+  /// them, nor when they play instead (nothing loaded), nor when another
+  /// queue replaced this one meanwhile. Where an action says it queued.
+  final void Function()? onQueued;
+
+  const TrackQueuedNext(this.track, {this.onQueued});
 }

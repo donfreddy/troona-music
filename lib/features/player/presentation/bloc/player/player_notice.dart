@@ -22,3 +22,14 @@ final class TrackUnplayable extends PlayerNotice {
 final class QueueReplaced extends PlayerNotice {
   const QueueReplaced();
 }
+
+/// [count] songs joined the queue by hand in one action (Play next, Add to
+/// queue). The mini player acknowledges them; the action that queued them
+/// already says so in a toast.
+final class TrackQueued extends PlayerNotice {
+  final int count;
+  const TrackQueued([this.count = 1]);
+
+  @override
+  List<Object?> get props => [count];
+}

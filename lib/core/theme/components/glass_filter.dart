@@ -10,27 +10,34 @@ abstract final class GlassFilter {
   static const saturation = 1.6;
 
   /// Blur of [sigma]; [saturation] defaults to the chrome boost, and 1
-  /// keeps colours as they are.
+  /// keeps colours as they are. [exposure] scales what the glass lets
+  /// through: 1 leaves it, 0.5 halves it, so a white cover under the glass
+  /// cannot wash out white text on it (black stays black).
   static ImageFilter of(
     double sigma, {
     double saturation = GlassFilter.saturation,
+    double exposure = 1,
   }) => ImageFilter.compose(
     outer: ImageFilter.blur(
       sigmaX: sigma,
       sigmaY: sigma,
       tileMode: TileMode.clamp,
     ),
-    inner: ColorFilter.matrix(saturationMatrix(saturation)),
+    inner: ColorFilter.matrix(materialMatrix(saturation, exposure)),
   );
 
   /// Colour matrix scaling saturation by [s] around the luminance axis.
-  static List<double> saturationMatrix(double s) {
+  static List<double> saturationMatrix(double s) => materialMatrix(s, 1);
+
+  /// Colour matrix scaling saturation by [s] around the luminance axis,
+  /// then brightness by [e]. One matrix: still one pass under the blur.
+  static List<double> materialMatrix(double s, double e) {
     const r = 0.2126, g = 0.7152, b = 0.0722;
     final i = 1 - s;
     return [
-      r * i + s, g * i, b * i, 0, 0, //
-      r * i, g * i + s, b * i, 0, 0, //
-      r * i, g * i, b * i + s, 0, 0, //
+      (r * i + s) * e, g * i * e, b * i * e, 0, 0, //
+      r * i * e, (g * i + s) * e, b * i * e, 0, 0, //
+      r * i * e, g * i * e, (b * i + s) * e, 0, 0, //
       0, 0, 0, 1, 0, //
     ];
   }

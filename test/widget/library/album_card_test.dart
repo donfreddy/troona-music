@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
+import '../../helpers/fake_player.dart';
+
 void main() {
-  Future<void> pump(WidgetTester tester, AlbumCard card) => tester.pumpWidget(
-    MaterialApp(
-      theme: AppTheme.dark,
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: Center(child: card)),
-    ),
-  );
+  Future<void> pump(WidgetTester tester, AlbumCard card) async {
+    final (:player, port: _) = await testPlayer(addTearDown);
+    await tester.pumpWidget(
+      BlocProvider<PlayerBloc>.value(
+        value: player,
+        child: MaterialApp(
+          theme: AppTheme.dark,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: Center(child: card)),
+        ),
+      ),
+    );
+  }
 
   const album = Album(
     id: '1',

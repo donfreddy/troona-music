@@ -65,19 +65,17 @@ abstract final class LibraryGrouping {
   /// opens from search.
   static List<Artist> artistsOf(List<Track> tracks, {bool guests = false}) {
     final owned = _ownedCounts(tracks);
-    final names = <int, String>{};
     final songs = <int, List<Track>>{};
     final leads = <int>{};
     for (final t in tracks) {
       leads.add(t.credits.first.id);
       for (final credit in t.credits) {
-        names.putIfAbsent(credit.id, () => credit.name);
         songs.putIfAbsent(credit.id, () => []).add(t);
       }
     }
     return [
       for (final MapEntry(key: id, value: group) in songs.entries)
-        if (guests || leads.contains(id)) _artist(id, names[id]!, group, owned),
+        if (guests || leads.contains(id)) _artist(id, group, owned),
     ];
   }
 
@@ -90,8 +88,7 @@ abstract final class LibraryGrouping {
         if (_credits(t, artistId)) t,
     ];
     if (group.isEmpty) return null;
-    final name = group.first.credits.firstWhere((c) => c.id == artistId).name;
-    return _artist(artistId, name, group, _ownedCounts(tracks));
+    return _artist(artistId, group, _ownedCounts(tracks));
   }
 
   /// How many albums and singles of [tracks] each artist owns: they are
@@ -114,23 +111,23 @@ abstract final class LibraryGrouping {
     return (albums: albums, singles: singles);
   }
 
-  /// The artist line to show under [track] on the page of an album by
-  /// [albumArtist], or null when the album's artist says it all.
+  /// The artist line to show under [track] on the page of [album], or
+  /// null when the album's artists say it all.
   ///
   /// A compilation names every song's artist. On an artist's album, a song
   /// with guests names them, unless its title already does: downloaded
-  /// songs read "Feeling Myself (feat. Beyoncé)".
-  static String? creditLine(Track track, String albumArtist) {
-    if (TrackTags.isUnknownArtist(albumArtist)) {
+  /// songs read "Feeling Myself (feat. Beyoncé)". Artists are told apart by
+  /// their credits, never by splitting names on commas: "Tyler, The
+  /// Creator" is one.
+  static String? creditLine(Track track, Album album) {
+    final owners = {for (final c in album.credits) c.id};
+    if (owners.isEmpty) {
       return TrackTags.isUnknownArtist(track.artist) ? null : track.artist;
     }
-    final owners = {
-      for (final name in albumArtist.split(', ')) name.toLowerCase(),
-    };
     final title = track.title.toLowerCase();
     final unnamed = track.credits.where(
       (c) =>
-          !owners.contains(c.name.toLowerCase()) &&
+          !owners.contains(c.id) &&
           !TrackTags.isUnknownArtist(c.name) &&
           !title.contains(c.name.toLowerCase()),
     );
@@ -150,6 +147,7 @@ abstract final class LibraryGrouping {
       artworkPath: _firstArtwork(group),
       isSingle: _isSingle(group),
       year: _yearOf(group),
+      credits: artists,
     );
   }
 
@@ -178,18 +176,26 @@ abstract final class LibraryGrouping {
     [for (final t in group) t.title],
   );
 
+  /// An artist from their songs. Their name and cover come from their
+  /// song added first to the phone, whatever order [group] is in: the
+  /// Library reads every song, an artist's page their albums sorted by
+  /// track, and both show the same artist.
   static Artist _artist(
     int id,
-    String name,
     List<Track> group,
     ({Map<int, int> albums, Map<int, int> singles}) owned,
   ) => Artist(
     id: id.toString(),
-    name: TrackTags.artist(name),
+    name: TrackTags.artist(
+      _earliestOrNull(group)!.credits.firstWhere((c) => c.id == id).name,
+    ),
     albumCount: owned.albums[id] ?? 0,
     singleCount: owned.singles[id] ?? 0,
     trackCount: group.length,
-    artworkPath: _firstArtwork(group),
+    artworkPath: _earliestOrNull([
+      for (final t in group)
+        if (t.artworkPath != null) t,
+    ])?.artworkPath,
   );
 
   /// The artists credited on every song of [group], in the first song's
@@ -222,6 +228,21 @@ abstract final class LibraryGrouping {
 
   static bool _credits(Track t, int artistId) =>
       t.credits.any((c) => c.id == artistId);
+
+  /// The song of [group] added first to the phone (the lowest MediaStore
+  /// id), the same in any order; null for an empty group.
+  static Track? _earliestOrNull(List<Track> group) {
+    Track? earliest;
+    for (final t in group) {
+      if (earliest == null || _compareIds(t, earliest) < 0) earliest = t;
+    }
+    return earliest;
+  }
+
+  static int _compareIds(Track a, Track b) {
+    final (x, y) = (int.tryParse(a.id), int.tryParse(b.id));
+    return x != null && y != null ? x.compareTo(y) : a.id.compareTo(b.id);
+  }
 
   /// The first cover found in the group: the first track may have none.
   static String? _firstArtwork(List<Track> group) {

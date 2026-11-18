@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
@@ -12,6 +14,9 @@ import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
+import 'package:troona/features/library/domain/services/recently_added.dart';
 
 TrackModel _model(String id) => TrackModel()
   ..deviceId = id
@@ -56,10 +61,13 @@ final class _Library implements IsarLibraryDataSource {
     for (final id in library.take(limit)) _model(id),
   ];
 
+  /// Every song, in the database's order (the Library's too).
+  List<TrackModel> all = [];
+
   @override
-  Future<List<TrackModel>> getAllTracks() async => [];
+  Future<List<TrackModel>> getAllTracks() async => all;
   @override
-  Future<List<PlaylistModel>> getPlaylists({int? limit}) async => [];
+  Future<List<PlaylistModel>> getPlaylists() async => [];
   @override
   Future<Set<String>> getLikedTrackIds() async => const {};
 
@@ -96,8 +104,30 @@ final class _History implements PlayHistoryRepository {
     int limit = 5,
   }) async => right([]);
 
+  /// Plays of the span asked for, and the spans asked.
+  int weekPlays = 0;
+
+  /// The daily totals cannot be read.
+  bool statsFail = false;
+  final spans = <(int, int)>[];
+
   @override
-  Future<Either<Failure, int>> totalPlays({int days = 7}) async => right(0);
+  Future<Either<Failure, ListeningStats>> listeningStats({
+    required int firstDay,
+    required int lastDay,
+  }) async {
+    spans.add((firstDay, lastDay));
+    if (statsFail) return left(const DatabaseFailure());
+    return right(
+      ListeningStats(
+        plays: weekPlays,
+        listened: Duration.zero,
+        trackPlays: const {},
+        discoveries: 0,
+        historyStart: null,
+      ),
+    );
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -155,6 +185,141 @@ void main() {
       ['p1', 'p2', 'p3', 'p4'],
     );
   });
+
+  test("the week's plays are this calendar week's, Monday to today", () async {
+    final history = _History(const [])..weekPlays = 13;
+    final repo = HomeRepositoryImpl(db: _Library(library), history: history);
+    final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+    final today = ListeningDay.of(DateTime.now());
+    expect(feed.weeklyPlayCount, 13);
+    expect(history.spans, [(ListeningDay.weekStart(today), today)]);
+  });
+
+  test("a week's count that cannot be read is unknown, not none", () async {
+    final history = _History(const [])..statsFail = true;
+    final repo = HomeRepositoryImpl(db: _Library(library), history: history);
+    final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+    expect(feed.weeklyPlayCount, isNull);
+    expect(feed.recentlyPlayed, isNotEmpty, reason: 'the rest of Home stays');
+  });
+
+  group('new albums', () {
+    /// Song [id] of album [album], added to the phone on [day], indexed by
+    /// the app on [indexed].
+    TrackModel song(String id, int album, int day, {int indexed = 1}) =>
+        _model(id)
+          ..album = 'Album $album'
+          ..albumId = album
+          ..artworkPath = '/covers/$id.jpg'
+          ..dateAdded = DateTime(2026, 1, day)
+          ..indexedAt = DateTime(2026, 2, indexed);
+
+    Future<List<Album>> newAlbums(List<TrackModel> all) async {
+      final repo = HomeRepositoryImpl(
+        db: _Library(const [])..all = all,
+        history: _History(const []),
+      );
+      final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+      return feed.newAlbums;
+    }
+
+    test('by the date songs were added to the phone, not when the app '
+        'indexed them: the start of Recent albums', () async {
+      final all = [
+        song('a', 1, 1, indexed: 9),
+        song('b', 2, 8),
+        song('c', 3, 4),
+        // Album 3 got a song after album 2's.
+        song('d', 3, 9),
+      ];
+      final albums = await newAlbums(all);
+      expect([for (final a in albums) a.id], ['3', '2', '1']);
+      // As the page reads them, from the library's songs and albums.
+      final library = [for (final t in all) t.toEntity()];
+      Object card(Album a) => (a.id, a.name, a.artworkPath, a.trackCount);
+      expect(
+        albums.map(card),
+        RecentlyAdded.albumsOf(
+          library,
+          LibraryGrouping.albumsOf(library),
+        ).map(card),
+      );
+    });
+
+    test("an album's card is the Library's: its first song's cover, not "
+        "its newest's", () async {
+      final albums = await newAlbums([song('c', 3, 4), song('d', 3, 9)]);
+      expect(albums.single.artworkPath, '/covers/c.jpg');
+    });
+
+    test('five at most', () async {
+      final albums = await newAlbums([
+        for (var i = 1; i <= 8; i++) song('s$i', i, i),
+      ]);
+      expect([for (final a in albums) a.id], ['8', '7', '6', '5', '4']);
+    });
+  });
+
+  test('a reload that fails keeps the feed on screen', () async {
+    final history = _History(['p1']);
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: _Library(library), history: history),
+    );
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
+    addTearDown(bloc.close);
+    await pumpEventQueue();
+    final loaded = bloc.state;
+    expect(loaded, isA<HomeLoaded>());
+
+    repo.fail = true;
+    bloc.add(const HomeRefreshRequested());
+    await pumpEventQueue();
+    expect(repo.feeds, 2);
+    expect(bloc.state, same(loaded));
+  });
+
+  test('a first load that fails shows the error', () async {
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: _Library(library), history: _History(const [])),
+    )..fail = true;
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
+    addTearDown(bloc.close);
+    await pumpEventQueue();
+    expect(bloc.state, isA<HomeError>());
+  });
+
+  test(
+    'coming back on another day reloads the feed, the same day not',
+    () async {
+      var now = DateTime(2026, 11, 22, 23, 50); // A Sunday night.
+      final repo = _CountingRepository(
+        HomeRepositoryImpl(db: _Library(library), history: _History(const [])),
+      );
+      final bloc = HomeBloc(
+        repo: repo,
+        refreshDelay: Duration.zero,
+        now: () => now,
+      )..add(const HomeFeedRequested());
+      addTearDown(bloc.close);
+      await pumpEventQueue();
+      expect(repo.feeds, 1);
+
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 1);
+
+      now = DateTime(2026, 11, 23, 8); // Monday: a new week.
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 2);
+
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 2);
+    },
+  );
 
   test('the home feed reloads when a play is recorded', () async {
     final history = _History(['p1']);
@@ -241,6 +406,9 @@ final class _CountingRepository implements HomeRepository {
   final HomeRepository _inner;
   int feeds = 0;
 
+  /// The next loads fail.
+  bool fail = false;
+
   /// Songs in the library, as the next load counts them.
   int tracks = 0;
 
@@ -248,8 +416,9 @@ final class _CountingRepository implements HomeRepository {
   Stream<void> get feedChanges => _inner.feedChanges;
 
   @override
-  Future<Either<Failure, HomeFeed>> getFeed() {
+  Future<Either<Failure, HomeFeed>> getFeed() async {
     feeds++;
+    if (fail) return left(const DatabaseFailure());
     return _inner.getFeed();
   }
 

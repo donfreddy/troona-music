@@ -44,4 +44,20 @@ void main() {
     final (r, g, b) = _apply(GlassFilter.saturationMatrix(1), color);
     expect((r, g, b), (0x33.toDouble(), 0x66.toDouble(), 0x99.toDouble()));
   });
+
+  test('an exposure of 1 is the saturation matrix alone', () {
+    expect(
+      GlassFilter.materialMatrix(1.25, 1),
+      GlassFilter.saturationMatrix(1.25),
+    );
+  });
+
+  test('an exposure of 0.5 halves white and keeps black', () {
+    final half = GlassFilter.materialMatrix(1.25, 0.5);
+    final (r, g, b) = _apply(half, const Color(0xFFFFFFFF));
+    for (final c in [r, g, b]) {
+      expect(c, closeTo(127.5, 1e-9));
+    }
+    expect(_apply(half, const Color(0xFF000000)), (0.0, 0.0, 0.0));
+  });
 }

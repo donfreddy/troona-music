@@ -1,9 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 
 const Duration kTrackTitleSwapDuration = Duration(milliseconds: 280);
@@ -34,11 +37,16 @@ class TrackTitleSwitcher extends StatefulWidget {
   final int? index;
   final int queueLength;
 
+  /// Runs on a tap on the artist's name: a link to their page. Not for a
+  /// song without an artist.
+  final ValueChanged<Track>? onArtistTap;
+
   const TrackTitleSwitcher({
     super.key,
     required this.track,
     required this.index,
     required this.queueLength,
+    this.onArtistTap,
   });
 
   @override
@@ -106,9 +114,21 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
           child: AnimatedSwitcher(
             duration: kTrackTitleSwapDuration,
             transitionBuilder: _transition,
+            // A leaving title takes no tap: it would open the previous
+            // song's artist. Each title keeps one wrapper, keyed like it,
+            // so turning from current to leaving does not rebuild it.
             layoutBuilder: (current, previous) => Stack(
               alignment: Alignment.centerLeft,
-              children: [...previous, ?current],
+              children: [
+                for (final title in previous)
+                  IgnorePointer(key: title.key, child: title),
+                if (current != null)
+                  IgnorePointer(
+                    key: current.key,
+                    ignoring: false,
+                    child: current,
+                  ),
+              ],
             ),
             child: Column(
               key: ValueKey(_swap),
@@ -121,14 +141,7 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  track == null ? '' : context.artistName(track.artist),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.nowPlayingArtist.copyWith(
-                    color: Colors.white70,
-                  ),
-                ),
+                _ArtistLink(track: track, onTap: widget.onArtistTap),
               ],
             ),
           ),
@@ -158,6 +171,70 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
           child: content,
         );
       },
+    );
+  }
+}
+
+/// The artist's name under the title, a link to their page: it dims while
+/// pressed. A song without an artist names nobody to open.
+class _ArtistLink extends StatefulWidget {
+  final Track? track;
+  final ValueChanged<Track>? onTap;
+
+  const _ArtistLink({required this.track, required this.onTap});
+
+  @override
+  State<_ArtistLink> createState() => _ArtistLinkState();
+}
+
+class _ArtistLinkState extends State<_ArtistLink> {
+  bool _pressed = false;
+
+  void _press(bool pressed) {
+    if (pressed != _pressed) setState(() => _pressed = pressed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final track = widget.track;
+    final text = Text(
+      track == null ? '' : context.artistName(track.artist),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTypography.nowPlayingArtist.copyWith(color: Colors.white70),
+    );
+    final onTap = widget.onTap;
+    if (onTap == null) return text;
+    // The whole width of the line, and 44 dp tall, the touch target: the
+    // name stays right under the title, the rest of the target below it.
+    // As tall without a link, or the stage below would resize between
+    // songs.
+    final line = ConstrainedBox(
+      key: const ValueKey('nowPlayingArtistLink'),
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        minHeight: AppButton.minTouchTarget,
+      ),
+      child: Align(alignment: AlignmentDirectional.topStart, child: text),
+    );
+    if (track == null || TrackTags.isUnknownArtist(track.artist)) return line;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _press(true),
+        onTapUp: (_) => _press(false),
+        onTapCancel: () => _press(false),
+        onTap: () {
+          AppHaptics.lightImpact();
+          onTap(track);
+        },
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.5 : 1,
+          duration: const Duration(milliseconds: 100),
+          child: line,
+        ),
+      ),
     );
   }
 }

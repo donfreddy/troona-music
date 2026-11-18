@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/queue_swipe.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
@@ -48,9 +48,23 @@ class AlbumTrackListTile extends StatefulWidget {
 class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
   bool _pressed = false;
 
+  /// A like from this row's menu pops a heart on it.
+  final _burst = LikeBurstController();
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
+  }
+
+  // The menu ticks as it opens.
   void _showContextMenu(BuildContext context) {
-    AppHaptics.lightImpact();
-    showTrackActions(context, widget.track, origin: TrackActionOrigin.album);
+    showTrackActions(
+      context,
+      widget.track,
+      origin: TrackActionOrigin.album,
+      onLikeToggled: (liked) => _burst.play(liked: liked),
+    );
   }
 
   @override
@@ -75,110 +89,127 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
 
     return QueueSwipe(
       track: widget.track,
-      child: InkWell(
-        // The player ticks when the song starts.
-        onTap: widget.onTap,
-        onHighlightChanged: (value) => setState(() => _pressed = value),
-        onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
-        highlightColor: colors.glassHighlight,
-        splashColor: colors.glassHighlight,
-        child: AnimatedScale(
-          scale: _pressed ? 0.98 : 1.0,
-          duration: const Duration(milliseconds: 120),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                // ── Track number or animated MiniEqualizer ─────────────────────
-                SizedBox.square(
-                  dimension: 32,
-                  child: Center(
-                    child: isActive
-                        ? MiniEqualizer(
-                            isPlaying: isPlaying,
-                            color: colors.accent,
-                            size: 14,
-                          )
-                        : Text(
-                            trackNumStr,
-                            style: TextStyle(
-                              color: colors.labelTertiary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
-                          ),
-                  ),
-                ),
-
-                const SizedBox(width: AppSpacing.sm),
-
-                // ── Track Title ───────────────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+      // Its ink on a Material of its own: album and artist pages paint
+      // their background over the Scaffold's, which would hide it.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          // The player ticks when the song starts.
+          onTap: widget.onTap,
+          onHighlightChanged: (value) => setState(() => _pressed = value),
+          onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
+          // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
+          // played song ticks in the player. The system's long-press buzz would
+          // be a second one.
+          enableFeedback: false,
+          highlightColor: colors.glassHighlight,
+          splashColor: colors.glassHighlight,
+          child: AnimatedScale(
+            scale: _pressed ? 0.98 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  // ── Track number or animated MiniEqualizer ─────────────────────
+                  Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Text(
-                        widget.track.title,
-                        style: TextStyle(
-                          color: isActive ? colors.accent : colors.labelPrimary,
-                          fontSize: 15,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          letterSpacing: -0.2,
+                      SizedBox.square(
+                        dimension: 32,
+                        child: Center(
+                          child: isActive
+                              ? MiniEqualizer(
+                                  isPlaying: isPlaying,
+                                  color: colors.accent,
+                                  size: 14,
+                                )
+                              : Text(
+                                  trackNumStr,
+                                  style: TextStyle(
+                                    color: colors.labelTertiary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (widget.subtitle case final subtitle?)
+                      Positioned.fill(child: LikeBurst(controller: _burst)),
+                    ],
+                  ),
+
+                  const SizedBox(width: AppSpacing.sm),
+
+                  // ── Track Title ───────────────────────────────────────────────
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          subtitle,
+                          widget.track.title,
                           style: TextStyle(
-                            color: colors.labelSecondary,
-                            fontSize: 13,
+                            color: isActive
+                                ? colors.accent
+                                : colors.labelPrimary,
+                            fontSize: 15,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            letterSpacing: -0.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        if (widget.subtitle case final subtitle?)
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: colors.labelSecondary,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── Track Duration (mm:ss) ────────────────────────────────────
-                Text(
-                  durationStr,
-                  style: TextStyle(
-                    color: isActive
-                        ? colors.accent.withValues(alpha: 0.8)
-                        : colors.labelTertiary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                  // ── Track Duration (mm:ss) ────────────────────────────────────
+                  Text(
+                    durationStr,
+                    style: TextStyle(
+                      color: isActive
+                          ? colors.accent.withValues(alpha: 0.8)
+                          : colors.labelSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── More options button ───────────────────────────────────────
-                AppIconButton(
-                  icon: AppIcons.more,
-                  tooltip: context.l10n.detailMore,
-                  size: 18,
-                  color: context.colors.labelTertiary,
-                  onPressed: () => _showContextMenu(context),
-                ),
-              ],
+                  // ── More options button ───────────────────────────────────────
+                  AppIconButton(
+                    icon: AppIcons.more,
+                    tooltip: context.l10n.detailMore,
+                    size: 18,
+                    color: context.colors.labelSecondary,
+                    onPressed: () => _showContextMenu(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

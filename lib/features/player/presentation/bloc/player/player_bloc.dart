@@ -529,7 +529,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // Songs queued by hand last time are part of the queue now.
     _sourceIds = [for (final t in playbackTracks) t.id];
     _origin.value = snapshot.origin;
-    emit(PlayerLoading(queue.currentTrack ?? playbackTracks[currentIndex]));
+    final loading = PlayerLoading(
+      queue.currentTrack ?? playbackTracks[currentIndex],
+    );
+    emit(loading);
 
     final result = await _audioServicePort.restoreQueue(
       queue,
@@ -540,7 +543,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     if (result.isLeft()) {
-      _restoringSnapshot = null;
+      if (identical(_restoringSnapshot, snapshot)) _restoringSnapshot = null;
+      // A song played meanwhile interrupts the restore, which then fails:
+      // that load is the player's now, not this one's to end.
+      if (!identical(state, loading)) return;
+      // Out of Loading: nothing else would ever end it.
+      _sourceIds = null;
+      _origin.value = null;
+      emit(const PlayerIdle());
       await _clearPersistedSession();
     }
   }
@@ -616,8 +626,34 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           when identical(undoing, _failedRemoval):
         _failedRemoval = null;
         return;
-      case TrackAddedToQueue(:final track, :final index):
-        await _addToQueue(AddToQueueParams(track: track, index: index));
+      case TrackAddedToQueue(
+        :final track,
+        index: null,
+        undoing: null,
+        :final onQueued,
+      ):
+        if (await _queueToEdit() == null) {
+          // Nothing loaded: a queue of one is the song playing.
+          add(PlayTrackRequested(track));
+          return;
+        }
+        final source = _sourceIds;
+        final result = await _addToQueue(AddToQueueParams(track: track));
+        if (result.isRight()) _queued(source, 1, onQueued);
+      case TrackAddedToQueue(
+        :final track,
+        :final index,
+        :final undoing,
+        :final onQueued,
+      ):
+        final source = _sourceIds;
+        final result = await _addToQueue(
+          AddToQueueParams(track: track, index: index),
+        );
+        // Putting back a song just removed queues nothing new.
+        if (undoing == null && result.isRight()) {
+          _queued(source, 1, onQueued);
+        }
       case TrackRemovedFromQueue(:final index, :final trackId):
         _failedRemoval = event;
         if (!_isAt(index, trackId)) return;
@@ -630,15 +666,97 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         await _moveQueueItem(
           MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
         );
-      case TrackQueuedNext(:final track):
-        final queue = _audioServicePort.currentQueue;
+      case TrackQueuedNext(:final track, :final onQueued):
+        final queue = await _queueToEdit();
         if (queue == null) {
           add(PlayTrackRequested(track));
           return;
         }
-        await _addToQueue(
+        final source = _sourceIds;
+        final result = await _addToQueue(
           AddToQueueParams(track: track, index: queue.currentIndex + 1),
         );
+        if (result.isRight()) _queued(source, 1, onQueued);
+      case TracksQueued(
+        :final tracks,
+        :final next,
+        :final origin,
+        :final onQueued,
+      ):
+        if (tracks.isEmpty) return;
+        final queue = await _queueToEdit();
+        if (queue == null) {
+          add(
+            PlayTrackRequested(
+              tracks.first,
+              contextQueue: tracks,
+              contextIndex: 0,
+              origin: origin,
+            ),
+          );
+          return;
+        }
+        // One edit, all or none, at the place [queue] gives right now: a
+        // skip or another queue cannot come between the songs.
+        final source = _sourceIds;
+        final result = await _addToQueue(
+          AddToQueueParams.all(
+            tracks,
+            index: next ? queue.currentIndex + 1 : null,
+          ),
+        );
+        if (result.isRight()) _queued(source, tracks.length, onQueued);
+    }
+  }
+
+  /// Says that [count] songs were queued by hand, on the mini player and
+  /// to the action ([onQueued]), unless the queue they went into was
+  /// replaced while the player took them ([source] no longer the one): a
+  /// queue started meanwhile holds none of them.
+  void _queued(List<String>? source, int count, void Function()? onQueued) {
+    if (!identical(_sourceIds, source)) return;
+    _noticeQueued(count);
+    onQueued?.call();
+  }
+
+  /// The queue Play next and Add to queue edit; null when nothing is
+  /// loaded, and the songs play instead. Dismissing the player stops the
+  /// engine but keeps its queue: a dead one, not edited. While a queue
+  /// loads, the one to edit is the one coming (the engine still holds the
+  /// last one while it fades out, or none at a cold start): wait for it,
+  /// or for the load to end without one, rather than edit a queue about to
+  /// go or play over a load (a play request is dropped while loading).
+  Future<Queue?> _queueToEdit() async {
+    if (state is PlayerIdle) return null;
+    if (state is! PlayerLoading || _loaded(_audioServicePort.currentQueue)) {
+      return _audioServicePort.currentQueue;
+    }
+    try {
+      await Future.any<Object?>([
+        _audioServicePort.queueStream.firstWhere(_loaded),
+        stream.firstWhere((state) => state is! PlayerLoading),
+      ]).timeout(const Duration(seconds: 30));
+    } on Object {
+      // Closed, or a load that never ends: what the port has.
+    }
+    // Past the delivery of that event (editing now would emit inside it),
+    // and the queue as the port has it: the stream may replay an old one.
+    await Future<void>.delayed(Duration.zero);
+    if (state is PlayerIdle) return null;
+    return _audioServicePort.currentQueue;
+  }
+
+  /// Whether [queue] is the one being loaded, not the one leaving.
+  bool _loaded(Queue? queue) {
+    if (queue == null) return false;
+    final requested = _requestedTrackId;
+    return requested == null || queue.currentTrack?.id == requested;
+  }
+
+  /// Tells the mini player [count] songs joined the queue, once they did.
+  void _noticeQueued([int count = 1]) {
+    if (!_noticesController.isClosed) {
+      _noticesController.add(TrackQueued(count));
     }
   }
 

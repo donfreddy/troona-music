@@ -6,10 +6,13 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/queue_songs.dart';
 import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
@@ -20,10 +23,12 @@ void showTrackActions(
   BuildContext context,
   Track track, {
   TrackActionOrigin origin = TrackActionOrigin.library,
+  ValueChanged<bool>? onLikeToggled,
 }) {
   final isLiked = context.read<LikesCubit>().state.isTrackLiked(track.id);
   final l10n = context.l10n;
-  AppHaptics.mediumImpact();
+  // Opening a menu: a small step.
+  AppHaptics.lightImpact();
 
   showActionSheet(
     context,
@@ -33,24 +38,23 @@ void showTrackActions(
       SheetAction(
         label: l10n.trackPlayNext,
         icon: AppIcons.playNext,
-        onPressed: () {
-          context.read<PlayerBloc>().add(TrackQueuedNext(track));
-          AppToast.show(context, l10n.toastPlaysNext);
-        },
+        onPressed: () =>
+            queueSong(context, context.read<PlayerBloc>(), track, next: true),
       ),
       SheetAction(
         label: l10n.trackAddToQueue,
         icon: AppIcons.addToQueue,
-        onPressed: () {
-          context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-          AppToast.show(context, l10n.toastAddedToQueue);
-        },
+        onPressed: () =>
+            queueSong(context, context.read<PlayerBloc>(), track, next: false),
       ),
       SheetAction(
         label: isLiked ? l10n.likesRemove : l10n.trackLike,
         icon: isLiked ? AppIcons.unlike : AppIcons.like,
         onPressed: () {
           context.read<LikesCubit>().toggle(track);
+          // Where the menu was opened answers with the heart: its row, Now
+          // Playing's heart.
+          onLikeToggled?.call(!isLiked);
           AppToast.show(context, isLiked ? l10n.toastUnliked : l10n.toastLiked);
         },
       ),
@@ -63,25 +67,14 @@ void showTrackActions(
         SheetAction(
           label: l10n.trackGoToAlbum,
           icon: AppIcons.album,
-          onPressed: () => _goTo(
-            context,
-            track,
-            origin,
-            AppRoute.albumDetail,
-            (t) => t.albumId,
-          ),
+          onPressed: () =>
+              _goTo(context, track, origin, 'albums', (t) => t.albumId),
         ),
       if (origin != TrackActionOrigin.artist)
         SheetAction(
           label: l10n.trackGoToArtist,
           icon: AppIcons.artist,
-          onPressed: () => _goTo(
-            context,
-            track,
-            origin,
-            AppRoute.artistDetail,
-            (t) => t.artistId,
-          ),
+          onPressed: () => openArtistOf(context, track, origin: origin),
         ),
     ],
   );
@@ -94,15 +87,69 @@ Future<void> _goTo(
   BuildContext context,
   Track track,
   TrackActionOrigin origin,
-  String route,
+  String section,
   int Function(Track) id,
 ) async {
   final router = GoRouter.of(context);
   if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
     context.pop();
   }
-  final stored = (await getIt<GetTracksByIdsUseCase>()([
-    track.id,
-  ])).fold((_) => null, (tracks) => tracks.firstOrNull);
-  router.goNamed(route, pathParameters: {'id': '${id(stored ?? track)}'});
+  final stored = await _stored(track);
+  pushDetailInTab(router, section, '${id(stored ?? track)}');
+}
+
+/// [track] as the library holds it now, or null when it is gone.
+Future<Track?> _stored(Track track) async =>
+    (await getIt<GetTracksByIdsUseCase>()([
+      track.id,
+    ])).fold((_) => null, (tracks) => tracks.firstOrNull);
+
+/// Opens the page of [track]'s artist, read again from the library first
+/// (see [_goTo]). A song crediting several artists asks which one; a song
+/// without an artist opens nothing.
+bool _readingArtist = false;
+
+Future<void> openArtistOf(
+  BuildContext context,
+  Track track, {
+  TrackActionOrigin origin = TrackActionOrigin.library,
+}) async {
+  // A second tap while the first reads the library would open the page
+  // twice, or stack a second sheet. Once a sheet is up, its barrier takes
+  // the taps.
+  if (_readingArtist) return;
+  final router = GoRouter.of(context);
+  _readingArtist = true;
+  final Track? stored;
+  try {
+    stored = await _stored(track);
+  } finally {
+    _readingArtist = false;
+  }
+  final credits = [
+    for (final c in (stored ?? track).credits)
+      if (!TrackTags.isUnknownArtist(c.name)) c,
+  ];
+  if (credits.isEmpty || !context.mounted) return;
+
+  void open(ArtistCredit credit) {
+    if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
+      context.pop();
+    }
+    pushDetailInTab(router, 'artists', '${credit.id}');
+  }
+
+  if (credits.length == 1) return open(credits.single);
+  await showActionSheet(
+    context,
+    title: context.l10n.trackGoToArtist,
+    actions: [
+      for (final credit in credits)
+        SheetAction(
+          label: credit.name,
+          icon: AppIcons.artist,
+          onPressed: () => open(credit),
+        ),
+    ],
+  );
 }

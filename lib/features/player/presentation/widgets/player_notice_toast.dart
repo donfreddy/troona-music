@@ -3,7 +3,8 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 
-/// Shows [notice] as a toast. [onUndo] brings back a replaced queue.
+/// Shows [notice] as a toast, when it is one. [onUndo] brings back a
+/// replaced queue.
 void showPlayerNotice(
   BuildContext context,
   PlayerNotice notice, {
@@ -15,6 +16,9 @@ void showPlayerNotice(
       AppToast.show(context, l10n.playerCantPlay(title));
     case TrackUnplayable():
       AppToast.show(context, l10n.playerCantPlayUnknown);
+    case TrackQueued():
+      // The action that queued it already said so.
+      return;
     case QueueReplaced():
       // Longer than a plain message: there is a choice to make.
       AppToast.show(

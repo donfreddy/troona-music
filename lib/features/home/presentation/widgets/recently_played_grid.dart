@@ -104,7 +104,7 @@ class _RecentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
 
     return GestureDetector(
       onTap: onTap,
@@ -113,7 +113,6 @@ class _RecentCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: glass.fill,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: glass.border, width: glass.borderWidth),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(

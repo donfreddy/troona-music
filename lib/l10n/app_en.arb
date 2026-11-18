@@ -216,6 +216,15 @@
   "libraryEmptyTitle": "No music on this device yet",
   "libraryEmptyBody": "Copy songs to your phone, then scan again.",
   "libraryScanAgain": "Scan again",
+  "libraryIndex": "Alphabetical index",
+  "libraryIndexJump": "Go to {letter}",
+  "@libraryIndexJump": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
   "libraryNoSongs": "No songs yet",
   "libraryNoAlbums": "No albums yet",
   "libraryNoArtists": "No artists yet",
@@ -225,6 +234,7 @@
   "librarySortArtist": "Artist",
   "librarySortAlbum": "Album",
   "librarySortRecent": "Recently added",
+  "librarySortPlays": "Most played",
   "libraryUpdating": "Updating your library…",
   "libraryShuffleAll": "Shuffle all",
   "albumByArtist": "{artist} • {songs}",
@@ -270,6 +280,7 @@
   "detailSongs": "Songs",
   "detailAlbums": "Albums",
   "detailSingles": "Singles",
+  "detailDiscography": "Discography",
   "detailLatestRelease": "Latest release",
   "detailAppearsOn": "Appears on",
   "detailAlsoInLibrary": "Also in your library",
@@ -336,6 +347,11 @@
   "searchSuggestedArtists": "Artists",
   "searchSuggestedAlbums": "Albums",
   "searchRecentlyAdded": "Recently added",
+  "recentlyAddedTitle": "Recently added",
+  "recentlyAddedEmptyTitle": "Nothing added yet",
+  "recentlyAddedEmptyBody": "Songs you add to your phone show here, newest first.",
+  "recentAlbumsTitle": "Recent albums",
+  "recentAlbumsEmptyBody": "Albums you add to your phone show here, newest first.",
   "searchBadgeArtist": "Artist",
   "searchBadgeAlbum": "Album",
   "searchBadgeSong": "Song",
@@ -438,10 +454,8 @@
   "homeRecentlyPlayed": "Recently played",
   "homeOnRepeat": "On repeat this week",
   "homeRediscover": "Rediscover",
-  "homeYourArtists": "Your artists",
   "homeRecentlyAdded": "Recently added",
-  "homeYourPlaylists": "Your playlists",
-  "homeWeeklyPlays": "{count, plural, =1{play this week} other{plays this week}}",
+  "homeWeeklyPlays": "{count, plural, =1{1 play this week} other{{count} plays this week}}",
   "@homeWeeklyPlays": {
     "placeholders": {
       "count": {

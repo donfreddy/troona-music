@@ -97,7 +97,6 @@ abstract final class AppIcons {
   static const IconData hint = LucideIcons300.sparkle;
 
   // ── Features and settings ─────────────────────────────────────────────────
-  static const IconData stats = LucideIcons300.barChart3;
   static const IconData weeklyRecap = LucideIcons300.calendarHeart;
   static const IconData monthlyReplay = LucideIcons300.calendarSync;
   static const IconData share = LucideIcons300.share2;

@@ -160,17 +160,21 @@ class _PlaylistHeader extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.xl,
                       ),
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.4,
+                      // Marked, as on an album: the bar takes the name
+                      // over when this one goes under it.
+                      child: GlassHeaderTitle(
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     1,
@@ -386,7 +390,7 @@ class _TrackTile extends StatelessWidget {
                   icon: AppIcons.more,
                   tooltip: context.l10n.detailMore,
                   size: 18,
-                  color: context.colors.labelTertiary,
+                  color: context.colors.labelSecondary,
                   onPressed: () => _showTrackOptions(context),
                 ),
 

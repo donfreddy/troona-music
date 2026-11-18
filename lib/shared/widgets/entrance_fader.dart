@@ -7,12 +7,18 @@ class EntranceFader extends StatefulWidget {
   final Duration duration;
   final Offset offset;
 
+  /// False shows the child as the entrance ends, with no timer. Read once,
+  /// when first built: the same transitions wrap the child either way, so
+  /// a later rebuild neither replays nor remounts it.
+  final bool play;
+
   const EntranceFader({
     super.key,
     required this.child,
     this.delay = Duration.zero,
     this.duration = const Duration(milliseconds: 280),
     this.offset = const Offset(0, 0.15),
+    this.play = true,
   });
 
   /// Utility constructor for easily scaling animations based on an index.
@@ -24,6 +30,7 @@ class EntranceFader extends StatefulWidget {
     Duration duration = const Duration(milliseconds: 280),
     double slideY = 0.15,
     int maxDelayMs = 120,
+    bool play = true,
   }) {
     final delayMs = (index * stepMs).clamp(0, maxDelayMs);
     return EntranceFader(
@@ -31,6 +38,7 @@ class EntranceFader extends StatefulWidget {
       delay: Duration(milliseconds: delayMs),
       duration: duration,
       offset: Offset(0, slideY),
+      play: play,
       child: child,
     );
   }
@@ -61,7 +69,9 @@ class _EntranceFaderState extends State<EntranceFader>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
-    if (widget.delay == Duration.zero) {
+    if (!widget.play) {
+      _controller.value = 1;
+    } else if (widget.delay == Duration.zero) {
       _controller.forward();
     } else {
       _delayTimer = Timer(widget.delay, () {

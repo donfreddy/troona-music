@@ -21,12 +21,46 @@ final class ArtistAlbums {
   /// [own], [singles], then [appearsOn].
   List<Album> get all => [...own, ...singles, ...appearsOn];
 
+  /// Their releases: [own], then [singles].
+  List<Album> get releases => [...own, ...singles];
+
+  /// [releases] as one list, as Discography shows them: newest first, the
+  /// ones without a year last; on a tie, albums before singles.
+  List<Album> get discography {
+    final releases = this.releases;
+    final order = [for (var i = 0; i < releases.length; i++) i]
+      ..sort((i, j) {
+        final a = releases[i].year;
+        final b = releases[j].year;
+        if (a != b) {
+          if (a == null) return 1;
+          if (b == null) return -1;
+          return b.compareTo(a);
+        }
+        return i.compareTo(j);
+      });
+    return [for (final i in order) releases[i]];
+  }
+
+  /// Releases needed for Latest release: with fewer, its cover is a screen
+  /// away at most, in the section below.
+  static const latestFrom = 4;
+
+  /// With fewer releases than this, their albums and singles make one
+  /// section: three titles over three covers is structure, not content.
+  static const discographyBelow = 5;
+
+  /// Whether [own] and [singles] show as one Discography.
+  bool get oneDiscography =>
+      own.isNotEmpty &&
+      singles.isNotEmpty &&
+      own.length + singles.length < discographyBelow;
+
   /// Their newest album or single, by year. None when no release has a
-  /// year (MediaStore often reads none), nor with a single release: its
-  /// card is right below.
+  /// year (MediaStore often reads none), nor with fewer than [latestFrom].
   Album? get latest {
-    final releases = [...own, ...singles];
-    if (releases.length < 2) return null;
+    final releases = this.releases;
+    if (releases.length < latestFrom) return null;
     Album? newest;
     for (final album in releases) {
       final year = album.year;

@@ -196,25 +196,31 @@ class Queue {
     playbackTracks: List.unmodifiable([...playbackTracks, track]),
   );
 
-  /// Returns a new queue with [track] inserted at playback [index].
+  /// Returns a new queue with [track] inserted at playback [index]; see
+  /// [insertAllAt].
+  Queue insertAt(int index, Track track) => insertAllAt(index, [track]);
+
+  /// Returns a new queue with [tracks] inserted at playback [index], in
+  /// their order.
   ///
-  /// Without shuffle the original order gets the same slot; shuffled, the
-  /// track is appended to the original order. [currentIndex] keeps pointing
-  /// at the same track.
-  Queue insertAt(int index, Track track) {
+  /// Without shuffle the original order gets the same slot; shuffled, they
+  /// are appended to the original order. [currentIndex] keeps pointing at
+  /// the same track.
+  Queue insertAllAt(int index, List<Track> tracks) {
+    if (tracks.isEmpty) return this;
     final at = index.clamp(0, playbackTracks.length);
-    final newPlayback = List<Track>.from(playbackTracks)..insert(at, track);
+    final newPlayback = List<Track>.from(playbackTracks)..insertAll(at, tracks);
     final newOriginal = List<Track>.from(originalTracks);
     if (!shuffleEnabled && at <= newOriginal.length) {
-      newOriginal.insert(at, track);
+      newOriginal.insertAll(at, tracks);
     } else {
-      newOriginal.add(track);
+      newOriginal.addAll(tracks);
     }
     return copyWith(
       originalTracks: List.unmodifiable(newOriginal),
       playbackTracks: List.unmodifiable(newPlayback),
       currentIndex: at <= currentIndex && playbackTracks.isNotEmpty
-          ? currentIndex + 1
+          ? currentIndex + tracks.length
           : currentIndex,
     );
   }

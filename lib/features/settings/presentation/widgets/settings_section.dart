@@ -50,9 +50,11 @@ class SettingsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: GlassCard(
-            config: GlassTheme.card(
+            // No edge: it is content, not floating chrome. The fill and the
+            // spacing group the rows.
+            config: GlassTheme.content(
               context,
-            ).copyWith(blurSigma: 0, padding: EdgeInsets.zero),
+            ).copyWith(padding: EdgeInsets.zero),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               child: Column(

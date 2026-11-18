@@ -25,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 
@@ -174,6 +175,19 @@ void main() {
       same(landing),
       reason: 'the cover was rebuilt: a flight landing on it would be cut',
     );
+  });
+
+  testWidgets("the page takes its album's colours as soon as the album is "
+      "known; until then, the playing song's", (tester) async {
+    String? path() =>
+        tester.widget<CoverBackground>(find.byType(CoverBackground)).path;
+    await open(tester, _loaded(const []));
+    expect(path(), isNull, reason: 'not known yet');
+    await tester.pumpWidget(const SizedBox());
+
+    await open(tester, _loaded([_album]));
+    // No cover: the neutral glow, not the song playing.
+    expect(path(), '');
   });
 
   testWidgets('an album the library does not hold yet waits on a spinner', (

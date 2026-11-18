@@ -494,6 +494,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get libraryScanAgain => 'Relancer la recherche';
 
   @override
+  String get libraryIndex => 'Index alphabétique';
+
+  @override
+  String libraryIndexJump(String letter) {
+    return 'Aller à $letter';
+  }
+
+  @override
   String get libraryNoSongs => 'Aucun morceau pour l\'instant';
 
   @override
@@ -519,6 +527,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get librarySortRecent => 'Ajout récent';
+
+  @override
+  String get librarySortPlays => 'Les plus écoutés';
 
   @override
   String get libraryUpdating => 'Mise à jour de la bibliothèque…';
@@ -560,6 +571,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get detailSingles => 'Singles';
+
+  @override
+  String get detailDiscography => 'Discographie';
 
   @override
   String get detailLatestRelease => 'Dernière sortie';
@@ -654,6 +668,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get searchRecentlyAdded => 'Ajouts récents';
+
+  @override
+  String get recentlyAddedTitle => 'Ajouts récents';
+
+  @override
+  String get recentlyAddedEmptyTitle => 'Rien d\'ajouté pour l\'instant';
+
+  @override
+  String get recentlyAddedEmptyBody =>
+      'Les titres ajoutés à votre téléphone s\'affichent ici, du plus récent au plus ancien.';
+
+  @override
+  String get recentAlbumsTitle => 'Albums récents';
+
+  @override
+  String get recentAlbumsEmptyBody =>
+      'Les albums ajoutés à votre téléphone s\'affichent ici, du plus récent au plus ancien.';
 
   @override
   String get searchBadgeArtist => 'Artiste';
@@ -856,21 +887,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeRediscover => 'À redécouvrir';
 
   @override
-  String get homeYourArtists => 'Vos artistes';
-
-  @override
   String get homeRecentlyAdded => 'Ajouts récents';
-
-  @override
-  String get homeYourPlaylists => 'Vos playlists';
 
   @override
   String homeWeeklyPlays(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'écoutes cette semaine',
-      one: 'écoute cette semaine',
+      other: '$count écoutes cette semaine',
+      one: '1 écoute cette semaine',
     );
     return '$_temp0';
   }

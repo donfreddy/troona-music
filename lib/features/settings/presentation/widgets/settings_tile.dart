@@ -53,10 +53,14 @@ class SettingsTile extends StatelessWidget {
       subtitle: subtitle,
       enabled: enabled,
       onTap: enabled ? () => onChanged(!value) : null,
-      trailing: CupertinoSwitch(
-        value: value,
-        activeTrackColor: iconColor,
-        onChanged: enabled ? onChanged : null,
+      // On is the accent on every row, whatever the icon's colour: a red
+      // switch reads as an error.
+      trailing: Builder(
+        builder: (context) => CupertinoSwitch(
+          value: value,
+          activeTrackColor: context.colors.accent,
+          onChanged: enabled ? onChanged : null,
+        ),
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:troona/core/utils/app_logger.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/metadata/data/models/last_fm_album_dto.dart';
 import 'package:troona/features/metadata/data/models/last_fm_artist_dto.dart';
 
@@ -34,13 +36,21 @@ class MetadataCacheDataSourceImpl implements MetadataCacheDataSource {
     await _albumsDir.create(recursive: true);
   }
 
-  String _sanitizeKey(String raw) {
-    return raw
-        .trim()
-        .toLowerCase()
+  /// The file name of [raw]: readable Latin letters for a person looking
+  /// at the folder, then a hash of the whole name, without which every
+  /// name in another script ("Кино", "宇多田ヒカル") would share one file.
+  @visibleForTesting
+  static String keyOf(String raw) {
+    final name = raw.trim().toLowerCase();
+    var readable = name
         .replaceAll(RegExp(r'[^a-z0-9_-]'), '_')
         .replaceAll(RegExp(r'_+'), '_');
+    if (readable.length > 40) readable = readable.substring(0, 40);
+    final hash = (-TrackTags.stableId(name)).toRadixString(16);
+    return '${readable}_$hash';
   }
+
+  String _sanitizeKey(String raw) => keyOf(raw);
 
   @override
   Future<LastFmArtistDto?> getArtist(String artistName) async {

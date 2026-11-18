@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/library/domain/services/recently_added.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
@@ -39,15 +40,8 @@ class SearchSuggestions extends StatelessWidget {
     final albums = libState.allAlbums;
     final allTracks = libState.allTracks;
 
-    // Newest five; tracks without a date sort last.
-    final suggestedTracks =
-        (List.of(allTracks)..sort(
-              (a, b) => (b.dateAdded?.millisecondsSinceEpoch ?? 0).compareTo(
-                a.dateAdded?.millisecondsSinceEpoch ?? 0,
-              ),
-            ))
-            .take(5)
-            .toList();
+    // Newest five: the start of Recently added, which See all opens.
+    final suggestedTracks = RecentlyAdded.of(allTracks, limit: 5);
 
     // A sliver: the suggestions scroll under the search page's glass bar.
     return SliverPadding(
@@ -60,7 +54,7 @@ class SearchSuggestions extends StatelessWidget {
           if (artists.isNotEmpty) ...[
             SectionHeader(
               title: context.l10n.searchSuggestedArtists,
-              onViewAll: () => context.go(AppRoute.library),
+              onViewAll: () => _openLibrary(context, LibraryFilter.artists),
             ),
             SizedBox(
               height: 120,
@@ -82,7 +76,7 @@ class SearchSuggestions extends StatelessWidget {
           if (albums.isNotEmpty) ...[
             SectionHeader(
               title: context.l10n.searchSuggestedAlbums,
-              onViewAll: () => context.go(AppRoute.library),
+              onViewAll: () => _openLibrary(context, LibraryFilter.albums),
             ),
             SizedBox(
               height: 220,
@@ -104,7 +98,7 @@ class SearchSuggestions extends StatelessWidget {
           if (suggestedTracks.isNotEmpty) ...[
             SectionHeader(
               title: context.l10n.searchRecentlyAdded,
-              onViewAll: () => context.go(AppRoute.library),
+              onViewAll: context.pushRecentlyAdded,
             ),
             ...suggestedTracks.asMap().entries.map((entry) {
               final index = entry.key;
@@ -126,5 +120,12 @@ class SearchSuggestions extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Every artist or album lives in the Library: See all opens it on that
+  /// list, not on everything.
+  static void _openLibrary(BuildContext context, LibraryFilter filter) {
+    context.read<LibraryBloc>().add(LibraryFilterChanged(filter));
+    context.go(AppRoute.library);
   }
 }

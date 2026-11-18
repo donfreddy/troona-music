@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -16,10 +17,14 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 
 /// Test doubles for [PlayerBloc]: a scriptable [AudioServicePort] and a
 /// repository that routes every use case to it.
-Track testTrack(String id, {required int durationMs}) => Track(
+Track testTrack(
+  String id, {
+  required int durationMs,
+  String artist = 'Artist',
+}) => Track(
   id: id,
   title: 'Title $id',
-  artist: 'Artist',
+  artist: artist,
   artistId: 1,
   album: 'Album',
   albumId: 1,
@@ -77,6 +82,7 @@ final class FakeAudioPort implements AudioServicePort {
   int skipNextCalls = 0;
   int setQueueCalls = 0;
   int resumeCalls = 0;
+  int pauseCalls = 0;
 
   /// The `play` flag of the last [restoreQueue] call.
   bool? restoredPlaying;
@@ -163,8 +169,26 @@ final class FakeAudioPort implements AudioServicePort {
   }) {
     setQueueCalls++;
     lastSetQueue = (tracks: tracks, startIndex: startIndex, shuffle: shuffle);
-    return _ok;
+    final gate = loadGate;
+    loadGate = null;
+    if (gate != null) {
+      return gate.future.then((_) => failLoads ? _failed : _ok);
+    }
+    return failLoads ? _failed : _ok;
   }
+
+  /// When set, loading a queue (setQueue, restoreQueue) fails.
+  bool failLoads = false;
+
+  /// When set, the next restoreQueue answers with what it completes with.
+  Completer<Either<Failure, Unit>>? restoreGate;
+
+  /// When set, the next setQueue answers only once it completes. Consumed
+  /// by that call: keep a local reference to complete it.
+  Completer<void>? loadGate;
+
+  static Future<Either<Failure, Unit>> get _failed async =>
+      const Left(PlaybackFailure('unreadable'));
 
   ({List<Track> tracks, int startIndex, bool? shuffle})? lastSetQueue;
 
@@ -217,6 +241,15 @@ final class FakeAudioPort implements AudioServicePort {
   );
 
   @override
+  Future<Either<Failure, Unit>> addAllToQueue(
+    List<Track> tracks, {
+    int? index,
+  }) => _edit(
+    'add ${[for (final t in tracks) t.id].join(',')}@$index',
+    (q) => q.insertAllAt(index ?? q.playbackTracks.length, tracks),
+  );
+
+  @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) =>
       _edit('remove $index', (q) => q.removeAt(index));
 
@@ -231,6 +264,12 @@ final class FakeAudioPort implements AudioServicePort {
   }
 
   @override
+  Future<Either<Failure, Unit>> pause({Duration fade = Duration.zero}) {
+    pauseCalls++;
+    return _ok;
+  }
+
+  @override
   Future<Either<Failure, Unit>> restoreQueue(
     Queue queue, {
     required Duration position,
@@ -241,7 +280,10 @@ final class FakeAudioPort implements AudioServicePort {
     restoredPlaying = play;
     restoredQueue = queue;
     restoredPosition = position;
-    return _ok;
+    final gate = restoreGate;
+    restoreGate = null;
+    if (gate != null) return gate.future;
+    return failLoads ? _failed : _ok;
   }
 
   @override
@@ -259,6 +301,9 @@ final class PortRepository implements PlayerRepository {
 
   @override
   Future<Either<Failure, Unit>> resume() => _port.resume();
+
+  @override
+  Future<Either<Failure, Unit>> pause() => _port.pause();
 
   @override
   Future<Either<Failure, Unit>> skipToNext() => _port.skipToNext();
@@ -282,6 +327,12 @@ final class PortRepository implements PlayerRepository {
       _port.addToQueue(track, index: index);
 
   @override
+  Future<Either<Failure, Unit>> addAllToQueue(
+    List<Track> tracks, {
+    int? index,
+  }) => _port.addAllToQueue(tracks, index: index);
+
+  @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) =>
       _port.removeFromQueue(index);
 
@@ -298,4 +349,22 @@ final class UnusedLibrary implements LibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
+}
+
+/// A real player on a [FakeAudioPort], nothing played yet; closed at the
+/// end of the test. [play] makes a queue current and playing.
+Future<({PlayerBloc player, FakeAudioPort port})> testPlayer(
+  void Function(Future<void> Function()) addTearDown,
+) async {
+  SharedPreferences.setMockInitialValues({});
+  final port = FakeAudioPort();
+  final player = buildTestPlayerBloc(
+    port,
+    PlaybackSessionStore(await SharedPreferences.getInstance()),
+  );
+  addTearDown(() async {
+    unawaited(player.close());
+    unawaited(port.close());
+  });
+  return (player: player, port: port);
 }

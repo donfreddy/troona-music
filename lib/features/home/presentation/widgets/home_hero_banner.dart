@@ -78,7 +78,6 @@ class HomeHeroBanner extends StatelessWidget {
     required String ctaLabel,
     required VoidCallback? onTap,
   }) {
-    final glass = GlassTheme.card(context);
     return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.xl2),
@@ -92,7 +91,6 @@ class HomeHeroBanner extends StatelessWidget {
               ],
             ),
             borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(color: glass.border, width: glass.borderWidth),
           ),
           child: Column(
             children: [
@@ -257,7 +255,7 @@ class _ResumeCard extends StatelessWidget {
     required Widget origin,
     required Widget? progress,
   }) {
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
     final colors = context.colors;
     return Semantics(
       button: true,
@@ -271,10 +269,6 @@ class _ResumeCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: glass.fill,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                    border: Border.all(
-                      color: glass.border,
-                      width: glass.borderWidth,
-                    ),
                   ),
                   clipBehavior: Clip.antiAlias,
                   child: Stack(

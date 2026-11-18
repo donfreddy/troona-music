@@ -218,10 +218,4 @@ final class IsarPlayHistoryDataSource {
     }
     return forgotten;
   }
-
-  /// Total number of plays recorded in the last [days] days.
-  int totalPlays({int days = 7}) {
-    final since = DateTime.now().subtract(Duration(days: days));
-    return _isar.playEventModels.where().playedAtGreaterThan(since).count();
-  }
 }

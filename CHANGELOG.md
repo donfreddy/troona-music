@@ -4,14 +4,56 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Library: an index of letters down the right edge of Songs, Albums and Artists when they are sorted by name, title, artist or album. Touch a letter, or slide along them, to go to its first item; the letter shows large in the middle, with a light tick for each new one. Short lists and songs sorted by date added have none.
+- Album pages: the artists' line opens an album by several artists to any of them: a tap asks which one. Go to album and Go to artist, and the artist's name in Now Playing, open the page in the tab you are in, instead of jumping to the Library.
+- Album and artist cards show a small equalizer while one of their songs plays, still while paused, as song rows do.
+- A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue. The album page's menu is the same one.
+- The mini player acknowledges songs you queue: its cover pulses once and a small count (+1, or +12 for an album) shows on it for a moment. With less motion asked, only the count shows.
+- An artist's Play next and Add to queue say so in a message, as an album's do.
+- Artist pages: for an artist with more than twenty songs, See all opens them on a page of their own, sorted by plays, title, album or date added, instead of unfolding a long list above their albums.
+- A like answers the same way everywhere: the heart that pops over the mini player now pops over Now Playing's heart, with a light vibration, and over a song's row when you like it from its menu.
+- Album pages: pulling the page down draws the record a little further out of its sleeve, and it slides back on release.
+- Album pages: opening the album that plays brings the song playing into view when it lies below the screen, once the page is in. A scroll of yours comes first.
+- Search and Home: See all next to Recently added, and Home's Recently added shortcut, open a page of the hundred songs added last, newest first, in the tab you are in, instead of the Library in its own order. The Library keeps the sort you picked there.
+- Home: See all next to Recently added opens Recent albums, the fifty albums added last, newest first, in Home, instead of the Library's albums in their own order. The row and the page follow the date songs were added to the phone, so the row is the start of the page.
+- Artist pages open from the photo you tapped: the round photo on an artist's card grows into the picture at the top of their page, and shrinks back into the card when you go back.
+- Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
+
 ### Changed
 
 - Seeking on the Now Playing ring: a finger on the glass turns the progress into the whole band, lit like light through frosted glass and brightest under the finger, and the lens rises a little. On release the light goes, then the band narrows back to the line. A plain tap shows it without seeking. Nothing grows when the phone asks for less motion.
 - Closing Now Playing: the lens alone travels into the mini player while the rest fades around it. The title and controls go at once, the covers beside the current one go with the ring, and the page below shows only once the lens has nearly landed, then settles into place. The cover stays centred in the lens all the way.
 - Dragging Now Playing down moves its content only: the background and the tabs stay put.
+- Library: artists show three across, and the rows of albums and artists are as tall as their cards, so no empty band sits between them and more fit on a screen, at any font size.
+- Album and artist pages take the colours of their own cover (an artist's photo once downloaded), instead of the colours of the song playing. They open in the colours of the page below and turn to theirs. A cover that cannot be read gives the neutral glow at once, instead of after a long wait.
+- Home is lighter: music starts right after the resume card and the shortcuts. Only one card about the app shows at a time (a new version, else the offer of online extras), this week's plays are a line under the greeting instead of a banner, last week's recap comes after Recently played, and Your artists and Your playlists are gone (the Library and the Playlists tab hold them).
+- Album pages: a tap on the record pauses and resumes the album while it plays, anywhere on its edge out of the sleeve. It no longer starts the album, which replaced the queue from what looks like decoration: Play, just below, does.
+- Album pages: the record reads on a dark page, with a lit edge, clearer grooves and a soft light on it that stays put while it turns.
+- Home and Settings have fewer outlines: cards in the page (the resume card, the shortcuts, Recently played, the recap, Settings' groups) have a slightly lighter fill and no edge, which is left to what floats, the tab bar, headers and sheets. The tabs not selected are easier to read.
+- Artist pages fit small discographies: Latest release shows from four releases (below, its cover is right under it), albums and singles share one Discography under five releases, newest first, and a section of one or two albums lists them as rows instead of a lone card, which light up when touched.
+- Songs' durations and their options button are easier to read in every list.
+- Settings: every switch that is on shows the app's accent colour, instead of one colour per row (a red switch read as an error).
+- Library: the selected filter keeps the accent colour instead of following the song playing, and the other filters' icons are easier to read.
+- Library: only the items shown when a list opens play their entrance. Songs and cards that scrolling brings in show at once, instead of fading in after a pause.
+- Artist pages have one layout, with or without a photo: the name at the bottom left, Shuffle on its right. Without a photo, their cover's colours glow behind it, and the name and Shuffle sit at the same place on every artist's page. The page no longer switches layout while it loads, and a photo that arrives later fades in without moving anything.
 
 ### Fixed
 
+- Search: See all next to the suggested artists, or albums, opens the Library on its artists, or albums, instead of everything.
+- Artist pages: Play next and Add to queue, asked while the page still loads, queue the songs most played first, as once it is loaded, instead of in the library's order.
+- An artist without a photo opens on the same cover as their card, and under the same spelling of their name, instead of switching to another album's cover once the page has loaded.
+- Search shows artists with their downloaded photo, as the Library does, instead of an album cover, and an artist opens in the Search tab instead of switching to the Library.
+- Play next and Add to queue with nothing playing, including after the mini player was swiped away: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone. Songs queued while the first one loads are no longer lost, and wait no longer than that song: if it cannot be played, they play instead. An album or an artist goes into the queue in one step, so a skip, another album or shuffle can no longer split it, and a long album no longer makes the player redo the queue once per song. Songs queued while a new album fades in go into it rather than the one leaving. A saved queue that can no longer be played after a restart leaves the player empty instead of loading forever.
+- A long press on a song vibrates once, as its menu opens, instead of two or three times.
+- "Added to queue" and "Plays next" show once the songs are really in the queue: no longer when the player refused them, and the mini player no longer counts songs that went into a queue replaced meanwhile.
+- An artist page whose songs or albums cannot be read says so, instead of showing the artist with none.
+- Playlist covers no longer repeat one album: songs of the same album count once, and a playlist with fewer than four albums shows its first song's cover alone instead of a grid of copies.
+- Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
+- The name on an artist's photo stays readable over a photo with its own lettering.
+- The title of a collapsed page header stays readable over light covers scrolling under it: the glass now lets through half their brightness, which leaves dark content as it was.
+- Scrolling a page with a large header, the small title in the bar showed up from the first pixel, over the big one still there. It now comes in once the big one is nearly gone.
 - The mini player's progress moved stop and go, a step about every second. It now moves smoothly, like the one in Now Playing.
 
 ## [1.6.0] - 2026-11-16

@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/components/blur_budget.dart';
@@ -80,6 +82,9 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   /// the stage is not unmounted (and its scroll state lost) on every swipe.
   List<Track> _stageQueue = const [];
   int _stageIndex = 0;
+
+  /// The heart's answer to a like, from its button or the menu.
+  final _likeBurst = LikeBurstController();
 
   /// Index the user swiped to, used to disambiguate duplicate tracks while
   /// the requested track loads.
@@ -352,6 +357,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
   @override
   void dispose() {
+    _likeBurst.dispose();
     _publishCover(null, replacing: _cover);
     _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
     _chrome?.dispose();
@@ -502,7 +508,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                             child: Column(
                               children: [
                                 // Top bar: dismiss + options
-                                _fadeChrome(_TopBar()),
+                                _fadeChrome(_TopBar(likeBurst: _likeBurst)),
 
                                 const SizedBox(height: AppSpacing.lg),
 
@@ -526,13 +532,14 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                               : track,
                                           index: focused ? focus : stage?.$2,
                                           queueLength: _stageQueue.length,
+                                          likeBurst: _likeBurst,
                                         );
                                       },
                                     ),
                                   ),
                                 ),
-
-                                const SizedBox(height: AppSpacing.lg),
+                                // No gap: the artist line's touch target
+                                // already leaves room under the name.
 
                                 // The stage takes what the controls leave, up
                                 // to its full size: on a short screen the ring
@@ -640,6 +647,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
+  final LikeBurstController likeBurst;
+
+  const _TopBar({required this.likeBurst});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -694,6 +705,7 @@ class _TopBar extends StatelessWidget {
       context,
       state.currentTrack,
       origin: TrackActionOrigin.nowPlaying,
+      onLikeToggled: (liked) => likeBurst.play(liked: liked),
     );
   }
 }
@@ -719,11 +731,13 @@ class _TrackInfo extends StatelessWidget {
   final Track? track;
   final int? index;
   final int queueLength;
+  final LikeBurstController likeBurst;
 
   const _TrackInfo({
     required this.track,
     required this.index,
     required this.queueLength,
+    required this.likeBurst,
   });
 
   @override
@@ -736,20 +750,40 @@ class _TrackInfo extends StatelessWidget {
             track: track,
             index: index,
             queueLength: queueLength,
+            onArtistTap: (track) => openArtistOf(
+              context,
+              track,
+              origin: TrackActionOrigin.nowPlaying,
+            ),
           ),
         ),
         BlocBuilder<LikesCubit, LikesState>(
           builder: (context, state) {
             final isLiked = state.isLiked && state.id == track?.id;
-            return AppIconButton(
-              icon: isLiked ? AppIcons.liked : AppIcons.like,
-              tooltip: isLiked
-                  ? context.l10n.likesRemove
-                  : context.l10n.trackLike,
-              size: 26,
-              // Accent, like the liked songs playlist it adds to.
-              color: isLiked ? context.colors.accent : Colors.white70,
-              onPressed: () => context.read<LikesCubit>().toggle(track),
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AppIconButton(
+                  icon: isLiked ? AppIcons.liked : AppIcons.like,
+                  tooltip: isLiked
+                      ? context.l10n.likesRemove
+                      : context.l10n.trackLike,
+                  size: 26,
+                  // Accent, like the liked songs playlist it adds to.
+                  color: isLiked ? context.colors.accent : Colors.white70,
+                  onPressed: () {
+                    if (track == null) return;
+                    context.read<LikesCubit>().toggle(track);
+                    // A like answers alike everywhere: a light tick and
+                    // the heart popping, as on the mini player.
+                    AppHaptics.lightImpact();
+                    likeBurst.play(liked: !isLiked);
+                  },
+                ),
+                Positioned.fill(
+                  child: LikeBurst(controller: likeBurst, size: 40),
+                ),
+              ],
             );
           },
         ),

@@ -878,6 +878,18 @@ abstract class AppLocalizations {
   /// **'Scan again'**
   String get libraryScanAgain;
 
+  /// No description provided for @libraryIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabetical index'**
+  String get libraryIndex;
+
+  /// No description provided for @libraryIndexJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to {letter}'**
+  String libraryIndexJump(String letter);
+
   /// No description provided for @libraryNoSongs.
   ///
   /// In en, this message translates to:
@@ -931,6 +943,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recently added'**
   String get librarySortRecent;
+
+  /// No description provided for @librarySortPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played'**
+  String get librarySortPlays;
 
   /// No description provided for @libraryUpdating.
   ///
@@ -997,6 +1015,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Singles'**
   String get detailSingles;
+
+  /// No description provided for @detailDiscography.
+  ///
+  /// In en, this message translates to:
+  /// **'Discography'**
+  String get detailDiscography;
 
   /// No description provided for @detailLatestRelease.
   ///
@@ -1141,6 +1165,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recently added'**
   String get searchRecentlyAdded;
+
+  /// No description provided for @recentlyAddedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get recentlyAddedTitle;
+
+  /// No description provided for @recentlyAddedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing added yet'**
+  String get recentlyAddedEmptyTitle;
+
+  /// No description provided for @recentlyAddedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs you add to your phone show here, newest first.'**
+  String get recentlyAddedEmptyBody;
+
+  /// No description provided for @recentAlbumsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent albums'**
+  String get recentAlbumsTitle;
+
+  /// No description provided for @recentAlbumsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums you add to your phone show here, newest first.'**
+  String get recentAlbumsEmptyBody;
 
   /// No description provided for @searchBadgeArtist.
   ///
@@ -1496,28 +1550,16 @@ abstract class AppLocalizations {
   /// **'Rediscover'**
   String get homeRediscover;
 
-  /// No description provided for @homeYourArtists.
-  ///
-  /// In en, this message translates to:
-  /// **'Your artists'**
-  String get homeYourArtists;
-
   /// No description provided for @homeRecentlyAdded.
   ///
   /// In en, this message translates to:
   /// **'Recently added'**
   String get homeRecentlyAdded;
 
-  /// No description provided for @homeYourPlaylists.
-  ///
-  /// In en, this message translates to:
-  /// **'Your playlists'**
-  String get homeYourPlaylists;
-
   /// No description provided for @homeWeeklyPlays.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{play this week} other{plays this week}}'**
+  /// **'{count, plural, =1{1 play this week} other{{count} plays this week}}'**
   String homeWeeklyPlays(int count);
 
   /// No description provided for @homeLoadError.

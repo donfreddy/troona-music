@@ -118,6 +118,36 @@ void main() {
     });
   });
 
+  group('insertAllAt', () {
+    final queue = Queue.fromTracks([a, b, c], startIndex: 1);
+    final x = _track('x');
+
+    test('before the current track shifts the index by all of them', () {
+      final next = queue.insertAllAt(0, [d, x]);
+      expect(ids(next.playbackTracks), ['d', 'x', 'a', 'b', 'c']);
+      expect(next.currentTrack, b);
+    });
+
+    test('after it, in their order, the original order alike', () {
+      final next = queue.insertAllAt(2, [d, x]);
+      expect(ids(next.playbackTracks), ['a', 'b', 'd', 'x', 'c']);
+      expect(ids(next.originalTracks), ['a', 'b', 'd', 'x', 'c']);
+      expect(next.currentTrack, b);
+    });
+
+    test('shuffled, appends them to the original order', () {
+      final shuffled = queue.toggleShuffle();
+      final next = shuffled.insertAllAt(1, [d, x]);
+      expect(ids(next.playbackTracks.sublist(1, 3)), ['d', 'x']);
+      expect(ids(next.originalTracks).sublist(3), ['d', 'x']);
+      expect(next.currentTrack, shuffled.currentTrack);
+    });
+
+    test('none: the same queue', () {
+      expect(queue.insertAllAt(1, const []), same(queue));
+    });
+  });
+
   group('moveItem', () {
     final queue = Queue.fromTracks([a, b, c, d], startIndex: 1);
 

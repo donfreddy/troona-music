@@ -44,7 +44,7 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
     final l10n = context.l10n;
 
     return Container(
@@ -52,7 +52,6 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: glass.fill,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: glass.border, width: glass.borderWidth),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

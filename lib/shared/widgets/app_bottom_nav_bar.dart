@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -21,6 +23,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
@@ -310,10 +313,40 @@ class _MiniPlayerRow extends StatefulWidget {
 
 class _MiniPlayerRowState extends State<_MiniPlayerRow> {
   /// Bumped by each like from here, with what it did.
-  final _burst = ValueNotifier<(int, bool)>((0, false));
+  final _burst = LikeBurstController();
+
+  /// Songs queued by hand lately, for [_QueuedAck]. Held here, above the
+  /// row's per-song key, so skipping right after Play next keeps the count.
+  final _queued = ValueNotifier<_Queued>((count: 0, shown: false, serial: 0));
+  late final StreamSubscription<PlayerNotice> _notices;
+  Timer? _queuedHide;
+
+  @override
+  void initState() {
+    super.initState();
+    _notices = context.read<PlayerBloc>().notices.listen(_onNotice);
+  }
+
+  void _onNotice(PlayerNotice notice) {
+    if (notice is! TrackQueued) return;
+    final last = _queued.value;
+    _queued.value = (
+      count: (last.shown ? last.count : 0) + notice.count,
+      shown: true,
+      serial: last.serial + 1,
+    );
+    _queuedHide?.cancel();
+    _queuedHide = Timer(_QueuedAck.shown, () {
+      final last = _queued.value;
+      _queued.value = (count: last.count, shown: false, serial: last.serial);
+    });
+  }
 
   @override
   void dispose() {
+    _queuedHide?.cancel();
+    _notices.cancel();
+    _queued.dispose();
     _burst.dispose();
     super.dispose();
   }
@@ -328,7 +361,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     final liked = !_isLiked(context);
     context.read<LikesCubit>().toggle(track);
     AppHaptics.lightImpact();
-    _burst.value = (_burst.value.$1 + 1, liked);
+    _burst.play(liked: liked);
     AppToast.show(
       context,
       liked ? context.l10n.toastLiked : context.l10n.toastUnliked,
@@ -427,8 +460,8 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                             child: Row(
                               children: [
                                 // ── Artwork thumbnail ────────────────────────
-                                SizedBox.square(
-                                  dimension: 42,
+                                _QueuedAck(
+                                  queued: _queued,
                                   child: Stack(
                                     clipBehavior: Clip.none,
                                     fit: StackFit.expand,
@@ -463,7 +496,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                                               )
                                             : const ArtworkPlaceholder(),
                                       ),
-                                      _LikeBurst(burst: _burst),
+                                      LikeBurst(controller: _burst),
                                     ],
                                   ),
                                 ),
@@ -556,97 +589,151 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
   }
 }
 
-/// A heart that pops over the mini player's cover and fades: the like,
-/// or a broken heart for one taken back. Still with reduced motion: the
-/// toast says it.
-class _LikeBurst extends StatefulWidget {
-  final ValueNotifier<(int, bool)> burst;
-  const _LikeBurst({required this.burst});
+/// Songs queued by hand lately: how many, whether the count shows, and
+/// a serial bumped by each action.
+typedef _Queued = ({int count, bool shown, int serial});
+
+/// Acknowledges songs queued by hand ([TrackQueued]) on the mini player's
+/// cover: it pulses once and a "+N" counts them, then leaves [shown] after
+/// the last action. Queueing an album is one action: one pulse, its songs
+/// counted at once.
+class _QueuedAck extends StatefulWidget {
+  final ValueListenable<_Queued> queued;
+  final Widget child;
+  const _QueuedAck({required this.queued, required this.child});
+
+  static const size = 42.0;
+  static const shown = Duration(milliseconds: 1500);
 
   @override
-  State<_LikeBurst> createState() => _LikeBurstState();
+  State<_QueuedAck> createState() => _QueuedAckState();
 }
 
-class _LikeBurstState extends State<_LikeBurst>
+class _QueuedAckState extends State<_QueuedAck>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl = AnimationController(
+  late final AnimationController _pulse = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 750),
+    duration: const Duration(milliseconds: 320),
   );
 
   static final _scale = TweenSequence<double>([
     TweenSequenceItem(
       tween: Tween(
-        begin: .3,
-        end: 1.25,
+        begin: 1.0,
+        end: 1.1,
       ).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 35,
+      weight: 40,
     ),
     TweenSequenceItem(
       tween: Tween(
-        begin: 1.25,
+        begin: 1.1,
         end: 1.0,
       ).chain(CurveTween(curve: Curves.easeInOut)),
-      weight: 25,
+      weight: 60,
     ),
-    TweenSequenceItem(tween: ConstantTween(1.0), weight: 40),
   ]);
+
+  /// The last action seen: a new serial is a new action, a change of
+  /// [_Queued.shown] alone is not.
+  late int _serial;
 
   @override
   void initState() {
     super.initState();
-    widget.burst.addListener(_play);
+    _serial = widget.queued.value.serial;
+    widget.queued.addListener(_changed);
+    NowPlayingHero.coverAnimation.addListener(_covered);
   }
 
-  @override
-  void didUpdateWidget(_LikeBurst old) {
-    super.didUpdateWidget(old);
-    if (old.burst != widget.burst) {
-      old.burst.removeListener(_play);
-      widget.burst.addListener(_play);
+  /// Now Playing coming over the row: a pulse under way stops, so the cover
+  /// flies from its place at rest.
+  void _covered() {
+    if (NowPlayingHero.coverAnimation.value != null && _pulse.isAnimating) {
+      _pulse.value = 0;
     }
   }
 
-  void _play() {
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _ctrl.forward(from: 0);
+  @override
+  void didUpdateWidget(_QueuedAck old) {
+    super.didUpdateWidget(old);
+    if (old.queued != widget.queued) {
+      old.queued.removeListener(_changed);
+      widget.queued.addListener(_changed);
+    }
   }
+
+  void _changed() {
+    final serial = widget.queued.value.serial;
+    final queuedNow = serial != _serial;
+    _serial = serial;
+    setState(() {});
+    if (queuedNow && _canPulse) _pulse.forward(from: 0);
+  }
+
+  /// Not with reduced motion, not twice at once, and not while Now Playing
+  /// covers the row: the cover is a hero, and growing it would move where
+  /// the flight lands.
+  bool get _canPulse =>
+      !MediaQuery.disableAnimationsOf(context) &&
+      !_pulse.isAnimating &&
+      NowPlayingHero.coverAnimation.value == null;
 
   @override
   void dispose() {
-    widget.burst.removeListener(_play);
-    _ctrl.dispose();
+    widget.queued.removeListener(_changed);
+    NowPlayingHero.coverAnimation.removeListener(_covered);
+    _pulse.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final liked = widget.burst.value.$2;
     final colors = context.colors;
-    return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (context, _) {
-          final t = _ctrl.value;
-          if (t == 0 || t == 1) return const SizedBox.shrink();
-          return Opacity(
-            opacity: t < .6 ? 1 : 1 - (t - .6) / .4,
-            child: Transform.scale(
-              scale: _scale.transform(t),
-              child: Center(
-                child: Icon(
-                  key: const ValueKey('likeBurst'),
-                  liked ? AppIcons.liked : AppIcons.unlike,
-                  size: 28,
-                  color: liked ? colors.accent : Colors.white,
-                  shadows: const [
-                    Shadow(color: Color(0x99000000), blurRadius: 8),
-                  ],
+    final (:count, :shown, serial: _) = widget.queued.value;
+    return SizedBox.square(
+      dimension: _QueuedAck.size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
+          ScaleTransition(scale: _pulse.drive(_scale), child: widget.child),
+          // The toast of the action says it to screen readers.
+          Positioned(
+            top: -6,
+            right: -8,
+            child: IgnorePointer(
+              child: ExcludeSemantics(
+                child: AnimatedOpacity(
+                  opacity: shown ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Container(
+                    key: const ValueKey('queuedBadge'),
+                    constraints: const BoxConstraints(minWidth: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.accent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x66000000), blurRadius: 4),
+                      ],
+                    ),
+                    child: Text(
+                      '+$count',
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: colors.accentForeground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -801,6 +888,10 @@ class _TabItem extends StatelessWidget {
   static const dotSize = 4.0;
   static const dotOffset = 19.0;
 
+  /// The other tabs: readable over a light cover under the bar's glass,
+  /// still a step below the selected one (and its dot).
+  static const inactiveOpacity = 0.6;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -822,7 +913,7 @@ class _TabItem extends StatelessWidget {
               // Centred, in line with the artwork disc of the middle slot.
               AnimatedOpacity(
                 duration: _duration,
-                opacity: isActive ? 1.0 : 0.4,
+                opacity: isActive ? 1.0 : inactiveOpacity,
                 child: Icon(icon, color: colors.labelPrimary, size: 24),
               ),
               // The selected tab is told by more than its colour.

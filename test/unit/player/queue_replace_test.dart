@@ -41,7 +41,11 @@ void main() {
   Future<void> build({LibraryRepository? library}) async {
     bloc = buildTestPlayerBloc(port, store, library: library);
     notices = [];
-    final sub = bloc.notices.listen(notices.add);
+    // Replacements only: the mini player's acknowledgement of each song
+    // queued by hand is tested with the mini player.
+    final sub = bloc.notices
+        .where((notice) => notice is! TrackQueued)
+        .listen(notices.add);
     addTearDown(() async {
       await sub.cancel();
       await bloc.close();

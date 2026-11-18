@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
+
+import '../../helpers/fake_player.dart';
 
 import '../../helpers/roboto.dart';
 
@@ -41,28 +45,32 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
+    final (:player, port: _) = await testPlayer(addTearDown);
     await tester.pumpWidget(
-      MaterialApp(
-        theme: robotoTheme(AppTheme.dark),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final name in ['Burna Boy', 'Tems', 'Asake'])
-                  ArtistCard(
-                    artist: Artist(
-                      id: name,
-                      name: name,
-                      albumCount: 2,
-                      trackCount: 14,
+      BlocProvider<PlayerBloc>.value(
+        value: player,
+        child: MaterialApp(
+          theme: robotoTheme(AppTheme.dark),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final name in ['Burna Boy', 'Tems', 'Asake'])
+                    ArtistCard(
+                      artist: Artist(
+                        id: name,
+                        name: name,
+                        albumCount: 2,
+                        trackCount: 14,
+                      ),
+                      size: 95,
                     ),
-                    size: 95,
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

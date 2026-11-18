@@ -40,6 +40,32 @@ final class _FakeAudioPlayer implements AudioPlayer {
     if (held != null) await held.future;
   }
 
+  /// Batch inserts, as `index:ids` (`end:ids` for an append).
+  final batches = <String>[];
+
+  @override
+  Future<void> insertAudioSources(
+    int index,
+    List<AudioSource> audioSources,
+  ) async {
+    batches.add('$index:${_ids(audioSources).join(',')}');
+    final held = editGate;
+    editGate = null;
+    if (held != null) await held.future;
+  }
+
+  @override
+  Future<void> addAudioSources(List<AudioSource> audioSources) async {
+    batches.add('end:${_ids(audioSources).join(',')}');
+    final held = editGate;
+    editGate = null;
+    if (held != null) await held.future;
+  }
+
+  static List<String> _ids(List<AudioSource> sources) => [
+    for (final s in sources) ((s as IndexedAudioSource).tag as Track).id,
+  ];
+
   @override
   Stream<int?> get currentIndexStream => index.stream;
   @override
@@ -317,6 +343,37 @@ void main() {
 
     expect(adapter.currentQueue?.currentIndex, 0);
     expect(playing, isEmpty);
+  });
+
+  group('several songs queued at once', () {
+    final x = testTrack('x', durationMs: 180000);
+    final y = testTrack('y', durationMs: 180000);
+
+    test('go to the player in one call, in their order', () async {
+      await setUpAdapter(queue: [a, b, c], start: 0);
+      await adapter.addAllToQueue([x, y], index: 1);
+      await adapter.addAllToQueue([y]);
+      expect(player.batches, ['1:x,y', 'end:y']);
+      expect(
+        [for (final t in adapter.currentQueue!.playbackTracks) t.id],
+        ['a', 'x', 'y', 'b', 'c', 'y'],
+      );
+    });
+
+    test('refused, none of them stays, in the queue or the player', () async {
+      await setUpAdapter(queue: [a, b, c], start: 0);
+      final gate = player.editGate = Completer<void>();
+      final added = adapter.addAllToQueue([x, y], index: 1);
+      await pumpEventQueue();
+      player.loads.clear();
+      gate.completeError(Exception('rejected'));
+      expect((await added).isLeft(), isTrue);
+      await pumpEventQueue();
+      expect(adapter.currentQueue?.playbackTracks, [a, b, c]);
+      expect(player.loads, [
+        ['a', 'b', 'c'],
+      ]);
+    });
   });
 
   group('a removal rejected by the player', () {

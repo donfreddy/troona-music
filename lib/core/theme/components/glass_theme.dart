@@ -57,6 +57,11 @@ final class GlassConfig {
   /// not show as stains; decorative glass over artwork keeps the boost.
   final double saturation;
 
+  /// Brightness of what the glass lets through ([GlassFilter.of]): 1 for
+  /// most glass; below 1 where text sits on whatever scrolls under it with
+  /// nothing to darken it first (the page header).
+  final double exposure;
+
   const GlassConfig({
     required this.blurSigma,
     required this.fill,
@@ -66,6 +71,7 @@ final class GlassConfig {
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.padding = const EdgeInsets.all(16),
     this.saturation = GlassFilter.saturation,
+    this.exposure = 1,
   });
 
   GlassConfig copyWith({
@@ -77,6 +83,7 @@ final class GlassConfig {
     BorderRadius? borderRadius,
     EdgeInsets? padding,
     double? saturation,
+    double? exposure,
   }) {
     return GlassConfig(
       blurSigma: blurSigma ?? this.blurSigma,
@@ -87,6 +94,7 @@ final class GlassConfig {
       borderRadius: borderRadius ?? this.borderRadius,
       padding: padding ?? this.padding,
       saturation: saturation ?? this.saturation,
+      exposure: exposure ?? this.exposure,
     );
   }
 }
@@ -177,6 +185,24 @@ abstract final class GlassTheme {
     };
   }
 
+  /// Config for cards in scrolling content (Home's cards, Settings'
+  /// groups): flat, no edge, the fill alone, grouped by spacing. On the
+  /// high tier the fill is a step above [card]'s, which leans on its edge
+  /// to show: without one, 4 % white barely parts from the page.
+  static GlassConfig content(BuildContext ctx, {GlassQuality? quality}) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final high = _resolveQuality(ctx, quality) == GlassQuality.high;
+    return card(ctx, quality: quality).copyWith(
+      blurSigma: 0,
+      borderWidth: 0,
+      fill: high && isDark ? contentFillDark : null,
+    );
+  }
+
+  /// [content]'s fill on the high tier, dark theme: 8 % white, the low end
+  /// of `.ultraThinMaterial` (the low tier's card fill is 12 %).
+  static const Color contentFillDark = Color(0x14FFFFFF);
+
   /// Config for chrome that carries text and controls: the tab bar (with
   /// the mini player inside it) and the collapsed page header. A light dark
   /// tint and a mild saturation: covers behind stay rich without showing as
@@ -192,6 +218,24 @@ abstract final class GlassTheme {
       (false, _) => _cardLight,
     };
   }
+
+  /// Config for the collapsed page header ([GlassSliverHeader]): the
+  /// [bar] glass, exposed at [headerExposure]. Covers scroll right under
+  /// its title, unlike the tab bar's, which the shell darkens first: a
+  /// white one under 15 % of tint left white text at 1.4:1. On the low
+  /// tier the header takes the dark tint too: the white veil, exposed or
+  /// not, stays near 3:1.
+  static GlassConfig header(BuildContext ctx, {GlassQuality? quality}) {
+    final bar = GlassTheme.bar(ctx, quality: quality);
+    if (bar.blurSigma == 0) return bar;
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    if (!isDark) return bar;
+    return bar.copyWith(fill: _barDark.fill, exposure: headerExposure);
+  }
+
+  /// Brightness of what the header's glass lets through: white text keeps
+  /// about 5:1 over a white cover under the [bar] tint.
+  static const double headerExposure = 0.5;
 
   /// Config for the persistent mini-player bar (bottom of the shell).
   ///

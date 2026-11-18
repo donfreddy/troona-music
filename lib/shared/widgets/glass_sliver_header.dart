@@ -19,7 +19,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 /// navigation row, on no glass at all. Scrolling moves [expanded] up like
 /// content, fading it out, and the row's bottom edge cuts it; the compact
 /// [title] fades in. Once collapsed, the following slivers pass under the
-/// bar, which blurs them with [GlassTheme.bar].
+/// bar, which blurs them with [GlassTheme.header].
 ///
 /// Blur cost: the filter keeps one sigma and is only switched on once the
 /// header is collapsed, when content starts to pass under it; the tint
@@ -104,8 +104,41 @@ class GlassSliverHeader extends StatelessWidget {
   /// Height of the navigation row, below the status bar.
   static const double navBarHeight = 44;
 
+  /// Opacity of [expanded] at which the compact title starts to come in.
+  /// Before, the two names would show at once, one fading in over the
+  /// other: the compact title waits until the expanded one is nearly gone.
+  static const double titleHandover = 0.2;
+
+  /// Opacity of the compact title at [collapse] (0 expanded, 1 collapsed),
+  /// for [expanded] fading [expandedFade] times faster than the collapse:
+  /// none until [expanded] is down to [titleHandover], then whole by
+  /// [reach], the deepest collapse the content lets the page scroll to (1
+  /// unless the content is too short to collapse the header fully). A page
+  /// that cannot scroll past the handover keeps its expanded title at rest;
+  /// pulled further (an overscroll), it gets the compact one as on any
+  /// page, or the bar would be empty once the expanded title is under it.
+  @visibleForTesting
+  static double titleOpacityAt(
+    double collapse, {
+    double expandedFade = 1,
+    double reach = 1,
+  }) {
+    final start = ((1 - titleHandover) / expandedFade).clamp(0.0, 0.95);
+    final end = reach <= start ? 1.0 : math.min(reach, 1.0);
+    return ((collapse - start) / (end - start)).clamp(0.0, 1.0);
+  }
+
+  /// Share of a marked title ([GlassHeaderTitle]) that is under the
+  /// navigation row when the compact title starts to come in; it is whole
+  /// when the marked one is hidden.
+  static const double markedTitleHandover = 0.5;
+
   /// Height of the large title's area at the default font size.
   static const double largeTitleHeight = 86;
+
+  /// Height of the large title's area at the phone's font size.
+  static double largeTitleExtentOf(BuildContext context) =>
+      expandedExtentOf(context, largeTitleHeight, _LargeTitle.lineHeight);
 
   /// Height below the header over which its glass fades out, instead of
   /// stopping on a line.
@@ -265,6 +298,17 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
       old.navHeight != navHeight ||
       old.expandedExtent != expandedExtent;
 
+  /// The deepest collapse the page can scroll to: below 1 when its content
+  /// is too short to collapse the header fully.
+  double reachOf(BuildContext context) {
+    final range = maxExtent - minExtent;
+    final position = Scrollable.maybeOf(context)?.position;
+    if (range <= 0 || position == null || !position.hasContentDimensions) {
+      return 1;
+    }
+    return (position.maxScrollExtent / range).clamp(0.0, 1.0);
+  }
+
   /// 0 expanded, 1 collapsed. A header that cannot collapse is "collapsed"
   /// once content scrolls under it.
   double collapseOf(double shrinkOffset) {
@@ -282,7 +326,13 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final collapse = collapseOf(shrinkOffset);
-    final glass = GlassTheme.bar(context);
+    final reach = reachOf(context);
+    // What fades the expanded header: no further than the page can scroll.
+    // Pulled past its end (a list too short to scroll, dragged up), the
+    // hero keeps the opacity it rests at: with no compact title to take
+    // over yet, a title that dimmed under the finger read as going away.
+    final fade = math.min(collapse, reach);
+    final glass = GlassTheme.header(context);
     final expandedTop = topPadding + navHeight;
     final background = header.background;
     final expanded = header.expanded;
@@ -305,7 +355,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             right: 0,
             height: shrinkOffset > 0 ? maxExtent : null,
             bottom: shrinkOffset > 0 ? null : 0,
-            child: _Fade(opacity: 1 - collapse, child: background),
+            child: _Fade(opacity: 1 - fade, child: background),
           ),
 
         // ── Expanded content: scrolls up under the navigation row ───────
@@ -321,9 +371,11 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
                 alignment: Alignment.bottomCenter,
                 minHeight: expandedExtent,
                 maxHeight: expandedExtent,
-                child: _Fade(
-                  opacity: 1 - collapse * header.expandedFade,
-                  child: expanded,
+                child: _ExpandedBox(
+                  child: _Fade(
+                    opacity: 1 - fade * header.expandedFade,
+                    child: expanded,
+                  ),
                 ),
               ),
             ),
@@ -340,7 +392,6 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             child: _NavRow(
               leading: header.leading,
               title: header.title,
-              titleOpacity: collapse,
               actions: header.actions,
             ),
           ),
@@ -367,33 +418,206 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
       ],
     );
 
+    // Bottom of [expanded], from the top of the header, at a scroll.
+    double expandedBottomAt(double shrink) =>
+        math.max(maxExtent - shrink, minExtent) - header.pinnedBottomHeight;
+
     // The glass reaches [softEdge] below the header and fades out there,
     // blur and tint together: no line where the bar ends (iOS scroll edge).
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.none,
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: -GlassSliverHeader.softEdge,
-          child: IgnorePointer(
-            child: _GlassLayer(
-              glass: glass,
-              tint: collapse,
-              // Content passes under a pinned header only once it is
-              // collapsed (or, for one that cannot collapse, scrolled).
-              blur: maxExtent == minExtent
-                  ? collapse > 0
-                  : shrinkOffset >= maxExtent - minExtent,
+    return _TitleHandover(
+      navBottom: expandedTop,
+      expandedExtent: expandedExtent,
+      expandedBottom: expandedBottomAt(shrinkOffset),
+      expandedBottomAtReach: expandedBottomAt(reach * (maxExtent - minExtent)),
+      unmarked: GlassSliverHeader.titleOpacityAt(
+        collapse,
+        expandedFade: header.expandedFade,
+        reach: reach,
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: -GlassSliverHeader.softEdge,
+            child: IgnorePointer(
+              child: _GlassLayer(
+                glass: glass,
+                tint: collapse,
+                // Content passes under a pinned header only once it is
+                // collapsed (or, for one that cannot collapse, scrolled).
+                blur: maxExtent == minExtent
+                    ? collapse > 0
+                    : shrinkOffset >= maxExtent - minExtent,
+              ),
             ),
           ),
-        ),
-        body,
-      ],
+          body,
+        ],
+      ),
     );
   }
+}
+
+/// Marks the title inside [GlassSliverHeader.expanded], for a hero whose
+/// title is not at its bottom (an album: the artist, the facts and the
+/// buttons come below it). The compact title then comes in as this one goes
+/// under the navigation row, wherever it sits. Without a mark the header
+/// goes by how far it has collapsed, which fits a title at the bottom of
+/// [GlassSliverHeader.expanded] only: one higher up was long gone, and the
+/// bar empty, before the compact one came.
+class GlassHeaderTitle extends StatefulWidget {
+  final Widget child;
+
+  const GlassHeaderTitle({super.key, required this.child});
+
+  @override
+  State<GlassHeaderTitle> createState() => _GlassHeaderTitleState();
+}
+
+class _GlassHeaderTitleState extends State<GlassHeaderTitle> {
+  _TitleMark? _mark;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Read, not depended on: the scope changes on every scroll frame.
+    final mark = context.getInheritedWidgetOfExactType<_HandoverScope>()?.mark;
+    if (mark == _mark) return;
+    _forget();
+    _mark = mark?..title = context;
+  }
+
+  void _forget() {
+    if (_mark?.title == context) _mark?.title = null;
+  }
+
+  @override
+  void dispose() {
+    _forget();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Where the marked title is, if any.
+class _TitleMark {
+  BuildContext? title;
+}
+
+/// Works out the compact title's opacity for the navigation row below it,
+/// and keeps what that takes across scroll frames: the mark, and the key of
+/// the box [GlassSliverHeader.expanded] is laid out in.
+class _TitleHandover extends StatefulWidget {
+  /// Bottom of the navigation row, from the top of the header.
+  final double navBottom;
+
+  /// Height [GlassSliverHeader.expanded] is laid out at, whatever the
+  /// scroll: only its place changes.
+  final double expandedExtent;
+
+  /// Bottom of that box, from the top of the header: now, and at the
+  /// deepest scroll the content allows.
+  final double expandedBottom;
+  final double expandedBottomAtReach;
+
+  /// The compact title's opacity when no title is marked.
+  final double unmarked;
+  final Widget child;
+
+  const _TitleHandover({
+    required this.navBottom,
+    required this.expandedExtent,
+    required this.expandedBottom,
+    required this.expandedBottomAtReach,
+    required this.unmarked,
+    required this.child,
+  });
+
+  @override
+  State<_TitleHandover> createState() => _TitleHandoverState();
+}
+
+class _TitleHandoverState extends State<_TitleHandover> {
+  final _mark = _TitleMark();
+  final _expandedKey = GlobalKey();
+
+  /// The marked title sits at a fixed place in the expanded box, which is
+  /// laid out at one height and only moved: its place there, as last laid
+  /// out, and the box's place now, say how much of it is under the row.
+  double _opacity() {
+    final w = widget;
+    final title = _mark.title?.findRenderObject();
+    final box = _expandedKey.currentContext?.findRenderObject();
+    if (title is! RenderBox ||
+        box is! RenderBox ||
+        !title.attached ||
+        !box.attached ||
+        !title.hasSize ||
+        title.size.height <= 0) {
+      return w.unmarked;
+    }
+    final top = title.localToGlobal(Offset.zero, ancestor: box).dy;
+    final height = title.size.height;
+    double hidden(double expandedBottom) =>
+        ((w.navBottom - (expandedBottom - w.expandedExtent + top)) / height)
+            .clamp(0.0, 1.0);
+    // Content too short to take the title under the row: at rest it
+    // stays, and the bar needs no second one. Pulled further (an
+    // overscroll), the compact title comes in over what is left to hide,
+    // or the bar would be empty once the title is under it.
+    final atReach = hidden(w.expandedBottomAtReach);
+    final from = atReach < 1
+        ? math.max(GlassSliverHeader.markedTitleHandover, atReach)
+        : GlassSliverHeader.markedTitleHandover;
+    return ((hidden(w.expandedBottom) - from) / (1 - from)).clamp(0.0, 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) => _HandoverScope(
+    mark: _mark,
+    expandedKey: _expandedKey,
+    titleOpacity: _opacity(),
+    child: widget.child,
+  );
+}
+
+class _HandoverScope extends InheritedWidget {
+  final _TitleMark mark;
+  final GlobalKey expandedKey;
+  final double titleOpacity;
+
+  const _HandoverScope({
+    required this.mark,
+    required this.expandedKey,
+    required this.titleOpacity,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(_HandoverScope old) =>
+      old.titleOpacity != titleOpacity ||
+      old.mark != mark ||
+      old.expandedKey != expandedKey;
+}
+
+/// The box [GlassSliverHeader.expanded] is laid out in, under the key the
+/// handover measures a marked title against.
+class _ExpandedBox extends StatelessWidget {
+  final Widget child;
+
+  const _ExpandedBox({required this.child});
+
+  @override
+  Widget build(BuildContext context) => KeyedSubtree(
+    key: context.getInheritedWidgetOfExactType<_HandoverScope>()?.expandedKey,
+    child: child,
+  );
 }
 
 /// The bar's glass, [GlassSliverHeader.softEdge] taller than the header:
@@ -440,6 +664,7 @@ class _GlassLayer extends StatelessWidget {
                       filter: GlassFilter.of(
                         glass.blurSigma,
                         saturation: glass.saturation,
+                        exposure: glass.exposure,
                       ),
                       child: bar,
                     ),
@@ -496,13 +721,11 @@ class _Fade extends StatelessWidget {
 class _NavRow extends StatelessWidget {
   final Widget? leading;
   final String? title;
-  final double titleOpacity;
   final List<Widget> actions;
 
   const _NavRow({
     required this.leading,
     required this.title,
-    required this.titleOpacity,
     required this.actions,
   });
 
@@ -526,7 +749,11 @@ class _NavRow extends StatelessWidget {
           middle: title == null
               ? null
               : Opacity(
-                  opacity: titleOpacity,
+                  opacity:
+                      context
+                          .dependOnInheritedWidgetOfExactType<_HandoverScope>()
+                          ?.titleOpacity ??
+                      1,
                   child: Text(
                     title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(

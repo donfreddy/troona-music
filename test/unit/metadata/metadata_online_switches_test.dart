@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/network/api_client.dart';
 import 'package:troona/features/metadata/data/models/last_fm_album_dto.dart';
@@ -15,6 +17,9 @@ import 'package:troona/features/metadata/data/sources/metadata_cache_data_source
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
+
+const _songs = ['One More Time'];
+const hash = '638e69b9caaf9f9f3f8826febea7b543';
 
 class _Settings implements SettingsRepository {
   AppSettings? value;
@@ -69,7 +74,10 @@ class _Remote implements LastFmRemoteDataSource {
   Object? deezerFailure;
 
   @override
-  Future<String?> fetchDeezerArtistImage(String artistName) async {
+  Future<String?> fetchDeezerArtistImage(
+    String artistName, {
+    List<String> songTitles = const [],
+  }) async {
     calls.add('deezer:artist');
     final failure = deezerFailure;
     deezerFailure = null;
@@ -95,12 +103,16 @@ class _Adapter implements HttpClientAdapter {
   final Future<void> Function()? midway;
   _Adapter(this.chunks, {this.cut = false, this.midway});
 
+  /// Requests served so far.
+  int requests = 0;
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
   ) async {
+    requests++;
     final controller = StreamController<Uint8List>();
     () async {
       for (final c in chunks) {
@@ -112,6 +124,26 @@ class _Adapter implements HttpClientAdapter {
       await controller.close();
     }();
     return ResponseBody(controller.stream, 200);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+/// Answers [body] to the first request, then the connection drops.
+class _FlakyAdapter implements HttpClientAdapter {
+  final String body;
+  int requests = 0;
+  _FlakyAdapter(this.body);
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (++requests > 1) throw const SocketException('connection reset');
+    return ResponseBody.fromString(body, 200);
   }
 
   @override
@@ -146,10 +178,14 @@ void main() {
       AppSettings(fetchOnlineMetadata: info, fetchArtistArtwork: photos);
 
   test('both switches off: no request at all', () async {
-    expect(await repo.getArtistInfo('Daft Punk'), isNull);
+    expect(await repo.getArtistInfo('Daft Punk', songTitles: _songs), isNull);
     expect(await repo.getAlbumInfo('Daft Punk', 'Discovery'), isNull);
     expect(
-      await repo.prefetchArtistPhoto(artistId: '1', artistName: 'Daft Punk'),
+      await repo.prefetchArtistPhoto(
+        artistId: '1',
+        artistName: 'Daft Punk',
+        songTitles: _songs,
+      ),
       isNull,
     );
     expect(remote.calls, isEmpty);
@@ -157,14 +193,14 @@ void main() {
 
   test('unreadable settings count as off', () async {
     settings.value = null;
-    expect(await repo.getArtistInfo('Daft Punk'), isNull);
+    expect(await repo.getArtistInfo('Daft Punk', songTitles: _songs), isNull);
     expect(remote.calls, isEmpty);
   });
 
   test('info only: Last.fm text, no picture, Deezer untouched', () async {
     settings.value = switches(info: true, photos: false);
 
-    final artist = await repo.getArtistInfo('Daft Punk');
+    final artist = await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     final album = await repo.getAlbumInfo('Daft Punk', 'Discovery');
 
     expect(artist?.bio, 'A bio');
@@ -179,7 +215,11 @@ void main() {
     settings.value = switches(info: true, photos: false);
 
     expect(
-      await repo.prefetchArtistPhoto(artistId: '1', artistName: 'Daft Punk'),
+      await repo.prefetchArtistPhoto(
+        artistId: '1',
+        artistName: 'Daft Punk',
+        songTitles: _songs,
+      ),
       isNull,
     );
     expect(
@@ -195,7 +235,7 @@ void main() {
   test('photos only: Deezer picture, Last.fm untouched', () async {
     settings.value = switches(info: false, photos: true);
 
-    final artist = await repo.getArtistInfo('Daft Punk');
+    final artist = await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     final album = await repo.getAlbumInfo('Daft Punk', 'Discovery');
 
     expect(artist?.bio, isNull);
@@ -207,12 +247,12 @@ void main() {
   test('both on: text and picture, then served from the cache', () async {
     settings.value = switches(info: true, photos: true);
 
-    final first = await repo.getArtistInfo('Daft Punk');
+    final first = await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     expect(first?.bio, 'A bio');
     expect(first?.imageUrl, 'https://deezer.test/artist.jpg');
 
     remote.calls.clear();
-    final second = await repo.getArtistInfo('Daft Punk');
+    final second = await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     expect(second, first);
     expect(remote.calls, isEmpty);
   });
@@ -299,8 +339,8 @@ void main() {
 
   test('photos only: one Deezer search per artist per session', () async {
     settings.value = switches(info: false, photos: true);
-    await repo.getArtistInfo('Daft Punk');
-    await repo.getArtistInfo('Daft Punk');
+    await repo.getArtistInfo('Daft Punk', songTitles: _songs);
+    await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     expect(remote.calls, ['deezer:artist']);
   });
 
@@ -311,15 +351,21 @@ void main() {
       reason: 'offline',
     );
 
-    expect(await repo.getArtistInfo('Daft Punk'), isNull);
-    final online = await repo.getArtistInfo('Daft Punk');
+    expect(await repo.getArtistInfo('Daft Punk', songTitles: _songs), isNull);
+    final online = await repo.getArtistInfo('Daft Punk', songTitles: _songs);
 
     expect(online?.imageUrl, 'https://deezer.test/artist.jpg');
     expect(remote.calls, ['deezer:artist', 'deezer:artist']);
   });
 
+  test('photos on but no song to confirm with: Deezer untouched', () async {
+    settings.value = switches(info: false, photos: true);
+    expect(await repo.getArtistInfo('Daft Punk'), isNull);
+    expect(remote.calls, isEmpty);
+  });
+
   group('Deezer remote', () {
-    LastFmRemoteDataSourceImpl remoteWith(_Adapter adapter) =>
+    LastFmRemoteDataSourceImpl remoteWith(HttpClientAdapter adapter) =>
         LastFmRemoteDataSourceImpl(
           client: ApiClient(customDio: Dio()..httpClientAdapter = adapter),
         );
@@ -327,22 +373,99 @@ void main() {
     test('throws when Deezer cannot be reached', () async {
       final remote = remoteWith(_Adapter(const [], cut: true));
       await expectLater(
-        remote.fetchDeezerArtistImage('Daft Punk'),
+        remote.fetchDeezerArtistImage('Daft Punk', songTitles: _songs),
         throwsA(isA<DioException>()),
       );
     });
 
+    String songs(List<(String, String)> found) => jsonEncode({
+      'data': [
+        for (final (title, artist) in found)
+          {
+            'title': title,
+            'artist': {
+              'name': artist,
+              'picture_xl':
+                  'https://cdn-images.dzcdn.net/images/artist/$hash/1000x1000.jpg',
+            },
+          },
+      ],
+    });
+
+    test('takes the photo of the artist one of their songs confirms', () async {
+      final adapter = _Adapter([
+        songs([('One More Time', 'Daft Punk')]).codeUnits,
+      ]);
+      expect(
+        await remoteWith(
+          adapter,
+        ).fetchDeezerArtistImage('Daft Punk', songTitles: _songs),
+        contains(hash),
+      );
+      expect(adapter.requests, 1);
+    });
+
+    test('a namesake is never taken, after three songs at most', () async {
+      final adapter = _Adapter([
+        songs([('Not Theirs', 'Daft Punk')]).codeUnits,
+      ]);
+      expect(
+        await remoteWith(adapter).fetchDeezerArtistImage(
+          'Daft Punk',
+          songTitles: const ['A', 'B', 'C', 'D'],
+        ),
+        isNull,
+      );
+      expect(adapter.requests, 3);
+    });
+
+    test('Deezer lost on the second song: not taken for a miss', () async {
+      final adapter = _FlakyAdapter(songs([('Not Theirs', 'Daft Punk')]));
+      await expectLater(
+        remoteWith(
+          adapter,
+        ).fetchDeezerArtistImage('Daft Punk', songTitles: const ['A', 'B']),
+        throwsA(isA<DioException>()),
+      );
+      expect(adapter.requests, 2);
+    });
+
+    test('over quota: not taken for a miss', () async {
+      final adapter = _Adapter([
+        '{"error":{"type":"Exception","message":"Quota limit exceeded","code":4}}'
+            .codeUnits,
+      ]);
+      await expectLater(
+        remoteWith(
+          adapter,
+        ).fetchDeezerArtistImage('Daft Punk', songTitles: _songs),
+        throwsA(isA<DioException>()),
+      );
+    });
+
+    test('no song, no search', () async {
+      final adapter = _Adapter(const []);
+      expect(
+        await remoteWith(adapter).fetchDeezerArtistImage('Daft Punk'),
+        isNull,
+      );
+      expect(adapter.requests, 0);
+    });
+
     test('answers null when Deezer has no match', () async {
       final remote = remoteWith(_Adapter(['{"data":[]}'.codeUnits]));
-      expect(await remote.fetchDeezerArtistImage('Daft Punk'), isNull);
+      expect(
+        await remote.fetchDeezerArtistImage('Daft Punk', songTitles: _songs),
+        isNull,
+      );
     });
   });
 
   test('concurrent lookups for one artist share one search', () async {
     settings.value = switches(info: false, photos: true);
     await Future.wait([
-      repo.getArtistInfo('Daft Punk'),
-      repo.getArtistInfo('Daft Punk'),
+      repo.getArtistInfo('Daft Punk', songTitles: _songs),
+      repo.getArtistInfo('Daft Punk', songTitles: _songs),
     ]);
     expect(remote.calls, ['deezer:artist']);
   });
@@ -358,13 +481,13 @@ void main() {
     expect(repo.getCachedArtistArtworkPath('1'), isNull);
 
     settings.value = switches(info: false, photos: true);
-    await repo.getArtistInfo('Daft Punk');
+    await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     expect(repo.getCachedArtistArtworkPath('1'), late.path);
   });
 
   test('forgetting photos keeps bios and tells every artist card', () async {
     settings.value = switches(info: true, photos: true);
-    await repo.getArtistInfo('Daft Punk');
+    await repo.getArtistInfo('Daft Punk', songTitles: _songs);
     final photo = File('${tempDir.path}/photos/artists/1.jpg');
     await photo.create(recursive: true);
     await photo.writeAsBytes([1]);
@@ -378,7 +501,10 @@ void main() {
     expect(await photo.exists(), isFalse);
     expect(updates, [MetadataRepository.allArtists]);
     remote.calls.clear();
-    expect((await repo.getArtistInfo('Daft Punk'))?.bio, 'A bio');
+    expect(
+      (await repo.getArtistInfo('Daft Punk', songTitles: _songs))?.bio,
+      'A bio',
+    );
     expect(remote.calls, isNot(contains('lastfm:artist')));
   });
 
@@ -426,5 +552,79 @@ void main() {
 
     expect(await part.exists(), isFalse);
     expect(await done.exists(), isTrue);
+  });
+
+  test('names in other scripts have entries of their own', () async {
+    await cache.saveArtist(
+      '\u041a\u0438\u043d\u043e',
+      const LastFmArtistDto(
+        artist: LastFmArtistData(
+          customImageUrl: 'https://deezer.test/kino.jpg',
+        ),
+      ),
+    );
+    expect(await cache.getArtist('\u0421\u043f\u043b\u0438\u043d'), isNull);
+    expect(
+      (await cache.getArtist(
+        '\u041a\u0438\u043d\u043e',
+      ))?.artist?.customImageUrl,
+      'https://deezer.test/kino.jpg',
+    );
+    expect(
+      MetadataCacheDataSourceImpl.keyOf('Daft Punk'),
+      MetadataCacheDataSourceImpl.keyOf(' daft punk '),
+    );
+  });
+
+  group('photos downloaded before the check', () {
+    late Directory photos;
+    late Directory jsonCache;
+
+    setUp(() async {
+      photos = Directory('${tempDir.path}/photos');
+      jsonCache = Directory('${tempDir.path}/json');
+      for (final f in [
+        '${photos.path}/artists/1.jpg',
+        '${photos.path}/albums/album_1.jpg',
+        '${jsonCache.path}/artists/daft_punk.json',
+        '${jsonCache.path}/albums/daft_punk_discovery.json',
+      ]) {
+        await File(f).create(recursive: true);
+      }
+    });
+
+    Future<void> forget(SharedPreferences prefs) =>
+        MetadataRepositoryImpl.forgetUncheckedArtistPhotos(
+          photos: photos,
+          cache: jsonCache,
+          prefs: prefs,
+        );
+
+    test('go once: artist photos and online info, album covers kept', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await forget(prefs);
+
+      expect(Directory('${photos.path}/artists').existsSync(), isFalse);
+      expect(Directory('${jsonCache.path}/artists').existsSync(), isFalse);
+      expect(File('${photos.path}/albums/album_1.jpg').existsSync(), isTrue);
+      // Named the old way, never read again.
+      expect(Directory('${jsonCache.path}/albums').existsSync(), isFalse);
+      expect(prefs.getBool(MetadataRepositoryImpl.photosCheckedKey), isTrue);
+
+      // A photo downloaded through the check stays on the next launch.
+      await File('${photos.path}/artists/1.jpg').create(recursive: true);
+      await forget(prefs);
+      expect(File('${photos.path}/artists/1.jpg').existsSync(), isTrue);
+    });
+
+    test('marked done with nothing to remove', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await photos.delete(recursive: true);
+      await jsonCache.delete(recursive: true);
+      await forget(prefs);
+      expect(prefs.getBool(MetadataRepositoryImpl.photosCheckedKey), isTrue);
+    });
   });
 }

@@ -489,6 +489,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get libraryScanAgain => 'Scan again';
 
   @override
+  String get libraryIndex => 'Alphabetical index';
+
+  @override
+  String libraryIndexJump(String letter) {
+    return 'Go to $letter';
+  }
+
+  @override
   String get libraryNoSongs => 'No songs yet';
 
   @override
@@ -514,6 +522,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get librarySortRecent => 'Recently added';
+
+  @override
+  String get librarySortPlays => 'Most played';
 
   @override
   String get libraryUpdating => 'Updating your library…';
@@ -555,6 +566,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get detailSingles => 'Singles';
+
+  @override
+  String get detailDiscography => 'Discography';
 
   @override
   String get detailLatestRelease => 'Latest release';
@@ -648,6 +662,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchRecentlyAdded => 'Recently added';
+
+  @override
+  String get recentlyAddedTitle => 'Recently added';
+
+  @override
+  String get recentlyAddedEmptyTitle => 'Nothing added yet';
+
+  @override
+  String get recentlyAddedEmptyBody =>
+      'Songs you add to your phone show here, newest first.';
+
+  @override
+  String get recentAlbumsTitle => 'Recent albums';
+
+  @override
+  String get recentAlbumsEmptyBody =>
+      'Albums you add to your phone show here, newest first.';
 
   @override
   String get searchBadgeArtist => 'Artist';
@@ -848,21 +879,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeRediscover => 'Rediscover';
 
   @override
-  String get homeYourArtists => 'Your artists';
-
-  @override
   String get homeRecentlyAdded => 'Recently added';
-
-  @override
-  String get homeYourPlaylists => 'Your playlists';
 
   @override
   String homeWeeklyPlays(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'plays this week',
-      one: 'play this week',
+      other: '$count plays this week',
+      one: '1 play this week',
     );
     return '$_temp0';
   }

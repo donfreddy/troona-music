@@ -46,6 +46,7 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
   final MetadataRepository _repo;
   late final StreamSubscription<String> _photosRemoved;
   Artist? _artist;
+  List<String> _songTitles = const [];
   int _generation = 0;
 
   ArtistMetadataCubit({required MetadataRepository repo})
@@ -61,8 +62,14 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
         });
   }
 
-  Future<void> loadArtistMetadata(Artist artist) {
+  /// [songTitles]: the artist's own songs, most played first, which the
+  /// photo is confirmed with (see [MetadataRepository.getArtistInfo]).
+  Future<void> loadArtistMetadata(
+    Artist artist, {
+    List<String> songTitles = const [],
+  }) {
     _artist = artist;
+    _songTitles = songTitles;
     return _load(artist);
   }
 
@@ -71,7 +78,10 @@ class ArtistMetadataCubit extends Cubit<ArtistMetadataState> {
     bool stale() => isClosed || generation != _generation;
     if (!quiet) emit(const ArtistMetadataLoading());
 
-    final info = await _repo.getArtistInfo(artist.name);
+    final info = await _repo.getArtistInfo(
+      artist.name,
+      songTitles: _songTitles,
+    );
     if (stale()) return;
     if (info == null ||
         (info.bio == null &&
