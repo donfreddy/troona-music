@@ -11,6 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album and artist cards show a small equalizer while one of their songs plays, still while paused, as song rows do.
 - A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue. The album page's menu is the same one.
 - The mini player acknowledges songs you queue: its cover pulses once and a small count (+1, or +12 for an album) shows on it for a moment. With less motion asked, only the count shows.
+- An artist's Play next and Add to queue say so in a message, as an album's do.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
 
 ### Changed
@@ -32,6 +33,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Play next and Add to queue with nothing playing: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone.
 - Playlist covers no longer repeat one album: songs of the same album count once, and a playlist with fewer than four albums shows its first song's cover alone instead of a grid of copies.
 - Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
 - The name on an artist's photo stays readable over a photo with its own lettering.

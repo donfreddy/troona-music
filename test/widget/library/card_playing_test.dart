@@ -209,5 +209,23 @@ void main() {
       );
       await tester.pump(const Duration(seconds: 5));
     });
+
+    testWidgets('with nothing playing, Play next and Add to queue play the '
+        'album from its first song, no toast', (tester) async {
+      for (final action in ['Play next', 'Add to queue']) {
+        await pump(tester, const AlbumCard(album: _album));
+        await tester.longPress(find.byType(AlbumCard));
+        await settle(tester);
+        await tester.tap(find.text(action));
+        await settle(tester);
+        final set = port.lastSetQueue;
+        expect(set?.tracks.map((t) => t.id), ['1', '2'], reason: action);
+        expect(set?.startIndex, 0);
+        expect(player.origin.value?.id, _album.id);
+        expect(find.text('Plays next'), findsNothing);
+        expect(find.text('Added to queue'), findsNothing);
+        await tester.pump(const Duration(seconds: 5));
+      }
+    });
   });
 }

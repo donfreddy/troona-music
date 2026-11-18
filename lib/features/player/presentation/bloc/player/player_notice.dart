@@ -23,9 +23,13 @@ final class QueueReplaced extends PlayerNotice {
   const QueueReplaced();
 }
 
-/// A song joined the queue by hand (Play next, Add to queue). The mini
-/// player acknowledges it; the action that queued it already says so in a
-/// toast.
+/// [count] songs joined the queue by hand in one action (Play next, Add to
+/// queue). The mini player acknowledges them; the action that queued them
+/// already says so in a toast.
 final class TrackQueued extends PlayerNotice {
-  const TrackQueued();
+  final int count;
+  const TrackQueued([this.count = 1]);
+
+  @override
+  List<Object?> get props => [count];
 }

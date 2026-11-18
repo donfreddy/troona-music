@@ -348,9 +348,7 @@ void main() {
       expect(coverScale(tester), 1, reason: 'one pulse, then at rest');
 
       // An album queued next: its songs add up in the same badge.
-      bloc
-        ..add(TrackQueuedNext(songs[1]))
-        ..add(TrackQueuedNext(songs[2]));
+      bloc.add(TracksQueued([songs[1], songs[2]], next: true));
       expect(await peakScale(tester), greaterThan(1.05));
       expect(badgeText(tester), '+3');
 
@@ -362,6 +360,51 @@ void main() {
       await peakScale(tester);
       expect(badgeText(tester), '+1');
       expect(badgeOpacity(tester), 1);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+
+    testWidgets('songs queued in a row pulse once: no restart halfway', (
+      tester,
+    ) async {
+      final bloc = await pump(tester, AppTab.home, queue: songs);
+      bloc.add(TrackAddedToQueue(extra));
+      final scales = <double>[];
+      var again = false;
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        scales.add(coverScale(tester));
+        if (!again && coverScale(tester) > 1.05) {
+          again = true;
+          bloc.add(TrackAddedToQueue(extra));
+        }
+      }
+      expect(again, isTrue);
+      // One swell: never back near rest between two grown frames.
+      final first = scales.indexWhere((scale) => scale > 1.05);
+      final last = scales.lastIndexWhere((scale) => scale > 1.05);
+      for (var i = first; i <= last; i++) {
+        expect(scales[i], greaterThan(1.03), reason: 'frame $i: $scales');
+      }
+      expect(badgeText(tester), '+2');
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+
+    testWidgets('the count stays when the song changes right after', (
+      tester,
+    ) async {
+      final bloc = await pump(tester, AppTab.home, queue: songs);
+      bloc.add(TracksQueued([extra], next: true));
+      await peakScale(tester);
+      expect(badgeText(tester), '+1');
+
+      // The engine moves on to it.
+      port.queue = Queue.fromTracks(port.queue!.playbackTracks, startIndex: 1);
+      port.track.add(extra);
+      await tester.pump();
+      await tester.pump();
+      expect(find.text('Title x'), findsWidgets);
+      expect(badgeOpacity(tester), 1);
+      expect(badgeText(tester), '+1');
       await tester.pumpAndSettle(const Duration(seconds: 2));
     });
 

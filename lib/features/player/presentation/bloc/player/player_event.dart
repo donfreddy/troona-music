@@ -106,6 +106,18 @@ sealed class QueueEditEvent extends PlayerEvent {
   const QueueEditEvent();
 }
 
+/// Songs queued by hand in one action (an album's or an artist's Play next
+/// or Add to queue): right after the current song, in their order ([next]),
+/// or at the end. With nothing loaded they play instead, from the first,
+/// as songs of [origin].
+final class TracksQueued extends QueueEditEvent {
+  final List<Track> tracks;
+  final bool next;
+  final QueueOrigin? origin;
+
+  const TracksQueued(this.tracks, {required this.next, this.origin});
+}
+
 final class TrackAddedToQueue extends QueueEditEvent {
   final Track track;
 

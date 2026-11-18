@@ -10,8 +10,8 @@ import 'package:troona/features/library/domain/repositories/album_detail_reposit
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
+import 'package:troona/features/player/presentation/utils/queue_songs.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
-import 'package:troona/shared/widgets/app_toast.dart';
 
 /// The album's menu: a long press on its card, or its page's options.
 /// Play and Shuffle are left out where the page shows them as buttons
@@ -28,7 +28,7 @@ void showAlbumActions(
 }) {
   final l10n = context.l10n;
   final player = context.read<PlayerBloc>();
-  AppHaptics.mediumImpact();
+  AppHaptics.lightImpact();
 
   final origin = QueueOrigin(
     QueueOriginKind.album,
@@ -40,10 +40,6 @@ void showAlbumActions(
   Future<void> withTracks(void Function(List<Track> tracks) action) async {
     final songs = tracks ?? await albumTracks(album);
     if (songs.isNotEmpty) action(songs);
-  }
-
-  void toast(String message) {
-    if (context.mounted) AppToast.show(context, message);
   }
 
   showActionSheet(
@@ -80,23 +76,18 @@ void showAlbumActions(
       SheetAction(
         label: l10n.trackPlayNext,
         icon: AppIcons.playNext,
-        onPressed: () => withTracks((songs) {
-          // Each goes right after the current song: the last one first.
-          for (final track in songs.reversed) {
-            player.add(TrackQueuedNext(track));
-          }
-          toast(l10n.toastPlaysNext);
-        }),
+        onPressed: () => withTracks(
+          (songs) =>
+              queueSongs(context, player, songs, next: true, origin: origin),
+        ),
       ),
       SheetAction(
         label: l10n.trackAddToQueue,
         icon: AppIcons.addToQueue,
-        onPressed: () => withTracks((songs) {
-          for (final track in songs) {
-            player.add(TrackAddedToQueue(track));
-          }
-          toast(l10n.toastAddedToQueue);
-        }),
+        onPressed: () => withTracks(
+          (songs) =>
+              queueSongs(context, player, songs, next: false, origin: origin),
+        ),
       ),
     ],
   );

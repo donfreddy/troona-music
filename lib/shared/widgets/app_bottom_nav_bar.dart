@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -313,8 +314,38 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
   /// Bumped by each like from here, with what it did.
   final _burst = ValueNotifier<(int, bool)>((0, false));
 
+  /// Songs queued by hand lately, for [_QueuedAck]. Held here, above the
+  /// row's per-song key, so skipping right after Play next keeps the count.
+  final _queued = ValueNotifier<_Queued>((count: 0, shown: false, serial: 0));
+  late final StreamSubscription<PlayerNotice> _notices;
+  Timer? _queuedHide;
+
+  @override
+  void initState() {
+    super.initState();
+    _notices = context.read<PlayerBloc>().notices.listen(_onNotice);
+  }
+
+  void _onNotice(PlayerNotice notice) {
+    if (notice is! TrackQueued) return;
+    final last = _queued.value;
+    _queued.value = (
+      count: (last.shown ? last.count : 0) + notice.count,
+      shown: true,
+      serial: last.serial + 1,
+    );
+    _queuedHide?.cancel();
+    _queuedHide = Timer(_QueuedAck.shown, () {
+      final last = _queued.value;
+      _queued.value = (count: last.count, shown: false, serial: last.serial);
+    });
+  }
+
   @override
   void dispose() {
+    _queuedHide?.cancel();
+    _notices.cancel();
+    _queued.dispose();
     _burst.dispose();
     super.dispose();
   }
@@ -429,6 +460,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                               children: [
                                 // ── Artwork thumbnail ────────────────────────
                                 _QueuedAck(
+                                  queued: _queued,
                                   child: Stack(
                                     clipBehavior: Clip.none,
                                     fit: StackFit.expand,
@@ -652,12 +684,18 @@ class _LikeBurstState extends State<_LikeBurst>
   }
 }
 
+/// Songs queued by hand lately: how many, whether the count shows, and
+/// a serial bumped by each action.
+typedef _Queued = ({int count, bool shown, int serial});
+
 /// Acknowledges songs queued by hand ([TrackQueued]) on the mini player's
 /// cover: it pulses once and a "+N" counts them, then leaves [shown] after
-/// the last one. Queueing an album counts its songs in one badge.
+/// the last action. Queueing an album is one action: one pulse, its songs
+/// counted at once.
 class _QueuedAck extends StatefulWidget {
+  final ValueListenable<_Queued> queued;
   final Widget child;
-  const _QueuedAck({required this.child});
+  const _QueuedAck({required this.queued, required this.child});
 
   static const size = 42.0;
   static const shown = Duration(milliseconds: 1500);
@@ -690,36 +728,45 @@ class _QueuedAckState extends State<_QueuedAck>
     ),
   ]);
 
-  late final StreamSubscription<PlayerNotice> _sub;
-  Timer? _hide;
-
-  /// Songs counted since the badge came in; kept while it fades out.
-  int _count = 0;
-  bool _visible = false;
+  /// The last action seen: a new serial is a new action, a change of
+  /// [_Queued.shown] alone is not.
+  late int _serial;
 
   @override
   void initState() {
     super.initState();
-    _sub = context.read<PlayerBloc>().notices.listen(_onNotice);
-  }
-
-  void _onNotice(PlayerNotice notice) {
-    if (notice is! TrackQueued || !mounted) return;
-    _hide?.cancel();
-    _hide = Timer(_QueuedAck.shown, () {
-      if (mounted) setState(() => _visible = false);
-    });
-    setState(() {
-      _count = _visible ? _count + 1 : 1;
-      _visible = true;
-    });
-    if (!MediaQuery.disableAnimationsOf(context)) _pulse.forward(from: 0);
+    _serial = widget.queued.value.serial;
+    widget.queued.addListener(_changed);
   }
 
   @override
+  void didUpdateWidget(_QueuedAck old) {
+    super.didUpdateWidget(old);
+    if (old.queued != widget.queued) {
+      old.queued.removeListener(_changed);
+      widget.queued.addListener(_changed);
+    }
+  }
+
+  void _changed() {
+    final serial = widget.queued.value.serial;
+    final queuedNow = serial != _serial;
+    _serial = serial;
+    setState(() {});
+    if (queuedNow && _canPulse) _pulse.forward(from: 0);
+  }
+
+  /// Not with reduced motion, not twice at once, and not while Now Playing
+  /// covers the row: the cover is a hero, and growing it would move where
+  /// the flight lands.
+  bool get _canPulse =>
+      !MediaQuery.disableAnimationsOf(context) &&
+      !_pulse.isAnimating &&
+      (NowPlayingHero.coverAnimation.value?.value ?? 0) == 0;
+
+  @override
   void dispose() {
-    _hide?.cancel();
-    _sub.cancel();
+    widget.queued.removeListener(_changed);
     _pulse.dispose();
     super.dispose();
   }
@@ -727,6 +774,7 @@ class _QueuedAckState extends State<_QueuedAck>
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final (:count, :shown, serial: _) = widget.queued.value;
     return SizedBox.square(
       dimension: _QueuedAck.size,
       child: Stack(
@@ -741,7 +789,7 @@ class _QueuedAckState extends State<_QueuedAck>
             child: IgnorePointer(
               child: ExcludeSemantics(
                 child: AnimatedOpacity(
-                  opacity: _visible ? 1 : 0,
+                  opacity: shown ? 1 : 0,
                   duration: const Duration(milliseconds: 180),
                   child: Container(
                     key: const ValueKey('queuedBadge'),
@@ -758,7 +806,7 @@ class _QueuedAckState extends State<_QueuedAck>
                       ],
                     ),
                     child: Text(
-                      '+$_count',
+                      '+$count',
                       textAlign: TextAlign.center,
                       style: context.textTheme.labelSmall?.copyWith(
                         color: colors.accentForeground,

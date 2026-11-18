@@ -26,6 +26,7 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
+import 'package:troona/features/player/presentation/utils/queue_songs.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -502,20 +503,24 @@ class _ArtistHeader extends StatelessWidget {
         SheetAction(
           label: context.l10n.trackPlayNext,
           icon: AppIcons.playNext,
-          onPressed: () {
-            for (final track in tracks.reversed) {
-              context.read<PlayerBloc>().add(TrackQueuedNext(track));
-            }
-          },
+          onPressed: () => queueSongs(
+            context,
+            context.read<PlayerBloc>(),
+            tracks,
+            next: true,
+            origin: _originOf(context, artist),
+          ),
         ),
         SheetAction(
           label: context.l10n.trackAddToQueue,
           icon: AppIcons.addToQueue,
-          onPressed: () {
-            for (final track in tracks) {
-              context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-            }
-          },
+          onPressed: () => queueSongs(
+            context,
+            context.read<PlayerBloc>(),
+            tracks,
+            next: false,
+            origin: _originOf(context, artist),
+          ),
         ),
       ],
     );
