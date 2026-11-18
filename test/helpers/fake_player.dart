@@ -17,10 +17,14 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 
 /// Test doubles for [PlayerBloc]: a scriptable [AudioServicePort] and a
 /// repository that routes every use case to it.
-Track testTrack(String id, {required int durationMs}) => Track(
+Track testTrack(
+  String id, {
+  required int durationMs,
+  String artist = 'Artist',
+}) => Track(
   id: id,
   title: 'Title $id',
-  artist: 'Artist',
+  artist: artist,
   artistId: 1,
   album: 'Album',
   albumId: 1,

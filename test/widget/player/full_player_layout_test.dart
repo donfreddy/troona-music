@@ -58,14 +58,18 @@ void main() {
   final tracks = [
     for (final id in 'abcde'.split('')) testTrack(id, durationMs: 180000),
   ];
-
   late FakeAudioPort port;
 
   Future<void> pumpPage(
     WidgetTester tester, {
     required Size screen,
     required double textScale,
+    String artist = 'Artist',
   }) async {
+    final queued = [
+      for (final id in 'abcde'.split(''))
+        testTrack(id, durationMs: 180000, artist: artist),
+    ];
     tester.view
       ..devicePixelRatio = 3
       ..physicalSize = screen * 3
@@ -78,7 +82,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     port = FakeAudioPort()
-      ..queue = Queue.fromTracks(tracks, startIndex: 2)
+      ..queue = Queue.fromTracks(queued, startIndex: 2)
       ..duration = const Duration(minutes: 3);
     final bloc = buildTestPlayerBloc(port, PlaybackSessionStore(prefs));
     final repo = _NoLikes();
@@ -100,7 +104,7 @@ void main() {
       unawaited(port.close());
     });
 
-    bloc.add(QueueSetRequested(tracks, startIndex: 2));
+    bloc.add(QueueSetRequested(queued, startIndex: 2));
     await tester.pump();
     port.status.add(PlaybackStatus.playing);
     await tester.pump();
@@ -155,6 +159,27 @@ void main() {
     await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
     final lens = tester.widget<GlassLens>(find.byType(GlassLens));
     expect(lens.diameter, closeTo(412 * 0.80, 0.01));
+  });
+
+  testWidgets('the ring keeps one size, artist link or not', (tester) async {
+    Future<double> diameter(String artist) async {
+      await pumpPage(
+        tester,
+        screen: const Size(360, 640),
+        textScale: AppLayout.maxTextScale,
+        artist: artist,
+      );
+      return tester.widget<GlassLens>(find.byType(GlassLens)).diameter;
+    }
+
+    final linked = await diameter('Artist');
+    expect(
+      await diameter(''),
+      linked,
+      reason: 'an unknown artist links nowhere',
+    );
+    // About what it had before the line became a 44 dp target.
+    expect(linked, greaterThan(170));
   });
 
   testWidgets('the ring shrinks on a short screen', (tester) async {

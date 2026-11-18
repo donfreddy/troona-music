@@ -531,8 +531,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                     ),
                                   ),
                                 ),
-
-                                const SizedBox(height: AppSpacing.lg),
+                                // No gap: the artist line's touch target
+                                // already leaves room under the name.
 
                                 // The stage takes what the controls leave, up
                                 // to its full size: on a short screen the ring

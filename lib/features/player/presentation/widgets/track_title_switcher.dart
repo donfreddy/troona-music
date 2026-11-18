@@ -204,13 +204,20 @@ class _ArtistLinkState extends State<_ArtistLink> {
       style: AppTypography.nowPlayingArtist.copyWith(color: Colors.white70),
     );
     final onTap = widget.onTap;
-    if (track == null ||
-        onTap == null ||
-        TrackTags.isUnknownArtist(track.artist)) {
-      return text;
-    }
+    if (onTap == null) return text;
     // The whole width of the line, and 44 dp tall, the touch target: the
     // name stays right under the title, the rest of the target below it.
+    // As tall without a link, or the stage below would resize between
+    // songs.
+    final line = ConstrainedBox(
+      key: const ValueKey('nowPlayingArtistLink'),
+      constraints: const BoxConstraints(
+        minWidth: double.infinity,
+        minHeight: AppButton.minTouchTarget,
+      ),
+      child: Align(alignment: AlignmentDirectional.topStart, child: text),
+    );
+    if (track == null || TrackTags.isUnknownArtist(track.artist)) return line;
     return Semantics(
       button: true,
       child: GestureDetector(
@@ -225,14 +232,7 @@ class _ArtistLinkState extends State<_ArtistLink> {
         child: AnimatedOpacity(
           opacity: _pressed ? 0.5 : 1,
           duration: const Duration(milliseconds: 100),
-          child: ConstrainedBox(
-            key: const ValueKey('nowPlayingArtistLink'),
-            constraints: const BoxConstraints(
-              minWidth: double.infinity,
-              minHeight: AppButton.minTouchTarget,
-            ),
-            child: Align(alignment: Alignment.topLeft, child: text),
-          ),
+          child: line,
         ),
       ),
     );
