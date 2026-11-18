@@ -598,28 +598,53 @@ class _ArtistHeader extends StatelessWidget {
         SheetAction(
           label: context.l10n.trackPlayNext,
           icon: AppIcons.playNext,
-          onPressed: () => queueSongs(
-            context,
-            context.read<PlayerBloc>(),
-            tracks,
-            next: true,
-            origin: _originOf(context, artist),
-          ),
+          onPressed: () => _queue(context, next: true),
         ),
         SheetAction(
           label: context.l10n.trackAddToQueue,
           icon: AppIcons.addToQueue,
-          onPressed: () => queueSongs(
-            context,
-            context.read<PlayerBloc>(),
-            tracks,
-            next: false,
-            origin: _originOf(context, artist),
-          ),
+          onPressed: () => _queue(context, next: false),
         ),
       ],
     );
   }
+
+  /// Queues their songs in the page's order, most played first. While the
+  /// page still loads, [tracks] are the library's, in its order: the
+  /// action waits for the ranked ones, so the queue never depends on how
+  /// soon it was asked. It takes the library's when the page fails, or
+  /// takes too long.
+  Future<void> _queue(BuildContext context, {required bool next}) async {
+    final player = context.read<PlayerBloc>();
+    final origin = _originOf(context, artist);
+    final songs = await _ranked(context.read<ArtistDetailBloc>()) ?? tracks;
+    if (context.mounted) {
+      queueSongs(context, player, songs, next: next, origin: origin);
+    } else if (songs.isNotEmpty) {
+      // The page left meanwhile: no toast to show from it, the mini
+      // player still acknowledges the songs.
+      player.add(TracksQueued(songs, next: next, origin: origin));
+    }
+  }
+
+  /// The page's songs, most played first, once loaded; null when the
+  /// load fails or does not end within [_rankedWait].
+  static Future<List<Track>?> _ranked(ArtistDetailBloc bloc) async {
+    List<Track>? of(ArtistDetailState state) =>
+        state is ArtistDetailLoaded ? state.data.topTracks : null;
+    final now = bloc.state;
+    if (now is ArtistDetailLoaded || now is ArtistDetailError) return of(now);
+    final done = await bloc.stream
+        .firstWhere(
+          (s) => s is ArtistDetailLoaded || s is ArtistDetailError,
+          orElse: () => bloc.state,
+        )
+        .timeout(_rankedWait, onTimeout: () => bloc.state);
+    return of(done);
+  }
+
+  /// How long a queue action asked while the page loads waits for it.
+  static const _rankedWait = Duration(seconds: 2);
 }
 
 // ── Top Tracks List (Prioritized First) ────────────────────────────────────────

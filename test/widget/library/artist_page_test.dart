@@ -588,6 +588,133 @@ void main() {
     });
   }
 
+  group('the menu while the page loads', () {
+    /// The page still loading, the library holding their songs in the
+    /// order [inLibrary].
+    Future<({ArtistDetailBloc detail, FakeAudioPort port})> loading(
+      WidgetTester tester,
+      List<String> inLibrary,
+    ) async {
+      tester.view
+        ..devicePixelRatio = 1
+        ..physicalSize = const Size(400, 1600);
+      addTearDown(tester.view.reset);
+      const khaid = Artist(
+        id: '1',
+        name: 'Khaid',
+        albumCount: 1,
+        trackCount: 2,
+      );
+      final songs = [
+        for (final id in inLibrary) testTrack(id, durationMs: 1000),
+      ];
+      final library = _library(
+        LibraryLoaded(
+          allTracks: songs,
+          allAlbums: const [],
+          allArtists: const [khaid],
+          visibleTracks: songs,
+          visibleAlbums: const [],
+          visibleArtists: const [khaid],
+        ),
+      );
+      final detail = ArtistDetailBloc(repo: _UnusedArtists());
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      detail.emit(const ArtistDetailLoading());
+      SharedPreferences.setMockInitialValues({});
+      final port = FakeAudioPort();
+      final player = buildTestPlayerBloc(
+        port,
+        PlaybackSessionStore(await SharedPreferences.getInstance()),
+      );
+      final palette = TrackPaletteCubit();
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox());
+        unawaited(library.close());
+        unawaited(detail.close());
+        unawaited(player.close());
+        unawaited(palette.close());
+        unawaited(port.close());
+      });
+      await tester.pumpWidget(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<ArtistDetailBloc>.value(value: detail),
+            BlocProvider<PlayerBloc>.value(value: player),
+            BlocProvider<TrackPaletteCubit>.value(value: palette),
+            BlocProvider<LibraryBloc>.value(value: library),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.dark,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const ArtistDetailPage(id: '1'),
+          ),
+        ),
+      );
+      await tester.pump();
+      return (detail: detail, port: port);
+    }
+
+    Future<void> addToQueue(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('More options'));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.tap(find.text('Add to queue'));
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    List<String>? queued(FakeAudioPort port) => [
+      for (final t in port.lastSetQueue?.tracks ?? const []) t.id,
+    ];
+
+    testWidgets('it waits for their songs most played first, not the '
+        "library's order", (tester) async {
+      final (:detail, :port) = await loading(tester, ['b', 'a']);
+      await addToQueue(tester);
+      expect(queued(port), isEmpty, reason: 'still loading: nothing yet');
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      detail.emit(
+        ArtistDetailLoaded(
+          ArtistDetail(
+            artist: const Artist(
+              id: '1',
+              name: 'Khaid',
+              albumCount: 1,
+              trackCount: 2,
+            ),
+            topTracks: [
+              testTrack('a', durationMs: 1000),
+              testTrack('b', durationMs: 1000),
+            ],
+            albums: const ArtistAlbums(),
+          ),
+        ),
+      );
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      // Nothing was playing: queueing plays them, in the page's order.
+      expect(queued(port), ['a', 'b']);
+    });
+
+    testWidgets("a load that does not end: the library's songs, in time", (
+      tester,
+    ) async {
+      final (detail: _, :port) = await loading(tester, ['b', 'a']);
+      await addToQueue(tester);
+      expect(queued(port), isEmpty);
+      for (var i = 0; i < 25; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(queued(port), ['b', 'a']);
+    });
+  });
+
   testWidgets('without a photo nor a cover, no glow', (tester) async {
     await open(tester, const ArtistAlbums());
     expect(find.byKey(const ValueKey('coverGlow')), findsNothing);

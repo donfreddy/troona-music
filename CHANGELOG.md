@@ -40,6 +40,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Artist pages: Play next and Add to queue, asked while the page still loads, queue the songs most played first, as once it is loaded, instead of in the library's order.
 - An artist without a photo opens on the same cover as their card, and under the same spelling of their name, instead of switching to another album's cover once the page has loaded.
 - Search shows artists with their downloaded photo, as the Library does, instead of an album cover, and an artist opens in the Search tab instead of switching to the Library.
 - Play next and Add to queue with nothing playing, including after the mini player was swiped away: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone. Songs queued while the first one loads are no longer lost, and wait no longer than that song: if it cannot be played, they play instead. An album or an artist goes into the queue in one step, so a skip, another album or shuffle can no longer split it, and a long album no longer makes the player redo the queue once per song. Songs queued while a new album fades in go into it rather than the one leaving. A saved queue that can no longer be played after a restart leaves the player empty instead of loading forever.
