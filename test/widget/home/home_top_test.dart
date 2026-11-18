@@ -31,14 +31,24 @@ class _Settings extends Cubit<SettingsState> implements SettingsCubit {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-HomeLoaded _home({int weeklyPlays = 0, bool listened = true}) => HomeLoaded(
+class _Home extends Cubit<HomeState> implements HomeBloc {
+  _Home(super.initialState);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+HomeLoaded _home({
+  int weeklyPlays = 0,
+  bool listened = true,
+  int totalTracks = 40,
+}) => HomeLoaded(
   HomeFeed(
     recentlyPlayed: listened ? [testTrack('1', durationMs: 60000)] : const [],
-    yourArtists: const [],
     newAlbums: const [],
     weeklyPlayCount: weeklyPlays,
   ),
-  totalTracks: 40,
+  totalTracks: totalTracks,
 );
 
 void main() {
@@ -67,6 +77,39 @@ void main() {
     test('nothing ever played: no subtitle, the hero card says it', () {
       expect(HomePage.subtitleOf(en, _home(listened: false)), isNull);
     });
+
+    test('an empty library: no subtitle', () {
+      expect(HomePage.subtitleOf(en, _home(totalTracks: 0)), isNull);
+    });
+
+    testWidgets('the line follows each new play', (tester) async {
+      final home = _Home(_home(weeklyPlays: 12));
+      addTearDown(home.close);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: BlocProvider<HomeBloc>.value(
+            value: home,
+            child: const Scaffold(body: HomeSubtitle()),
+          ),
+        ),
+      );
+      expect(find.text(en.homeWeeklyPlays(12)), findsOneWidget);
+
+      home.emit(_home(weeklyPlays: 13));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.homeWeeklyPlays(13)), findsOneWidget);
+
+      home.emit(_home(weeklyPlays: 13, totalTracks: 0));
+      await tester.pump();
+      await tester.pump();
+      expect(find.textContaining('this week'), findsNothing);
+      await tester.pump(const Duration(seconds: 1));
+    });
   });
 
   group('system card', () {
@@ -76,14 +119,17 @@ void main() {
     );
     final en = AppLocalizationsEn();
 
+    late _Updates updates;
+    late _Settings settings;
+
     Future<void> pump(
       WidgetTester tester, {
       required UpdateState update,
       bool offered = false,
       bool offerExtras = true,
     }) async {
-      final updates = _Updates(update);
-      final settings = _Settings(
+      updates = _Updates(update);
+      settings = _Settings(
         SettingsLoaded(AppSettings(onlineExtrasOffered: offered)),
       );
       getIt
@@ -136,6 +182,41 @@ void main() {
     testWidgets('an offer already answered shows nothing', (tester) async {
       await pump(tester, update: const UpdateState(), offered: true);
       expect(find.text(en.homeExtrasTitle), findsNothing);
+    });
+
+    testWidgets('a release found while the offer shows leaves it in place', (
+      tester,
+    ) async {
+      await pump(tester, update: const UpdateState());
+      expect(find.text(en.homeExtrasTitle), findsOneWidget);
+
+      updates.emit(UpdateState(available: release));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.homeExtrasTitle), findsOneWidget);
+      expect(find.text(en.updateAvailable('9.9.9')), findsNothing);
+
+      // Answered: the release takes its place.
+      settings.emit(
+        const SettingsLoaded(AppSettings(onlineExtrasOffered: true)),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.homeExtrasTitle), findsNothing);
+      expect(find.text(en.updateAvailable('9.9.9')), findsOneWidget);
+    });
+
+    testWidgets('a release skipped hands its place to the offer', (
+      tester,
+    ) async {
+      await pump(tester, update: UpdateState(available: release));
+      expect(find.text(en.updateAvailable('9.9.9')), findsOneWidget);
+
+      updates.emit(UpdateState(available: release, skipped: '9.9.9'));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(en.updateAvailable('9.9.9')), findsNothing);
+      expect(find.text(en.homeExtrasTitle), findsOneWidget);
     });
   });
 }

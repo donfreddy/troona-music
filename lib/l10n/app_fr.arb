@@ -236,7 +236,7 @@
   "homeOnRepeat": "En boucle cette semaine",
   "homeRediscover": "À redécouvrir",
   "homeRecentlyAdded": "Ajouts récents",
-  "homeWeeklyPlays": "{count, plural, =1{écoute cette semaine} other{écoutes cette semaine}}",
+  "homeWeeklyPlays": "{count, plural, =1{1 écoute cette semaine} other{{count} écoutes cette semaine}}",
   "homeLoadError": "Impossible de charger l'accueil. Tirez vers le bas pour réessayer.",
   "homeExtrasTitle": "Ajouter photos et biographies d'artistes ?",
   "homeExtrasBody": "Troona peut les récupérer sur Last.fm et Deezer à partir des noms d'artistes et d'albums. Vos fichiers restent sur cet appareil.",

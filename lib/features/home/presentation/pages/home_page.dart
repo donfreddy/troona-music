@@ -37,8 +37,43 @@ import 'package:troona/core/utils/haptics_helper.dart';
 // empty (no music), fresh (music, no plays yet) and warm (stats-driven feed).
 // ─────────────────────────────────────────────────────────────────────────────
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  /// What the line under the greeting says. Empty or cold start: nothing,
+  /// the hero card already says what to do next. Else this week's plays,
+  /// the one figure Home keeps out of a card of its own.
+  @visibleForTesting
+  static String? subtitleOf(AppLocalizations l10n, HomeState state) {
+    if (state is! HomeLoaded) return null;
+    if (state.totalTracks == 0 || state.feed.isColdStart) return null;
+    final plays = state.feed.weeklyPlayCount;
+    if (plays == 0) return l10n.homeSubtitleWarm;
+    return l10n.homeWeeklyPlays(plays);
+  }
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // A feed kept from yesterday catches up with today when the app comes
+  // back (the week's plays start again on Mondays).
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => context.read<HomeBloc>().add(const HomeResumed()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +102,7 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            SliverToBoxAdapter(
-              child: BlocBuilder<HomeBloc, HomeState>(
-                buildWhen: (a, b) => _subtitleKey(a) != _subtitleKey(b),
-                builder: (context, state) =>
-                    _HomeSubtitle(subtitle: subtitleOf(context.l10n, state)),
-              ),
-            ),
+            const SliverToBoxAdapter(child: HomeSubtitle()),
             BlocBuilder<HomeBloc, HomeState>(
               builder: (context, state) {
                 if (state is HomeLoading) {
@@ -111,27 +140,6 @@ class HomePage extends StatelessWidget {
       >= 18 && < 23 => l10n.homeGreetingEvening,
       _ => l10n.homeGreetingNight,
     };
-  }
-
-  static Object? _subtitleKey(HomeState state) => switch (state) {
-    HomeLoaded(:final feed, :final totalTracks) => (
-      feed.isColdStart,
-      totalTracks == 0,
-      feed.weeklyPlayCount,
-    ),
-    _ => null,
-  };
-
-  // Empty or cold start: the hero card already says what to do next, so
-  // the header stays a plain greeting. Else this week's plays, the one
-  // figure Home keeps out of a card of its own.
-  @visibleForTesting
-  static String? subtitleOf(AppLocalizations l10n, HomeState state) {
-    if (state is! HomeLoaded) return null;
-    if (state.totalTracks == 0 || state.feed.isColdStart) return null;
-    final plays = state.feed.weeklyPlayCount;
-    if (plays == 0) return l10n.homeSubtitleWarm;
-    return '$plays ${l10n.homeWeeklyPlays(plays)}';
   }
 }
 
@@ -286,14 +294,30 @@ class _HomeBody extends StatelessWidget {
 // Subtitle under the greeting, which is the page's large title
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HomeSubtitle extends StatelessWidget {
-  final String? subtitle;
+/// The line under the greeting ([HomePage.subtitleOf]), rebuilt only when
+/// what it says changes.
+class HomeSubtitle extends StatelessWidget {
+  const HomeSubtitle({super.key});
 
-  const _HomeSubtitle({required this.subtitle});
+  static Object? _keyOf(HomeState state) => switch (state) {
+    HomeLoaded(:final feed, :final totalTracks) => (
+      feed.isColdStart,
+      totalTracks == 0,
+      feed.weeklyPlayCount,
+    ),
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = this.subtitle;
+    return BlocBuilder<HomeBloc, HomeState>(
+      buildWhen: (a, b) => _keyOf(a) != _keyOf(b),
+      builder: (context, state) =>
+          _subtitleLine(context, HomePage.subtitleOf(context.l10n, state)),
+    );
+  }
+
+  static Widget _subtitleLine(BuildContext context, String? subtitle) {
     if (subtitle == null) return const SizedBox(height: AppSpacing.md);
     return Padding(
       padding: const EdgeInsets.fromLTRB(

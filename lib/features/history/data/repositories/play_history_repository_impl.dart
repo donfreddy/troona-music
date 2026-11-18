@@ -98,13 +98,4 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
       return left(ErrorHandler.handle(e, st));
     }
   }
-
-  @override
-  Future<Either<Failure, int>> totalPlays({int days = 7}) async {
-    try {
-      return right(_source.totalPlays(days: days));
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
 }

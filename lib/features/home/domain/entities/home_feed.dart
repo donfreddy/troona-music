@@ -1,14 +1,9 @@
 import 'package:troona/features/home/domain/entities/track_play_count.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
-import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
 final class HomeFeed {
   final List<Track> recentlyPlayed;
-
-  /// The library's first artists: not shown, their photos are fetched
-  /// ahead for the Library and artist pages.
-  final List<Artist> yourArtists;
   final List<Album> newAlbums;
 
   // ── Enriched sections (stats-driven) ──────────────────────────────────────
@@ -22,12 +17,11 @@ final class HomeFeed {
   /// Number of liked tracks (badge on the Quick Access chip).
   final int likesCount;
 
-  /// Total plays recorded this week (the Home subtitle).
+  /// Plays of this calendar week, Monday to today (the Home subtitle).
   final int weeklyPlayCount;
 
   const HomeFeed({
     required this.recentlyPlayed,
-    required this.yourArtists,
     required this.newAlbums,
     this.topWeekly = const [],
     this.hiddenGems = const [],

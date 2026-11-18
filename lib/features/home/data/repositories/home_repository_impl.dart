@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/entities/track_play_count.dart';
@@ -24,7 +25,7 @@ final class HomeRepositoryImpl implements HomeRepository {
   /// Cards in the Recently Played grid.
   static const recentCount = 4;
 
-  /// Cards in the artists and new albums rows.
+  /// Cards in the new albums row.
   static const _rowCount = 5;
 
   @override
@@ -42,7 +43,7 @@ final class HomeRepositoryImpl implements HomeRepository {
         _db.getAllTracks(), // 1
         _history.topTrackIds(days: 7, limit: 5), // 2
         _db.getLikedTrackIds(), // 3
-        _history.totalPlays(days: 7), // 4
+        _thisWeek(), // 4
       ]);
 
       final recentTracks = results[0] as List<Track>;
@@ -50,9 +51,6 @@ final class HomeRepositoryImpl implements HomeRepository {
       // Artists in the order the library found them, albums newest first,
       // both grouped the way the library groups them.
       final library = results[1] as List<TrackModel>;
-      final artists = LibraryGrouping.artistsOf([
-        for (final t in library) t.toEntity(),
-      ]).take(_rowCount).toList();
       final newestFirst = List.of(library)
         ..sort((a, b) => b.indexedAt.compareTo(a.indexedAt));
       final albums = LibraryGrouping.albumsOf([
@@ -69,14 +67,11 @@ final class HomeRepositoryImpl implements HomeRepository {
       final likedIds = results[3] as Set<String>;
       final hiddenGems = await _resolveHiddenGems(likedIds);
 
-      // Weekly play count
-      final totalPlaysResult = results[4] as Either;
-      final weeklyPlayCount = totalPlaysResult.getOrElse(() => 0) as int;
+      final weeklyPlayCount = results[4] as int;
 
       return right(
         HomeFeed(
           recentlyPlayed: recentTracks,
-          yourArtists: artists,
           newAlbums: albums,
           topWeekly: topWeekly,
           hiddenGems: hiddenGems,
@@ -87,6 +82,17 @@ final class HomeRepositoryImpl implements HomeRepository {
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
+  }
+
+  /// Plays of this calendar week, Monday to today, from the daily totals
+  /// the recap reads too: never pruned, and the same week as its card.
+  Future<int> _thisWeek() async {
+    final today = ListeningDay.of(DateTime.now());
+    final stats = await _history.listeningStats(
+      firstDay: ListeningDay.weekStart(today),
+      lastDay: today,
+    );
+    return stats.fold((_) => 0, (s) => s.plays);
   }
 
   /// Resolves track IDs + play counts into [TrackPlayCount] entities.

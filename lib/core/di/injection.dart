@@ -466,9 +466,7 @@ Future<void> configureDependencies() async {
     MediaLikeSync(button: likeButton, likes: getIt(), port: audioPort)..start(),
   );
 
-  getIt.registerFactory<HomeBloc>(
-    () => HomeBloc(repo: getIt(), prefetchService: getIt()),
-  );
+  getIt.registerFactory<HomeBloc>(() => HomeBloc(repo: getIt()));
 
   getIt.registerFactory<SearchBloc>(() => SearchBloc(repo: getIt()));
 

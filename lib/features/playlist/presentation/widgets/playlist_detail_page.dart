@@ -390,7 +390,7 @@ class _TrackTile extends StatelessWidget {
                   icon: AppIcons.more,
                   tooltip: context.l10n.detailMore,
                   size: 18,
-                  color: context.colors.labelTertiary,
+                  color: context.colors.labelSecondary,
                   onPressed: () => _showTrackOptions(context),
                 ),
 

@@ -54,9 +54,6 @@ final class _MemoryHistory implements PlayHistoryRepository {
     int staleDays = 14,
     int limit = 5,
   }) async => right([]);
-
-  @override
-  Future<Either<Failure, int>> totalPlays({int days = 7}) async => right(0);
 }
 
 void main() {

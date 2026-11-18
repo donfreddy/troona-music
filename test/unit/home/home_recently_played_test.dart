@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
+import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/home/data/repositories/home_repository_impl.dart';
 import 'package:troona/features/home/domain/entities/home_feed.dart';
@@ -59,7 +61,7 @@ final class _Library implements IsarLibraryDataSource {
   @override
   Future<List<TrackModel>> getAllTracks() async => [];
   @override
-  Future<List<PlaylistModel>> getPlaylists({int? limit}) async => [];
+  Future<List<PlaylistModel>> getPlaylists() async => [];
   @override
   Future<Set<String>> getLikedTrackIds() async => const {};
 
@@ -96,8 +98,26 @@ final class _History implements PlayHistoryRepository {
     int limit = 5,
   }) async => right([]);
 
+  /// Plays of the span asked for, and the spans asked.
+  int weekPlays = 0;
+  final spans = <(int, int)>[];
+
   @override
-  Future<Either<Failure, int>> totalPlays({int days = 7}) async => right(0);
+  Future<Either<Failure, ListeningStats>> listeningStats({
+    required int firstDay,
+    required int lastDay,
+  }) async {
+    spans.add((firstDay, lastDay));
+    return right(
+      ListeningStats(
+        plays: weekPlays,
+        listened: Duration.zero,
+        trackPlays: const {},
+        discoveries: 0,
+        historyStart: null,
+      ),
+    );
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -155,6 +175,46 @@ void main() {
       ['p1', 'p2', 'p3', 'p4'],
     );
   });
+
+  test("the week's plays are this calendar week's, Monday to today", () async {
+    final history = _History(const [])..weekPlays = 13;
+    final repo = HomeRepositoryImpl(db: _Library(library), history: history);
+    final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+    final today = ListeningDay.of(DateTime.now());
+    expect(feed.weeklyPlayCount, 13);
+    expect(history.spans, [(ListeningDay.weekStart(today), today)]);
+  });
+
+  test(
+    'coming back on another day reloads the feed, the same day not',
+    () async {
+      var now = DateTime(2026, 11, 22, 23, 50); // A Sunday night.
+      final repo = _CountingRepository(
+        HomeRepositoryImpl(db: _Library(library), history: _History(const [])),
+      );
+      final bloc = HomeBloc(
+        repo: repo,
+        refreshDelay: Duration.zero,
+        now: () => now,
+      )..add(const HomeFeedRequested());
+      addTearDown(bloc.close);
+      await pumpEventQueue();
+      expect(repo.feeds, 1);
+
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 1);
+
+      now = DateTime(2026, 11, 23, 8); // Monday: a new week.
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 2);
+
+      bloc.add(const HomeResumed());
+      await pumpEventQueue();
+      expect(repo.feeds, 2);
+    },
+  );
 
   test('the home feed reloads when a play is recorded', () async {
     final history = _History(['p1']);

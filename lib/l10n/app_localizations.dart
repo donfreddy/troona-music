@@ -1517,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeWeeklyPlays.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{play this week} other{plays this week}}'**
+  /// **'{count, plural, =1{1 play this week} other{{count} plays this week}}'**
   String homeWeeklyPlays(int count);
 
   /// No description provided for @homeLoadError.

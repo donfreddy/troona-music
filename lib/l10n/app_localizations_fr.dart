@@ -871,8 +871,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'écoutes cette semaine',
-      one: 'écoute cette semaine',
+      other: '$count écoutes cette semaine',
+      one: '1 écoute cette semaine',
     );
     return '$_temp0';
   }
