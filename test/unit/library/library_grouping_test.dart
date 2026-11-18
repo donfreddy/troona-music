@@ -49,6 +49,31 @@ void main() {
       _t('2', ['Sarz', 'BNXN']),
     ]).single;
     expect(album.artist, 'BNXN, Sarz');
+    // Each with their own page, in the first song's order.
+    expect(album.credits, [_c('BNXN'), _c('Sarz')]);
+  });
+
+  test('a comma in one name stays one credit', () {
+    final tyler = ArtistCredit(
+      id: TrackTags.artistIdFor('Tyler, The Creator'),
+      name: 'Tyler, The Creator',
+    );
+    Track song(String id) => Track(
+      id: id,
+      title: id,
+      artist: tyler.name,
+      artistId: tyler.id,
+      credits: [tyler],
+      album: 'Igor',
+      albumId: 1,
+      path: '/$id.mp3',
+      uri: '',
+      size: 0,
+      durationMs: 0,
+      fileName: '$id.mp3',
+    );
+    final album = LibraryGrouping.albumsOf([song('1'), song('2')]).single;
+    expect(album.credits, [tyler]);
   });
 
   test("an album's year is the first one its songs have", () {
@@ -68,6 +93,7 @@ void main() {
       _t('2', ['Drake']),
     ]).single;
     expect(album.artist, TrackTags.unknownArtist);
+    expect(album.credits, isEmpty);
   });
 
   test('artists: each one credited first is listed, guests only on '

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
+import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 
@@ -34,11 +35,16 @@ class TrackTitleSwitcher extends StatefulWidget {
   final int? index;
   final int queueLength;
 
+  /// Runs on a tap on the artist's name: a link to their page. Not for a
+  /// song without an artist.
+  final ValueChanged<Track>? onArtistTap;
+
   const TrackTitleSwitcher({
     super.key,
     required this.track,
     required this.index,
     required this.queueLength,
+    this.onArtistTap,
   });
 
   @override
@@ -121,14 +127,7 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  track == null ? '' : context.artistName(track.artist),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.nowPlayingArtist.copyWith(
-                    color: Colors.white70,
-                  ),
-                ),
+                _ArtistLink(track: track, onTap: widget.onArtistTap),
               ],
             ),
           ),
@@ -158,6 +157,57 @@ class _TrackTitleSwitcherState extends State<TrackTitleSwitcher>
           child: content,
         );
       },
+    );
+  }
+}
+
+/// The artist's name under the title, a link to their page: it dims while
+/// pressed. A song without an artist names nobody to open.
+class _ArtistLink extends StatefulWidget {
+  final Track? track;
+  final ValueChanged<Track>? onTap;
+
+  const _ArtistLink({required this.track, required this.onTap});
+
+  @override
+  State<_ArtistLink> createState() => _ArtistLinkState();
+}
+
+class _ArtistLinkState extends State<_ArtistLink> {
+  bool _pressed = false;
+
+  void _press(bool pressed) {
+    if (pressed != _pressed) setState(() => _pressed = pressed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final track = widget.track;
+    final text = Text(
+      track == null ? '' : context.artistName(track.artist),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTypography.nowPlayingArtist.copyWith(color: Colors.white70),
+    );
+    final onTap = widget.onTap;
+    if (track == null || onTap == null || track.artist.isEmpty) return text;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _press(true),
+        onTapUp: (_) => _press(false),
+        onTapCancel: () => _press(false),
+        onTap: () {
+          AppHaptics.lightImpact();
+          onTap(track);
+        },
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.5 : 1,
+          duration: const Duration(milliseconds: 100),
+          child: text,
+        ),
+      ),
     );
   }
 }

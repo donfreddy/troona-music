@@ -114,23 +114,23 @@ abstract final class LibraryGrouping {
     return (albums: albums, singles: singles);
   }
 
-  /// The artist line to show under [track] on the page of an album by
-  /// [albumArtist], or null when the album's artist says it all.
+  /// The artist line to show under [track] on the page of [album], or
+  /// null when the album's artists say it all.
   ///
   /// A compilation names every song's artist. On an artist's album, a song
   /// with guests names them, unless its title already does: downloaded
-  /// songs read "Feeling Myself (feat. Beyoncé)".
-  static String? creditLine(Track track, String albumArtist) {
-    if (TrackTags.isUnknownArtist(albumArtist)) {
+  /// songs read "Feeling Myself (feat. Beyoncé)". Artists are told apart by
+  /// their credits, never by splitting names on commas: "Tyler, The
+  /// Creator" is one.
+  static String? creditLine(Track track, Album album) {
+    final owners = {for (final c in album.credits) c.id};
+    if (owners.isEmpty) {
       return TrackTags.isUnknownArtist(track.artist) ? null : track.artist;
     }
-    final owners = {
-      for (final name in albumArtist.split(', ')) name.toLowerCase(),
-    };
     final title = track.title.toLowerCase();
     final unnamed = track.credits.where(
       (c) =>
-          !owners.contains(c.name.toLowerCase()) &&
+          !owners.contains(c.id) &&
           !TrackTags.isUnknownArtist(c.name) &&
           !title.contains(c.name.toLowerCase()),
     );
@@ -150,6 +150,7 @@ abstract final class LibraryGrouping {
       artworkPath: _firstArtwork(group),
       isSingle: _isSingle(group),
       year: _yearOf(group),
+      credits: artists,
     );
   }
 

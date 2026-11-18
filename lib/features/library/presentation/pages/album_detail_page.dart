@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/di/injection.dart';
-import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
@@ -21,6 +20,7 @@ import 'package:troona/features/library/presentation/bloc/album_detail/album_det
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_artist_links.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -160,7 +160,10 @@ class AlbumDetailPage extends StatelessWidget {
                 text: wiki,
                 listeners: meta.info.listeners,
                 tags: meta.info.tags,
-                names: [data.album.name, ...data.album.artist.split(', ')],
+                names: [
+                  data.album.name,
+                  for (final c in data.album.credits) c.name,
+                ],
               ),
             ),
           ),
@@ -185,8 +188,6 @@ class _AlbumHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
     final totalDurationMs = tracks.fold<int>(0, (sum, t) => sum + t.durationMs);
     final totalDuration = Duration(milliseconds: totalDurationMs);
     // Before the songs load (the page's first frames), the library's
@@ -356,55 +357,8 @@ class _AlbumHeader extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
 
-                        // Clickable artist pill
-                        _animatedAlbumItem(
-                          // Songs by different artists, or none: no
-                          // single artist page to open.
-                          album.artist.isEmpty
-                              ? Text(
-                                  context.artistName(album.artist),
-                                  style: TextStyle(
-                                    color: colors.labelSecondary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                )
-                              : InkWell(
-                                  onTap: () {
-                                    AppHaptics.lightImpact();
-                                    context.pushArtist('${album.artistId}');
-                                  },
-                                  borderRadius: BorderRadius.circular(
-                                    AppSpacing.radiusFull,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          album.artist,
-                                          style: TextStyle(
-                                            color: colors.accent,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          AppIcons.disclosure,
-                                          color: colors.accent,
-                                          size: 16,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          2,
-                        ),
+                        // Each artist a link to their page.
+                        _animatedAlbumItem(AlbumArtistLinks(album: album), 2),
 
                         const SizedBox(height: 8),
 
@@ -522,10 +476,7 @@ class _AlbumTracksView extends StatelessWidget {
               key: ValueKey('track-${tracks[i].id}'),
               track: tracks[i],
               number: numbers[i],
-              subtitle: switch (LibraryGrouping.creditLine(
-                tracks[i],
-                album.artist,
-              )) {
+              subtitle: switch (LibraryGrouping.creditLine(tracks[i], album)) {
                 final line? => context.artistName(line),
                 null => null,
               },

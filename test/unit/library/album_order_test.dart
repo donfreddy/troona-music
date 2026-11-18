@@ -1,9 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/album_order.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
+
+ArtistCredit _c(String name) =>
+    ArtistCredit(id: TrackTags.artistIdFor(name), name: name);
+
+/// An album by [artists], none for a compilation.
+Album _by(List<String> artists) => Album(
+  id: '1',
+  name: 'Album',
+  artist: artists.join(', '),
+  artistId: artists.isEmpty ? 0 : TrackTags.artistIdFor(artists.first),
+  trackCount: 1,
+  credits: [for (final a in artists) _c(a)],
+);
 
 Track _t(
   String id, {
@@ -78,13 +92,13 @@ void main() {
 
   group('creditLine', () {
     test("nothing for the album's artist alone", () {
-      expect(LibraryGrouping.creditLine(_t('1'), 'Nicki Minaj'), isNull);
+      expect(LibraryGrouping.creditLine(_t('1'), _by(['Nicki Minaj'])), isNull);
     });
 
     test('guests the title does not name', () {
       final guest = _t('1', artists: ['Nicki Minaj', 'Beyoncé']);
       expect(
-        LibraryGrouping.creditLine(guest, 'Nicki Minaj'),
+        LibraryGrouping.creditLine(guest, _by(['Nicki Minaj'])),
         'Nicki Minaj, Beyoncé',
       );
       final named = _t(
@@ -92,20 +106,25 @@ void main() {
         title: 'Feeling Myself (feat. Beyoncé)',
         artists: ['Nicki Minaj', 'Beyoncé'],
       );
-      expect(LibraryGrouping.creditLine(named, 'Nicki Minaj'), isNull);
+      expect(LibraryGrouping.creditLine(named, _by(['Nicki Minaj'])), isNull);
     });
 
     test('every song of a compilation', () {
       final song = _t('1', artists: ['Dua Lipa']);
-      expect(
-        LibraryGrouping.creditLine(song, TrackTags.unknownArtist),
-        'Dua Lipa',
-      );
+      expect(LibraryGrouping.creditLine(song, _by(const [])), 'Dua Lipa');
     });
 
     test('nothing on an album shared by two artists', () {
       final song = _t('1', artists: ['BNXN', 'Sarz']);
-      expect(LibraryGrouping.creditLine(song, 'BNXN, Sarz'), isNull);
+      expect(LibraryGrouping.creditLine(song, _by(['BNXN', 'Sarz'])), isNull);
+    });
+
+    test('nothing on the album of an artist with a comma in their name', () {
+      final song = _t('1', artists: ['Tyler, The Creator']);
+      expect(
+        LibraryGrouping.creditLine(song, _by(['Tyler, The Creator'])),
+        isNull,
+      );
     });
   });
 }

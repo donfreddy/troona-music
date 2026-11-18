@@ -736,6 +736,11 @@ class _TrackInfo extends StatelessWidget {
             track: track,
             index: index,
             queueLength: queueLength,
+            onArtistTap: (track) => openArtistOf(
+              context,
+              track,
+              origin: TrackActionOrigin.nowPlaying,
+            ),
           ),
         ),
         BlocBuilder<LikesCubit, LikesState>(

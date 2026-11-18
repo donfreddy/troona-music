@@ -6,7 +6,9 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -75,13 +77,7 @@ void showTrackActions(
         SheetAction(
           label: l10n.trackGoToArtist,
           icon: AppIcons.artist,
-          onPressed: () => _goTo(
-            context,
-            track,
-            origin,
-            AppRoute.artistDetail,
-            (t) => t.artistId,
-          ),
+          onPressed: () => openArtistOf(context, track, origin: origin),
         ),
     ],
   );
@@ -101,8 +97,52 @@ Future<void> _goTo(
   if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
     context.pop();
   }
-  final stored = (await getIt<GetTracksByIdsUseCase>()([
-    track.id,
-  ])).fold((_) => null, (tracks) => tracks.firstOrNull);
+  final stored = await _stored(track);
   router.goNamed(route, pathParameters: {'id': '${id(stored ?? track)}'});
+}
+
+/// [track] as the library holds it now, or null when it is gone.
+Future<Track?> _stored(Track track) async =>
+    (await getIt<GetTracksByIdsUseCase>()([
+      track.id,
+    ])).fold((_) => null, (tracks) => tracks.firstOrNull);
+
+/// Opens the page of [track]'s artist, read again from the library first
+/// (see [_goTo]). A song crediting several artists asks which one; a song
+/// without an artist opens nothing.
+Future<void> openArtistOf(
+  BuildContext context,
+  Track track, {
+  TrackActionOrigin origin = TrackActionOrigin.library,
+}) async {
+  final router = GoRouter.of(context);
+  final credits = [
+    for (final c in ((await _stored(track)) ?? track).credits)
+      if (!TrackTags.isUnknownArtist(c.name)) c,
+  ];
+  if (credits.isEmpty || !context.mounted) return;
+
+  void open(ArtistCredit credit) {
+    if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
+      context.pop();
+    }
+    router.goNamed(
+      AppRoute.artistDetail,
+      pathParameters: {'id': '${credit.id}'},
+    );
+  }
+
+  if (credits.length == 1) return open(credits.single);
+  await showActionSheet(
+    context,
+    title: context.l10n.trackGoToArtist,
+    actions: [
+      for (final credit in credits)
+        SheetAction(
+          label: credit.name,
+          icon: AppIcons.artist,
+          onPressed: () => open(credit),
+        ),
+    ],
+  );
 }
