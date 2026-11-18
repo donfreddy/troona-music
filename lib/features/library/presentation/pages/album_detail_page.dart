@@ -23,11 +23,10 @@ import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
-import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
-import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -86,53 +85,50 @@ class AlbumDetailPage extends StatelessWidget {
             _ => null,
           };
           final album = data?.album ?? _fromLibrary(context);
-          return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-            builder: (_, palette) => DynamicBackground(
-              colorA: palette.backgroundColorA,
-              colorB: palette.backgroundColorB,
-              tone: DynamicBackgroundTone.immersive,
-              child: switch (state) {
-                AlbumDetailError() => ErrorView(
-                  body: context.l10n.albumLoadError,
-                  onRetry: () => context.read<AlbumDetailBloc>().add(
-                    AlbumDetailRequested(int.parse(id)),
-                  ),
+          // The album's own colours, from its cover.
+          return CoverBackground(
+            path: album == null ? null : album.artworkPath ?? '',
+            child: switch (state) {
+              AlbumDetailError() => ErrorView(
+                body: context.l10n.albumLoadError,
+                onRetry: () => context.read<AlbumDetailBloc>().add(
+                  AlbumDetailRequested(int.parse(id)),
                 ),
-                _ when album == null => const Center(
-                  child: CircularProgressIndicator(),
-                ),
-                // Loading or loaded: the same tree, so the header (and the
-                // cover landing in it) stays put when the songs arrive.
-                // Online info is asked once, with the album as the library
-                // groups it, which the loaded album is too (same grouping,
-                // same songs).
-                _ => BlocProvider<AlbumMetadataCubit>(
-                  create: (_) =>
-                      getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
-                  child: Builder(
-                    builder: (contentCtx) {
-                      return CustomScrollView(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
+              ),
+              _ when album == null => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              // Loading or loaded: the same tree, so the header (and the
+              // cover landing in it) stays put when the songs arrive.
+              // Online info is asked once, with the album as the library
+              // groups it, which the loaded album is too (same grouping,
+              // same songs).
+              _ => BlocProvider<AlbumMetadataCubit>(
+                create: (_) =>
+                    getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
+                child: Builder(
+                  builder: (contentCtx) {
+                    return CustomScrollView(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      slivers: [
+                        _AlbumHeader(
+                          album: album,
+                          tracks: data?.albumTracks ?? const [],
                         ),
-                        slivers: [
-                          _AlbumHeader(
-                            album: album,
-                            tracks: data?.albumTracks ?? const [],
+                        if (data != null) ..._content(contentCtx, data),
+                        SliverPadding(
+                          padding: EdgeInsets.only(
+                            bottom: contentCtx.bottomBarInset(tabs: false),
                           ),
-                          if (data != null) ..._content(contentCtx, data),
-                          SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: contentCtx.bottomBarInset(tabs: false),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-              },
-            ),
+              ),
+            },
           );
         },
       ),

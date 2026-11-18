@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/features/player/presentation/bloc/palette/cover_palette.dart';
+import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/error/failures.dart';
@@ -99,6 +103,11 @@ void main() {
       );
   });
   tearDown(getIt.reset);
+  // Covers here are paths of nothing: their colours are none, at once.
+  setUp(
+    () => CoverPalette.read = (_) async => throw const FileSystemException(),
+  );
+  tearDown(CoverPalette.clear);
 
   Future<PlayerBloc> open(
     WidgetTester tester,
@@ -233,6 +242,22 @@ void main() {
       find.descendant(of: glow, matching: find.byType(BackdropFilter)),
       findsNothing,
     );
+  });
+
+  testWidgets("the page takes its colours from the artist's photo, else "
+      'from their cover, not from the song playing', (tester) async {
+    String? path() =>
+        tester.widget<CoverBackground>(find.byType(CoverBackground)).path;
+    await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
+    expect(path(), '/covers/k.jpg');
+
+    metadata.downloaded = '/photos/artists/1.jpg';
+    await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
+    expect(path(), '/photos/artists/1.jpg');
+
+    metadata.downloaded = null;
+    await open(tester, const ArtistAlbums());
+    expect(path(), '', reason: 'no picture at all: the neutral glow');
   });
 
   testWidgets('without a photo nor a cover, no glow', (tester) async {
