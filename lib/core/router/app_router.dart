@@ -300,11 +300,33 @@ String tabOf(String location) => switch (location) {
 
 /// Pushes an album or artist page ([section] `albums` or `artists`) in the
 /// tab shown, from where no page context says which (a sheet, Now Playing
-/// once closed). The router's location leaves out pages pushed over the
-/// tabs, such as Now Playing.
+/// once closed), handing it the page shown as the one it was opened from.
 void pushDetailInTab(GoRouter router, String section, String id) {
-  final here = router.routerDelegate.currentConfiguration.uri.path;
+  final here = shownLocation(router);
   router.push('${tabOf(here)}/$section/$id', extra: here);
+}
+
+/// The location of the page shown in the tabs, Now Playing left out. The
+/// router's own location keeps the last `go` (a tab root): pages pushed
+/// since are matches of their own, the last one on top, inside the tabs'
+/// shell for the pages of a tab.
+@visibleForTesting
+String shownLocation(GoRouter router) {
+  String? pushed(List<RouteMatchBase> matches) {
+    for (final match in matches.reversed) {
+      if (match is ShellRouteMatch) {
+        final inside = pushed(match.matches);
+        if (inside != null) return inside;
+      } else if (match is ImperativeRouteMatch &&
+          match.matches.uri.path != AppRoute.player) {
+        return match.matches.uri.path;
+      }
+    }
+    return null;
+  }
+
+  final config = router.routerDelegate.currentConfiguration;
+  return pushed(config.matches) ?? config.uri.path;
 }
 
 extension NavigationContextExt on BuildContext {
