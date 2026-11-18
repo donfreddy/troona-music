@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -19,11 +22,18 @@ const double _kLabelGap = GlassLens.labelGap;
 const double _kStartAngle = math.pi / 2 + _kLabelGap;
 const double _kMaxSweep = 2 * math.pi - 2 * _kLabelGap;
 
+/// What a finger on the ring does, each 0 to 1: how wide the band is, how
+/// lit, and how far the ring is lifted.
+typedef RingPress = ({double widen, double light, double lift});
+
 /// Elapsed-time arc drawn on the [GlassLens] hairline, with circular seek.
 ///
-/// Dragging on the glass band scrubs along the circle: a soft icy glow
-/// follows the finger, the remaining time updates live, and a selection
-/// haptic ticks every second. The seek is sent once, on release.
+/// A finger on the glass band turns the progress into the band itself: the
+/// thin arc widens to fill it, lights up as diffuse light, brightest at
+/// the head, and the lens grows a little ([lift]). Dragging scrubs along
+/// the circle, the remaining time updates live, and a selection haptic
+/// ticks every second. The seek is sent once, on release; then the light
+/// goes first and the band narrows back to the arc.
 ///
 /// Repaints are driven by [progress] directly, so playback ticks never
 /// rebuild widgets; the label only rebuilds when its second changes.
@@ -37,20 +47,143 @@ class ProgressRing extends StatefulWidget {
   final ValueListenable<PlaybackProgress> progress;
   final ValueChanged<Duration> onSeek;
 
+  /// Written with how far the ring is lifted under the finger, 0 to 1
+  /// (eased), for the lens drawn under it by the stage. Stays 0 when the
+  /// phone asks for less motion: the band still widens, nothing grows.
+  final ValueNotifier<double>? lift;
+
   const ProgressRing({
     super.key,
     required this.diameter,
     required this.holeDiameter,
     required this.progress,
     required this.onSeek,
+    this.lift,
   });
+
+  /// Press in, the reference's 220 ms; release, its 240 ms.
+  static const pressDuration = Duration(milliseconds: 220);
+  static const releaseDuration = Duration(milliseconds: 240);
+
+  /// While the finger is down: the band widens over the first 70 % of
+  /// the press, fast at first...
+  static const Curve widenCurve = Interval(0, 0.7, curve: Curves.easeOutCubic);
+
+  /// ...the light comes over the last 40 %, once the band is wide...
+  static const Curve lightCurve = Interval(0.6, 1, curve: Curves.easeOut);
+
+  /// ...and the ring rises fast and settles.
+  static const Curve liftCurve = Curves.easeOutCubic;
+
+  /// Share of the release the light takes to go out; the band holds its
+  /// width until then.
+  static const double lightOffShare = 0.4;
+
+  /// The effects at [press] (0 to 1) while a finger is down.
+  @visibleForTesting
+  static RingPress pressedAt(double press) {
+    final t = press.clamp(0.0, 1.0);
+    return (
+      widen: widenCurve.transform(t),
+      light: lightCurve.transform(t),
+      lift: liftCurve.transform(t),
+    );
+  }
+
+  /// The effects at [release] (0 to 1) after a release that found them at
+  /// [from]. Each goes from where it was, whenever the finger left (a
+  /// release played as the press backwards would end at full speed): the
+  /// light goes out first, then the band narrows, and everything slows
+  /// into rest. The ring starts back at once.
+  @visibleForTesting
+  static RingPress releasedAt(double release, RingPress from) {
+    final r = release.clamp(0.0, 1.0);
+    const settle = Curves.easeOutCubic;
+    final hold = from.light > 0 ? lightOffShare : 0.0;
+    return (
+      light:
+          from.light *
+          (1 - Curves.easeOut.transform((r / lightOffShare).clamp(0.0, 1.0))),
+      widen:
+          from.widen *
+          (1 - settle.transform(((r - hold) / (1 - hold)).clamp(0.0, 1.0))),
+      lift: from.lift * (1 - settle.transform(r)),
+    );
+  }
+
+  /// Stroke width and radius of the arc for [widen] (0 the 2.5 px arc on
+  /// the hairline, 1 the whole glass band, hole edge to rim), for a ring
+  /// of [radius] whose hole is [holeFraction] of it.
+  @visibleForTesting
+  static ({double width, double radius}) strokeAt(
+    double widen, {
+    required double radius,
+    required double holeFraction,
+  }) {
+    final t = widen.clamp(0.0, 1.0);
+    return (
+      width: lerpDouble(2.5, radius * (1 - holeFraction), t)!,
+      // The hairline sits off the middle of the band: recentre as it
+      // widens, or the wide band would spill over one side.
+      radius: lerpDouble(
+        radius * GlassLens.hairlineFraction,
+        radius * (1 + holeFraction) / 2,
+        t,
+      )!,
+    );
+  }
+
+  /// How dense the band is across the glass, from the ring's centre out,
+  /// at [widen]: whole against the cover, thinning out to nothing before
+  /// the rim, as light seen through the glass (measured on the reference:
+  /// two thirds a third of the way out, under half past the middle, gone
+  /// at four fifths). The thin arc at rest is whole: the falloff comes as
+  /// the band widens. Used as a mask, so only the alphas matter.
+  @visibleForTesting
+  static RadialGradient bandFalloff(
+    double widen, {
+    required double holeFraction,
+  }) {
+    final t = widen.clamp(0.0, 1.0);
+    final band = 1 - holeFraction;
+    Color dense(double alpha) =>
+        Colors.white.withValues(alpha: lerpDouble(1, alpha, t));
+    return RadialGradient(
+      colors: [
+        dense(1),
+        dense(1),
+        dense(0.68),
+        dense(0.4),
+        dense(0.04),
+        dense(0),
+      ],
+      stops: [
+        0,
+        holeFraction,
+        holeFraction + band * 0.35,
+        holeFraction + band * 0.6,
+        holeFraction + band * 0.82,
+        1,
+      ],
+    );
+  }
+
+  /// The head's colour at [widen]: [end] on the thin arc, most of the way
+  /// back to [start] on the band, where a wedge of plain white under the
+  /// finger would glare (the reference's head is a light blue).
+  @visibleForTesting
+  static Color headColor(
+    double widen, {
+    required Color start,
+    required Color end,
+  }) => Color.lerp(end, start, 0.6 * widen.clamp(0.0, 1.0))!;
 
   @override
   State<ProgressRing> createState() => _ProgressRingState();
 }
 
 class _ProgressRingState extends State<ProgressRing>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   /// Scrub position in `[0, 1]` once the finger has moved, null otherwise.
   final ValueNotifier<double?> _scrub = ValueNotifier(null);
 
@@ -60,10 +193,27 @@ class _ProgressRingState extends State<ProgressRing>
   /// recomposited when the arc visibly moves.
   final ValueNotifier<double> _arc = ValueNotifier(-1);
 
-  late final AnimationController _glow = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 160),
-  );
+  /// 0 to 1 while a finger is down.
+  late final AnimationController _press;
+
+  /// 0 to 1 after it left, from [_releasedFrom].
+  late final AnimationController _release;
+
+  /// The effects when the finger left; null unless releasing.
+  RingPress? _releasedFrom;
+
+  /// The effects when a finger came back mid-release: width and light do
+  /// not drop below them while it rises again. Null from rest.
+  RingPress? _pressFrom;
+
+  /// For the painter: the band's width and its light, 0 to 1.
+  final ValueNotifier<double> _widen = ValueNotifier(0);
+  final ValueNotifier<double> _light = ValueNotifier(0);
+
+  /// Lift of the arc and the label, written to [ProgressRing.lift] for the
+  /// lens; 0 with reduced motion.
+  final ValueNotifier<double> _lift = ValueNotifier(0);
+  bool _reduceMotion = false;
 
   /// Duration captured on touch-down; null when no scrub is in progress.
   /// A different duration mid-gesture means the track changed: abort.
@@ -82,8 +232,28 @@ class _ProgressRingState extends State<ProgressRing>
   @override
   void initState() {
     super.initState();
+    _press = AnimationController(
+      vsync: this,
+      duration: ProgressRing.pressDuration,
+    )..addListener(_onPress);
+    _release =
+        AnimationController(vsync: this, duration: ProgressRing.releaseDuration)
+          ..addListener(_onPress)
+          ..addStatusListener((status) {
+            if (!status.isCompleted) return;
+            _releasedFrom = null;
+            _pressFrom = null;
+            _press.value = 0;
+          });
     widget.progress.addListener(_onProgress);
     _onProgress();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    _onPress();
   }
 
   @override
@@ -93,16 +263,116 @@ class _ProgressRingState extends State<ProgressRing>
       old.progress.removeListener(_onProgress);
       widget.progress.addListener(_onProgress);
     }
+    if (old.lift != widget.lift) _resetLift(old.lift);
     _onProgress();
+    _onPress();
   }
 
   @override
   void dispose() {
     widget.progress.removeListener(_onProgress);
+    // Gone mid-press (the stage left out on a tiny window): do not leave
+    // the lens lifted.
+    _resetLift(widget.lift);
     _scrub.dispose();
     _arc.dispose();
-    _glow.dispose();
+    _press.dispose();
+    _release.dispose();
+    _widen.dispose();
+    _light.dispose();
+    _lift.dispose();
     super.dispose();
+  }
+
+  RingPress get _effects {
+    final released = _releasedFrom;
+    if (released != null) {
+      return ProgressRing.releasedAt(_release.value, released);
+    }
+    final pressed = ProgressRing.pressedAt(_press.value);
+    final base = _pressFrom;
+    if (base == null) return pressed;
+    // Lift (matched through the press) and the rest all go on from where
+    // the release left them, up to the full press.
+    return (
+      widen: math.max(base.widen, pressed.widen),
+      light: math.max(base.light, pressed.light),
+      lift: pressed.lift,
+    );
+  }
+
+  /// A finger down: from where a release in progress left the ring.
+  void _pressIn() {
+    final current = _effects;
+    _release.stop();
+    _releasedFrom = null;
+    _pressFrom = current.widen > 0 || current.light > 0 ? current : null;
+    _press.value = _pressForLift(current.lift);
+    _press.forward();
+  }
+
+  /// The press whose lift is [lift] ([ProgressRing.liftCurve] inverted by
+  /// bisection), so a ring caught mid-release goes on rising instead of
+  /// jumping.
+  static double _pressForLift(double lift) {
+    if (lift <= 0) return 0;
+    if (lift >= 1) return 1;
+    var low = 0.0;
+    var high = 1.0;
+    for (var i = 0; i < 24; i++) {
+      final mid = (low + high) / 2;
+      if (ProgressRing.liftCurve.transform(mid) < lift) {
+        low = mid;
+      } else {
+        high = mid;
+      }
+    }
+    return (low + high) / 2;
+  }
+
+  /// The finger left (or the scrub ended without it).
+  void _pressOut() {
+    if (_releasedFrom != null) return;
+    final from = _effects;
+    _press.stop();
+    _pressFrom = null;
+    if (from.widen == 0 && from.light == 0 && from.lift == 0) return;
+    _releasedFrom = from;
+    _release.forward(from: 0);
+  }
+
+  void _onPress() {
+    final effects = _effects;
+    _widen.value = effects.widen;
+    _light.value = effects.light;
+    final lift = _reduceMotion ? 0.0 : effects.lift;
+    _lift.value = lift;
+    final shared = widget.lift;
+    if (shared == null || shared.value == lift) return;
+    // The lens is not below this ring in the tree: it must not be marked
+    // dirty while this ring builds (a track change aborts a press from
+    // didUpdateWidget). It is told after the frame then.
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.persistentCallbacks) {
+      shared.value = lift;
+      return;
+    }
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.lift == shared) shared.value = _lift.value;
+    });
+  }
+
+  /// After the frame: the lens lives in another subtree, which must not be
+  /// marked dirty while this one is being built or torn down.
+  static void _resetLift(ValueNotifier<double>? lift) {
+    if (lift == null || lift.value == 0) return;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      try {
+        lift.value = 0;
+      } on FlutterError {
+        // Disposed with its page meanwhile.
+      }
+    });
   }
 
   void _onProgress() {
@@ -140,7 +410,7 @@ class _ProgressRingState extends State<ProgressRing>
     _startRatio = ratio;
     _moved = false;
     _lastTickSecond = _secondAt(ratio);
-    _glow.forward();
+    _pressIn();
   }
 
   void _onUpdate(DragUpdateDetails details) {
@@ -181,7 +451,7 @@ class _ProgressRingState extends State<ProgressRing>
     _scrubDuration = null;
     _moved = false;
     _scrub.value = null;
-    _glow.reverse();
+    _pressOut();
   }
 
   int _secondAt(double ratio) =>
@@ -204,6 +474,9 @@ class _ProgressRingState extends State<ProgressRing>
   Widget build(BuildContext context) {
     final colors = context.colors;
     final holeFraction = widget.holeDiameter / widget.diameter;
+    // The blurred light is left out with the glass turned off, like every
+    // other soft effect on a slow phone.
+    final softLight = GlassTheme.resolveQuality(context) != GlassQuality.off;
 
     return _SeekSemantics(
       progress: widget.progress,
@@ -214,29 +487,50 @@ class _ProgressRingState extends State<ProgressRing>
         child: Stack(
           alignment: Alignment.center,
           children: [
+            // The arc and the label grow with the lens; the touch band
+            // below keeps its size (the scrub reads angles, which scaling
+            // leaves alone).
             IgnorePointer(
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  size: Size.square(widget.diameter),
-                  painter: _RingPainter(
-                    arc: _arc,
-                    scrub: _scrub,
-                    glow: _glow,
-                    holeFraction: holeFraction,
-                    start: colors.progressStart,
-                    end: colors.progressEnd,
-                  ),
+              child: ValueListenableBuilder<double>(
+                valueListenable: _lift,
+                builder: (_, lift, child) => Transform.scale(
+                  scale: 1 + GlassLens.liftScale * lift,
+                  child: child,
                 ),
-              ),
-            ),
-            Positioned(
-              bottom:
-                  widget.diameter / 2 * (1 - GlassLens.hairlineFraction) - 9,
-              child: IgnorePointer(
-                child: ExcludeSemantics(
-                  child: _RemainingLabel(
-                    progress: widget.progress,
-                    scrub: _scrub,
+                child: SizedBox.square(
+                  dimension: widget.diameter,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      RepaintBoundary(
+                        child: CustomPaint(
+                          size: Size.square(widget.diameter),
+                          painter: _RingPainter(
+                            arc: _arc,
+                            scrub: _scrub,
+                            widen: _widen,
+                            light: _light,
+                            holeFraction: holeFraction,
+                            softLight: softLight,
+                            start: colors.progressStart,
+                            end: colors.progressEnd,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom:
+                            widget.diameter /
+                                2 *
+                                (1 - GlassLens.hairlineFraction) -
+                            9,
+                        child: ExcludeSemantics(
+                          child: _RemainingLabel(
+                            progress: widget.progress,
+                            scrub: _scrub,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -453,19 +747,29 @@ class _RingPainter extends CustomPainter {
   /// Quantised elapsed ratio, -1 while the duration is unknown.
   final ValueListenable<double> arc;
   final ValueListenable<double?> scrub;
-  final Animation<double> glow;
+
+  /// 0 the thin arc, 1 the whole band.
+  final ValueListenable<double> widen;
+
+  /// Strength of the diffuse light, 0 to 1.
+  final ValueListenable<double> light;
   final double holeFraction;
+
+  /// Draws the blurred pass of the light (off with the glass off).
+  final bool softLight;
   final Color start;
   final Color end;
 
   _RingPainter({
     required this.arc,
     required this.scrub,
-    required this.glow,
+    required this.widen,
+    required this.light,
     required this.holeFraction,
+    required this.softLight,
     required this.start,
     required this.end,
-  }) : super(repaint: Listenable.merge([arc, scrub, glow]));
+  }) : super(repaint: Listenable.merge([arc, scrub, widen, light]));
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -473,45 +777,80 @@ class _RingPainter extends CustomPainter {
 
     final center = size.center(Offset.zero);
     final radius = size.shortestSide / 2;
-    final arcRadius = radius * GlassLens.hairlineFraction;
+    final stroke = ProgressRing.strokeAt(
+      widen.value,
+      radius: radius,
+      holeFraction: holeFraction,
+    );
+    // Without the blurred pass there is nothing to see through the band:
+    // it stays a plain fill.
+    final light = softLight ? this.light.value : 0.0;
     final ratio = scrub.value ?? arc.value;
     final sweep = math.max(ratio * _kMaxSweep, 0.001);
-    final headAngle = _kStartAngle + sweep;
-    Offset onCircle(double r) =>
-        center + Offset(math.cos(headAngle), math.sin(headAngle)) * r;
+    final arcRect = Rect.fromCircle(center: center, radius: stroke.radius);
+    // Dark by the label, bright at the head; the tail sinks lower while
+    // the light is on, so the head stands out.
+    final gradient = SweepGradient(
+      endAngle: sweep,
+      colors: [
+        start.withValues(alpha: lerpDouble(0.35, 0.15, light)),
+        start,
+        ProgressRing.headColor(widen.value, start: start, end: end),
+      ],
+      stops: const [0, 0.7, 1],
+      transform: const GradientRotation(_kStartAngle),
+    ).createShader(arcRect);
 
-    // Touch glow: lights the glass around the finger while scrubbing.
-    if (glow.value > 0) {
-      final glowCenter = onCircle(radius * (1 + holeFraction) / 2);
-      final glowRadius = radius * 0.38;
+    // Both passes below go through one layer while the band is wide, cut
+    // at the end by the falloff across the glass. At rest: no layer.
+    final outer = Rect.fromCircle(center: center, radius: radius);
+    final falloff = widen.value > 0;
+    if (falloff) canvas.saveLayer(outer, Paint());
+
+    // Both ends cut square across the band (radially), the head under the
+    // finger: the glass band, and the arc's sector of it.
+    // Diffuse light: the same band blurred, as seen through frosted glass,
+    // kept to the glass band and to the arc's sector of it so both ends
+    // stay cut square (radially). The sharp band needs no clip: it fills
+    // the band exactly and its butt caps are already radial.
+    if (light > 0) {
       canvas
         ..save()
         ..clipPath(
           Path()
             ..fillType = PathFillType.evenOdd
-            ..addOval(Rect.fromCircle(center: center, radius: radius))
+            ..addOval(outer)
             ..addOval(
               Rect.fromCircle(center: center, radius: radius * holeFraction),
             ),
         )
-        ..drawCircle(
-          glowCenter,
-          glowRadius,
+        ..clipPath(
+          Path()
+            ..moveTo(center.dx, center.dy)
+            ..arcTo(outer.inflate(radius), _kStartAngle, sweep, false)
+            ..close(),
+        )
+        ..drawArc(
+          arcRect,
+          _kStartAngle,
+          sweep,
+          false,
           Paint()
-            ..shader =
-                RadialGradient(
-                  colors: [
-                    start.withValues(alpha: 0.5 * glow.value),
-                    start.withValues(alpha: 0),
-                  ],
-                ).createShader(
-                  Rect.fromCircle(center: glowCenter, radius: glowRadius),
-                ),
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = stroke.width
+            ..strokeCap = StrokeCap.butt
+            ..shader = gradient
+            ..color = Colors.white.withValues(alpha: light)
+            ..maskFilter = MaskFilter.blur(
+              BlurStyle.normal,
+              math.max(0.1, radius * (1 - holeFraction) * 0.25),
+            ),
         )
         ..restore();
     }
 
-    final arcRect = Rect.fromCircle(center: center, radius: arcRadius);
+    // The band itself, see-through while lit so the glow shows through
+    // it; a plain fill again as the light goes on release.
     canvas.drawArc(
       arcRect,
       _kStartAngle,
@@ -519,37 +858,57 @@ class _RingPainter extends CustomPainter {
       false,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.5
-        // Butt cap: a round tail cap would sit before the gradient start and
-        // wrap to the bright end colour. The head dot rounds the other end.
+        ..strokeWidth = stroke.width
+        // Butt cap: a round tail cap would sit before the gradient start
+        // and wrap to the bright end colour. The head dot rounds the
+        // other end at rest.
         ..strokeCap = StrokeCap.butt
-        ..shader = SweepGradient(
-          endAngle: sweep,
-          colors: [start.withValues(alpha: 0.35), start, end],
-          stops: const [0, 0.7, 1],
-          transform: const GradientRotation(_kStartAngle),
-        ).createShader(arcRect),
+        ..shader = gradient
+        // With a shader, only the alpha of the colour applies.
+        ..color = Colors.white.withValues(alpha: 1 - 0.45 * light),
     );
 
-    // Bright head with a soft halo.
-    final head = onCircle(arcRadius);
+    if (falloff) {
+      canvas
+        ..drawRect(
+          outer,
+          Paint()
+            ..blendMode = BlendMode.dstIn
+            ..shader = ProgressRing.bandFalloff(
+              widen.value,
+              holeFraction: holeFraction,
+            ).createShader(outer),
+        )
+        ..restore();
+    }
+
+    // Bright head with a soft halo, at rest only: pressed, the band's
+    // square head sits under the finger.
+    final dot = 1 - widen.value;
+    if (dot <= 0) return;
+    final headAngle = _kStartAngle + sweep;
+    final head =
+        center +
+        Offset(math.cos(headAngle), math.sin(headAngle)) * stroke.radius;
     canvas
       ..drawCircle(
         head,
         6,
         Paint()
-          ..color = start.withValues(alpha: 0.55)
+          ..color = start.withValues(alpha: 0.55 * dot)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       )
-      ..drawCircle(head, 2.5, Paint()..color = end);
+      ..drawCircle(head, 2.5, Paint()..color = end.withValues(alpha: dot));
   }
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) =>
       oldDelegate.arc != arc ||
       oldDelegate.scrub != scrub ||
-      oldDelegate.glow != glow ||
+      oldDelegate.widen != widen ||
+      oldDelegate.light != light ||
       oldDelegate.holeFraction != holeFraction ||
+      oldDelegate.softLight != softLight ||
       oldDelegate.start != start ||
       oldDelegate.end != end;
 }

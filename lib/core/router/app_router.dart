@@ -275,8 +275,10 @@ final appRouter = GoRouter(
         // Room for the ring to mini player morph (reference: about 500 ms).
         transitionDuration: const Duration(milliseconds: 500),
         reverseTransitionDuration: const Duration(milliseconds: 450),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(opacity: animation, child: child),
+        // No fade of the whole page: it fades its own layers (background,
+        // chrome, stage) while the heroes fly, so two screens never show
+        // on top of each other.
+        transitionsBuilder: (_, _, _, child) => child,
         child: BlocProvider<PlayerBloc>.value(
           value: getIt<PlayerBloc>(),
           child: FullPlayerPage(

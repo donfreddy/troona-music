@@ -34,6 +34,10 @@ class GlassLens extends StatelessWidget {
   /// time label sits. The progress arc uses the same gap.
   static const double labelGap = 12 * math.pi / 180;
 
+  /// How much the lens, its arc and the time label grow while a finger
+  /// rests on the ring, as in the reference.
+  static const double liftScale = 0.06;
+
   @override
   Widget build(BuildContext context) {
     final holeFraction = holeDiameter / diameter;

@@ -66,12 +66,20 @@ class AppBottomNavBar extends StatefulWidget {
   /// should remain visible.
   final bool showTabs;
 
+  /// How open an empty mini player slot is above the tabs, 0 to 1; null
+  /// for none. Now Playing's own bar, which has no mini player, opens it
+  /// while the surface comes down on dismiss: the bar grows to the height
+  /// of the shell's, and the surface lands inside it instead of settling
+  /// above a bar of tabs only.
+  final Animation<double>? miniSlot;
+
   const AppBottomNavBar({
     super.key,
     required this.currentTab,
     required this.onTabChanged,
     this.showMiniPlayer = true,
     this.showTabs = true,
+    this.miniSlot,
   });
 
   @override
@@ -98,6 +106,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
               playerState: resolvedPlayerState,
               showMiniPlayer: widget.showMiniPlayer,
               showTabs: widget.showTabs,
+              miniSlot: widget.miniSlot,
             );
           },
         ),
@@ -156,6 +165,7 @@ class _NavBarBody extends StatelessWidget {
   final PlayerActive? playerState;
   final bool showMiniPlayer;
   final bool showTabs;
+  final Animation<double>? miniSlot;
 
   const _NavBarBody({
     required this.currentTab,
@@ -163,6 +173,7 @@ class _NavBarBody extends StatelessWidget {
     required this.playerState,
     required this.showMiniPlayer,
     required this.showTabs,
+    required this.miniSlot,
   });
 
   static const _tabs = [
@@ -210,6 +221,14 @@ class _NavBarBody extends StatelessWidget {
                   )
                 : const SizedBox.shrink(),
           ),
+
+          // ── Empty mini player slot: the glass alone, as tall as the row ─
+          if (miniSlot case final slot?)
+            SizeTransition(
+              key: const ValueKey('miniSlot'),
+              sizeFactor: slot,
+              child: const SizedBox(height: AppSpacing.miniPlayerHeight),
+            ),
 
           // ── Nav tabs row: visible only on root pages ────────────────────
           if (showTabs)
@@ -367,6 +386,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                     // rest: the bar itself draws the glass).
                     const Hero(
                       tag: NowPlayingHero.surfaceTag,
+                      createRectTween: NowPlayingHero.flightTween,
                       flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
                       child: SizedBox.expand(),
                     ),
@@ -422,6 +442,8 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                                                 null
                                             ? Hero(
                                                 tag: NowPlayingHero.artworkTag,
+                                                createRectTween:
+                                                    NowPlayingHero.flightTween,
                                                 flightShuttleBuilder:
                                                     NowPlayingHero
                                                         .artworkShuttle,
