@@ -4,7 +4,6 @@ import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/widgets/queue_swipe.dart';
 import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
@@ -35,8 +34,8 @@ class TrackListTile extends StatefulWidget {
 class _TrackListTileState extends State<TrackListTile> {
   bool _pressed = false;
 
+  // The menu ticks as it opens.
   void _showContextMenu(BuildContext context) {
-    AppHaptics.lightImpact();
     showTrackActions(context, widget.track, origin: TrackActionOrigin.library);
   }
 
@@ -56,6 +55,10 @@ class _TrackListTileState extends State<TrackListTile> {
         onTap: widget.onTap,
         onHighlightChanged: (value) => setState(() => _pressed = value),
         onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
+        // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
+        // played song ticks in the player. The system's long-press buzz would
+        // be a second one.
+        enableFeedback: false,
         highlightColor: colors.glassHighlight,
         splashColor: colors.glassHighlight,
         child: AnimatedScale(

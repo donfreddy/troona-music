@@ -2,18 +2,42 @@ import 'dart:async';
 
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/use_cases/add_track_to_likes_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/is_track_in_likes_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/remove_track_from_likes_use_case.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
 import '../../helpers/fake_player.dart';
+
+/// No song liked: enough for the track menu to open.
+final class _NoLikes implements LibraryRepository {
+  @override
+  Future<Either<Failure, Playlist>> getLikesPlaylist() async =>
+      right(const Playlist(id: 'likes', name: 'Likes', trackIds: []));
+
+  @override
+  Future<Either<Failure, bool>> isTrackInLikes(String trackId) async =>
+      right(false);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   final playing = [
@@ -43,9 +67,21 @@ void main() {
       await tester.pump();
     }
 
+    final likes = _NoLikes();
+    final likesCubit = LikesCubit(
+      addTrack: AddTrackToLikesUseCase(likes),
+      removeTrack: RemoveTrackFromLikesUseCase(likes),
+      isTrackLiked: IsTrackInLikesUseCase(likes),
+      getLikesPlaylist: GetLikesPlaylistUseCase(likes),
+    );
+    addTearDown(likesCubit.close);
+
     await tester.pumpWidget(
-      BlocProvider.value(
-        value: bloc,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: bloc),
+          BlocProvider.value(value: likesCubit),
+        ],
         child: MaterialApp(
           theme: AppTheme.dark,
           locale: const Locale('en'),
@@ -118,5 +154,28 @@ void main() {
       node = node.parent;
     }
     expect(all, containsAll(['Play next', 'Add to queue']));
+  });
+
+  testWidgets('a long press ticks once: the menu opening is the tick', (
+    tester,
+  ) async {
+    final ticks = <Object?>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'HapticFeedback.vibrate') ticks.add(call.arguments);
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await pump(tester);
+    await tester.longPress(find.byType(TrackListTile));
+    await tester.pumpAndSettle();
+    expect(ticks, hasLength(1));
   });
 }
