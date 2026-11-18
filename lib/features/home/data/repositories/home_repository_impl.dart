@@ -66,7 +66,7 @@ final class HomeRepositoryImpl implements HomeRepository {
       final likedIds = results[3] as Set<String>;
       final hiddenGems = await _resolveHiddenGems(likedIds);
 
-      final weeklyPlayCount = results[4] as int;
+      final weeklyPlayCount = results[4] as int?;
 
       return right(
         HomeFeed(
@@ -85,15 +85,14 @@ final class HomeRepositoryImpl implements HomeRepository {
 
   /// Plays of this calendar week, Monday to today, from the daily totals
   /// the recap reads too: never pruned, and the same week as its card.
-  /// A count that cannot be read fails the feed rather than show none: a
-  /// reload keeps the feed on screen.
-  Future<int> _thisWeek() async {
+  /// Null when it cannot be read: the subtitle goes, the feed stays.
+  Future<int?> _thisWeek() async {
     final today = ListeningDay.of(DateTime.now());
     final stats = await _history.listeningStats(
       firstDay: ListeningDay.weekStart(today),
       lastDay: today,
     );
-    return stats.fold((failure) => throw failure, (s) => s.plays);
+    return stats.fold((_) => null, (s) => s.plays);
   }
 
   /// Resolves track IDs + play counts into [TrackPlayCount] entities.

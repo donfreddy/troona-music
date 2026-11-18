@@ -82,12 +82,16 @@ abstract final class CoverPalette {
 
   /// The colours of the image at [path], read once per version of its
   /// file; null when it cannot be read.
-  static Future<TrackPaletteState?> of(String path) =>
-      _reads[path] ??= _of(path).whenComplete(() {
-        // A block, not an arrow: remove returns this very future, which
-        // whenComplete would then wait for.
-        _reads.remove(path);
-      });
+  static Future<TrackPaletteState?> of(String path) {
+    final running = _reads[path];
+    if (running != null) return running;
+    late final Future<TrackPaletteState?> read;
+    read = _of(path).whenComplete(() {
+      // Only this read's own entry: another may have taken its place.
+      if (identical(_reads[path], read)) _reads.remove(path);
+    });
+    return _reads[path] = read;
+  }
 
   static Future<TrackPaletteState?> _of(String path) async {
     final DateTime? stamp;
@@ -105,7 +109,13 @@ abstract final class CoverPalette {
     if (stamp != null) {
       try {
         colours = fromSwatches(await read(path));
-      } catch (_) {}
+      } on FileSystemException {
+        // Not the image's fault (too many files open while a scan
+        // extracts covers): tried again next time, not kept.
+        return null;
+      } catch (_) {
+        // The image itself cannot be decoded: kept until it changes.
+      }
     }
     _cache[path] = (stamp: stamp, colours: colours);
     if (_cache.length > capacity) _cache.remove(_cache.keys.first);

@@ -356,12 +356,9 @@ class _AlbumHeader extends StatelessWidget {
                           ),
                           1,
                         ),
-                        const SizedBox(height: 4),
-
-                        // Each artist a link to their page.
+                        // The artists, a link to their pages: its own
+                        // touch target is the room around it.
                         _animatedAlbumItem(AlbumArtistLinks(album: album), 2),
-
-                        const SizedBox(height: 8),
 
                         // Facts as one line of text; Lossless, the one rare
                         // state, keeps a pill. Wraps under a large font.
@@ -634,6 +631,9 @@ class _AlbumVinylState extends State<_AlbumVinyl>
             ? l10n.playerPause
             : l10n.actionPlay,
         excludeSemantics: true,
+        // Its own action: excluding the detector's semantics drops its tap,
+        // and a tap at the node's centre would land on the cover.
+        onTap: ours ? () => _tap(playing) : null,
         child: GestureDetector(
           key: const ValueKey('albumVinyl'),
           onTap: ours ? () => _tap(playing) : null,

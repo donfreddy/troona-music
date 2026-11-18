@@ -62,6 +62,7 @@ void main() {
       return switch (path) {
         '/red.jpg' => _red,
         '/blue.jpg' => _blue,
+        '/broken.jpg' => throw Exception('Invalid image data'),
         _ => throw const FileSystemException('none'),
       };
     };
@@ -94,6 +95,30 @@ void main() {
         expect(reads, ['/broken.jpg', '/broken.jpg']);
       },
     );
+
+    test('a file that fails to open is tried again: not its fault', () async {
+      expect(await CoverPalette.of('/busy.jpg'), isNull);
+      expect(await CoverPalette.of('/busy.jpg'), isNull);
+      expect(reads, ['/busy.jpg', '/busy.jpg']);
+    });
+
+    test('a read started before clear() leaves the next one alone', () async {
+      gate = Completer();
+      final first = CoverPalette.of('/red.jpg');
+      await pumpEventQueue();
+      CoverPalette.clear();
+      CoverPalette.stampOf = (_) async => DateTime(2026);
+      CoverPalette.read = (path) async {
+        reads.add(path);
+        return _red;
+      };
+      final second = CoverPalette.of('/red.jpg');
+      gate!.complete();
+      await first;
+      // The first ending must not drop the second from the reads running.
+      expect(CoverPalette.of('/red.jpg'), same(second));
+      await second;
+    });
 
     test('a file that is not there is not even read', () async {
       stamps['/red.jpg'] = null;

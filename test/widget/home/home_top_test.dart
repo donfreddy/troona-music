@@ -78,6 +78,18 @@ void main() {
       expect(HomePage.subtitleOf(en, _home(listened: false)), isNull);
     });
 
+    test("this week's plays unknown: no line rather than a wrong one", () {
+      final unknown = HomeLoaded(
+        HomeFeed(
+          recentlyPlayed: [testTrack('1', durationMs: 60000)],
+          newAlbums: const [],
+          weeklyPlayCount: null,
+        ),
+        totalTracks: 40,
+      );
+      expect(HomePage.subtitleOf(en, unknown), isNull);
+    });
+
     test('an empty library: no subtitle', () {
       expect(HomePage.subtitleOf(en, _home(totalTracks: 0)), isNull);
     });

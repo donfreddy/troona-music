@@ -48,6 +48,8 @@ class HomePage extends StatefulWidget {
     if (state is! HomeLoaded) return null;
     if (state.totalTracks == 0 || state.feed.isColdStart) return null;
     final plays = state.feed.weeklyPlayCount;
+    // Unknown: no line rather than a wrong "nothing this week".
+    if (plays == null) return null;
     if (plays == 0) return l10n.homeSubtitleWarm;
     return l10n.homeWeeklyPlays(plays);
   }

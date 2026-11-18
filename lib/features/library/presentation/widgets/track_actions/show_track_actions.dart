@@ -65,13 +65,8 @@ void showTrackActions(
         SheetAction(
           label: l10n.trackGoToAlbum,
           icon: AppIcons.album,
-          onPressed: () => _goTo(
-            context,
-            track,
-            origin,
-            AppRoute.albumDetail,
-            (t) => t.albumId,
-          ),
+          onPressed: () =>
+              _goTo(context, track, origin, 'albums', (t) => t.albumId),
         ),
       if (origin != TrackActionOrigin.artist)
         SheetAction(
@@ -90,7 +85,7 @@ Future<void> _goTo(
   BuildContext context,
   Track track,
   TrackActionOrigin origin,
-  String route,
+  String section,
   int Function(Track) id,
 ) async {
   final router = GoRouter.of(context);
@@ -98,7 +93,7 @@ Future<void> _goTo(
     context.pop();
   }
   final stored = await _stored(track);
-  router.goNamed(route, pathParameters: {'id': '${id(stored ?? track)}'});
+  pushDetailInTab(router, section, '${id(stored ?? track)}');
 }
 
 /// [track] as the library holds it now, or null when it is gone.
@@ -110,14 +105,27 @@ Future<Track?> _stored(Track track) async =>
 /// Opens the page of [track]'s artist, read again from the library first
 /// (see [_goTo]). A song crediting several artists asks which one; a song
 /// without an artist opens nothing.
+bool _readingArtist = false;
+
 Future<void> openArtistOf(
   BuildContext context,
   Track track, {
   TrackActionOrigin origin = TrackActionOrigin.library,
 }) async {
+  // A second tap while the first reads the library would open the page
+  // twice, or stack a second sheet. Once a sheet is up, its barrier takes
+  // the taps.
+  if (_readingArtist) return;
   final router = GoRouter.of(context);
+  _readingArtist = true;
+  final Track? stored;
+  try {
+    stored = await _stored(track);
+  } finally {
+    _readingArtist = false;
+  }
   final credits = [
-    for (final c in ((await _stored(track)) ?? track).credits)
+    for (final c in (stored ?? track).credits)
       if (!TrackTags.isUnknownArtist(c.name)) c,
   ];
   if (credits.isEmpty || !context.mounted) return;
@@ -126,10 +134,7 @@ Future<void> openArtistOf(
     if (origin == TrackActionOrigin.nowPlaying && context.canPop()) {
       context.pop();
     }
-    router.goNamed(
-      AppRoute.artistDetail,
-      pathParameters: {'id': '${credit.id}'},
-    );
+    pushDetailInTab(router, 'artists', '${credit.id}');
   }
 
   if (credits.length == 1) return open(credits.single);

@@ -290,6 +290,23 @@ final appRouter = GoRouter(
   ],
 );
 
+/// The tab a location belongs to, as its root path.
+String tabOf(String location) => switch (location) {
+  _ when location.startsWith(AppRoute.home) => AppRoute.home,
+  _ when location.startsWith(AppRoute.search) => AppRoute.search,
+  _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
+  _ => AppRoute.library,
+};
+
+/// Pushes an album or artist page ([section] `albums` or `artists`) in the
+/// tab shown, from where no page context says which (a sheet, Now Playing
+/// once closed). The router's location leaves out pages pushed over the
+/// tabs, such as Now Playing.
+void pushDetailInTab(GoRouter router, String section, String id) {
+  final here = router.routerDelegate.currentConfiguration.uri.path;
+  router.push('${tabOf(here)}/$section/$id', extra: here);
+}
+
 extension NavigationContextExt on BuildContext {
   void pushAlbum(String albumId) => _pushDetail('albums', albumId);
 
@@ -306,7 +323,7 @@ extension NavigationContextExt on BuildContext {
   void _pushDetail(String section, String id) {
     final state = GoRouterState.of(this);
     final here = state.uri.path;
-    final target = '${_tabOf(here)}/$section/$id';
+    final target = '${tabOf(here)}/$section/$id';
     if (state.extra case final String openedFrom
         when openedFrom == target && canPop()) {
       pop();
@@ -314,13 +331,6 @@ extension NavigationContextExt on BuildContext {
     }
     push(target, extra: here);
   }
-
-  static String _tabOf(String location) => switch (location) {
-    _ when location.startsWith(AppRoute.home) => AppRoute.home,
-    _ when location.startsWith(AppRoute.search) => AppRoute.search,
-    _ when location.startsWith(AppRoute.playlists) => AppRoute.playlists,
-    _ => AppRoute.library,
-  };
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

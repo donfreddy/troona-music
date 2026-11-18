@@ -17,8 +17,9 @@ final class HomeFeed {
   /// Number of liked tracks (badge on the Quick Access chip).
   final int likesCount;
 
-  /// Plays of this calendar week, Monday to today (the Home subtitle).
-  final int weeklyPlayCount;
+  /// Plays of this calendar week, Monday to today (the Home subtitle);
+  /// null when they could not be read.
+  final int? weeklyPlayCount;
 
   const HomeFeed({
     required this.recentlyPlayed,
@@ -31,5 +32,7 @@ final class HomeFeed {
 
   /// True when the user has never listened to anything: triggers Cold Start.
   bool get isColdStart =>
-      recentlyPlayed.isEmpty && topWeekly.isEmpty && weeklyPlayCount == 0;
+      recentlyPlayed.isEmpty &&
+      topWeekly.isEmpty &&
+      (weeklyPlayCount ?? 0) == 0;
 }

@@ -7,7 +7,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Added
 
 - Library: an index of letters down the right edge of Songs, Albums and Artists when they are sorted by name, title, artist or album. Touch a letter, or slide along them, to go to its first item; the letter shows large in the middle, with a light tick for each new one. Short lists and songs sorted by date added have none.
-- Album pages: each artist of an album made by several is a link of their own to their page.
+- Album pages: the artists' line opens an album by several artists to any of them: a tap asks which one. Go to album and Go to artist, and the artist's name in Now Playing, open the page in the tab you are in, instead of jumping to the Library.
 - Album and artist cards show a small equalizer while one of their songs plays, still while paused, as song rows do.
 - A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue. The album page's menu is the same one.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.

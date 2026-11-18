@@ -189,10 +189,12 @@ void main() {
     expect(history.spans, [(ListeningDay.weekStart(today), today)]);
   });
 
-  test("a week's count that cannot be read is not shown as none", () async {
+  test("a week's count that cannot be read is unknown, not none", () async {
     final history = _History(const [])..statsFail = true;
     final repo = HomeRepositoryImpl(db: _Library(library), history: history);
-    expect((await repo.getFeed()).isLeft(), isTrue);
+    final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+    expect(feed.weeklyPlayCount, isNull);
+    expect(feed.recentlyPlayed, isNotEmpty, reason: 'the rest of Home stays');
   });
 
   test('a reload that fails keeps the feed on screen', () async {
@@ -207,7 +209,7 @@ void main() {
     final loaded = bloc.state;
     expect(loaded, isA<HomeLoaded>());
 
-    history.statsFail = true;
+    repo.fail = true;
     bloc.add(const HomeRefreshRequested());
     await pumpEventQueue();
     expect(repo.feeds, 2);
@@ -215,11 +217,11 @@ void main() {
   });
 
   test('a first load that fails shows the error', () async {
-    final history = _History(const [])..statsFail = true;
-    final bloc = HomeBloc(
-      repo: HomeRepositoryImpl(db: _Library(library), history: history),
-      refreshDelay: Duration.zero,
-    )..add(const HomeFeedRequested());
+    final repo = _CountingRepository(
+      HomeRepositoryImpl(db: _Library(library), history: _History(const [])),
+    )..fail = true;
+    final bloc = HomeBloc(repo: repo, refreshDelay: Duration.zero)
+      ..add(const HomeFeedRequested());
     addTearDown(bloc.close);
     await pumpEventQueue();
     expect(bloc.state, isA<HomeError>());
@@ -341,6 +343,9 @@ final class _CountingRepository implements HomeRepository {
   final HomeRepository _inner;
   int feeds = 0;
 
+  /// The next loads fail.
+  bool fail = false;
+
   /// Songs in the library, as the next load counts them.
   int tracks = 0;
 
@@ -348,8 +353,9 @@ final class _CountingRepository implements HomeRepository {
   Stream<void> get feedChanges => _inner.feedChanges;
 
   @override
-  Future<Either<Failure, HomeFeed>> getFeed() {
+  Future<Either<Failure, HomeFeed>> getFeed() async {
     feeds++;
+    if (fail) return left(const DatabaseFailure());
     return _inner.getFeed();
   }
 

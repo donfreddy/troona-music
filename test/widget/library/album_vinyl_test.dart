@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -200,6 +201,19 @@ void main() {
     await tester.pump();
     expect(port.resumeCalls, 1);
     expect(port.lastSetQueue, same(queued), reason: 'the queue stays');
+  });
+
+  testWidgets('a screen reader can pause it too', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await open(tester, playing: _tracks);
+    final node = tester.getSemantics(find.byKey(const ValueKey('albumVinyl')));
+    expect(node.label, 'Pause');
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    tester.semantics.tap(find.semantics.byLabel('Pause'));
+    await tester.pump();
+    await tester.pump();
+    expect(port.pauseCalls, 1);
+    semantics.dispose();
   });
 
   testWidgets('another album playing: a tap leaves it alone', (tester) async {

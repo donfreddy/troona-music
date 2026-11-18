@@ -81,6 +81,41 @@ void main() {
       expect(taps, [track]);
     });
 
+    testWidgets('while titles swap, the leaving one takes no tap', (
+      tester,
+    ) async {
+      final taps = <Track>[];
+      Widget at(Track track, int index) => MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              child: TrackTitleSwitcher(
+                track: track,
+                index: index,
+                queueLength: 2,
+                onArtistTap: taps.add,
+              ),
+            ),
+          ),
+        ),
+      );
+      final before = _song([_ed], id: 'a');
+      final after = _song([_burna], id: 'b');
+      await tester.pumpWidget(at(before, 0));
+      await tester.pumpWidget(at(after, 1));
+      await tester.pump(const Duration(milliseconds: 100));
+      // Both lines are there mid-swap: the leaving one opens nothing.
+      await tester.tap(find.text('Ed Sheeran'), warnIfMissed: false);
+      expect(taps, isNot(contains(before)));
+      await tester.tap(find.text('Burna Boy'), warnIfMissed: false);
+      expect(taps.last, after);
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('a song without an artist links nowhere', (tester) async {
       final taps = await show(tester, _song(const []));
       await tester.tap(find.text('Unknown artist'));
@@ -99,33 +134,55 @@ void main() {
 
   group('openArtistOf', () {
     late List<String> opened;
+    late GoRouter router;
 
+    /// The tabs as the app has them, each with its artist pages, and Now
+    /// Playing over them. Returns the context of the page shown: the Home
+    /// tab's, or Now Playing's when [nowPlaying].
     Future<BuildContext> pump(
       WidgetTester tester,
-      Map<String, Track> library,
-    ) async {
+      Map<String, Track> library, {
+      bool nowPlaying = false,
+    }) async {
       getIt.registerSingleton(GetTracksByIdsUseCase(_Library(library)));
       addTearDown(getIt.reset);
       opened = [];
-      late BuildContext home;
-      final router = GoRouter(
+      late BuildContext shown;
+      final root = GlobalKey<NavigatorState>();
+      GoRoute tab(String path) => GoRoute(
+        path: path,
+        builder: (context, _) {
+          shown = context;
+          return Scaffold(body: Text(path));
+        },
         routes: [
           GoRoute(
-            path: '/',
-            builder: (context, _) {
-              home = context;
+            path: 'artists/:id',
+            builder: (_, state) {
+              opened.add('${state.uri}');
               return const Scaffold();
             },
-            routes: [
-              GoRoute(
-                path: 'artist/:id',
-                name: AppRoute.artistDetail,
-                builder: (_, state) {
-                  opened.add(state.pathParameters['id']!);
-                  return const Scaffold();
-                },
-              ),
+          ),
+        ],
+      );
+      router = GoRouter(
+        navigatorKey: root,
+        initialLocation: AppRoute.home,
+        routes: [
+          StatefulShellRoute.indexedStack(
+            builder: (_, _, shell) => shell,
+            branches: [
+              StatefulShellBranch(routes: [tab(AppRoute.home)]),
+              StatefulShellBranch(routes: [tab(AppRoute.library)]),
             ],
+          ),
+          GoRoute(
+            path: AppRoute.player,
+            parentNavigatorKey: root,
+            builder: (context, _) {
+              shown = context;
+              return const Scaffold(body: Text('Now Playing'));
+            },
           ),
         ],
       );
@@ -139,7 +196,11 @@ void main() {
           routerConfig: router,
         ),
       );
-      return home;
+      if (nowPlaying) {
+        router.push(AppRoute.player);
+        await tester.pumpAndSettle();
+      }
+      return shown;
     }
 
     Future<void> settle(WidgetTester tester) async {
@@ -153,7 +214,7 @@ void main() {
       final home = await pump(tester, {'s': song});
       openArtistOf(home, song);
       await settle(tester);
-      expect(opened, ['11']);
+      expect(opened, ['/home/artists/11']);
     });
 
     testWidgets('several artists: a choice, then the one picked', (
@@ -168,7 +229,16 @@ void main() {
 
       await tester.tap(find.text('Ed Sheeran'));
       await settle(tester);
-      expect(opened, ['12']);
+      expect(opened, ['/home/artists/12']);
+    });
+
+    testWidgets('a double tap asks once', (tester) async {
+      final song = _song([_burna, _ed]);
+      final home = await pump(tester, {'s': song});
+      openArtistOf(home, song);
+      openArtistOf(home, song);
+      await settle(tester);
+      expect(find.text('Go to artist'), findsOneWidget);
     });
 
     testWidgets("the library's credits, not the queued song's", (tester) async {
@@ -178,7 +248,33 @@ void main() {
       });
       openArtistOf(home, queued);
       await settle(tester);
-      expect(opened, ['12']);
+      expect(opened, ['/home/artists/12']);
+    });
+
+    testWidgets('from Now Playing: it closes, the artist opens in the tab '
+        'below, and back returns there', (tester) async {
+      final song = _song([_ed]);
+      final player = await pump(tester, {'s': song}, nowPlaying: true);
+      openArtistOf(player, song, origin: TrackActionOrigin.nowPlaying);
+      await settle(tester);
+      expect(opened, ['/home/artists/12']);
+      expect(find.text('Now Playing'), findsNothing);
+
+      router.pop();
+      await settle(tester);
+      expect(router.state.uri.path, AppRoute.home);
+    });
+
+    testWidgets('from Now Playing, several artists: the one picked, in the '
+        'tab below', (tester) async {
+      final song = _song([_burna, _ed]);
+      final player = await pump(tester, {'s': song}, nowPlaying: true);
+      openArtistOf(player, song, origin: TrackActionOrigin.nowPlaying);
+      await settle(tester);
+      await tester.tap(find.text('Burna Boy'));
+      await settle(tester);
+      expect(opened, ['/home/artists/11']);
+      expect(find.text('Now Playing'), findsNothing);
     });
 
     testWidgets('a song gone from the library keeps its own', (tester) async {
@@ -186,7 +282,7 @@ void main() {
       final home = await pump(tester, const {});
       openArtistOf(home, queued);
       await settle(tester);
-      expect(opened, ['11']);
+      expect(opened, ['/home/artists/11']);
     });
   });
 
@@ -233,19 +329,39 @@ void main() {
       credits: credits,
     );
 
-    testWidgets('two artists, two links, each to their own page', (
+    testWidgets('two artists: one line, then a choice of either', (
       tester,
     ) async {
       final opened = await show(tester, album([_burna, _ed]));
-      await tester.tap(find.textContaining('Ed Sheeran'));
+      expect(find.text('Burna Boy, Ed Sheeran'), findsOneWidget);
+
+      await tester.tap(find.text('Burna Boy, Ed Sheeran'));
+      await tester.pumpAndSettle();
+      expect(opened, isEmpty);
+      await tester.tap(find.text('Ed Sheeran'));
       await tester.pumpAndSettle();
       expect(opened, ['12']);
 
       GoRouter.of(tester.element(find.byType(Scaffold).last)).pop();
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('Burna Boy'));
+      await tester.tap(find.text('Burna Boy, Ed Sheeran'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Burna Boy'));
       await tester.pumpAndSettle();
       expect(opened, ['12', '11']);
+    });
+
+    testWidgets('one artist: their page at once, from a 44 dp target', (
+      tester,
+    ) async {
+      final opened = await show(tester, album([_burna]));
+      expect(
+        tester.getSize(find.byType(AlbumArtistLinks)).height,
+        greaterThanOrEqualTo(44),
+      );
+      await tester.tap(find.text('Burna Boy'));
+      await tester.pumpAndSettle();
+      expect(opened, ['11']);
     });
 
     testWidgets('an album read without its songs still links its artist', (
@@ -259,7 +375,7 @@ void main() {
         trackCount: 2,
       );
       final opened = await show(tester, read);
-      await tester.tap(find.textContaining('Burna Boy'));
+      await tester.tap(find.text('Burna Boy'));
       await tester.pumpAndSettle();
       expect(opened, ['11']);
     });
