@@ -26,6 +26,18 @@ abstract final class NowPlayingHero {
   /// Corner radius of the mini player thumbnail.
   static const double miniArtworkRadius = 16;
 
+  /// Straight flight for every Now Playing hero. Both ends of the surface
+  /// and of the artwork share a vertical centre (ring and cover, row and
+  /// thumbnail), so with straight lines the cover stays centred in the
+  /// morphing surface all the way. MaterialApp's default arc tween sends
+  /// each shuttle on its own curve.
+  static RectTween flightTween(Rect? begin, Rect? end) =>
+      RectTween(begin: begin, end: end);
+
+  /// How far the page under Now Playing sits lower while covered: on
+  /// dismiss it rises back into place as the surface lands.
+  static const double coveredDrop = 12;
+
   /// Flight progress read from the shuttle's own size: 1 at the full player
   /// size, 0 at the mini player size. The hero animation cannot be used: on
   /// a diverted flight (dismiss interrupted by a reopen) Flutter keeps the
@@ -94,13 +106,16 @@ abstract final class NowPlayingHero {
         // miniRowOpacity) instead of being swapped on the last frame.
         final opacity = _shuttleOpacity(t);
         // No BackdropFilter in flight: a moving blur re-samples each frame.
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0xFF07090E).withValues(alpha: 0.8 * opacity),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.24 * opacity),
-              width: 0.8,
+        return CustomPaint(
+          foregroundPainter: _ShuttleRimPainter(
+            radius: radius,
+            progress: t,
+            opacity: opacity,
+          ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFF07090E).withValues(alpha: 0.8 * opacity),
+              borderRadius: BorderRadius.circular(radius),
             ),
           ),
         );
@@ -133,6 +148,156 @@ abstract final class NowPlayingHero {
           child: image,
         );
       },
+    );
+  }
+}
+
+/// Rim of the surface shuttle: the lens's polished edge (bright top left,
+/// dim across, lit again bottom right) at the ring end, easing into the
+/// mini player's even hairline as it lands.
+class _ShuttleRimPainter extends CustomPainter {
+  final double radius;
+
+  /// 1 at the ring, 0 at the mini player row.
+  final double progress;
+  final double opacity;
+
+  const _ShuttleRimPainter({
+    required this.radius,
+    required this.progress,
+    required this.opacity,
+  });
+
+  /// The lens rim's gradient (GlassLens), top left to bottom right.
+  static const _lens = [
+    Color(0x8CFFFFFF),
+    Color(0x14FFFFFF),
+    Color(0x4DFFFFFF),
+  ];
+
+  /// The mini player row's even border.
+  static const _row = Color(0x3DFFFFFF);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (opacity <= 0) return;
+    final rect = Offset.zero & size;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect.deflate(0.4), Radius.circular(radius)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = lerpDouble(0.8, 1.2, progress)!
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: const [0, 0.55, 1],
+          colors: [
+            for (final c in _lens)
+              Color.lerp(
+                _row,
+                c,
+                progress,
+              )!.withValues(alpha: Color.lerp(_row, c, progress)!.a * opacity),
+          ],
+        ).createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ShuttleRimPainter old) =>
+      old.radius != radius ||
+      old.progress != progress ||
+      old.opacity != opacity;
+}
+
+/// The page under Now Playing, [NowPlayingHero.coveredDrop] lower while
+/// covered. It drops only once fully covered (unseen), and rises back on
+/// dismiss once it shows again, the background going, then settles after
+/// the surface has landed, with a long deceleration. Still when the phone
+/// asks for less motion.
+class NowPlayingCoveredDrop extends StatefulWidget {
+  final Widget child;
+
+  const NowPlayingCoveredDrop({super.key, required this.child});
+
+  /// [NowPlayingHero.coverAnimation] value below which, on dismiss, the
+  /// page shows again: about when the Now Playing background starts going.
+  static const double riseAt = 0.25;
+
+  static const Duration riseDuration = Duration(milliseconds: 300);
+
+  @override
+  State<NowPlayingCoveredDrop> createState() => _NowPlayingCoveredDropState();
+}
+
+class _NowPlayingCoveredDropState extends State<NowPlayingCoveredDrop>
+    with SingleTickerProviderStateMixin {
+  /// 1 lowered, 0 in place.
+  late final AnimationController _drop = AnimationController(
+    vsync: this,
+    duration: NowPlayingCoveredDrop.riseDuration,
+  );
+
+  /// It only ever runs back (the drop is a jump, unseen): decelerating
+  /// into place.
+  late final CurvedAnimation _curve = CurvedAnimation(
+    parent: _drop,
+    curve: Curves.linear,
+    reverseCurve: const FlippedCurve(Curves.easeOutCubic),
+  );
+  late final Animation<double> _offset = _curve.drive(
+    Tween(begin: 0, end: NowPlayingHero.coveredDrop),
+  );
+
+  Animation<double>? _covering;
+
+  @override
+  void initState() {
+    super.initState();
+    NowPlayingHero.coverAnimation.addListener(_onCoverChanged);
+    _onCoverChanged();
+  }
+
+  @override
+  void dispose() {
+    NowPlayingHero.coverAnimation.removeListener(_onCoverChanged);
+    _covering?.removeListener(_follow);
+    _curve.dispose();
+    _drop.dispose();
+    super.dispose();
+  }
+
+  void _onCoverChanged() {
+    _covering?.removeListener(_follow);
+    _covering = NowPlayingHero.coverAnimation.value?..addListener(_follow);
+    _follow();
+  }
+
+  void _follow() {
+    final covering = _covering;
+    if (covering != null && covering.isCompleted) {
+      // Fully covered: nobody sees the page go down.
+      _drop.value = 1;
+    } else if ((covering == null ||
+            covering.value < NowPlayingCoveredDrop.riseAt) &&
+        _drop.value > 0 &&
+        _drop.status != AnimationStatus.reverse) {
+      // Showing again (or Now Playing gone without a flight): rise.
+      _drop.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    // One stable structure, so the page below keeps its state.
+    return AnimatedBuilder(
+      animation: _offset,
+      child: widget.child,
+      builder: (_, child) => Transform.translate(
+        offset: Offset(0, still ? 0 : _offset.value),
+        child: child,
+      ),
     );
   }
 }

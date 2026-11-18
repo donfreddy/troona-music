@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 void main() {
   final tracks = [for (var i = 0; i < 5; i++) _track('t$i')];
@@ -292,6 +295,104 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.byIcon(AppIcons.track), findsOneWidget);
+  });
+
+  /// The covers on stage, left to right, as painted (scale included).
+  List<Rect> covers(WidgetTester tester) => [
+    for (final e in find.byType(ArtworkPlaceholder).evaluate())
+      tester.getRect(find.byElementPredicate((x) => x == e)),
+  ]..sort((a, b) => a.center.dx.compareTo(b.center.dx));
+
+  testWidgets('the neighbours sit astride the lens rim and run a little past '
+      'the edge of the stage', (tester) async {
+    await pumpCarousel(tester);
+    final stage = tester.getRect(find.byType(ArtworkCarousel));
+    final [left, current, right] = covers(tester);
+    final lens = tester.getRect(find.byType(BackdropFilter));
+
+    expect(current.center.dx, closeTo(stage.center.dx, 0.01));
+    // Cut by the edge, by a third of their width at most.
+    expect(left.left, lessThan(stage.left));
+    expect(stage.left - left.left, lessThan(left.width / 3));
+    expect(right.right, greaterThan(stage.right));
+    expect(right.right - stage.right, lessThan(right.width / 3));
+    // Part in the glass, part beside it.
+    expect(left.right, greaterThan(lens.left));
+    expect(right.left, lessThan(lens.right));
+    expect(left.width, closeTo(current.width * 0.64, 0.01));
+  });
+
+  testWidgets('a finger on the cover shrinks it into the hole, the '
+      'neighbours as they are, and it grows back on release', (tester) async {
+    await pumpCarousel(tester);
+    final rest = covers(tester);
+    final center = tester.getCenter(find.byType(ArtworkCarousel));
+
+    final gesture = await tester.startGesture(center);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    final pressed = covers(tester);
+    expect(pressed[1].width, closeTo(rest[1].width * 0.78, 0.01));
+    expect(pressed[1].center, rest[1].center);
+    expect(pressed[0], rest[0]);
+    expect(pressed[2], rest[2]);
+
+    await gesture.up();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(covers(tester), rest);
+  });
+
+  testWidgets('a finger beside the hole leaves the cover as it is', (
+    tester,
+  ) async {
+    await pumpCarousel(tester);
+    final rest = covers(tester);
+    final stage = tester.getRect(find.byType(ArtworkCarousel));
+
+    final gesture = await tester.startGesture(
+      Offset(stage.right - 10, stage.center.dy),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(covers(tester), rest);
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 240));
+  });
+
+  testWidgets('a change made by the player moves like a swipe: the cover '
+      'sinks as it leaves, the next one grows as it lands', (tester) async {
+    final changes = await pumpCarousel(tester, currentIndex: 1);
+    final rest = covers(tester);
+    final art = rest[1].width;
+
+    await pumpCarousel(tester, currentIndex: 2, changes: changes);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    // A plain sweep would show the incoming cover at 0.9 of its size by
+    // now: sunk, the largest cover on stage is well under that.
+    final widest = covers(tester).map((c) => c.width).reduce(math.max);
+    expect(widest, lessThan(art * 0.8));
+
+    // Frame by frame: the way back up starts once the way down is over.
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(covers(tester)[1].width, closeTo(art, 0.01));
+    expect(changes, isEmpty);
+  });
+
+  testWidgets('a released swipe is on its cover within 300 ms', (tester) async {
+    final changes = await pumpCarousel(tester);
+    final stage = tester.getRect(find.byType(ArtworkCarousel));
+    await tester.dragFrom(
+      Offset(stage.right - 10, stage.center.dy),
+      const Offset(-150, 0),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
+    expect(changes, [2]);
   });
 }
 

@@ -55,6 +55,7 @@ void main() {
                 children: [
                   const Hero(
                     tag: NowPlayingHero.surfaceTag,
+                    createRectTween: NowPlayingHero.flightTween,
                     flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
                     child: SizedBox.expand(),
                   ),
@@ -65,6 +66,7 @@ void main() {
                     height: 42,
                     child: Hero(
                       tag: NowPlayingHero.artworkTag,
+                      createRectTween: NowPlayingHero.flightTween,
                       flightShuttleBuilder: NowPlayingHero.artworkShuttle,
                       child: Image.file(
                         File('/does/not/exist/mini.jpg'),
@@ -125,6 +127,32 @@ void main() {
     expect(artwork, greaterThan(surface));
     await tester.pumpAndSettle();
   });
+
+  for (final dismissing in [false, true]) {
+    testWidgets('the cover stays centred in the surface all the way when '
+        '${dismissing ? 'dismissing' : 'opening'}', (tester) async {
+      final navigator = await pumpMini(tester);
+      if (dismissing) {
+        await tester.pumpAndSettle();
+        navigator.pop();
+      }
+      await tester.pump();
+
+      for (var ms = 50; ms <= 450; ms += 100) {
+        await tester.pump(const Duration(milliseconds: 100));
+        final surface = tester.getRect(
+          find.byWidgetPredicate(isSurfaceShuttle),
+        );
+        final cover = tester.getRect(find.byKey(_miniArt).last);
+        expect(
+          cover.center.dy,
+          closeTo(surface.center.dy, 1),
+          reason: 'at $ms ms',
+        );
+      }
+      await tester.pumpAndSettle();
+    });
+  }
 
   testWidgets('the mini row hides while covered and lands with the shuttle', (
     tester,

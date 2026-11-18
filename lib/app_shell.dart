@@ -20,6 +20,7 @@ import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
@@ -293,7 +294,11 @@ class _AppShellState extends State<AppShell> {
                   const Positioned.fill(child: AmbientBackground()),
 
                   // ── The Branch Content ─────────────────────────────────────────
-                  Positioned.fill(child: widget.navigationShell),
+                  // Lowered while Now Playing covers it, risen back as
+                  // the surface lands in the mini player.
+                  Positioned.fill(
+                    child: NowPlayingCoveredDrop(child: widget.navigationShell),
+                  ),
 
                   // ── Floor: content fades out under the floating bar ─────
                   // As tall as the room pages keep for the bar: content at

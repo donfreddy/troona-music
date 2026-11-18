@@ -49,6 +49,15 @@ class ArtworkCarousel extends StatefulWidget {
   /// route fades it while the shuttle morphs over it.
   final Animation<double>? lensOpacity;
 
+  /// How far the lens is lifted under the finger, 0 to 1 (eased), as the
+  /// progress ring reports it: the lens and the current cover grow by
+  /// [GlassLens.liftScale], the neighbours stay as they are.
+  final ValueListenable<double>? lensLift;
+
+  /// Opacity of the covers beside the current one (the page fades them
+  /// with its chrome while dragged down).
+  final Animation<double>? neighbourOpacity;
+
   const ArtworkCarousel({
     super.key,
     required this.queue,
@@ -58,6 +67,8 @@ class ArtworkCarousel extends StatefulWidget {
     this.ringBuilder,
     this.enableHeroes = false,
     this.lensOpacity,
+    this.lensLift,
+    this.neighbourOpacity,
   });
 
   @override
@@ -67,8 +78,31 @@ class ArtworkCarousel extends StatefulWidget {
 // Proportions of the stage width, sampled from the reference screenshots.
 const double _kRingFraction = 0.80;
 const double _kArtFraction = 0.50;
-const double _kSpacingFraction = 0.42; // centre-to-centre distance
+
+/// Centre-to-centre distance. With [_kNeighbourScale], a neighbour sits
+/// astride the lens rim and runs a little past the screen's edge, which
+/// cuts about a quarter of it (screenshots/inspire.png: centres 0.42 of
+/// the width apart, a neighbour 0.31 of the width across).
+const double _kSpacingFraction = 0.42;
 const double _kNeighbourScale = 0.64;
+
+/// How much the cover under a finger shrinks into the hole (the reference
+/// goes to 0.78), leaving the dark well around it: the stage answers the
+/// touch before any swipe.
+const double _kPressShrink = 0.22;
+
+/// The reference's 200 ms in, fast at first; out as the swipe settles.
+const Duration _kPressIn = Duration(milliseconds: 200);
+const Duration _kPressOut = Duration(milliseconds: 240);
+
+/// How long the cover takes to sink when the player changes the song by
+/// itself: it is down within the first third of the sweep, and back up
+/// ([_kPressOut]) a little after the sweep lands.
+const Duration _kDipIn = Duration(milliseconds: 100);
+
+/// The floor of the hole, seen around a pressed cover and between two
+/// covers during a swipe.
+const Color _kWell = Color(0x73000000);
 
 /// Below this ring (split screen, a floating window) the stage is left out:
 /// a ring the size of a button shows nothing and its lens degenerates.
@@ -80,8 +114,51 @@ const Duration _kSkipDuration = Duration(milliseconds: 260);
 /// How long to wait for the bloc to confirm a swipe before snapping back.
 const Duration _kSwipeConfirmTimeout = Duration(milliseconds: 800);
 
-class _ArtworkCarouselState extends State<ArtworkCarousel> {
+class _ArtworkCarouselState extends State<ArtworkCarousel>
+    with SingleTickerProviderStateMixin {
   late final PageController _pageCtrl;
+
+  /// 1 while a finger holds the cover in the hole, 0 at rest.
+  late final AnimationController _press = AnimationController(
+    vsync: this,
+    duration: _kPressIn,
+    reverseDuration: _kPressOut,
+  );
+
+  /// Fast at first both ways: an ease-out played backwards would end the
+  /// release at full speed.
+  late final Animation<double> _pressed = CurvedAnimation(
+    parent: _press,
+    curve: Curves.easeOutCubic,
+    reverseCurve: Curves.easeInCubic,
+  );
+
+  /// Whether a finger holds the cover down right now.
+  bool _fingerOnCover = false;
+
+  /// A finger down on the hole (the ring band answers its own touches).
+  void _onPointerDown(PointerDownEvent event, Offset center, double hole) {
+    if ((event.localPosition - center).distance > hole / 2) return;
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _fingerOnCover = true;
+    _press.forward();
+  }
+
+  void _onPointerGone(PointerEvent _) {
+    _fingerOnCover = false;
+    _press.reverse();
+  }
+
+  /// A change the player made (a button, the end of a song) moves like a
+  /// swipe: the cover sinks into the hole as it leaves, and the one that
+  /// comes grows as it lands. No hold first, as under a finger: a button
+  /// must answer at once.
+  void _dip() {
+    if (_fingerOnCover || MediaQuery.disableAnimationsOf(context)) return;
+    _press.animateTo(1, duration: _kDipIn).whenCompleteOrCancel(() {
+      if (mounted && !_fingerOnCover) _press.reverse();
+    });
+  }
 
   /// Page under the finger when the current drag started; null when the
   /// ongoing scroll (if any) was not started by the user.
@@ -161,6 +238,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
   void dispose() {
     _confirmTimer?.cancel();
     _pageCtrl.dispose();
+    _press.dispose();
     super.dispose();
   }
 
@@ -180,6 +258,7 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
     if (!mounted || !_pageCtrl.hasClients || _dragStartPage != null) return;
     _setFocus(null);
     if (_pageCtrl.page?.round() == widget.currentIndex) return;
+    _dip();
     _pageCtrl.animateToPage(
       widget.currentIndex,
       duration: _kSkipDuration,
@@ -283,31 +362,52 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
                 enabled: widget.enableHeroes,
                 child: Hero(
                   tag: NowPlayingHero.surfaceTag,
+                  createRectTween: NowPlayingHero.flightTween,
                   flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
                   child: SizedBox.square(dimension: ringSize),
                 ),
               ),
               // Scroll frames repaint only the covers, not the whole page.
-              RepaintBoundary(
-                child: IgnorePointer(
-                  child: AnimatedBuilder(
-                    animation: _pageCtrl,
-                    builder: (_, _) => _buildCovers(
-                      page: _page,
-                      artSize: artSize,
-                      spacing: spacing,
-                      cacheWidth: cacheWidth,
+              // They fade with the lens: on dismiss the neighbours are gone
+              // before the surface lands, instead of staying while it
+              // leaves. The current cover is hidden while it flies, so
+              // this only shows when no flight takes it (no mini player
+              // cover, heroes off at launch).
+              _fade(
+                widget.lensOpacity,
+                RepaintBoundary(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([_pageCtrl, _pressed]),
+                      builder: (_, _) => _buildCovers(
+                        page: _page,
+                        artSize: artSize,
+                        spacing: spacing,
+                        cacheWidth: cacheWidth,
+                      ),
                     ),
                   ),
                 ),
               ),
-              IgnorePointer(child: _fade(widget.lensOpacity, lens)),
-              NotificationListener<ScrollNotification>(
-                onNotification: _onScroll,
-                child: PageView.builder(
-                  controller: _pageCtrl,
-                  itemCount: widget.queue.length,
-                  itemBuilder: (_, _) => const SizedBox.expand(),
+              IgnorePointer(
+                child: _fade(widget.lensOpacity, _lift(widget.lensLift, lens)),
+              ),
+              Listener(
+                onPointerDown: (event) => _onPointerDown(
+                  event,
+                  Offset(width / 2, (ringSize + 8) / 2),
+                  artSize,
+                ),
+                onPointerUp: _onPointerGone,
+                onPointerCancel: _onPointerGone,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: _onScroll,
+                  child: PageView.builder(
+                    controller: _pageCtrl,
+                    physics: const _SnapSpring(),
+                    itemCount: widget.queue.length,
+                    itemBuilder: (_, _) => const SizedBox.expand(),
+                  ),
                 ),
               ),
               if (widget.ringBuilder case final builder?)
@@ -339,6 +439,15 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
       // Neighbours are translated outside this stack's own bounds.
       clipBehavior: Clip.none,
       children: [
+        // Hidden by the cover that fills the hole, at rest.
+        DecoratedBox(
+          key: const ValueKey('well'),
+          decoration: const BoxDecoration(
+            color: _kWell,
+            shape: BoxShape.circle,
+          ),
+          child: SizedBox.square(dimension: artSize),
+        ),
         // Keyed by queue index (track ids may repeat in a queue) so the
         // elements survive the z-order changes during a swipe.
         for (final index in indices)
@@ -347,11 +456,25 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
             child: _positioned(
               delta: index - page,
               spacing: spacing,
-              child: _Disc(
-                track: queue[index],
-                size: artSize,
-                cacheWidth: cacheWidth,
-                isHero: widget.enableHeroes && index == widget.currentIndex,
+              // The current cover grows with the lens: it fills the hole,
+              // and a fixed one would leave a ring of bare background
+              // between it and the lit band.
+              // Every disc keeps the same wrapper, so a track change does
+              // not recreate its image.
+              child: FadeTransition(
+                opacity: index == widget.currentIndex
+                    ? kAlwaysCompleteAnimation
+                    : widget.neighbourOpacity ?? kAlwaysCompleteAnimation,
+                child: _LiftScale(
+                  lift: widget.lensLift,
+                  enabled: index == widget.currentIndex,
+                  child: _Disc(
+                    track: queue[index],
+                    size: artSize,
+                    cacheWidth: cacheWidth,
+                    isHero: widget.enableHeroes && index == widget.currentIndex,
+                  ),
+                ),
               ),
             ),
           ),
@@ -362,18 +485,78 @@ class _ArtworkCarouselState extends State<ArtworkCarousel> {
   static Widget _fade(Animation<double>? opacity, Widget child) =>
       opacity == null ? child : FadeTransition(opacity: opacity, child: child);
 
+  /// Rebuilds only while the lift moves (a press on the ring), never on
+  /// position ticks; [child] is built once.
+  static Widget _lift(ValueListenable<double>? lift, Widget child) =>
+      lift == null
+      ? child
+      : ValueListenableBuilder<double>(
+          valueListenable: lift,
+          child: child,
+          builder: (_, value, child) => Transform.scale(
+            scale: 1 + GlassLens.liftScale * value,
+            child: child,
+          ),
+        );
+
   Widget _positioned({
     required double delta,
     required double spacing,
     required Widget child,
   }) {
     final distance = delta.abs().clamp(0.0, 1.0);
-    final scale = 1 - (1 - _kNeighbourScale) * distance;
+    // The press takes the cover in the hole only: less of it the further
+    // a cover is from the centre, none of it on the neighbours.
+    final scale =
+        (1 - (1 - _kNeighbourScale) * distance) *
+        (1 - _kPressShrink * _pressed.value * (1 - distance));
     return Transform.translate(
       offset: Offset(delta * spacing, 0),
       child: Transform.scale(scale: scale, child: child),
     );
   }
+}
+
+/// The snap of a released swipe, stiffer than the default spring: the
+/// cover is in the hole within about a quarter of a second, as in the
+/// reference. The default takes over half a second, and the track only
+/// changes once the page has settled.
+class _SnapSpring extends ScrollPhysics {
+  const _SnapSpring({super.parent});
+
+  @override
+  _SnapSpring applyTo(ScrollPhysics? ancestor) =>
+      _SnapSpring(parent: buildParent(ancestor));
+
+  @override
+  SpringDescription get spring =>
+      SpringDescription.withDampingRatio(mass: 0.5, stiffness: 400, ratio: 1.1);
+}
+
+/// Scales [child] by the lens lift when [enabled]; the same structure
+/// either way.
+class _LiftScale extends StatelessWidget {
+  final ValueListenable<double>? lift;
+  final bool enabled;
+  final Widget child;
+
+  const _LiftScale({
+    required this.lift,
+    required this.enabled,
+    required this.child,
+  });
+
+  static const _still = AlwaysStoppedAnimation<double>(0);
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<double>(
+    valueListenable: lift ?? _still,
+    child: child,
+    builder: (_, value, child) => Transform.scale(
+      scale: enabled ? 1 + GlassLens.liftScale * value : 1,
+      child: child,
+    ),
+  );
 }
 
 class _Disc extends StatelessWidget {
@@ -413,6 +596,7 @@ class _Disc extends StatelessWidget {
           enabled: isHero,
           child: Hero(
             tag: NowPlayingHero.artworkTag,
+            createRectTween: NowPlayingHero.flightTween,
             flightShuttleBuilder: NowPlayingHero.artworkShuttle,
             child: image,
           ),

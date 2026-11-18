@@ -69,7 +69,7 @@ const double _kControlsBlock =
     PlayerUtilityDock.height + PlayerControls.height + 3 * AppSpacing.md;
 
 class _FullPlayerPageState extends State<FullPlayerPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // ── Drag-to-dismiss state ─────────────────────────────────────────────────
   late final AnimationController _snapBack;
   late Animation<double> _snapAnim;
@@ -175,7 +175,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
           duration: const Duration(milliseconds: 280),
         )..addListener(() {
           if (!mounted) return;
-          setState(() => _dragOffset = _snapAnim.value);
+          setState(() => _setDragOffset(_snapAnim.value));
         });
 
     final playerState = context.read<PlayerBloc>().state;
@@ -189,10 +189,29 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     }
   }
 
-  /// Chrome (top bar, title, controls) fades on the last half of the route
-  /// animation: on dismiss it is gone before the ring finishes its morph
-  /// into the mini player, as in the reference.
+  /// Chrome (top bar, title, controls) fades in on the last half of the
+  /// route animation. On dismiss it goes at once (a third of it after a
+  /// fifth of the time, all of it by two fifths), before the surface
+  /// leaves the ring, as in the reference.
   CurvedAnimation? _chrome;
+
+  /// The page's background and its tab bar. They cover the page below
+  /// within the first 45 % of the opening, and on dismiss stay opaque for
+  /// the first 55 %, while the surface flies: the page below shows only
+  /// once the surface has nearly landed. A fade of the whole page showed
+  /// two screens on top of each other all the way.
+  CurvedAnimation? _backdrop;
+
+  /// How closed the empty mini player slot of the page's own tab bar is.
+  /// On dismiss the bar opens it while the surface comes down, and is as
+  /// tall as the shell's bar by the time the background starts to go: the
+  /// surface lands inside a bar already open for it, not above a bar of
+  /// tabs only that the shell's then replaces. On open the slot closes
+  /// once the background covers the shell's bar, the surface gone.
+  CurvedAnimation? _slotClosed;
+
+  /// [_slotClosed] the other way round, for the bar: 1 is open.
+  Animation<double>? _slot;
 
   /// Lens and progress arc: they sit exactly where the surface shuttle
   /// lands, so they appear only once it has arrived (and go first on
@@ -212,11 +231,26 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     if (routeAnimation != null && _chrome?.parent != routeAnimation) {
       _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
       _chrome?.dispose();
+      _backdrop?.dispose();
+      _slotClosed?.dispose();
       _stage?.dispose();
       _cover?.dispose();
+      // Right after the background's own interval, and one curve both
+      // ways: nothing jumps when a dismiss is turned back into an open.
+      final slotClosed = _slotClosed = CurvedAnimation(
+        parent: routeAnimation,
+        curve: const Interval(0.45, 0.8, curve: Curves.easeInOutCubic),
+      );
+      _slot = ReverseAnimation(slotClosed);
       _chrome = CurvedAnimation(
         parent: routeAnimation,
         curve: const Interval(0.5, 1, curve: Curves.easeOut),
+        reverseCurve: const Interval(0.6, 1, curve: Curves.easeIn),
+      );
+      _chromeOrDrag = AnimationMin<double>(_chrome!, _dragFade);
+      _backdrop = CurvedAnimation(
+        parent: routeAnimation,
+        curve: const Interval(0, 0.45, curve: Curves.easeOut),
       );
       _stage = CurvedAnimation(
         parent: routeAnimation,
@@ -257,7 +291,29 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     if (mounted) setState(() => _heroes = true);
   }
 
-  Widget _fadeChrome(Widget child) => _fade(_chrome, child);
+  /// Opacity of the chrome and the neighbour covers while the content is
+  /// dragged down; set by hand, never run.
+  late final AnimationController _dragFade = AnimationController(
+    vsync: this,
+    value: 1,
+  );
+
+  /// [_chrome] and [_dragFade] together: the drag reuses the fade the
+  /// chrome already has instead of adding a layer of its own.
+  Animation<double>? _chromeOrDrag;
+
+  void _setDragOffset(double offset) {
+    _dragOffset = offset;
+    final screenH = MediaQuery.sizeOf(context).height;
+    _dragFade.value =
+        1.0 - (offset / screenH).clamp(0.0, _kMaxOpacityReduction);
+  }
+
+  /// [glass]: the child blurs what is behind it. It keeps its opacity
+  /// while dragged: under an opacity layer a blur samples that empty
+  /// layer, not the background, and would show no frost at all.
+  Widget _fadeChrome(Widget child, {bool glass = false}) =>
+      _fade(glass ? _chrome : _chromeOrDrag, child);
 
   /// The carousel, or a gap while the queue is not known yet.
   Widget _stageOf((List<Track>, int)? stage, Track? track) {
@@ -269,11 +325,14 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         onFocusChanged: _onSwipeFocusChanged,
         enableHeroes: _heroes,
         lensOpacity: _stage,
+        lensLift: _ringLift,
+        neighbourOpacity: _dragFade,
         ringBuilder: (ring, hole) => _fade(
           _stage,
           ProgressRing(
             diameter: ring,
             holeDiameter: hole,
+            lift: _ringLift,
             progress: context.read<PlayerBloc>().progress,
             onSeek: (position) =>
                 context.read<PlayerBloc>().add(SeekRequested(position)),
@@ -287,15 +346,23 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   static Widget _fade(Animation<double>? opacity, Widget child) =>
       opacity == null ? child : FadeTransition(opacity: opacity, child: child);
 
+  /// How far the lens is lifted under a finger on the ring (the ring
+  /// writes it, the stage scales the lens with it).
+  final _ringLift = ValueNotifier<double>(0);
+
   @override
   void dispose() {
     _publishCover(null, replacing: _cover);
     _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
     _chrome?.dispose();
+    _backdrop?.dispose();
+    _slotClosed?.dispose();
     _stage?.dispose();
     _cover?.dispose();
     _snapBack.dispose();
+    _dragFade.dispose();
     _swipeFocus.dispose();
+    _ringLift.dispose();
     super.dispose();
   }
 
@@ -304,7 +371,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   void _onDragUpdate(DragUpdateDetails d) {
     // Only track downward movement.
     final next = _dragOffset + d.delta.dy;
-    if (next >= 0) setState(() => _dragOffset = next);
+    if (next >= 0) setState(() => _setDragOffset(next));
   }
 
   void _onDragEnd(DragEndDetails d) {
@@ -365,11 +432,6 @@ class _FullPlayerPageState extends State<FullPlayerPage>
     final safeBottom = MediaQuery.of(context).padding.bottom;
     // Bottom inset + nav bar (tabs only) + its 0.5 px glass border.
     final navBarReserve = safeBottom + 12 + AppSpacing.navBarHeight + 1;
-    final screenH = MediaQuery.of(context).size.height;
-
-    // Fade the page out slightly as the user drags down.
-    final opacity =
-        1.0 - (_dragOffset / screenH).clamp(0.0, _kMaxOpacityReduction);
 
     // The page uses both allowed blurs: what opens from it is opaque.
     return BlurBudgetSpent(
@@ -383,167 +445,188 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         child: GestureDetector(
           onVerticalDragUpdate: _onDragUpdate,
           onVerticalDragEnd: _onDragEnd,
-          child: Transform.translate(
-            offset: Offset(0, _dragOffset),
-            child: Opacity(
-              opacity: opacity,
-              child: BlocListener<PlayerBloc, PlayerState>(
-                listenWhen: (prev, curr) =>
-                    curr is PlayerActive &&
-                    (prev is! PlayerActive ||
-                        prev.currentTrack != curr.currentTrack),
-                listener: (context, state) {
-                  if (state is PlayerActive) {
-                    context.read<LikesCubit>().syncTrack(state.currentTrack);
-                  }
-                },
-                child: Scaffold(
-                  //backgroundColor: Colors.black,
-                  // Laid out for the font size up to the layout cap.
-                  body: MediaQuery.withClampedTextScaling(
-                    maxScaleFactor: AppLayout.maxTextScale,
-                    child: BlocBuilder<PlayerBloc, PlayerState>(
-                      // Position ticks must not rebuild the page: only the
-                      // track, the queue or the state kind matter here.
-                      buildWhen: (prev, curr) =>
-                          _structuralKey(prev) != _structuralKey(curr),
-                      builder: (context, state) {
-                        final track = _resolveTrack(state);
-                        final stage = _resolveStage(state);
+          child: BlocListener<PlayerBloc, PlayerState>(
+            listenWhen: (prev, curr) =>
+                curr is PlayerActive &&
+                (prev is! PlayerActive ||
+                    prev.currentTrack != curr.currentTrack),
+            listener: (context, state) {
+              if (state is PlayerActive) {
+                context.read<LikesCubit>().syncTrack(state.currentTrack);
+              }
+            },
+            child: Scaffold(
+              // The background below fades on its own (_backdrop).
+              backgroundColor: Colors.transparent,
+              // Laid out for the font size up to the layout cap.
+              body: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: AppLayout.maxTextScale,
+                child: BlocBuilder<PlayerBloc, PlayerState>(
+                  // Position ticks must not rebuild the page: only the
+                  // track, the queue or the state kind matter here.
+                  buildWhen: (prev, curr) =>
+                      _structuralKey(prev) != _structuralKey(curr),
+                  builder: (context, state) {
+                    final track = _resolveTrack(state);
+                    final stage = _resolveStage(state);
 
-                        return Stack(
-                          children: [
-                            // Dynamic background
-                            BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-                              builder: (_, palette) => DynamicBackground(
-                                colorA: palette.backgroundColorA,
-                                colorB: palette.backgroundColorB,
-                                tone: DynamicBackgroundTone.immersive,
-                                child: const SizedBox.expand(),
-                              ),
-                            ),
-
-                            // Scrollable content
-                            SafeArea(
-                              bottom: false,
-                              child: Column(
-                                children: [
-                                  // Top bar: dismiss + options
-                                  _fadeChrome(_TopBar()),
-
-                                  const SizedBox(height: AppSpacing.lg),
-
-                                  // Track info + like
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.xl2,
-                                    ),
-                                    child: _fadeChrome(
-                                      // Only the title rebuilds as a swipe
-                                      // crosses covers.
-                                      ValueListenableBuilder<int?>(
-                                        valueListenable: _swipeFocus,
-                                        builder: (_, focus, _) {
-                                          final focused =
-                                              focus != null &&
-                                              focus < _stageQueue.length;
-                                          return _TrackInfo(
-                                            track: focused
-                                                ? _stageQueue[focus]
-                                                : track,
-                                            index: focused ? focus : stage?.$2,
-                                            queueLength: _stageQueue.length,
-                                          );
-                                        },
-                                      ),
-                                    ),
+                    return Stack(
+                      children: [
+                        // Dynamic background: it stays put while the
+                        // content is dragged down.
+                        _fade(
+                          _backdrop,
+                          ColoredBox(
+                            color: context.colors.bgPrimary,
+                            child:
+                                BlocBuilder<
+                                  TrackPaletteCubit,
+                                  TrackPaletteState
+                                >(
+                                  builder: (_, palette) => DynamicBackground(
+                                    colorA: palette.backgroundColorA,
+                                    colorB: palette.backgroundColorB,
+                                    tone: DynamicBackgroundTone.immersive,
+                                    child: const SizedBox.expand(),
                                   ),
-
-                                  const SizedBox(height: AppSpacing.lg),
-
-                                  // The stage takes what the controls leave, up
-                                  // to its full size: on a short screen the ring
-                                  // shrinks instead of pushing them off screen.
-                                  Expanded(
-                                    child: LayoutBuilder(
-                                      builder: (context, box) => Column(
-                                        children: [
-                                          ConstrainedBox(
-                                            constraints: BoxConstraints(
-                                              maxHeight: math.max(
-                                                0,
-                                                box.maxHeight - _kControlsBlock,
-                                              ),
-                                            ),
-                                            child: _stageOf(stage, track),
-                                          ),
-                                          // Secondary controls (Glass Utility
-                                          // Dock) and primary playback controls
-                                          Expanded(
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: [
-                                                _fadeChrome(
-                                                  const PlayerUtilityDock(),
-                                                ),
-                                                _fadeChrome(
-                                                  const PlayerControls(),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-
-                                  // Room for the nav bar overlaid below.
-                                  SizedBox(height: navBarReserve),
-                                ],
-                              ),
-                            ),
-
-                            // Nav bar at bottom, mini player hidden
-                            Positioned(
-                              bottom: 0,
-                              left: 0,
-                              right: 0,
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                  12,
-                                  0,
-                                  12,
-                                  safeBottom + 12,
                                 ),
-                                child: AppBottomNavBar(
-                                  currentTab: AppTab.player,
-                                  showMiniPlayer: false,
-                                  onTabChanged: (tab) {
-                                    switch (tab) {
-                                      case AppTab.home:
-                                        _leaveFullPlayerTo(context, '/home');
-                                      case AppTab.library:
-                                        _leaveFullPlayerTo(context, '/library');
-                                      case AppTab.search:
-                                        _leaveFullPlayerTo(context, '/search');
-                                      case AppTab.playlists:
-                                        _leaveFullPlayerTo(
-                                          context,
-                                          '/playlists',
+                          ),
+                        ),
+
+                        // Content: the only part a drag moves, as in
+                        // the reference.
+                        Transform.translate(
+                          offset: Offset(0, _dragOffset),
+                          child: SafeArea(
+                            bottom: false,
+                            child: Column(
+                              children: [
+                                // Top bar: dismiss + options
+                                _fadeChrome(_TopBar()),
+
+                                const SizedBox(height: AppSpacing.lg),
+
+                                // Track info + like
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.xl2,
+                                  ),
+                                  child: _fadeChrome(
+                                    // Only the title rebuilds as a swipe
+                                    // crosses covers.
+                                    ValueListenableBuilder<int?>(
+                                      valueListenable: _swipeFocus,
+                                      builder: (_, focus, _) {
+                                        final focused =
+                                            focus != null &&
+                                            focus < _stageQueue.length;
+                                        return _TrackInfo(
+                                          track: focused
+                                              ? _stageQueue[focus]
+                                              : track,
+                                          index: focused ? focus : stage?.$2,
+                                          queueLength: _stageQueue.length,
                                         );
-                                      case AppTab.player:
-                                        break;
-                                    }
-                                  },
+                                      },
+                                    ),
+                                  ),
                                 ),
+
+                                const SizedBox(height: AppSpacing.lg),
+
+                                // The stage takes what the controls leave, up
+                                // to its full size: on a short screen the ring
+                                // shrinks instead of pushing them off screen.
+                                Expanded(
+                                  child: LayoutBuilder(
+                                    builder: (context, box) => Column(
+                                      children: [
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxHeight: math.max(
+                                              0,
+                                              box.maxHeight - _kControlsBlock,
+                                            ),
+                                          ),
+                                          child: _stageOf(stage, track),
+                                        ),
+                                        // Secondary controls (Glass Utility
+                                        // Dock) and primary playback controls
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              _fadeChrome(
+                                                const PlayerUtilityDock(),
+                                                glass: true,
+                                              ),
+                                              _fadeChrome(
+                                                const PlayerControls(),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                // Room for the nav bar overlaid below.
+                                SizedBox(height: navBarReserve),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // Nav bar at bottom, mini player hidden. It goes
+                        // with the background, uncovering the shell's
+                        // own bar, which holds the mini player row the
+                        // surface lands in; before that it opens an
+                        // empty slot of that row's height (_slotClosed).
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: _fade(
+                            _backdrop,
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                12,
+                                0,
+                                12,
+                                safeBottom + 12,
+                              ),
+                              child: AppBottomNavBar(
+                                currentTab: AppTab.player,
+                                showMiniPlayer: false,
+                                // Without the morph (opened at launch),
+                                // no surface leaves the bar: it stays
+                                // shut until the page can be dismissed.
+                                miniSlot: _heroes
+                                    ? _slot
+                                    : kAlwaysDismissedAnimation,
+                                onTabChanged: (tab) {
+                                  switch (tab) {
+                                    case AppTab.home:
+                                      _leaveFullPlayerTo(context, '/home');
+                                    case AppTab.library:
+                                      _leaveFullPlayerTo(context, '/library');
+                                    case AppTab.search:
+                                      _leaveFullPlayerTo(context, '/search');
+                                    case AppTab.playlists:
+                                      _leaveFullPlayerTo(context, '/playlists');
+                                    case AppTab.player:
+                                      break;
+                                  }
+                                },
                               ),
                             ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
