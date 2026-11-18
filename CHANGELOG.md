@@ -14,6 +14,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - An artist's Play next and Add to queue say so in a message, as an album's do.
 - Artist pages: for an artist with more than twenty songs, See all opens them on a page of their own, sorted by plays, title, album or date added, instead of unfolding a long list above their albums.
 - A like answers the same way everywhere: the heart that pops over the mini player now pops over Now Playing's heart, with a light vibration, and over a song's row when you like it from its menu.
+- Album pages: pulling the page down draws the record a little further out of its sleeve, and it slides back on release.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
 
 ### Changed

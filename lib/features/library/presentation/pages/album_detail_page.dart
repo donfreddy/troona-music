@@ -1,6 +1,10 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
+import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -107,22 +111,24 @@ class AlbumDetailPage extends StatelessWidget {
                     getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
                 child: Builder(
                   builder: (contentCtx) {
-                    return CustomScrollView(
-                      physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      slivers: [
-                        _AlbumHeader(
-                          album: album,
-                          tracks: data?.albumTracks ?? const [],
+                    return _AlbumPull(
+                      child: CustomScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
                         ),
-                        if (data != null) ..._content(contentCtx, data),
-                        SliverPadding(
-                          padding: EdgeInsets.only(
-                            bottom: contentCtx.bottomBarInset(tabs: false),
+                        slivers: [
+                          _AlbumHeader(
+                            album: album,
+                            tracks: data?.albumTracks ?? const [],
                           ),
-                        ),
-                      ],
+                          if (data != null) ..._content(contentCtx, data),
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: contentCtx.bottomBarInset(tabs: false),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -617,6 +623,23 @@ class _AlbumVinylState extends State<_AlbumVinyl>
     }
 
     final l10n = context.l10n;
+    // Pulling the page down draws it further out, with the finger: past
+    // its box, but no one taps it mid-pull.
+    final pull = _AlbumPull.of(context);
+    final record = _slid(ours, playing, l10n);
+    if (pull == null) return record;
+    return ValueListenableBuilder<double>(
+      valueListenable: pull,
+      child: record,
+      builder: (_, pulled, record) => Transform.translate(
+        offset: Offset(albumRecordPullOut(pulled), 0),
+        child: record,
+      ),
+    );
+  }
+
+  /// The record out of its sleeve, further while its album plays.
+  Widget _slid(bool ours, bool playing, AppLocalizations l10n) {
     // The slide outermost: a box around it would keep the record's place
     // before it slid, and its edge out there could not be tapped.
     return AnimatedSlide(
@@ -667,6 +690,66 @@ class _AlbumVinylState extends State<_AlbumVinyl>
 }
 
 /// A black record with faint grooves, the album's cover as its label.
+/// How far the album's record comes out at most when the page is pulled
+/// down.
+const double albumRecordPullMax = 28;
+
+/// How far a pull of [pulled] logical pixels draws the album's record out:
+/// about a third of the pull at first, easing towards [albumRecordPullMax],
+/// like a record held back by its sleeve.
+@visibleForTesting
+double albumRecordPullOut(double pulled) =>
+    pulled <= 0 ? 0 : albumRecordPullMax * pulled / (pulled + 80);
+
+/// How far the page is pulled down past its top, for the record: the main
+/// scroll view's overscroll, the header's own scroll left out.
+class _AlbumPull extends StatefulWidget {
+  final Widget child;
+
+  const _AlbumPull({required this.child});
+
+  /// The pull above [context], if any.
+  static ValueListenable<double>? of(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<_AlbumPullScope>()?.pull;
+
+  @override
+  State<_AlbumPull> createState() => _AlbumPullState();
+}
+
+class _AlbumPullState extends State<_AlbumPull> {
+  final _pull = ValueNotifier<double>(0);
+
+  @override
+  void dispose() {
+    _pull.dispose();
+    super.dispose();
+  }
+
+  bool _onScroll(ScrollUpdateNotification notification) {
+    if (notification.depth == 0) {
+      final metrics = notification.metrics;
+      _pull.value = math.max(0, metrics.minScrollExtent - metrics.pixels);
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      NotificationListener<ScrollUpdateNotification>(
+        onNotification: _onScroll,
+        child: _AlbumPullScope(pull: _pull, child: widget.child),
+      );
+}
+
+class _AlbumPullScope extends InheritedWidget {
+  final ValueListenable<double> pull;
+
+  const _AlbumPullScope({required this.pull, required super.child});
+
+  @override
+  bool updateShouldNotify(_AlbumPullScope old) => pull != old.pull;
+}
+
 class _Record extends StatelessWidget {
   final String? artworkPath;
 

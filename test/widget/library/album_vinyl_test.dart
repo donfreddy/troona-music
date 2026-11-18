@@ -261,4 +261,36 @@ void main() {
       isA<RepaintBoundary>(),
     );
   });
+
+  testWidgets('pulling the page down draws the record further out, and it '
+      'goes back on release', (tester) async {
+    await open(tester, playing: _tracks);
+    final rest = tester.getRect(record()).left;
+    final pull = await tester.startGesture(const Offset(200, 500));
+    for (var i = 0; i < 6; i++) {
+      await pull.moveBy(const Offset(0, 30));
+      await tester.pump();
+    }
+    final pulled = tester.getRect(record()).left;
+    expect(pulled, greaterThan(rest + 10));
+    expect(pulled, lessThanOrEqualTo(rest + 28));
+    await pull.up();
+    // It spins on: no settling, frames of the page springing back.
+    for (var i = 0; i < 15; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(tester.getRect(record()).left, closeTo(rest, 0.5));
+  });
+
+  test('the pull eases towards its limit', () {
+    final out = [
+      for (final p in const [0.0, 40.0, 80.0, 400.0, 4000.0])
+        albumRecordPullOut(p),
+    ];
+    expect(out.first, 0);
+    for (var i = 1; i < out.length; i++) {
+      expect(out[i], greaterThan(out[i - 1]));
+    }
+    expect(out.last, lessThan(28));
+  });
 }
