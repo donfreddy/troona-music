@@ -74,25 +74,31 @@ class ArtistDetailPage extends StatelessWidget {
 
   const ArtistDetailPage({super.key, required this.id});
 
-  /// The artist as the library groups them, while the page loads them.
-  Artist? _fromLibrary(BuildContext context) {
+  /// The artist as the library groups them, and their songs, while the
+  /// page loads them: the header's Shuffle, menu and listening time are
+  /// whole from the first frame, and do not change when the page is in.
+  ({Artist artist, List<Track> tracks})? _fromLibrary(BuildContext context) {
     final loaded = switch (context.read<LibraryBloc>().state) {
       LibraryLoaded() && final state => state,
       LibraryScanning(:final cached) => cached,
       LibraryError(:final lastLoaded) => lastLoaded,
       LibraryInitial() => null,
     };
-    if (loaded == null) return null;
+    final artistId = int.tryParse(id);
+    if (loaded == null || artistId == null) return null;
     // An artist only ever credited as a guest is left out of the list,
     // not out of the library (Also in your library shows them).
-    return loaded.allArtists.where((a) => a.id == id).firstOrNull ??
-        switch (int.tryParse(id)) {
-          final artistId? => LibraryGrouping.artistOf(
-            artistId,
-            loaded.allTracks,
-          ),
-          null => null,
-        };
+    final artist =
+        loaded.allArtists.where((a) => a.id == id).firstOrNull ??
+        LibraryGrouping.artistOf(artistId, loaded.allTracks);
+    if (artist == null) return null;
+    return (
+      artist: artist,
+      tracks: [
+        for (final t in loaded.allTracks)
+          if (t.credits.any((c) => c.id == artistId)) t,
+      ],
+    );
   }
 
   static void _loadMetadata(ArtistMetadataCubit cubit, ArtistDetail data) =>
@@ -114,7 +120,9 @@ class ArtistDetailPage extends StatelessWidget {
             ArtistDetailLoaded(:final data) => data,
             _ => null,
           };
-          final artist = data?.artist ?? _fromLibrary(context);
+          final library = data == null ? _fromLibrary(context) : null;
+          final artist = data?.artist ?? library?.artist;
+          final headerTracks = data?.topTracks ?? library?.tracks ?? const [];
           return _ArtistBackground(
             artist: artist,
             child: switch (state) {
@@ -178,7 +186,7 @@ class ArtistDetailPage extends StatelessWidget {
                         slivers: [
                           _ArtistHeaderSizer(
                             artist: artist,
-                            tracks: data?.topTracks ?? const [],
+                            tracks: headerTracks,
                           ),
                           if (data == null)
                             const SliverToBoxAdapter(

@@ -576,6 +576,15 @@ void main() {
       }
       expect(find.byKey(ArtistPhotoHero.shuttleKey), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // Still loading, the header already has their songs: Shuffle plays
+      // them, and nothing in it changes when the page is in.
+      expect(
+        tester
+            .widget<ShuffleRoundButton>(find.byType(ShuffleRoundButton))
+            .tracks
+            .map((t) => t.id),
+        ['a'],
+      );
     });
   }
 
