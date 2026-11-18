@@ -494,6 +494,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get libraryScanAgain => 'Relancer la recherche';
 
   @override
+  String get libraryIndex => 'Index alphabétique';
+
+  @override
+  String libraryIndexJump(String letter) {
+    return 'Aller à $letter';
+  }
+
+  @override
   String get libraryNoSongs => 'Aucun morceau pour l\'instant';
 
   @override

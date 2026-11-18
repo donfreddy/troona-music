@@ -88,6 +88,15 @@ class _TrackListTileState extends State<TrackListTile> {
                               ? FontWeight.w700
                               : FontWeight.w600,
                           letterSpacing: -0.2,
+                          height: 1.2,
+                        ),
+                        // Lines of a set height, whatever fonts draw them
+                        // (a title mixing Latin and CJK runs taller): the
+                        // Library's list gives every row one height.
+                        strutStyle: const StrutStyle(
+                          fontSize: 15,
+                          height: 1.2,
+                          forceStrutHeight: true,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -99,6 +108,12 @@ class _TrackListTileState extends State<TrackListTile> {
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: .55),
                           fontSize: 13,
+                          height: 1.2,
+                        ),
+                        strutStyle: const StrutStyle(
+                          fontSize: 13,
+                          height: 1.2,
+                          forceStrutHeight: true,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

@@ -15,6 +15,46 @@ class ArtistCard extends StatefulWidget {
 
   const ArtistCard({super.key, required this.artist, this.size});
 
+  // Lines of a set height, whatever font draws the name (CJK, Thai and
+  // Arabic fonts run taller): the grid's cells are measured from them.
+  static const _nameStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+    height: 1.2,
+  );
+  static const _countStyle = TextStyle(fontSize: 11, height: 1.2);
+
+  /// Height of the card below its circle at the phone's font size, song
+  /// count included: a grid cell is the circle and this.
+  /// Each line exactly its font size times its height, whatever fonts
+  /// draw it: a name mixing scripts (Latin and CJK) would run taller.
+  @visibleForTesting
+  static StrutStyle strutOf(TextStyle style) => StrutStyle(
+    fontSize: style.fontSize,
+    height: style.height,
+    forceStrutHeight: true,
+  );
+
+  static double textHeight(BuildContext context) {
+    final base = DefaultTextStyle.of(context).style;
+    final scaler = MediaQuery.textScalerOf(context);
+    double line(TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: 'Ag', style: base.merge(style)),
+        strutStyle: strutOf(style),
+        textScaler: scaler,
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      final height = painter.height;
+      painter.dispose();
+      return height;
+    }
+
+    return 6 + line(_nameStyle) + line(_countStyle);
+  }
+
   @override
   State<ArtistCard> createState() => _ArtistCardState();
 }
@@ -89,12 +129,17 @@ class _ArtistCardState extends State<ArtistCard> {
                 : Container(
                     color: colors.glassFill,
                     alignment: Alignment.center,
-                    child: Text(
-                      _getInitials(widget.artist.name),
-                      style: TextStyle(
-                        color: colors.accent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: (widget.size ?? 95) * 0.32,
+                    // Sized from the circle, not the phone's font size: a
+                    // drawing, which the name under it already says.
+                    child: LayoutBuilder(
+                      builder: (context, box) => Text(
+                        _getInitials(widget.artist.name),
+                        textScaler: TextScaler.noScaling,
+                        style: TextStyle(
+                          color: colors.accent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: box.maxWidth * 0.32,
+                        ),
                       ),
                     ),
                   ),
@@ -103,11 +148,8 @@ class _ArtistCardState extends State<ArtistCard> {
         const SizedBox(height: 6),
         Text(
           context.artistName(widget.artist.name),
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+          style: ArtistCard._nameStyle,
+          strutStyle: ArtistCard.strutOf(ArtistCard._nameStyle),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
@@ -115,7 +157,10 @@ class _ArtistCardState extends State<ArtistCard> {
         if (widget.artist.trackCount > 0)
           Text(
             context.l10n.songCount(widget.artist.trackCount),
-            style: TextStyle(fontSize: 11, color: colors.labelSecondary),
+            strutStyle: ArtistCard.strutOf(ArtistCard._countStyle),
+            style: ArtistCard._countStyle.copyWith(
+              color: colors.labelSecondary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,

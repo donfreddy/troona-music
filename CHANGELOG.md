@@ -4,11 +4,17 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Library: an index of letters down the right edge of Songs, Albums and Artists when they are sorted by name, title, artist or album. Touch a letter, or slide along them, to go to its first item; the letter shows large in the middle, with a light tick for each new one. Short lists and songs sorted by date added have none.
+
 ### Changed
 
 - Seeking on the Now Playing ring: a finger on the glass turns the progress into the whole band, lit like light through frosted glass and brightest under the finger, and the lens rises a little. On release the light goes, then the band narrows back to the line. A plain tap shows it without seeking. Nothing grows when the phone asks for less motion.
 - Closing Now Playing: the lens alone travels into the mini player while the rest fades around it. The title and controls go at once, the covers beside the current one go with the ring, and the page below shows only once the lens has nearly landed, then settles into place. The cover stays centred in the lens all the way.
 - Dragging Now Playing down moves its content only: the background and the tabs stay put.
+- Library: artists show three across, and the rows of albums and artists are as tall as their cards, so no empty band sits between them and more fit on a screen, at any font size.
+- Library: only the items shown when a list opens play their entrance. Songs and cards that scrolling brings in show at once, instead of fading in after a pause.
 - Artist pages have one layout, with or without a photo: the name at the bottom left, Shuffle on its right. Without a photo, their cover's colours glow behind it, and the name and Shuffle sit at the same place on every artist's page. The page no longer switches layout while it loads, and a photo that arrives later fades in without moving anything.
 
 ### Fixed

@@ -878,6 +878,18 @@ abstract class AppLocalizations {
   /// **'Scan again'**
   String get libraryScanAgain;
 
+  /// No description provided for @libraryIndex.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabetical index'**
+  String get libraryIndex;
+
+  /// No description provided for @libraryIndexJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to {letter}'**
+  String libraryIndexJump(String letter);
+
   /// No description provided for @libraryNoSongs.
   ///
   /// In en, this message translates to:

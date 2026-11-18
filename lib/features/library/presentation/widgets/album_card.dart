@@ -47,6 +47,44 @@ class AlbumCard extends StatelessWidget {
     return album.trackCount > 0 ? l10n.albumByArtist(artist, kind) : artist;
   }
 
+  static const _titleStyle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+    height: 1.2,
+  );
+  static const _subtitleStyle = TextStyle(fontSize: 12, height: 1.2);
+
+  /// Height of the card below its cover at the phone's font size: a grid
+  /// cell is the cover and this, with no room left empty under it.
+  /// Each line exactly its font size times its height, whatever fonts
+  /// draw it: a name mixing scripts (Latin and CJK) would run taller.
+  @visibleForTesting
+  static StrutStyle strutOf(TextStyle style) => StrutStyle(
+    fontSize: style.fontSize,
+    height: style.height,
+    forceStrutHeight: true,
+  );
+
+  static double textHeight(BuildContext context) {
+    final base = DefaultTextStyle.of(context).style;
+    final scaler = MediaQuery.textScalerOf(context);
+    double line(TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: 'Ag', style: base.merge(style)),
+        strutStyle: strutOf(style),
+        textScaler: scaler,
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      final height = painter.height;
+      painter.dispose();
+      return height;
+    }
+
+    return 6 + line(_titleStyle) + 2 + line(_subtitleStyle);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cardContent = Column(
@@ -77,22 +115,17 @@ class AlbumCard extends StatelessWidget {
             children: [
               Text(
                 album.name,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  height: 1.2,
-                ),
+                style: _titleStyle,
+                strutStyle: strutOf(_titleStyle),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Text(
                 _subtitle(context),
-                style: TextStyle(
+                strutStyle: strutOf(_subtitleStyle),
+                style: _subtitleStyle.copyWith(
                   color: context.colors.labelSecondary,
-                  fontSize: 12,
-                  height: 1.2,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

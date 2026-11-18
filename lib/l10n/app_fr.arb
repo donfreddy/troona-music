@@ -130,6 +130,8 @@
   "libraryEmptyTitle": "Pas encore de musique sur cet appareil",
   "libraryEmptyBody": "Copiez des morceaux sur votre téléphone, puis relancez la recherche.",
   "libraryScanAgain": "Relancer la recherche",
+  "libraryIndex": "Index alphabétique",
+  "libraryIndexJump": "Aller à {letter}",
   "libraryNoSongs": "Aucun morceau pour l'instant",
   "libraryNoAlbums": "Aucun album pour l'instant",
   "libraryNoArtists": "Aucun artiste pour l'instant",

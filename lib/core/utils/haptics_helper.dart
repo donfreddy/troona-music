@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 /// Haptic feedback, off when the user turns it off in Settings: never call
 /// [HapticFeedback] directly. One vocabulary across the app:
 ///
-/// - [selectionClick]: a choice among options (a segment, a sort) and a
-///   swipe that becomes armed.
+/// - [selectionClick]: a choice among options (a segment, a sort), a
+///   swipe that becomes armed, and each new letter under the finger on the
+///   Library's index.
 /// - [lightImpact]: a small step (skip, open a menu, refresh, a like by
 ///   long press on the mini player).
 /// - [mediumImpact]: playback starts or stops (Play, Shuffle, play/pause,

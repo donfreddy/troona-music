@@ -136,6 +136,10 @@ class GlassSliverHeader extends StatelessWidget {
   /// Height of the large title's area at the default font size.
   static const double largeTitleHeight = 86;
 
+  /// Height of the large title's area at the phone's font size.
+  static double largeTitleExtentOf(BuildContext context) =>
+      expandedExtentOf(context, largeTitleHeight, _LargeTitle.lineHeight);
+
   /// Height below the header over which its glass fades out, instead of
   /// stopping on a line.
   static const double softEdge = 24;

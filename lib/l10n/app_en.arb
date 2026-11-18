@@ -216,6 +216,15 @@
   "libraryEmptyTitle": "No music on this device yet",
   "libraryEmptyBody": "Copy songs to your phone, then scan again.",
   "libraryScanAgain": "Scan again",
+  "libraryIndex": "Alphabetical index",
+  "libraryIndexJump": "Go to {letter}",
+  "@libraryIndexJump": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
   "libraryNoSongs": "No songs yet",
   "libraryNoAlbums": "No albums yet",
   "libraryNoArtists": "No artists yet",
