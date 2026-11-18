@@ -15,6 +15,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 - Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
 - The name on an artist's photo stays readable over a photo with its own lettering.
+- The title of a collapsed page header stays readable over light covers scrolling under it: the glass now lets through half their brightness, which leaves dark content as it was.
 - Scrolling a page with a large header, the small title in the bar showed up from the first pixel, over the big one still there. It now comes in once the big one is nearly gone.
 - The mini player's progress moved stop and go, a step about every second. It now moves smoothly, like the one in Now Playing.
 

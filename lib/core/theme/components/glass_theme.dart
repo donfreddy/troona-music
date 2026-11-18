@@ -57,6 +57,11 @@ final class GlassConfig {
   /// not show as stains; decorative glass over artwork keeps the boost.
   final double saturation;
 
+  /// Brightness of what the glass lets through ([GlassFilter.of]): 1 for
+  /// most glass; below 1 where text sits on whatever scrolls under it with
+  /// nothing to darken it first (the page header).
+  final double exposure;
+
   const GlassConfig({
     required this.blurSigma,
     required this.fill,
@@ -66,6 +71,7 @@ final class GlassConfig {
     this.borderRadius = const BorderRadius.all(Radius.circular(20)),
     this.padding = const EdgeInsets.all(16),
     this.saturation = GlassFilter.saturation,
+    this.exposure = 1,
   });
 
   GlassConfig copyWith({
@@ -77,6 +83,7 @@ final class GlassConfig {
     BorderRadius? borderRadius,
     EdgeInsets? padding,
     double? saturation,
+    double? exposure,
   }) {
     return GlassConfig(
       blurSigma: blurSigma ?? this.blurSigma,
@@ -87,6 +94,7 @@ final class GlassConfig {
       borderRadius: borderRadius ?? this.borderRadius,
       padding: padding ?? this.padding,
       saturation: saturation ?? this.saturation,
+      exposure: exposure ?? this.exposure,
     );
   }
 }
@@ -192,6 +200,24 @@ abstract final class GlassTheme {
       (false, _) => _cardLight,
     };
   }
+
+  /// Config for the collapsed page header ([GlassSliverHeader]): the
+  /// [bar] glass, exposed at [headerExposure]. Covers scroll right under
+  /// its title, unlike the tab bar's, which the shell darkens first: a
+  /// white one under 15 % of tint left white text at 1.4:1. On the low
+  /// tier the header takes the dark tint too: the white veil, exposed or
+  /// not, stays near 3:1.
+  static GlassConfig header(BuildContext ctx, {GlassQuality? quality}) {
+    final bar = GlassTheme.bar(ctx, quality: quality);
+    if (bar.blurSigma == 0) return bar;
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    if (!isDark) return bar;
+    return bar.copyWith(fill: _barDark.fill, exposure: headerExposure);
+  }
+
+  /// Brightness of what the header's glass lets through: white text keeps
+  /// about 5:1 over a white cover under the [bar] tint.
+  static const double headerExposure = 0.5;
 
   /// Config for the persistent mini-player bar (bottom of the shell).
   ///

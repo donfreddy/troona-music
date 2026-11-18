@@ -19,7 +19,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 /// navigation row, on no glass at all. Scrolling moves [expanded] up like
 /// content, fading it out, and the row's bottom edge cuts it; the compact
 /// [title] fades in. Once collapsed, the following slivers pass under the
-/// bar, which blurs them with [GlassTheme.bar].
+/// bar, which blurs them with [GlassTheme.header].
 ///
 /// Blur cost: the filter keeps one sigma and is only switched on once the
 /// header is collapsed, when content starts to pass under it; the tint
@@ -328,7 +328,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     // hero keeps the opacity it rests at: with no compact title to take
     // over yet, a title that dimmed under the finger read as going away.
     final fade = math.min(collapse, reach);
-    final glass = GlassTheme.bar(context);
+    final glass = GlassTheme.header(context);
     final expandedTop = topPadding + navHeight;
     final background = header.background;
     final expanded = header.expanded;
@@ -660,6 +660,7 @@ class _GlassLayer extends StatelessWidget {
                       filter: GlassFilter.of(
                         glass.blurSigma,
                         saturation: glass.saturation,
+                        exposure: glass.exposure,
                       ),
                       child: bar,
                     ),

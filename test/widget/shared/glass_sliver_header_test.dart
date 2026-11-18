@@ -137,11 +137,13 @@ void main() {
   testWidgets('the blur comes on, at one sigma, once content passes under '
       'the collapsed bar, which takes the compact title', (tester) async {
     final controller = await pump(tester, largeTitle());
+    final glass = GlassTheme.header(tester.element(find.byType(Scaffold)));
+    // Exposed: a light cover under the title cannot wash it out.
+    expect(glass.exposure, lessThan(1));
     final expected = GlassFilter.of(
-      GlassTheme.bar(tester.element(find.byType(Scaffold))).blurSigma,
-      saturation: GlassTheme.bar(
-        tester.element(find.byType(Scaffold)),
-      ).saturation,
+      glass.blurSigma,
+      saturation: glass.saturation,
+      exposure: glass.exposure,
     );
 
     // Collapsing: only the page background is behind the header.

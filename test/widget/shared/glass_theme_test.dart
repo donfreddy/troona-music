@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 
 void main() {
@@ -42,4 +45,67 @@ void main() {
       expect(configs[name]!.saturation, 1, reason: name);
     }
   });
+
+  /// Relative luminance of an sRGB channel value in 0..1.
+  double linear(double c) =>
+      c <= 0.04045 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
+
+  /// Contrast of white text over [glass] with a white cover under it: the
+  /// cover through the glass's colour matrix, then its tint over it.
+  double whiteOnWhiteCover(GlassConfig glass) {
+    final through = _channel(
+      GlassFilter.materialMatrix(glass.saturation, glass.exposure),
+    );
+    final a = glass.fill.a;
+    double over(double tint) => tint * a + through * (1 - a);
+    final l =
+        0.2126 * linear(over(glass.fill.r)) +
+        0.7152 * linear(over(glass.fill.g)) +
+        0.0722 * linear(over(glass.fill.b));
+    return 1.05 / (l + 0.05);
+  }
+
+  testWidgets('the header keeps white text readable over a white cover, on '
+      'every tier that blurs; the tab bar lets colours through', (
+    tester,
+  ) async {
+    final configs = <String, GlassConfig>{};
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Builder(
+          builder: (context) {
+            for (final q in GlassQuality.values) {
+              configs['header ${q.name}'] = GlassTheme.header(
+                context,
+                quality: q,
+              );
+              configs['bar ${q.name}'] = GlassTheme.bar(context, quality: q);
+            }
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    for (final q in [GlassQuality.high, GlassQuality.low]) {
+      final header = configs['header ${q.name}']!;
+      expect(header.exposure, GlassTheme.headerExposure, reason: q.name);
+      expect(
+        whiteOnWhiteCover(header),
+        greaterThanOrEqualTo(4.5),
+        reason: 'header ${q.name}',
+      );
+      // The shell darkens content before it reaches the tab bar.
+      expect(configs['bar ${q.name}']!.exposure, 1, reason: q.name);
+    }
+    // Without blur, the bar is opaque: nothing to expose.
+    expect(configs['header off']!.blurSigma, 0);
+    // Today's glass, for the record: white text washed out.
+    expect(whiteOnWhiteCover(configs['bar high']!), lessThan(2));
+  });
 }
+
+/// White (1.0) through the red row of [matrix], in 0..1.
+double _channel(List<double> matrix) =>
+    (matrix[0] + matrix[1] + matrix[2]) + matrix[4] / 255;
