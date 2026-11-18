@@ -674,6 +674,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Songs you add to your phone show here, newest first.';
 
   @override
+  String get recentAlbumsTitle => 'Recent albums';
+
+  @override
+  String get recentAlbumsEmptyBody =>
+      'Albums you add to your phone show here, newest first.';
+
+  @override
   String get searchBadgeArtist => 'Artist';
 
   @override

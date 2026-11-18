@@ -16,6 +16,7 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_songs_page.dart';
+import 'package:troona/features/library/presentation/pages/recent_albums_page.dart';
 import 'package:troona/features/library/presentation/pages/recently_added_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
@@ -101,6 +102,14 @@ GoRoute _buildArtistSongsRoute() => GoRoute(
 GoRoute _buildRecentlyAddedRoute() => GoRoute(
   path: 'recent',
   builder: (_, _) => _overTab(const RecentlyAddedPage()),
+);
+
+/// The albums added last (`/home/recent/albums`), opened from Home's
+/// Recently added row. A sibling of `recent`, not nested, or the pushed
+/// page would bring the songs' page under it.
+GoRoute _buildRecentAlbumsRoute() => GoRoute(
+  path: 'recent/albums',
+  builder: (_, _) => _overTab(const RecentAlbumsPage()),
 );
 
 /// go_router's indexed stack of tabs, with heroes off in the tabs not shown.
@@ -211,6 +220,7 @@ final appRouter = GoRouter(
                   ],
                 ),
                 _buildRecentlyAddedRoute(),
+                _buildRecentAlbumsRoute(),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
                 _buildArtistSongsRoute(),
@@ -406,6 +416,9 @@ extension NavigationContextExt on BuildContext {
   /// the two that declare the route).
   void pushRecentlyAdded() =>
       push('${tabOf(GoRouterState.of(this).uri.path)}/recent');
+
+  /// Pushes the albums added last, in Home, the only tab that opens them.
+  void pushRecentAlbums() => push('${AppRoute.home}/recent/albums');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

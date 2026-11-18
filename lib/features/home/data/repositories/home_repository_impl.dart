@@ -11,6 +11,7 @@ import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
+import 'package:troona/features/library/domain/services/recently_added.dart';
 
 final class HomeRepositoryImpl implements HomeRepository {
   final IsarLibraryDataSource _db;
@@ -48,13 +49,16 @@ final class HomeRepositoryImpl implements HomeRepository {
 
       final recentTracks = results[0] as List<Track>;
 
-      // Albums newest first, grouped the way the library groups them.
-      final library = results[1] as List<TrackModel>;
-      final newestFirst = List.of(library)
-        ..sort((a, b) => b.indexedAt.compareTo(a.indexedAt));
-      final albums = LibraryGrouping.albumsOf([
-        for (final t in newestFirst) t.toEntity(),
-      ]).take(_rowCount).toList();
+      // Albums newest first, as Recent albums lists them (its See all),
+      // grouped the way the library groups them.
+      final library = [
+        for (final t in results[1] as List<TrackModel>) t.toEntity(),
+      ];
+      final albums = RecentlyAdded.albumsOf(
+        library,
+        LibraryGrouping.albumsOf(library),
+        limit: _rowCount,
+      );
 
       // ── Phase 2: top weekly: needs track resolution ──────────────────
       final topIdsResult = results[2] as Either;

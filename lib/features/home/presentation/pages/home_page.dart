@@ -253,12 +253,9 @@ class _HomeBody extends StatelessWidget {
               slideY: 0.05,
               child: SectionHeader(
                 title: context.l10n.homeRecentlyAdded,
-                onViewAll: () {
-                  context.read<LibraryBloc>().add(
-                    const LibraryFilterChanged(LibraryFilter.albums),
-                  );
-                  context.go(AppRoute.library);
-                },
+                // More of the same, newest first, in Home: the Library
+                // keeps the order the user picked there.
+                onViewAll: context.pushRecentAlbums,
               ),
             ),
           ),

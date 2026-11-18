@@ -350,6 +350,8 @@
   "recentlyAddedTitle": "Recently added",
   "recentlyAddedEmptyTitle": "Nothing added yet",
   "recentlyAddedEmptyBody": "Songs you add to your phone show here, newest first.",
+  "recentAlbumsTitle": "Recent albums",
+  "recentAlbumsEmptyBody": "Albums you add to your phone show here, newest first.",
   "searchBadgeArtist": "Artist",
   "searchBadgeAlbum": "Album",
   "searchBadgeSong": "Song",

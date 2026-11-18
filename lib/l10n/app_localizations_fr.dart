@@ -680,6 +680,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les titres ajoutés à votre téléphone s\'affichent ici, du plus récent au plus ancien.';
 
   @override
+  String get recentAlbumsTitle => 'Albums récents';
+
+  @override
+  String get recentAlbumsEmptyBody =>
+      'Les albums ajoutés à votre téléphone s\'affichent ici, du plus récent au plus ancien.';
+
+  @override
   String get searchBadgeArtist => 'Artiste';
 
   @override

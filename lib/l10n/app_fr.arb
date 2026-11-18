@@ -181,6 +181,8 @@
   "recentlyAddedTitle": "Ajouts récents",
   "recentlyAddedEmptyTitle": "Rien d'ajouté pour l'instant",
   "recentlyAddedEmptyBody": "Les titres ajoutés à votre téléphone s'affichent ici, du plus récent au plus ancien.",
+  "recentAlbumsTitle": "Albums récents",
+  "recentAlbumsEmptyBody": "Les albums ajoutés à votre téléphone s'affichent ici, du plus récent au plus ancien.",
   "searchBadgeArtist": "Artiste",
   "searchBadgeAlbum": "Album",
   "searchBadgeSong": "Morceau",

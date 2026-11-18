@@ -1184,6 +1184,18 @@ abstract class AppLocalizations {
   /// **'Songs you add to your phone show here, newest first.'**
   String get recentlyAddedEmptyBody;
 
+  /// No description provided for @recentAlbumsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent albums'**
+  String get recentAlbumsTitle;
+
+  /// No description provided for @recentAlbumsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums you add to your phone show here, newest first.'**
+  String get recentAlbumsEmptyBody;
+
   /// No description provided for @searchBadgeArtist.
   ///
   /// In en, this message translates to:

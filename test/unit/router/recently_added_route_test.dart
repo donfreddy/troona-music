@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/router/app_router.dart';
 
@@ -10,4 +11,17 @@ void main() {
       expect(match.last.route.path, 'recent');
     });
   }
+
+  // Home's Recently added row: a sibling of `recent`, so the songs' page
+  // is not built under it.
+  test('/home/recent/albums is Recent albums, alone', () {
+    final match = appRouter.configuration.findMatch(
+      Uri.parse('${AppRoute.home}/recent/albums'),
+    );
+    expect(match.last.route.path, 'recent/albums');
+    expect(
+      [for (final r in match.routes.whereType<GoRoute>()) r.path],
+      [AppRoute.home, 'recent/albums'],
+    );
+  });
 }

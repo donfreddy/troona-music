@@ -17,6 +17,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album pages: pulling the page down draws the record a little further out of its sleeve, and it slides back on release.
 - Album pages: opening the album that plays brings the song playing into view when it lies below the screen, once the page is in. A scroll of yours comes first.
 - Search and Home: See all next to Recently added, and Home's Recently added shortcut, open a page of the hundred songs added last, newest first, in the tab you are in, instead of the Library in its own order. The Library keeps the sort you picked there.
+- Home: See all next to Recently added opens Recent albums, the fifty albums added last, newest first, in Home, instead of the Library's albums in their own order. The row and the page follow the date songs were added to the phone, so the row is the start of the page.
 - Artist pages open from the photo you tapped: the round photo on an artist's card grows into the picture at the top of their page, and shrinks back into the card when you go back.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
 
