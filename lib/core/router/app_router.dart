@@ -301,32 +301,40 @@ String tabOf(String location) => switch (location) {
 /// Pushes an album or artist page ([section] `albums` or `artists`) in the
 /// tab shown, from where no page context says which (a sheet, Now Playing
 /// once closed), handing it the page shown as the one it was opened from.
+/// The page already shown stays as it is, and the page it was opened from
+/// is gone back to, as [NavigationContextExt.pushAlbum] does.
 void pushDetailInTab(GoRouter router, String section, String id) {
-  final here = shownLocation(router);
-  router.push('${tabOf(here)}/$section/$id', extra: here);
+  final (path: here, :extra) = shownPage(router);
+  final target = '${tabOf(here)}/$section/$id';
+  if (target == here) return;
+  if (extra == target && router.canPop()) {
+    router.pop();
+    return;
+  }
+  router.push(target, extra: here);
 }
 
-/// The location of the page shown in the tabs, Now Playing left out. The
-/// router's own location keeps the last `go` (a tab root): pages pushed
-/// since are matches of their own, the last one on top, inside the tabs'
-/// shell for the pages of a tab.
+/// The page shown in the tabs, Now Playing left out: its location and the
+/// `extra` it was opened with. The router's own location keeps the last
+/// `go` (a tab root): pages pushed since are matches of their own, the last
+/// one on top, inside the tabs' shell for the pages of a tab.
 @visibleForTesting
-String shownLocation(GoRouter router) {
-  String? pushed(List<RouteMatchBase> matches) {
+({String path, Object? extra}) shownPage(GoRouter router) {
+  ({String path, Object? extra})? pushed(List<RouteMatchBase> matches) {
     for (final match in matches.reversed) {
       if (match is ShellRouteMatch) {
         final inside = pushed(match.matches);
         if (inside != null) return inside;
       } else if (match is ImperativeRouteMatch &&
           match.matches.uri.path != AppRoute.player) {
-        return match.matches.uri.path;
+        return (path: match.matches.uri.path, extra: match.matches.extra);
       }
     }
     return null;
   }
 
   final config = router.routerDelegate.currentConfiguration;
-  return pushed(config.matches) ?? config.uri.path;
+  return pushed(config.matches) ?? (path: config.uri.path, extra: null);
 }
 
 extension NavigationContextExt on BuildContext {

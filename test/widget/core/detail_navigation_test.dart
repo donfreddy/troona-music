@@ -164,6 +164,39 @@ void main() {
       expect(shown(), '/library');
     });
 
+    testWidgets('the page already shown stays as it is', (tester) async {
+      await pumpShell(tester);
+      await tap(tester, 'open album 7');
+      router.push(AppRoute.player);
+      await tester.pumpAndSettle();
+
+      // Go to album from Now Playing, on the album below it.
+      router.pop();
+      pushDetailInTab(router, 'albums', '7');
+      await tester.pumpAndSettle();
+      expect(shown(), '/library/albums/7');
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(shown(), '/library', reason: 'one album page, not two');
+    });
+
+    testWidgets('the page it was opened from is gone back to', (tester) async {
+      await pumpShell(tester);
+      await tap(tester, 'open artist 1');
+      await tap(tester, 'open album 7');
+      router.push(AppRoute.player);
+      await tester.pumpAndSettle();
+
+      // Go to artist from Now Playing: the artist the album came from.
+      router.pop();
+      pushDetailInTab(router, 'artists', '1');
+      await tester.pumpAndSettle();
+      expect(shown(), '/library/artists/1');
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(shown(), '/library');
+    });
+
     testWidgets('from a tab root, the root', (tester) async {
       await pumpShell(tester);
       pushDetailInTab(router, 'albums', '7');
