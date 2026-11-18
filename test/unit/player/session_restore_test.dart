@@ -80,7 +80,6 @@ void main() {
       port.failLoads = true;
       final bloc = await restoreWith(right([a, b]));
       expect(bloc.state, isA<PlayerIdle>());
-      expect(bloc.hasQueue, isFalse);
       expect(bloc.origin.value, isNull);
     },
   );

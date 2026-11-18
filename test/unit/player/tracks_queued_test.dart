@@ -121,7 +121,6 @@ void main() {
       bloc.add(const PlayerDismissed());
       await pumpEventQueue();
       expect(bloc.state, isA<PlayerIdle>());
-      expect(bloc.hasQueue, isFalse);
       final before = port.setQueueCalls;
 
       bloc.add(TracksQueued([x, y], next: false, origin: album));
@@ -174,7 +173,6 @@ void main() {
       load.complete();
       await pumpEventQueue();
       expect(bloc.state, isNot(isA<PlayerLoading>()));
-      expect(bloc.hasQueue, isFalse);
       expect(port.lastSetQueue!.tracks, [x], reason: 'played at once');
       expect(notices, isEmpty);
     });
@@ -197,5 +195,56 @@ void main() {
         expect(queued(), ['c', 'x', 'd']);
       },
     );
+  });
+
+  group('what the action is told: onQueued', () {
+    final c = testTrack('c', durationMs: 200000);
+
+    test('runs once the songs are in, for one song or several', () async {
+      await playing();
+      var told = 0;
+      bloc
+        ..add(TracksQueued([x, y], next: true, onQueued: () => told++))
+        ..add(TrackQueuedNext(z, onQueued: () => told++))
+        ..add(TrackAddedToQueue(c, onQueued: () => told++));
+      await pumpEventQueue();
+      expect(told, 3);
+    });
+
+    test('not when the player refuses them', () async {
+      await playing();
+      port.failEdits = true;
+      var told = 0;
+      bloc
+        ..add(TracksQueued([x, y], next: true, onQueued: () => told++))
+        ..add(TrackQueuedNext(z, onQueued: () => told++))
+        ..add(TrackAddedToQueue(c, onQueued: () => told++));
+      await pumpEventQueue();
+      expect(told, 0);
+      expect(notices, isEmpty);
+    });
+
+    test('not when they play instead', () async {
+      var told = 0;
+      bloc.add(TracksQueued([x, y], next: false, onQueued: () => told++));
+      await pumpEventQueue();
+      expect(told, 0);
+    });
+
+    test('not when another queue replaced this one while the player took '
+        'them: the mini player counts none either', () async {
+      await playing();
+      final gate = port.editGate = Completer<void>();
+      var told = 0;
+      bloc.add(TracksQueued([x, y], next: true, onQueued: () => told++));
+      await pumpEventQueue();
+      // Another album, tapped while the insert is on the player.
+      bloc.add(PlayTrackRequested(c, contextQueue: [c], contextIndex: 0));
+      await pumpEventQueue();
+      gate.complete();
+      await pumpEventQueue();
+      expect(told, 0);
+      expect(notices.whereType<TrackQueued>(), isEmpty);
+    });
   });
 }

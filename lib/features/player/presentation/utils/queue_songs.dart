@@ -9,8 +9,9 @@ import 'package:troona/shared/widgets/app_toast.dart';
 /// the end, then says so. Every Play next and Add to queue of a whole album
 /// or artist goes through here.
 ///
-/// With nothing loaded they start instead, as songs of [origin]: the mini
-/// player that comes up says it, no toast ([PlayerBloc.hasQueue]).
+/// The toast waits for the player: it shows once the songs are in, never
+/// when the player refuses them, nor when they start instead (nothing
+/// loaded: the mini player that comes up says it, as songs of [origin]).
 void queueSongs(
   BuildContext context,
   PlayerBloc player,
@@ -19,9 +20,39 @@ void queueSongs(
   QueueOrigin? origin,
 }) {
   if (tracks.isEmpty) return;
-  final queues = player.hasQueue;
-  player.add(TracksQueued(tracks, next: next, origin: origin));
-  if (!queues || !context.mounted) return;
+  player.add(
+    TracksQueued(
+      tracks,
+      next: next,
+      origin: origin,
+      onQueued: _toastOnce(context, next: next),
+    ),
+  );
+}
+
+/// [queueSongs] for one song: a swipe on its row, its menu.
+void queueSong(
+  BuildContext context,
+  PlayerBloc player,
+  Track track, {
+  required bool next,
+}) {
+  final onQueued = _toastOnce(context, next: next);
+  player.add(
+    next
+        ? TrackQueuedNext(track, onQueued: onQueued)
+        : TrackAddedToQueue(track, onQueued: onQueued),
+  );
+}
+
+/// The toast saying songs were queued, ready to show later: the overlay
+/// and the words are read now, since the row or the sheet asking may be
+/// gone by the time the player answers.
+void Function() _toastOnce(BuildContext context, {required bool next}) {
+  final overlay = Overlay.maybeOf(context, rootOverlay: true);
   final l10n = context.l10n;
-  AppToast.show(context, next ? l10n.toastPlaysNext : l10n.toastAddedToQueue);
+  final message = next ? l10n.toastPlaysNext : l10n.toastAddedToQueue;
+  return () {
+    if (overlay != null) AppToast.showOn(overlay, message);
+  };
 }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/features/player/presentation/utils/queue_songs.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/swipe_actions.dart';
 
 /// A song row that queues its song with a swipe: right plays it next, left
@@ -22,20 +22,11 @@ class QueueSwipe extends StatelessWidget {
 
   const QueueSwipe({super.key, required this.track, required this.child});
 
-  void _playNext(BuildContext context) {
-    final player = context.read<PlayerBloc>();
-    final queues = player.hasQueue;
-    player.add(TrackQueuedNext(track));
-    // With nothing loaded it plays: the mini player says so.
-    if (queues) AppToast.show(context, context.l10n.toastPlaysNext);
-  }
+  void _playNext(BuildContext context) =>
+      queueSong(context, context.read<PlayerBloc>(), track, next: true);
 
-  void _addToQueue(BuildContext context) {
-    final player = context.read<PlayerBloc>();
-    final queues = player.hasQueue;
-    player.add(TrackAddedToQueue(track));
-    if (queues) AppToast.show(context, context.l10n.toastAddedToQueue);
-  }
+  void _addToQueue(BuildContext context) =>
+      queueSong(context, context.read<PlayerBloc>(), track, next: false);
 
   @override
   Widget build(BuildContext context) {

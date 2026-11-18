@@ -132,6 +132,20 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 
+  testWidgets('refused by the player, no message says it was queued', (
+    tester,
+  ) async {
+    for (final dx in [120.0, -120.0]) {
+      final port = await pump(tester)
+        ..failEdits = true;
+      await swipe(tester, dx);
+      expect(port.queue!.playbackTracks.map((t) => t.id), ['a', 'b']);
+      expect(find.text('Plays next'), findsNothing);
+      expect(find.text('Added to queue'), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    }
+  });
+
   testWidgets('with nothing playing, either swipe plays the song, and no '
       'message says it was queued', (tester) async {
     for (final dx in [120.0, -120.0]) {

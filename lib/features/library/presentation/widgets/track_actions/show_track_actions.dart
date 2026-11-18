@@ -12,6 +12,7 @@ import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/queue_songs.dart';
 import 'package:troona/features/playlist/presentation/widgets/add_to_playlist_sheet.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
@@ -37,23 +38,14 @@ void showTrackActions(
       SheetAction(
         label: l10n.trackPlayNext,
         icon: AppIcons.playNext,
-        onPressed: () {
-          final player = context.read<PlayerBloc>();
-          final queues = player.hasQueue;
-          player.add(TrackQueuedNext(track));
-          // With nothing loaded it plays: the mini player says so.
-          if (queues) AppToast.show(context, l10n.toastPlaysNext);
-        },
+        onPressed: () =>
+            queueSong(context, context.read<PlayerBloc>(), track, next: true),
       ),
       SheetAction(
         label: l10n.trackAddToQueue,
         icon: AppIcons.addToQueue,
-        onPressed: () {
-          final player = context.read<PlayerBloc>();
-          final queues = player.hasQueue;
-          player.add(TrackAddedToQueue(track));
-          if (queues) AppToast.show(context, l10n.toastAddedToQueue);
-        },
+        onPressed: () =>
+            queueSong(context, context.read<PlayerBloc>(), track, next: false),
       ),
       SheetAction(
         label: isLiked ? l10n.likesRemove : l10n.trackLike,
