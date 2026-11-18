@@ -95,11 +95,15 @@ class SetQueueUseCase {
 }
 
 class AddToQueueParams {
-  final Track track;
+  /// The songs, in their order; one for a single song.
+  final List<Track> tracks;
 
   /// Playback index to insert at; null appends.
   final int? index;
-  const AddToQueueParams({required this.track, this.index});
+  AddToQueueParams({required Track track, this.index}) : tracks = [track];
+
+  /// Several songs in one edit, all or none.
+  const AddToQueueParams.all(this.tracks, {this.index});
 }
 
 @lazySingleton
@@ -107,7 +111,9 @@ class AddToQueueUseCase {
   final PlayerRepository _repo;
   const AddToQueueUseCase(this._repo);
   Future<Either<Failure, Unit>> call(AddToQueueParams params) =>
-      _repo.addToQueue(params.track, index: params.index);
+      params.tracks.length == 1
+      ? _repo.addToQueue(params.tracks.single, index: params.index)
+      : _repo.addAllToQueue(params.tracks, index: params.index);
 }
 
 class RemoveFromQueueParams {

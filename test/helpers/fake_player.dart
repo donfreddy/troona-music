@@ -241,6 +241,15 @@ final class FakeAudioPort implements AudioServicePort {
   );
 
   @override
+  Future<Either<Failure, Unit>> addAllToQueue(
+    List<Track> tracks, {
+    int? index,
+  }) => _edit(
+    'add ${[for (final t in tracks) t.id].join(',')}@$index',
+    (q) => q.insertAllAt(index ?? q.playbackTracks.length, tracks),
+  );
+
+  @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) =>
       _edit('remove $index', (q) => q.removeAt(index));
 
@@ -316,6 +325,12 @@ final class PortRepository implements PlayerRepository {
   @override
   Future<Either<Failure, Unit>> addToQueue(Track track, {int? index}) =>
       _port.addToQueue(track, index: index);
+
+  @override
+  Future<Either<Failure, Unit>> addAllToQueue(
+    List<Track> tracks, {
+    int? index,
+  }) => _port.addAllToQueue(tracks, index: index);
 
   @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) =>

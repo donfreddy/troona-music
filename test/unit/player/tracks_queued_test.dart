@@ -67,24 +67,19 @@ void main() {
     expect(notices, [const TrackQueued(2)]);
   });
 
-  test(
-    'a song the player refuses is left out of the order and the count',
-    () async {
-      await playing();
-      port.failNextEdits = 1;
-      bloc.add(TracksQueued([x, y, z], next: true));
-      await pumpEventQueue();
-      expect(queued(), ['a', 'y', 'z', 'b']);
-      expect(notices, [const TrackQueued(2)]);
+  test('they go in as one edit: refused, none is queued and nothing says '
+      'so', () async {
+    await playing();
+    bloc.add(TracksQueued([x, y, z], next: true));
+    await pumpEventQueue();
+    expect(port.queueEdits, ['start add x,y,z@1', 'end add x,y,z@1']);
 
-      port.failEdits = true;
-      bloc.add(TracksQueued([x], next: true));
-      await pumpEventQueue();
-      expect(notices, [
-        const TrackQueued(2),
-      ], reason: 'nothing queued, no word');
-    },
-  );
+    port.failNextEdits = 1;
+    bloc.add(TracksQueued([a, b], next: false));
+    await pumpEventQueue();
+    expect(queued(), ['a', 'x', 'y', 'z', 'b']);
+    expect(notices, [const TrackQueued(3)], reason: 'none for the refused');
+  });
 
   test(
     'with nothing loaded they play, from the first, as their album',
@@ -146,36 +141,6 @@ void main() {
       expect(notices, isEmpty);
     });
 
-    test('a new queue started while the songs go in: the rest stays out of '
-        'it', () async {
-      await playing();
-      final gate = port.editGate = Completer<void>();
-      bloc.add(TracksQueued([x, y, z], next: true));
-      await pumpEventQueue();
-
-      // Another album, tapped while the first insert is on the player.
-      bloc.add(PlayTrackRequested(c, contextQueue: [c, d], contextIndex: 0));
-      await pumpEventQueue();
-      port.queue = Queue.fromTracks([c, d]);
-      gate.complete();
-      await pumpEventQueue();
-      expect(queued(), ['c', 'd']);
-      expect(notices.whereType<TrackQueued>(), [const TrackQueued(1)]);
-    });
-
-    test('a skip while they go in: the rest still comes after the song '
-        'playing', () async {
-      await playing();
-      final gate = port.editGate = Completer<void>();
-      bloc.add(TracksQueued([x, y], next: true));
-      await pumpEventQueue();
-      // x is in, at 1; the player moves on to b, now at 2.
-      port.queue = Queue.fromTracks([a, x, b], startIndex: 2);
-      gate.complete();
-      await pumpEventQueue();
-      expect(queued(), ['a', 'x', 'b', 'y']);
-    });
-
     test(
       'queued while the first song loads: they wait for its queue',
       () async {
@@ -214,36 +179,23 @@ void main() {
       expect(notices, isEmpty);
     });
 
-    test('a new queue fading in: the songs go into it, not the one leaving',
-        () async {
-      await playing();
-      bloc.add(PlayTrackRequested(c, contextQueue: [c, d], contextIndex: 0));
-      await pumpEventQueue();
-      expect(bloc.state, isA<PlayerLoading>());
-      // The engine still holds [a, b] while it fades out.
-      bloc.add(TracksQueued([x], next: true));
-      await pumpEventQueue();
-      expect(queued(), ['a', 'b'], reason: 'not into the queue leaving');
+    test(
+      'a new queue fading in: the songs go into it, not the one leaving',
+      () async {
+        await playing();
+        bloc.add(PlayTrackRequested(c, contextQueue: [c, d], contextIndex: 0));
+        await pumpEventQueue();
+        expect(bloc.state, isA<PlayerLoading>());
+        // The engine still holds [a, b] while it fades out.
+        bloc.add(TracksQueued([x], next: true));
+        await pumpEventQueue();
+        expect(queued(), ['a', 'b'], reason: 'not into the queue leaving');
 
-      port.queue = Queue.fromTracks([c, d]);
-      port.queueCtrl.add(port.queue!);
-      await pumpEventQueue();
-      expect(queued(), ['c', 'x', 'd']);
-    });
-
-    test('shuffle turned on while they go in: the rest stops', () async {
-      await playing();
-      final gate = port.editGate = Completer<void>();
-      bloc.add(TracksQueued([x, y, z], next: true));
-      await pumpEventQueue();
-      port.queue = Queue.fromTracks(
-        port.queue!.playbackTracks,
-        shuffleEnabled: true,
-      );
-      gate.complete();
-      await pumpEventQueue();
-      expect(queued(), hasLength(3), reason: 'x only');
-      expect(notices, [const TrackQueued(1)]);
-    });
+        port.queue = Queue.fromTracks([c, d]);
+        port.queueCtrl.add(port.queue!);
+        await pumpEventQueue();
+        expect(queued(), ['c', 'x', 'd']);
+      },
+    );
   });
 }

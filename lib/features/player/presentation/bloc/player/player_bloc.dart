@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -677,26 +676,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           );
           return;
         }
-        // Plays and dismissals run beside this loop: stop once the queue
-        // is another (the rest would land in it at an old place), or gone.
-        final source = _sourceIds;
-        var at = queue.currentIndex + 1;
-        var added = 0;
-        for (final track in tracks) {
-          final now = _audioServicePort.currentQueue;
-          if (!identical(_sourceIds, source) || now == null) break;
-          // Shuffle turned on or off: the places counted are another order.
-          if (now.shuffleEnabled != queue.shuffleEnabled) break;
-          // A skip meanwhile: still after the song playing.
-          at = math.max(at, now.currentIndex + 1);
-          final result = await _addToQueue(
-            AddToQueueParams(track: track, index: next ? at : null),
-          );
-          if (result.isLeft()) continue;
-          added++;
-          at++;
-        }
-        if (added > 0) _noticeQueued(added);
+        // One edit, all or none, at the place [queue] gives right now: a
+        // skip or another queue cannot come between the songs.
+        final result = await _addToQueue(
+          AddToQueueParams.all(
+            tracks,
+            index: next ? queue.currentIndex + 1 : null,
+          ),
+        );
+        if (result.isRight()) _noticeQueued(tracks.length);
     }
   }
 

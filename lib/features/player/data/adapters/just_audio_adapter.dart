@@ -387,6 +387,23 @@ class JustAudioAdapter implements AudioServicePort {
         );
 
   @override
+  Future<Either<Failure, Unit>> addAllToQueue(
+    List<Track> tracks, {
+    int? index,
+  }) {
+    final sources = [for (final track in tracks) _toAudioSource(track)];
+    return index == null
+        ? _editQueue(
+            (queue) => queue.insertAllAt(queue.playbackTracks.length, tracks),
+            () => _player.addAudioSources(sources),
+          )
+        : _editQueue(
+            (queue) => queue.insertAllAt(index, tracks),
+            () => _player.insertAudioSources(index, sources),
+          );
+  }
+
+  @override
   Future<Either<Failure, Unit>> removeFromQueue(int index) => _editQueue(
     (queue) => queue.removeAt(index),
     () => _player.removeAudioSourceAt(index),
