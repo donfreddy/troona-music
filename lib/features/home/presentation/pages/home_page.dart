@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -14,16 +15,13 @@ import 'package:troona/features/history/presentation/widgets/weekly_recap_card.d
 import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/home/presentation/widgets/hidden_gems_row.dart';
 import 'package:troona/features/home/presentation/widgets/home_hero_banner.dart';
-import 'package:troona/features/home/presentation/widgets/online_extras_offer.dart';
-import 'package:troona/features/updates/presentation/widgets/update_card.dart';
+import 'package:troona/features/home/presentation/widgets/home_system_card.dart';
 import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/features/home/presentation/widgets/recently_played_grid.dart';
 import 'package:troona/features/home/presentation/widgets/top_weekly_row.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
-import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
 import 'package:troona/shared/widgets/error_view.dart';
 import 'package:troona/shared/widgets/glass_icon_button.dart';
@@ -73,7 +71,7 @@ class HomePage extends StatelessWidget {
               child: BlocBuilder<HomeBloc, HomeState>(
                 buildWhen: (a, b) => _subtitleKey(a) != _subtitleKey(b),
                 builder: (context, state) =>
-                    _HomeSubtitle(subtitle: _subtitleOf(context, state)),
+                    _HomeSubtitle(subtitle: subtitleOf(context.l10n, state)),
               ),
             ),
             BlocBuilder<HomeBloc, HomeState>(
@@ -119,16 +117,21 @@ class HomePage extends StatelessWidget {
     HomeLoaded(:final feed, :final totalTracks) => (
       feed.isColdStart,
       totalTracks == 0,
+      feed.weeklyPlayCount,
     ),
     _ => null,
   };
 
   // Empty or cold start: the hero card already says what to do next, so
-  // the header stays a plain greeting.
-  static String? _subtitleOf(BuildContext context, HomeState state) {
+  // the header stays a plain greeting. Else this week's plays, the one
+  // figure Home keeps out of a card of its own.
+  @visibleForTesting
+  static String? subtitleOf(AppLocalizations l10n, HomeState state) {
     if (state is! HomeLoaded) return null;
     if (state.totalTracks == 0 || state.feed.isColdStart) return null;
-    return context.l10n.homeSubtitleWarm;
+    final plays = state.feed.weeklyPlayCount;
+    if (plays == 0) return l10n.homeSubtitleWarm;
+    return '$plays ${l10n.homeWeeklyPlays(plays)}';
   }
 }
 
@@ -174,9 +177,10 @@ class _HomeBody extends StatelessWidget {
         ),
         const _SectionGap(),
 
-        const SliverToBoxAdapter(child: UpdateCard()),
-        if (state.totalTracks > 0)
-          const SliverToBoxAdapter(child: OnlineExtrasOffer()),
+        // One system card at a time: a new release, else the offer.
+        SliverToBoxAdapter(
+          child: HomeSystemCard(offerExtras: state.totalTracks > 0),
+        ),
 
         // ── Quick Access Chips ───────────────────────────────────────────
         SliverToBoxAdapter(
@@ -186,9 +190,6 @@ class _HomeBody extends StatelessWidget {
           ),
         ),
         const _SectionGap(),
-
-        // ── Last week's recap, else this week's plays (only when warm) ──
-        _WeeklySection(playCount: isColdStart ? 0 : feed.weeklyPlayCount),
 
         // ── Recently Played ──────────────────────────────────────────────
         if (feed.recentlyPlayed.length >= 2) ...[
@@ -204,6 +205,9 @@ class _HomeBody extends StatelessWidget {
           ),
           const _SectionGap(),
         ],
+
+        // ── Last week's recap: music comes first ────────────────────────
+        const _WeeklySection(),
 
         // ── Top This Week ────────────────────────────────────────────────
         if (feed.topWeekly.isNotEmpty) ...[
@@ -228,44 +232,6 @@ class _HomeBody extends StatelessWidget {
             ),
           ),
           SliverToBoxAdapter(child: HiddenGemsRow(tracks: feed.hiddenGems)),
-          const _SectionGap(),
-        ],
-
-        // ── Your Artists ─────────────────────────────────────────────────
-        if (feed.yourArtists.isNotEmpty) ...[
-          SliverToBoxAdapter(
-            child: EntranceFader.staggered(
-              index: 0,
-              slideY: 0.05,
-              child: SectionHeader(
-                title: context.l10n.homeYourArtists,
-                onViewAll: () {
-                  context.read<LibraryBloc>().add(
-                    const LibraryFilterChanged(LibraryFilter.artists),
-                  );
-                  context.go(AppRoute.library);
-                },
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 140,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                itemCount: feed.yourArtists.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.md),
-                itemBuilder: (context, i) => EntranceFader.staggered(
-                  key: ValueKey('artist-${feed.yourArtists[i].id}'),
-                  index: i,
-                  slideY: 0.04,
-                  child: ArtistCard(artist: feed.yourArtists[i], size: 100),
-                ),
-              ),
-            ),
-          ),
           const _SectionGap(),
         ],
 
@@ -307,38 +273,6 @@ class _HomeBody extends StatelessWidget {
           const _SectionGap(),
         ],
 
-        // ── Your Playlists ───────────────────────────────────────────────
-        if (feed.yourPlaylists.isNotEmpty) ...[
-          SliverToBoxAdapter(
-            child: EntranceFader.staggered(
-              index: 0,
-              slideY: 0.05,
-              child: SectionHeader(title: context.l10n.homeYourPlaylists),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 180,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                itemCount: feed.yourPlaylists.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.md),
-                itemBuilder: (context, i) => EntranceFader.staggered(
-                  key: ValueKey('playlist-${feed.yourPlaylists[i].id}'),
-                  index: i,
-                  slideY: 0.04,
-                  child: PlaylistCard(
-                    playlist: feed.yourPlaylists[i],
-                    size: 130,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-
         // ── Bottom safe-area padding ─────────────────────────────────────
         SliverPadding(
           padding: EdgeInsets.only(bottom: context.bottomBarInset()),
@@ -377,13 +311,11 @@ class _HomeSubtitle extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Weekly stats banner: compact card with the play count
+// Last week's recap card, once it has plays
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _WeeklySection extends StatelessWidget {
-  final int playCount;
-
-  const _WeeklySection({required this.playCount});
+  const _WeeklySection();
 
   @override
   Widget build(BuildContext context) {
@@ -407,8 +339,6 @@ class _WeeklySection extends StatelessWidget {
                     ),
                   ),
                 )
-              : playCount > 0
-              ? _WeeklyStatsBanner(playCount: playCount)
               : null;
           if (content == null) {
             return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -420,72 +350,6 @@ class _WeeklySection extends StatelessWidget {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _WeeklyStatsBanner extends StatelessWidget {
-  final int playCount;
-
-  const _WeeklyStatsBanner({required this.playCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: EntranceFader.staggered(
-        index: 0,
-        slideY: 0.04,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                context.colors.accent.withValues(alpha: .08),
-                context.colors.accent.withValues(alpha: .03),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-            border: Border.all(
-              color: context.colors.accent.withValues(alpha: .15),
-              width: 0.5,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(AppIcons.stats, color: context.colors.accent, size: 20),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      color: context.colors.labelSecondary,
-                      fontSize: 13,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: '$playCount ',
-                        style: TextStyle(
-                          color: context.colors.accent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-                      TextSpan(text: context.l10n.homeWeeklyPlays(playCount)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

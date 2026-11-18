@@ -1508,23 +1508,11 @@ abstract class AppLocalizations {
   /// **'Rediscover'**
   String get homeRediscover;
 
-  /// No description provided for @homeYourArtists.
-  ///
-  /// In en, this message translates to:
-  /// **'Your artists'**
-  String get homeYourArtists;
-
   /// No description provided for @homeRecentlyAdded.
   ///
   /// In en, this message translates to:
   /// **'Recently added'**
   String get homeRecentlyAdded;
-
-  /// No description provided for @homeYourPlaylists.
-  ///
-  /// In en, this message translates to:
-  /// **'Your playlists'**
-  String get homeYourPlaylists;
 
   /// No description provided for @homeWeeklyPlays.
   ///

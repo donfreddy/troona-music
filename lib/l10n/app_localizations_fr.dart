@@ -864,13 +864,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get homeRediscover => 'À redécouvrir';
 
   @override
-  String get homeYourArtists => 'Vos artistes';
-
-  @override
   String get homeRecentlyAdded => 'Ajouts récents';
-
-  @override
-  String get homeYourPlaylists => 'Vos playlists';
 
   @override
   String homeWeeklyPlays(int count) {

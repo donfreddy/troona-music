@@ -447,9 +447,7 @@
   "homeRecentlyPlayed": "Recently played",
   "homeOnRepeat": "On repeat this week",
   "homeRediscover": "Rediscover",
-  "homeYourArtists": "Your artists",
   "homeRecentlyAdded": "Recently added",
-  "homeYourPlaylists": "Your playlists",
   "homeWeeklyPlays": "{count, plural, =1{play this week} other{plays this week}}",
   "@homeWeeklyPlays": {
     "placeholders": {

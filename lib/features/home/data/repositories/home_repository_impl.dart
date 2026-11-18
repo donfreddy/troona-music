@@ -6,7 +6,6 @@ import 'package:troona/features/history/domain/repositories/play_history_reposit
 import 'package:troona/features/home/domain/entities/home_feed.dart';
 import 'package:troona/features/home/domain/entities/track_play_count.dart';
 import 'package:troona/features/home/domain/repositories/home_repository.dart';
-import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
@@ -30,6 +29,8 @@ final class HomeRepositoryImpl implements HomeRepository {
 
   @override
   Stream<void> get feedChanges =>
+      // Playlists for the liked songs, which the likes count and the
+      // songs to rediscover read.
       Rx.merge([_history.changes, _db.watchTracks(), _db.watchPlaylists()]);
 
   @override
@@ -39,10 +40,9 @@ final class HomeRepositoryImpl implements HomeRepository {
       final results = await Future.wait([
         _recentlyPlayed(), // 0
         _db.getAllTracks(), // 1
-        _db.getPlaylists(limit: 3), // 2
-        _history.topTrackIds(days: 7, limit: 5), // 3
-        _db.getLikedTrackIds(), // 4
-        _history.totalPlays(days: 7), // 5
+        _history.topTrackIds(days: 7, limit: 5), // 2
+        _db.getLikedTrackIds(), // 3
+        _history.totalPlays(days: 7), // 4
       ]);
 
       final recentTracks = results[0] as List<Track>;
@@ -59,22 +59,18 @@ final class HomeRepositoryImpl implements HomeRepository {
         for (final t in newestFirst) t.toEntity(),
       ]).take(_rowCount).toList();
 
-      final playlists = (results[2] as List<PlaylistModel>)
-          .map((p) => p.toEntity())
-          .toList();
-
       // ── Phase 2: top weekly: needs track resolution ──────────────────
-      final topIdsResult = results[3] as Either;
+      final topIdsResult = results[2] as Either;
       final topCounts =
           topIdsResult.getOrElse(() => <String, int>{}) as Map<String, int>;
       final topWeekly = await _resolveTopWeekly(topCounts);
 
       // ── Phase 3: hidden gems: needs liked IDs + history ──────────────
-      final likedIds = results[4] as Set<String>;
+      final likedIds = results[3] as Set<String>;
       final hiddenGems = await _resolveHiddenGems(likedIds);
 
       // Weekly play count
-      final totalPlaysResult = results[5] as Either;
+      final totalPlaysResult = results[4] as Either;
       final weeklyPlayCount = totalPlaysResult.getOrElse(() => 0) as int;
 
       return right(
@@ -82,7 +78,6 @@ final class HomeRepositoryImpl implements HomeRepository {
           recentlyPlayed: recentTracks,
           yourArtists: artists,
           newAlbums: albums,
-          yourPlaylists: playlists,
           topWeekly: topWeekly,
           hiddenGems: hiddenGems,
           likesCount: likedIds.length,
