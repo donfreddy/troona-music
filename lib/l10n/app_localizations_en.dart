@@ -174,7 +174,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optional. Bios and photos send artist and album names to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
+      'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
 
   @override
   String get settingsOnlineBios => 'Artist bios and album notes';
@@ -295,7 +295,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyOnlineBody =>
-      'There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded.';
+      'There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, with up to three titles of each artist\'s songs (their most played) so that the photo found is of that artist and not a namesake, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or play count is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded.';
 
   @override
   String get privacyReportsTitle => 'Problem reports';
@@ -901,7 +901,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeExtrasBody =>
-      'Troona can fetch them from Last.fm and Deezer using artist and album names. Your music files stay on this device.';
+      'Troona can fetch them from Last.fm and Deezer using artist and album names, and a few song titles for photos. Your music files stay on this device.';
 
   @override
   String get homeExtrasAccept => 'Turn on';
@@ -1807,4 +1807,67 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew160HapticsOffBody =>
       'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.';
+
+  @override
+  String get whatsNew170IndexTitle => 'Jump by letter';
+
+  @override
+  String get whatsNew170IndexBody =>
+      'Songs, albums and artists sorted by name have an alphabetical index down the right edge.';
+
+  @override
+  String get whatsNew170RecentTitle => 'Recently added';
+
+  @override
+  String get whatsNew170RecentBody =>
+      'The songs and albums added last, newest first, from Search and Home.';
+
+  @override
+  String get whatsNew170ArtistsTitle => 'Closer to the artists';
+
+  @override
+  String get whatsNew170ArtistsBody =>
+      'Tap the artist\'s name in Now Playing to open their page. Their photo grows from the card into the page.';
+
+  @override
+  String get whatsNew170AlbumMenuTitle => 'Album shortcuts';
+
+  @override
+  String get whatsNew170AlbumMenuBody =>
+      'Hold an album card for Play, Shuffle, Play next and Add to queue.';
+
+  @override
+  String get whatsNew170NowPlayingTitle => 'A smoother Now Playing';
+
+  @override
+  String get whatsNew170NowPlayingBody =>
+      'Seeking lights up the ring, and closing sends the cover back into the mini player.';
+
+  @override
+  String get whatsNew170ColoursTitle => 'Pages in their own colours';
+
+  @override
+  String get whatsNew170ColoursBody =>
+      'Album and artist pages take the colours of their cover, and open in the tab you are in.';
+
+  @override
+  String get whatsNew170HomeTitle => 'A lighter Home';
+
+  @override
+  String get whatsNew170HomeBody =>
+      'Music comes first, with one card about the app at a time.';
+
+  @override
+  String get whatsNew170QueueTitle => 'Queueing with nothing playing';
+
+  @override
+  String get whatsNew170QueueBody =>
+      'Play next and Add to queue now start the music when nothing plays, and an album goes into the queue whole.';
+
+  @override
+  String get whatsNew170PhotosTitle => 'Artist photos';
+
+  @override
+  String get whatsNew170PhotosBody =>
+      'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.';
 }

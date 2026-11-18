@@ -176,7 +176,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums à Last.fm et Deezer. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
+      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums, et pour les photos quelques titres de morceaux, à Last.fm et Deezer. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
 
   @override
   String get settingsOnlineBios => 'Biographies et notes d\'albums';
@@ -298,7 +298,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyOnlineBody =>
-      'Il y a deux interrupteurs distincts. Les biographies envoient les noms d\'artistes et d\'albums à Last.fm. Les photos les envoient à Deezer et téléchargent les images depuis Deezer ou Last.fm. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni historique d\'écoute n\'est envoyé. Désactivez l\'un ou l\'autre à tout moment dans les Réglages : les requêtes vers ce service s\'arrêtent, et désactiver les photos supprime aussi celles déjà téléchargées.';
+      'Il y a deux interrupteurs distincts. Les biographies envoient les noms d\'artistes et d\'albums à Last.fm. Les photos les envoient à Deezer, avec jusqu\'à trois titres de morceaux de chaque artiste (ses plus écoutés) pour que la photo trouvée soit bien la sienne et non celle d\'un homonyme, et téléchargent les images depuis Deezer ou Last.fm. Ces services voient aussi votre adresse IP, comme pour toute requête web. Aucun fichier, compte ni nombre d\'écoutes n\'est envoyé. Désactivez l\'un ou l\'autre à tout moment dans les Réglages : les requêtes vers ce service s\'arrêtent, et désactiver les photos supprime aussi celles déjà téléchargées.';
 
   @override
   String get privacyReportsTitle => 'Signalements de problèmes';
@@ -909,7 +909,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get homeExtrasBody =>
-      'Troona peut les récupérer sur Last.fm et Deezer à partir des noms d\'artistes et d\'albums. Vos fichiers restent sur cet appareil.';
+      'Troona peut les récupérer sur Last.fm et Deezer à partir des noms d\'artistes et d\'albums, et de quelques titres de morceaux pour les photos. Vos fichiers restent sur cet appareil.';
 
   @override
   String get homeExtrasAccept => 'Activer';
@@ -1823,4 +1823,67 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew160HapticsOffBody =>
       'Les onglets en haut de la bibliothèque vibraient même avec les vibrations désactivées dans les réglages. Ils suivent maintenant le réglage.';
+
+  @override
+  String get whatsNew170IndexTitle => 'Sautez à une lettre';
+
+  @override
+  String get whatsNew170IndexBody =>
+      'Les morceaux, albums et artistes triés par nom ont un index alphabétique sur le bord droit.';
+
+  @override
+  String get whatsNew170RecentTitle => 'Ajouts récents';
+
+  @override
+  String get whatsNew170RecentBody =>
+      'Les derniers morceaux et albums ajoutés, du plus récent au plus ancien, depuis la recherche et l\'accueil.';
+
+  @override
+  String get whatsNew170ArtistsTitle => 'Plus près des artistes';
+
+  @override
+  String get whatsNew170ArtistsBody =>
+      'Touchez le nom de l\'artiste sur l\'écran En lecture pour ouvrir sa page. Sa photo s\'agrandit de la carte jusqu\'à la page.';
+
+  @override
+  String get whatsNew170AlbumMenuTitle => 'Raccourcis d\'album';
+
+  @override
+  String get whatsNew170AlbumMenuBody =>
+      'Maintenez une carte d\'album pour Lecture, Aléatoire, Lire ensuite et Ajouter à la file.';
+
+  @override
+  String get whatsNew170NowPlayingTitle => 'Un écran En lecture plus fluide';
+
+  @override
+  String get whatsNew170NowPlayingBody =>
+      'Avancer dans le morceau illumine l\'anneau, et fermer renvoie la pochette dans le mini lecteur.';
+
+  @override
+  String get whatsNew170ColoursTitle => 'Des pages à leurs couleurs';
+
+  @override
+  String get whatsNew170ColoursBody =>
+      'Les pages album et artiste prennent les couleurs de leur pochette, et s\'ouvrent dans l\'onglet où vous êtes.';
+
+  @override
+  String get whatsNew170HomeTitle => 'Un accueil plus léger';
+
+  @override
+  String get whatsNew170HomeBody =>
+      'La musique d\'abord, avec une seule carte sur l\'application à la fois.';
+
+  @override
+  String get whatsNew170QueueTitle => 'Ajouter sans rien en cours';
+
+  @override
+  String get whatsNew170QueueBody =>
+      'Lire ensuite et Ajouter à la file lancent maintenant la musique quand rien ne joue, et un album entre entier dans la file.';
+
+  @override
+  String get whatsNew170PhotosTitle => 'Photos d\'artistes';
+
+  @override
+  String get whatsNew170PhotosBody =>
+      'Plus de silhouettes grises ni de photos d\'homonymes, et la recherche affiche les photos téléchargées.';
 }

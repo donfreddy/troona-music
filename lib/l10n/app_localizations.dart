@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlineFooter.
   ///
   /// In en, this message translates to:
-  /// **'Optional. Bios and photos send artist and album names to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
+  /// **'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
   String get settingsOnlineFooter;
 
   /// No description provided for @settingsOnlineBios.
@@ -575,7 +575,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyOnlineBody.
   ///
   /// In en, this message translates to:
-  /// **'There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded.'**
+  /// **'There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, with up to three titles of each artist\'s songs (their most played) so that the photo found is of that artist and not a namesake, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or play count is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded.'**
   String get privacyOnlineBody;
 
   /// No description provided for @privacyReportsTitle.
@@ -1577,7 +1577,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeExtrasBody.
   ///
   /// In en, this message translates to:
-  /// **'Troona can fetch them from Last.fm and Deezer using artist and album names. Your music files stay on this device.'**
+  /// **'Troona can fetch them from Last.fm and Deezer using artist and album names, and a few song titles for photos. Your music files stay on this device.'**
   String get homeExtrasBody;
 
   /// No description provided for @homeExtrasAccept.
@@ -3037,6 +3037,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The Library\'s tabs at the top vibrated even with haptics turned off in Settings. They now follow the setting.'**
   String get whatsNew160HapticsOffBody;
+
+  /// No description provided for @whatsNew170IndexTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump by letter'**
+  String get whatsNew170IndexTitle;
+
+  /// No description provided for @whatsNew170IndexBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs, albums and artists sorted by name have an alphabetical index down the right edge.'**
+  String get whatsNew170IndexBody;
+
+  /// No description provided for @whatsNew170RecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get whatsNew170RecentTitle;
+
+  /// No description provided for @whatsNew170RecentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The songs and albums added last, newest first, from Search and Home.'**
+  String get whatsNew170RecentBody;
+
+  /// No description provided for @whatsNew170ArtistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Closer to the artists'**
+  String get whatsNew170ArtistsTitle;
+
+  /// No description provided for @whatsNew170ArtistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the artist\'s name in Now Playing to open their page. Their photo grows from the card into the page.'**
+  String get whatsNew170ArtistsBody;
+
+  /// No description provided for @whatsNew170AlbumMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Album shortcuts'**
+  String get whatsNew170AlbumMenuTitle;
+
+  /// No description provided for @whatsNew170AlbumMenuBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold an album card for Play, Shuffle, Play next and Add to queue.'**
+  String get whatsNew170AlbumMenuBody;
+
+  /// No description provided for @whatsNew170NowPlayingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A smoother Now Playing'**
+  String get whatsNew170NowPlayingTitle;
+
+  /// No description provided for @whatsNew170NowPlayingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Seeking lights up the ring, and closing sends the cover back into the mini player.'**
+  String get whatsNew170NowPlayingBody;
+
+  /// No description provided for @whatsNew170ColoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages in their own colours'**
+  String get whatsNew170ColoursTitle;
+
+  /// No description provided for @whatsNew170ColoursBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Album and artist pages take the colours of their cover, and open in the tab you are in.'**
+  String get whatsNew170ColoursBody;
+
+  /// No description provided for @whatsNew170HomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A lighter Home'**
+  String get whatsNew170HomeTitle;
+
+  /// No description provided for @whatsNew170HomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Music comes first, with one card about the app at a time.'**
+  String get whatsNew170HomeBody;
+
+  /// No description provided for @whatsNew170QueueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Queueing with nothing playing'**
+  String get whatsNew170QueueTitle;
+
+  /// No description provided for @whatsNew170QueueBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Play next and Add to queue now start the music when nothing plays, and an album goes into the queue whole.'**
+  String get whatsNew170QueueBody;
+
+  /// No description provided for @whatsNew170PhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist photos'**
+  String get whatsNew170PhotosTitle;
+
+  /// No description provided for @whatsNew170PhotosBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
+  String get whatsNew170PhotosBody;
 }
 
 class _AppLocalizationsDelegate

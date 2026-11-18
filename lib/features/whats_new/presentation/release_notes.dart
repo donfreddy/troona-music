@@ -30,6 +30,53 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  Release('1.7.0', date: DateTime(2026, 11, 19), [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew170IndexTitle,
+      l10n.whatsNew170IndexBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew170RecentTitle,
+      l10n.whatsNew170RecentBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew170ArtistsTitle,
+      l10n.whatsNew170ArtistsBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew170AlbumMenuTitle,
+      l10n.whatsNew170AlbumMenuBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew170NowPlayingTitle,
+      l10n.whatsNew170NowPlayingBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew170ColoursTitle,
+      l10n.whatsNew170ColoursBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew170HomeTitle,
+      l10n.whatsNew170HomeBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew170QueueTitle,
+      l10n.whatsNew170QueueBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew170PhotosTitle,
+      l10n.whatsNew170PhotosBody,
+    ),
+  ]),
   Release('1.6.0', date: DateTime(2026, 11, 16), [
     ReleaseNote(
       ReleaseNoteKind.added,

@@ -1,6 +1,6 @@
 # Troona privacy policy
 
-Last updated: October 30, 2026
+Last updated: November 19, 2026
 
 Troona plays the music stored on your phone. It has no account, no ads and no analytics.
 
@@ -10,7 +10,7 @@ Your library, likes, playlists and listening history are stored only on this pho
 
 ## Online extras (off by default)
 
-There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or listening history is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded. "Clear downloaded info" deletes everything fetched online.
+There are two separate switches. Bios sends artist and album names to Last.fm. Photos sends them to Deezer, with up to three titles of each artist's songs (their most played) so that the photo found is of that artist and not a namesake, and downloads pictures from Deezer or Last.fm. These services also see your IP address, as with any web request. No file, account or play count is sent. Turn either switch off at any time in Settings: requests to that service stop, and turning photos off also deletes the photos already downloaded. "Clear downloaded info" deletes everything fetched online.
 
 - Last.fm privacy policy: https://www.last.fm/legal/privacy
 - Deezer privacy policy: https://www.deezer.com/legal/personal-datas

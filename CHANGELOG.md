@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-19
+
 ### Added
 
 - Library: an alphabetical index down the right edge of Songs, Albums and Artists when they are sorted by name.
@@ -26,6 +28,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album pages: a tap on the record only pauses and resumes (Play starts the album), and the record reads better on a dark page.
 - Library: artists three across, tighter grids, and only the items shown on opening play their entrance.
 - Fewer outlines on Home and Settings, easier to read durations and tabs, and switches in the accent colour.
+- Artist photos are looked up on Deezer with up to three of the artist's song titles, to tell them from namesakes. The privacy policy says so.
 
 ### Fixed
 
@@ -211,7 +214,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only. Network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/donfreddy/troona-music/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/donfreddy/troona-music/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/donfreddy/troona-music/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/donfreddy/troona-music/compare/v1.3.0...v1.4.0
