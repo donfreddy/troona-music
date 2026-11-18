@@ -25,6 +25,7 @@ class _Repo implements MetadataRepository {
   @override
   Future<ArtistOnlineInfo?> getArtistInfo(
     String artistName, {
+    List<String> songTitles = const [],
     bool forceRefresh = false,
   }) async {
     final wasOn = photos;

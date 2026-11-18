@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +12,7 @@ import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
+import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/metadata/presentation/widgets/online_about_card.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -38,6 +42,7 @@ import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/shared/widgets/meta_line.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
+import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 
 Widget _animatedArtistItem(
   Widget child,
@@ -55,13 +60,10 @@ Widget _animatedArtistItem(
   );
 }
 
-/// Redesigned Artist Detail page in Apple Music & Spotify aesthetics.
-///
-/// Features:
-/// - Circular Artist Stage hero with glow halo and fallback monogram
-/// - Twin Play/Shuffle actions
-/// - Prioritized layout: Popular Tracks FIRST, followed by Discography carousel
-/// - Library collection footprint stats
+/// An artist's page: their photo or the glow of their cover behind the name
+/// and Shuffle, then their songs most played first, their latest release,
+/// albums, singles, the albums they appear on, similar artists the library
+/// holds and, last, About.
 class ArtistDetailPage extends StatelessWidget {
   final String id;
 
@@ -91,9 +93,15 @@ class ArtistDetailPage extends StatelessWidget {
                 ArtistDetailLoaded(:final data) => MultiBlocProvider(
                   providers: [
                     BlocProvider<ArtistMetadataCubit>(
-                      create: (_) =>
-                          getIt<ArtistMetadataCubit>()
-                            ..loadArtistMetadata(data.artist),
+                      create: (_) => getIt<ArtistMetadataCubit>()
+                        ..loadArtistMetadata(
+                          data.artist,
+                          songTitles:
+                              ArtistArtworkPrefetchService.songTitlesFor(
+                                data.artist.id,
+                                data.topTracks,
+                              ),
+                        ),
                     ),
                     BlocProvider<SimilarArtistsCubit>(
                       create: (_) => getIt<SimilarArtistsCubit>(),
@@ -116,10 +124,9 @@ class ArtistDetailPage extends StatelessWidget {
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           slivers: [
-                            _ArtistHeader(
+                            _ArtistHeaderSizer(
                               artist: data.artist,
                               tracks: data.topTracks,
-                              albums: data.allAlbums,
                             ),
 
                             // ── 1. Top Tracks FIRST for instant playback ───────────
@@ -219,67 +226,68 @@ class ArtistDetailPage extends StatelessWidget {
 }
 
 // ── Hero Header ──────────────────────────────────────────────────────
+/// The header, rebuilt when the artist's photo is downloaded or deleted
+/// while the page is open.
+class _ArtistHeaderSizer extends StatefulWidget {
+  final Artist artist;
+  final List<Track> tracks;
+
+  const _ArtistHeaderSizer({required this.artist, required this.tracks});
+
+  @override
+  State<_ArtistHeaderSizer> createState() => _ArtistHeaderSizerState();
+}
+
+class _ArtistHeaderSizerState extends State<_ArtistHeaderSizer> {
+  /// A photo downloaded or deleted (the photos switch turned off) while
+  /// the page is open: the header reads the disk again. The metadata may
+  /// not change at all then (offline, no address to compare).
+  late final StreamSubscription<String> _photoChanged;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoChanged = getIt<MetadataRepository>().onArtistArtworkUpdated
+        .where(
+          (id) => id == MetadataRepository.allArtists || id == widget.artist.id,
+        )
+        .listen((_) {
+          if (mounted) setState(() {});
+        });
+  }
+
+  @override
+  void dispose() {
+    _photoChanged.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      _ArtistHeader(artist: widget.artist, tracks: widget.tracks);
+}
+
+/// One layout and one height, with or without a photo: the name and counts
+/// at the bottom left, Shuffle at the bottom right, at the same place on
+/// every artist's page. Behind them, the photo edge to edge, or the glow of
+/// their cover; a photo that comes later fades in behind text that does
+/// not move.
 class _ArtistHeader extends StatelessWidget {
   final Artist artist;
   final List<Track> tracks;
-  final List<Album> albums;
 
-  const _ArtistHeader({
-    required this.artist,
-    required this.tracks,
-    required this.albums,
-  });
+  const _ArtistHeader({required this.artist, required this.tracks});
 
-  /// Height of the expanded header's text at the default font size.
+  /// Height of the expanded header's text at the default font size: what
+  /// it grows by with the font.
   static const double _expandedText = 100.0;
+
+  /// Below the navigation row.
   static const double _expandedHeight = 324.0;
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty || parts[0].isEmpty) return '♪';
-    if (parts.length == 1) {
-      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
-    }
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-
-  Widget _buildMonogram(AppColors colors, {bool initials = true}) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: [
-            colors.accent.withValues(alpha: 0.8),
-            Color.lerp(colors.accent, Colors.black, 0.6)!,
-          ],
-        ),
-      ),
-      child: !initials
-          ? null
-          : Center(
-              child: Text(
-                _getInitials(artist.name),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 42,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1.0,
-                ),
-              ),
-            ),
-    );
-  }
-
-  Widget _fallbackLocalOrMonogram(String? path, AppColors colors) {
-    if (path != null && path.isNotEmpty) {
-      return ArtworkImage(
-        path,
-        width: 130,
-        height: 130,
-        errorBuilder: (_, _, _) => _buildMonogram(colors),
-      );
-    }
-    return _buildMonogram(colors);
-  }
+  /// The photo already on disk, known before the first frame.
+  static String? downloadedPhoto(String artistId) =>
+      getIt<MetadataRepository>().getCachedArtistArtworkPath(artistId);
 
   /// The artist's photo, downloaded or online: none until the metadata
   /// says so, and none with photos turned off.
@@ -299,13 +307,41 @@ class _ArtistHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // With a photo, the page opens on it edge to edge (Apple Music); a
-    // local cover is too small for that and keeps the circle.
     return BlocBuilder<ArtistMetadataCubit, ArtistMetadataState>(
       buildWhen: (a, b) => _photoOf(a) != _photoOf(b),
       builder: (context, meta) {
-        final photo = _photoOf(meta);
+        // The file on disk until the metadata comes, and after it if the
+        // metadata has none (offline): it only goes with the photos switch.
+        final photo =
+            _photoOf(meta) ??
+            switch (downloadedPhoto(artist.id)) {
+              final file? => (file: file, url: null),
+              null => null,
+            };
         const expandedHeight = _expandedHeight;
+        const expandedText = _expandedText;
+        final glow = switch (artist.artworkPath) {
+          final path? when path.isNotEmpty => _CoverGlow(path: path),
+          _ => null,
+        };
+        final Widget background = photo == null
+            ? glow ?? const SizedBox.expand()
+            : _ArtistPhoto(
+                file: photo.file,
+                url: photo.url,
+                // Decoded once, for the expanded header: a stretch
+                // scales it instead of decoding it again.
+                side: math.max(
+                  MediaQuery.sizeOf(context).width,
+                  GlassSliverHeader.navBarBottom(context) +
+                      GlassSliverHeader.expandedExtentOf(
+                        context,
+                        expandedHeight,
+                        expandedText,
+                      ),
+                ),
+                fallback: glow ?? const SizedBox.expand(),
+              );
         return GlassSliverHeader(
           leading: const AppBackButton(),
           title: context.artistName(artist.name),
@@ -317,126 +353,29 @@ class _ArtistHeader extends StatelessWidget {
             ),
           ],
           stretch: true,
-          background: photo == null
-              ? switch (artist.artworkPath) {
-                  final path? when path.isNotEmpty => _CoverGlow(path: path),
-                  _ => null,
-                }
-              : _ArtistPhoto(
-                  file: photo.file,
-                  url: photo.url,
-                  // Decoded once, for the expanded header: a stretch
-                  // scales it instead of decoding it again.
-                  side: math.max(
-                    MediaQuery.sizeOf(context).width,
-                    GlassSliverHeader.navBarBottom(context) +
-                        GlassSliverHeader.expandedExtentOf(
-                          context,
-                          expandedHeight,
-                          _expandedText,
-                        ),
-                  ),
-                  fallback: _buildMonogram(context.colors, initials: false),
-                ),
+          // A photo that comes after the page opened fades in over the
+          // glow; one already there shows at once.
+          background: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            layoutBuilder: (current, previous) =>
+                Stack(fit: StackFit.expand, children: [...previous, ?current]),
+            child: KeyedSubtree(
+              key: ValueKey(photo?.file ?? photo?.url ?? glow != null),
+              child: background,
+            ),
+          ),
           expandedHeight: expandedHeight,
-          expandedTextHeight: _expandedText,
+          expandedTextHeight: expandedText,
           // Shuffle scrolls away with the hero: the collapsed bar keeps
           // the title and actions only.
-          expanded: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: photo == null
-                ? KeyedSubtree(
-                    key: const ValueKey('circle'),
-                    child: _circleHero(context),
-                  )
-                : KeyedSubtree(
-                    key: const ValueKey('photo'),
-                    child: _photoCaption(context),
-                  ),
-          ),
+          expanded: _captionRow(context),
         );
       },
     );
   }
 
-  /// Without a photo: the circle (local cover or monogram), centred titles.
-  Widget _circleHero(BuildContext context) {
-    final colors = context.colors;
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      child: Column(
-        children: [
-          const SizedBox(height: AppSpacing.sm),
-
-          // Circular artist photo. Depth only, like the album
-          // cover: an accent ring and glow would clash with the
-          // photo's own colours.
-          _animatedArtistItem(
-            Container(
-              width: 130,
-              height: 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.45),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              // Shown only without a photo: the local cover or the monogram.
-              child: ClipOval(
-                child: _fallbackLocalOrMonogram(artist.artworkPath, colors),
-              ),
-            ),
-            0,
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Artist Name
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            child: Column(
-              children: [
-                _animatedArtistItem(
-                  Text(
-                    context.artistName(artist.name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  1,
-                ),
-                const SizedBox(height: 6),
-
-                _animatedArtistItem(_summary(context, TextAlign.center), 2),
-                const SizedBox(height: AppSpacing.lg),
-                _animatedArtistItem(
-                  ShuffleRoundButton(
-                    tracks: tracks,
-                    origin: _originOf(context, artist),
-                  ),
-                  3,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Over the photo: the name and counts at its bottom left, Shuffle at
-  /// its bottom right.
-  Widget _photoCaption(BuildContext context) {
+  /// The name and counts at the bottom left, Shuffle at the bottom right.
+  Widget _captionRow(BuildContext context) {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Padding(
@@ -486,29 +425,22 @@ class _ArtistHeader extends StatelessWidget {
           1,
         ),
         const SizedBox(height: AppSpacing.sm),
-        _animatedArtistItem(
-          _summary(context, TextAlign.start, onPhoto: true),
-          2,
-        ),
+        _animatedArtistItem(_summary(context), 2),
       ],
     );
   }
 
   /// Song count, releases and listening time, as one line of text. Wraps
   /// on a narrow screen or a large font.
-  Widget _summary(
-    BuildContext context,
-    TextAlign textAlign, {
-    bool onPhoto = false,
-  }) {
+  Widget _summary(BuildContext context) {
     final totalDuration = _totalDuration;
-    return MetaLine(onPhoto: onPhoto, [
+    return MetaLine(onPhoto: true, [
       context.l10n.songCount(artist.trackCount),
       // A guest only has no release of their own.
       context.artistReleases(artist),
       if (totalDuration > Duration.zero)
         totalDuration.toHumanReadable(context.l10n),
-    ], textAlign: textAlign);
+    ]);
   }
 
   void _showArtistOptions(BuildContext context) {
@@ -851,41 +783,145 @@ class _SimilarArtistsCarousel extends StatelessWidget {
   }
 }
 
-/// Without a photo, the artist's cover behind the circle: decoded a few
-/// pixels wide and stretched over the header, it reads as a soft blur of its
-/// colours, at no cost. No `BackdropFilter` nor `ImageFiltered`: the blur
-/// is the upscale. It melts into the page at its bottom, like a photo.
-class _CoverGlow extends StatelessWidget {
+/// How the header's image melts into the page, as a mask: whole over the
+/// top, then easing out, gone a little above the header's bottom edge. One
+/// curve for the photo and for the glow, and nothing else darkens the image
+/// below the top. A second gradient there (a dark band behind the name,
+/// itself fading out towards the bottom) undid the mask: the picture came
+/// back under the name, stayed even, and went all at once in the last
+/// tenth of the header, which read as a line.
+const _imageFade = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [
+    Color(0xFFFFFFFF),
+    Color(0xFFFFFFFF),
+    Color(0x9EFFFFFF), // 62 %
+    Color(0x40FFFFFF), // 25 %
+    Color(0x17FFFFFF), // 9 %
+    Color(0x05FFFFFF), // 2 %
+    Color(0x00FFFFFF),
+  ],
+  stops: [0, .42, .6, .75, .85, .93, .98],
+);
+
+/// The header's image under [_imageFade]. The image stops one pixel short
+/// of the mask's bottom edge: on a fractional edge the mask covers its last
+/// row of pixels in part only, and what it does not cover showed as a
+/// hairline of the image along the bottom of the header.
+class _FadedIntoPage extends StatelessWidget {
+  final Widget child;
+
+  const _FadedIntoPage({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+    blendMode: BlendMode.dstIn,
+    shaderCallback: _imageFade.createShader,
+    child: Padding(padding: const EdgeInsets.only(bottom: 1), child: child),
+  );
+}
+
+/// Without a photo, the artist's cover behind the name, as a soft blur of
+/// its colours. The blur is made once, off screen: the cover is decoded a
+/// few dozen pixels wide, blurred, and kept as that small image, which the
+/// header then only stretches. No `BackdropFilter` nor `ImageFiltered` on
+/// screen: nothing is filtered again as the page scrolls. (Stretching the
+/// tiny cover without blurring it first showed its pixels as blocks, and
+/// its shapes with them.) It melts into the page at its bottom, like a
+/// photo.
+class _CoverGlow extends StatefulWidget {
   final String path;
 
   const _CoverGlow({required this.path});
 
-  /// Logical width the cover is decoded at: about 36 px on most phones.
-  static const double _decodedWidth = 12;
+  @override
+  State<_CoverGlow> createState() => _CoverGlowState();
+}
+
+class _CoverGlowState extends State<_CoverGlow> {
+  /// Side of the kept image, in pixels: enough for zones of colour, far
+  /// too few for a shape once blurred.
+  static const int _side = 48;
+
+  /// Blur of the kept image, in its own pixels.
+  static const double _sigma = 6;
+
+  ui.Image? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_bake());
+  }
+
+  @override
+  void didUpdateWidget(_CoverGlow old) {
+    super.didUpdateWidget(old);
+    if (old.path != widget.path) unawaited(_bake());
+  }
+
+  @override
+  void dispose() {
+    _image?.dispose();
+    super.dispose();
+  }
+
+  /// A cover that cannot be read leaves the page's own background.
+  Future<void> _bake() async {
+    final path = widget.path;
+    ui.Image? baked;
+    try {
+      final bytes = await File(path).readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes, targetWidth: _side);
+      final cover = (await codec.getNextFrame()).image;
+      codec.dispose();
+      final recorder = ui.PictureRecorder();
+      final box = Rect.fromLTWH(0, 0, _side.toDouble(), _side.toDouble());
+      // Drawn larger than the box: the blur thins out towards the edges
+      // of what it is given, and those edges fall outside what is kept.
+      Canvas(recorder).drawImageRect(
+        cover,
+        Rect.fromLTWH(0, 0, cover.width.toDouble(), cover.height.toDouble()),
+        box.inflate(_sigma * 3),
+        Paint()
+          ..filterQuality = FilterQuality.medium
+          ..imageFilter = ui.ImageFilter.blur(
+            sigmaX: _sigma,
+            sigmaY: _sigma,
+            tileMode: TileMode.clamp,
+          ),
+      );
+      final picture = recorder.endRecording();
+      baked = await picture.toImage(_side, _side);
+      picture.dispose();
+      cover.dispose();
+    } on Object {
+      baked = null;
+    }
+    if (!mounted || widget.path != path) {
+      baked?.dispose();
+      return;
+    }
+    final previous = _image;
+    setState(() => _image = baked);
+    previous?.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ShaderMask(
-      blendMode: BlendMode.dstIn,
-      shaderCallback: (bounds) => const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [Colors.white, Colors.white, Colors.transparent],
-        stops: [0, .5, 1],
-      ).createShader(bounds),
+    return _FadedIntoPage(
+      key: const ValueKey('coverGlow'),
       child: Stack(
         fit: StackFit.expand,
         children: [
-          FittedBox(
-            fit: BoxFit.cover,
-            clipBehavior: Clip.hardEdge,
-            child: ArtworkImage(
-              path,
-              width: _decodedWidth,
-              height: _decodedWidth,
-              // A missing cover leaves the page's own background.
-              errorBuilder: (_, _, _) =>
-                  const SizedBox.square(dimension: _decodedWidth),
+          AnimatedOpacity(
+            opacity: _image == null ? 0 : 1,
+            duration: const Duration(milliseconds: 200),
+            child: RawImage(
+              image: _image,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.medium,
             ),
           ),
           // Keeps the name and counts readable on a light cover.
@@ -940,45 +976,36 @@ class _ArtistPhoto extends StatelessWidget {
           )
         : online();
 
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 300),
-      builder: (_, t, child) => Opacity(opacity: t, child: child),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ShaderMask(
-            blendMode: BlendMode.dstIn,
-            shaderCallback: (bounds) => const LinearGradient(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _FadedIntoPage(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            clipBehavior: Clip.hardEdge,
+            child: SizedBox.square(dimension: side, child: photo),
+          ),
+        ),
+        // Under the status bar and the navigation row only, and eased: a
+        // straight ramp over a quarter of a light photo read as a grey
+        // band across its top.
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.white, Colors.white, Colors.transparent],
-              stops: [0, .6, 1],
-            ).createShader(bounds),
-            child: FittedBox(
-              fit: BoxFit.cover,
-              clipBehavior: Clip.hardEdge,
-              child: SizedBox.square(dimension: side, child: photo),
+              colors: [
+                Color(0x61000000), // 38 %
+                Color(0x4D000000), // 30 %
+                Color(0x29000000), // 16 %
+                Color(0x0D000000), // 5 %
+                Color(0x00000000),
+              ],
+              stops: [0, .06, .13, .2, .27],
             ),
           ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0x73000000), // status bar and back button
-                  Color(0x00000000),
-                  Color(0x00000000),
-                  Color(0x8C000000), // name and counts
-                  Color(0x00000000),
-                ],
-                stops: [0, .28, .45, .82, 1],
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -172,6 +172,14 @@ Future<void> configureDependencies() async {
       unawaited(dir.delete(recursive: true).then((_) {}, onError: (_) {}));
     }
   }
+  // Before anything reads a photo: the ones downloaded unchecked go once.
+  // Before the sweep of unfinished downloads too, which lists the folder
+  // this deletes.
+  await MetadataRepositoryImpl.forgetUncheckedArtistPhotos(
+    photos: onlinePhotos,
+    cache: metadataCache,
+    prefs: sharedPrefs,
+  );
   unawaited(MetadataRepositoryImpl.removeUnfinishedDownloads(onlinePhotos));
   final metadataCacheDataSource = MetadataCacheDataSourceImpl(
     cacheDir: metadataCache,
@@ -316,7 +324,7 @@ Future<void> configureDependencies() async {
     ),
   );
   getIt.registerLazySingleton<ArtistArtworkPrefetchService>(
-    () => ArtistArtworkPrefetchService(repo: getIt()),
+    () => ArtistArtworkPrefetchService(repo: getIt(), artists: getIt()),
   );
 
   // ── Use cases ─────────────────────────────────────────────────────────────

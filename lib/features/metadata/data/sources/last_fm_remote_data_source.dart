@@ -7,6 +7,7 @@ import 'package:troona/core/network/api_endpoints.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/features/metadata/data/models/last_fm_album_dto.dart';
 import 'package:troona/features/metadata/data/models/last_fm_artist_dto.dart';
+import 'package:troona/features/metadata/data/sources/deezer_artist_match.dart';
 
 abstract interface class LastFmRemoteDataSource {
   Future<LastFmArtistDto?> getArtistInfo({
@@ -20,9 +21,14 @@ abstract interface class LastFmRemoteDataSource {
     String? language,
   });
 
-  /// Null when Deezer has no match. Throws a [DioException] when Deezer
+  /// The photo of [artistName], confirmed by one of their [songTitles]
+  /// (see [DeezerArtistMatch]). Null when Deezer has no match, or no
+  /// photo, or when no song is given. Throws a [DioException] when Deezer
   /// could not be reached, so a network failure is not taken for a miss.
-  Future<String?> fetchDeezerArtistImage(String artistName);
+  Future<String?> fetchDeezerArtistImage(
+    String artistName, {
+    List<String> songTitles = const [],
+  });
 
   /// Same contract as [fetchDeezerArtistImage].
   Future<String?> fetchDeezerAlbumCover(String artistName, String albumName);
@@ -124,33 +130,49 @@ class LastFmRemoteDataSourceImpl implements LastFmRemoteDataSource {
   }
 
   @override
-  Future<String?> fetchDeezerArtistImage(String artistName) async {
+  Future<String?> fetchDeezerArtistImage(
+    String artistName, {
+    List<String> songTitles = const [],
+  }) async {
     if (LastFmArtistData.isUnknownName(artistName)) return null;
-    try {
-      final response = await _client.dio.get(
-        'https://api.deezer.com/search/artist',
-        queryParameters: {'q': artistName.trim(), 'limit': 1},
-      );
-      var data = response.data;
-      if (data is String) {
-        try {
-          data = jsonDecode(data);
-        } catch (_) {}
-      }
-      if (data is Map && data['data'] is List) {
-        final list = data['data'] as List;
-        if (list.isNotEmpty && list.first is Map) {
-          final first = list.first as Map;
-          final xl = first['picture_xl'] as String?;
-          final big = first['picture_big'] as String?;
-          final med = first['picture_medium'] as String?;
-          return xl ?? big ?? med;
+    for (final title in songTitles.take(DeezerArtistMatch.maxSongs)) {
+      try {
+        final response = await _client.dio.get(
+          'https://api.deezer.com/search',
+          queryParameters: {
+            'q': DeezerArtistMatch.query(artistName, title),
+            'limit': 15,
+          },
+        );
+        var data = response.data;
+        if (data is String) {
+          try {
+            data = jsonDecode(data);
+          } catch (_) {}
         }
+        // Over quota (50 requests in 5 s), Deezer answers 200 with an
+        // error: a failure to retry later, not a miss to remember.
+        if (data is Map && data['error'] != null) {
+          throw DioException(
+            requestOptions: response.requestOptions,
+            response: response,
+            type: DioExceptionType.badResponse,
+            message: 'Deezer: ${data['error']}',
+          );
+        }
+        if (data is Map && data['data'] is List) {
+          final photo = DeezerArtistMatch.photoIn(
+            data['data'] as List,
+            artistName,
+            title,
+          );
+          if (photo != null) return photo;
+        }
+      } on DioException {
+        rethrow;
+      } catch (e) {
+        appLogger.d('Deezer artist image lookup failed silently: $e');
       }
-    } on DioException {
-      rethrow;
-    } catch (e) {
-      appLogger.d('Deezer artist image lookup failed silently: $e');
     }
     return null;
   }

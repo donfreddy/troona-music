@@ -2,8 +2,12 @@ import 'package:troona/features/metadata/domain/entities/album_online_info.dart'
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
 
 abstract interface class MetadataRepository {
+  /// Bios and stats (Last.fm), and the photo (Deezer), found through one
+  /// of [songTitles], the artist's own songs, most played first: without
+  /// them no photo is looked for, since a name alone may find a namesake.
   Future<ArtistOnlineInfo?> getArtistInfo(
     String artistName, {
+    List<String> songTitles = const [],
     bool forceRefresh = false,
   });
 
@@ -37,9 +41,11 @@ abstract interface class MetadataRepository {
   /// Called when the photos switch is turned off.
   Future<void> forgetPhotos();
 
+  /// Downloads the photo of [artistId], found as [getArtistInfo] does.
   Future<String?> prefetchArtistPhoto({
     required String artistId,
     required String artistName,
+    required List<String> songTitles,
   });
 
   Future<int> getMetadataCacheSizeBytes();

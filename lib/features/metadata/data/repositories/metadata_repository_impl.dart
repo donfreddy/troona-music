@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/network/api_client.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/features/metadata/data/models/last_fm_album_dto.dart';
 import 'package:troona/features/metadata/data/models/last_fm_artist_dto.dart';
+import 'package:troona/features/metadata/data/sources/deezer_artist_match.dart';
 import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
 import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
@@ -85,6 +87,7 @@ class MetadataRepositoryImpl implements MetadataRepository {
   @override
   Future<ArtistOnlineInfo?> getArtistInfo(
     String artistName, {
+    List<String> songTitles = const [],
     bool forceRefresh = false,
   }) async {
     try {
@@ -101,10 +104,12 @@ class MetadataRepositoryImpl implements MetadataRepository {
       }
       if (!online.photos) return dto?.toDomain(withImage: false);
       if (dto?.artist?.bestImageUrl != null) return dto!.toDomain();
+      if (songTitles.isEmpty) return dto?.toDomain();
 
       final deezerImg = await _deezer(
         'artist:$artistName',
-        () => _remote.fetchDeezerArtistImage(artistName),
+        () =>
+            _remote.fetchDeezerArtistImage(artistName, songTitles: songTitles),
       );
       if (deezerImg == null || deezerImg.isEmpty) return dto?.toDomain();
       final artist = dto?.artist;
@@ -202,12 +207,13 @@ class MetadataRepositoryImpl implements MetadataRepository {
   Future<String?> prefetchArtistPhoto({
     required String artistId,
     required String artistName,
+    required List<String> songTitles,
   }) async {
     final cached = getCachedArtistArtworkPath(artistId);
     if (cached != null) return cached;
     if (!(await _onlineSwitches()).photos) return null;
 
-    final info = await getArtistInfo(artistName);
+    final info = await getArtistInfo(artistName, songTitles: songTitles);
     if (info == null || info.imageUrl == null || info.imageUrl!.isEmpty) {
       return null;
     }
@@ -299,6 +305,43 @@ class MetadataRepositoryImpl implements MetadataRepository {
     }
     _deezerLookups.clear();
     _artistArtworkUpdatedController.add(MetadataRepository.allArtists);
+  }
+
+  /// Preferences key set once the artist photos downloaded before they
+  /// were checked (see [DeezerArtistMatch]) have been removed.
+  static const photosCheckedKey = 'artist_photos_checked_v1';
+
+  /// Once, on the first launch of a build that checks photos: removes the
+  /// artist photos in [photos] and the online info in [cache] (an artist
+  /// entry may hold the address of an unchecked photo, and entries are now
+  /// named by a hash: the old ones would never be read again), so the
+  /// prefetch finds the photos again through the check. Downloaded album
+  /// covers stay; bios come back with the next visit. Marked done even
+  /// when nothing was there to remove.
+  static Future<void> forgetUncheckedArtistPhotos({
+    required Directory photos,
+    required Directory cache,
+    required SharedPreferences prefs,
+  }) async {
+    if (prefs.getBool(photosCheckedKey) ?? false) return;
+    for (final dir in [
+      Directory('${photos.path}/artists'),
+      Directory('${cache.path}/artists'),
+      Directory('${cache.path}/albums'),
+    ]) {
+      try {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      } catch (e) {
+        appLogger.w('Could not remove unchecked artist photos: $e');
+        return; // Tried again on the next launch.
+      }
+    }
+    try {
+      await prefs.setBool(photosCheckedKey, true);
+    } catch (e) {
+      // Never a reason not to start: done again on the next launch.
+      appLogger.w('Could not mark the artist photos as checked: $e');
+    }
   }
 
   /// Removes `.part` files an app kill left mid-download.
