@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:troona/features/player/presentation/widgets/playing_badge.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -121,29 +122,43 @@ class _ArtistCardState extends State<ArtistCard> {
     final cardContent = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ClipOval(
-          child: AspectRatio(
-            aspectRatio: 1.0,
-            child: artwork != null && artwork.isNotEmpty
-                ? ArtworkImage(artwork)
-                : Container(
-                    color: colors.glassFill,
-                    alignment: Alignment.center,
-                    // Sized from the circle, not the phone's font size: a
-                    // drawing, which the name under it already says.
-                    child: LayoutBuilder(
-                      builder: (context, box) => Text(
-                        _getInitials(widget.artist.name),
-                        textScaler: TextScaler.noScaling,
-                        style: TextStyle(
-                          color: colors.accent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: box.maxWidth * 0.32,
+        Stack(
+          children: [
+            ClipOval(
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: artwork != null && artwork.isNotEmpty
+                    ? ArtworkImage(artwork)
+                    : Container(
+                        color: colors.glassFill,
+                        alignment: Alignment.center,
+                        // Sized from the circle, not the phone's font size: a
+                        // drawing, which the name under it already says.
+                        child: LayoutBuilder(
+                          builder: (context, box) => Text(
+                            _getInitials(widget.artist.name),
+                            textScaler: TextScaler.noScaling,
+                            style: TextStyle(
+                              color: colors.accent,
+                              fontWeight: FontWeight.w700,
+                              fontSize: box.maxWidth * 0.32,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-          ),
+              ),
+            ),
+            // On the circle's edge, low on the right.
+            Positioned.fill(
+              child: Align(
+                alignment: const Alignment(0.78, 0.78),
+                child: PlayingBadge(
+                  matches: (current) =>
+                      current.credits.any((c) => '${c.id}' == widget.artist.id),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 6),
         Text(

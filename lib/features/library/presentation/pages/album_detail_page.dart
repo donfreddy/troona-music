@@ -10,7 +10,6 @@ import 'package:troona/features/metadata/presentation/widgets/online_about_card.
 import 'package:troona/core/extensions/string_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/audio_format.dart';
 import 'package:troona/features/library/domain/services/album_order.dart';
@@ -20,11 +19,11 @@ import 'package:troona/features/library/presentation/bloc/album_detail/album_det
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/domain/entities/album_detail.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_actions.dart';
 import 'package:troona/features/library/presentation/widgets/album_artist_links.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -417,35 +416,8 @@ class _AlbumHeader extends StatelessWidget {
 
   void _showAlbumOptions(BuildContext context) {
     if (tracks.isEmpty) return;
-    AppHaptics.lightImpact();
-    showActionSheet(
-      context,
-      title: album.name,
-      message: context.l10n.albumByArtist(
-        context.artistName(album.artist),
-        context.l10n.songCount(tracks.length),
-      ),
-      actions: [
-        SheetAction(
-          label: context.l10n.trackPlayNext,
-          icon: AppIcons.playNext,
-          onPressed: () {
-            for (final track in tracks.reversed) {
-              context.read<PlayerBloc>().add(TrackQueuedNext(track));
-            }
-          },
-        ),
-        SheetAction(
-          label: context.l10n.trackAddToQueue,
-          icon: AppIcons.addToQueue,
-          onPressed: () {
-            for (final track in tracks) {
-              context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-            }
-          },
-        ),
-      ],
-    );
+    // Play and Shuffle are the page's buttons.
+    showAlbumActions(context, album, tracks: tracks, withPlay: false);
   }
 }
 

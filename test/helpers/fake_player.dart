@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -308,4 +309,22 @@ final class UnusedLibrary implements LibraryRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       throw UnimplementedError('${invocation.memberName}');
+}
+
+/// A real player on a [FakeAudioPort], nothing played yet; closed at the
+/// end of the test. [play] makes a queue current and playing.
+Future<({PlayerBloc player, FakeAudioPort port})> testPlayer(
+  void Function(Future<void> Function()) addTearDown,
+) async {
+  SharedPreferences.setMockInitialValues({});
+  final port = FakeAudioPort();
+  final player = buildTestPlayerBloc(
+    port,
+    PlaybackSessionStore(await SharedPreferences.getInstance()),
+  );
+  addTearDown(() async {
+    unawaited(player.close());
+    unawaited(port.close());
+  });
+  return (player: player, port: port);
 }
