@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/app_button.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -208,7 +209,8 @@ class _ArtistLinkState extends State<_ArtistLink> {
         TrackTags.isUnknownArtist(track.artist)) {
       return text;
     }
-    // The whole width of the line: it is only as tall as its text.
+    // The whole width of the line, and 44 dp tall, the touch target: the
+    // name stays right under the title, the rest of the target below it.
     return Semantics(
       button: true,
       child: GestureDetector(
@@ -223,7 +225,14 @@ class _ArtistLinkState extends State<_ArtistLink> {
         child: AnimatedOpacity(
           opacity: _pressed ? 0.5 : 1,
           duration: const Duration(milliseconds: 100),
-          child: SizedBox(width: double.infinity, child: text),
+          child: ConstrainedBox(
+            key: const ValueKey('nowPlayingArtistLink'),
+            constraints: const BoxConstraints(
+              minWidth: double.infinity,
+              minHeight: AppButton.minTouchTarget,
+            ),
+            child: Align(alignment: Alignment.topLeft, child: text),
+          ),
         ),
       ),
     );

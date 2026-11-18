@@ -81,6 +81,22 @@ void main() {
       expect(taps, [track]);
     });
 
+    testWidgets('its target is 44 dp tall, the name at its top', (
+      tester,
+    ) async {
+      final track = _song([_burna]);
+      final taps = await show(tester, track);
+      final link = tester.getRect(
+        find.byKey(const ValueKey('nowPlayingArtistLink')),
+      );
+      expect(link.height, greaterThanOrEqualTo(44));
+      expect(tester.getRect(find.text('Burna Boy')).top, link.top);
+
+      // Below the name, still the link.
+      await tester.tapAt(link.bottomCenter - const Offset(0, 4));
+      expect(taps, [track]);
+    });
+
     testWidgets('while titles swap, the leaving one takes no tap', (
       tester,
     ) async {
