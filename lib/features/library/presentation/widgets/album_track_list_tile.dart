@@ -161,7 +161,7 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
                   style: TextStyle(
                     color: isActive
                         ? colors.accent.withValues(alpha: 0.8)
-                        : colors.labelTertiary,
+                        : colors.labelSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -175,7 +175,7 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
                   icon: AppIcons.more,
                   tooltip: context.l10n.detailMore,
                   size: 18,
-                  color: context.colors.labelTertiary,
+                  color: context.colors.labelSecondary,
                   onPressed: () => _showContextMenu(context),
                 ),
               ],

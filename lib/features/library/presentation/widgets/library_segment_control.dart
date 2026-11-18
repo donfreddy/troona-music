@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
@@ -7,7 +6,6 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
-import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 
@@ -67,81 +65,77 @@ class LibrarySegmentControl extends StatelessWidget {
                 );
                 final tabWidth = constraints.maxWidth / _tabs.length;
 
-                return BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-                  builder: (context, palette) {
-                    final accent = palette.primary;
+                // "Selected" keeps one colour, not the song playing's.
+                final accent = context.colors.accent;
+                return Stack(
+                  children: [
+                    AnimatedPositioned(
+                      duration: _animationDuration,
+                      curve: Curves.easeOutCubic,
+                      left: selectedIndex * tabWidth,
+                      top: 0,
+                      bottom: 0,
+                      width: tabWidth,
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                accent.withValues(alpha: .26),
+                                accent.withValues(alpha: .16),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusMd,
+                            ),
+                            border: Border.all(
+                              color: accent.withValues(alpha: .24),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withValues(alpha: .10),
+                                blurRadius: 16,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: _tabs.map((tab) {
+                        final (filter, icon) = tab;
+                        final label = _labelOf(filter, context);
+                        final isSelected = selected == filter;
 
-                    return Stack(
-                      children: [
-                        AnimatedPositioned(
-                          duration: _animationDuration,
-                          curve: Curves.easeOutCubic,
-                          left: selectedIndex * tabWidth,
-                          top: 0,
-                          bottom: 0,
-                          width: tabWidth,
-                          child: IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    accent.withValues(alpha: .26),
-                                    accent.withValues(alpha: .16),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusMd,
-                                ),
-                                border: Border.all(
-                                  color: accent.withValues(alpha: .24),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: accent.withValues(alpha: .10),
-                                    blurRadius: 16,
-                                    spreadRadius: 1,
-                                    offset: const Offset(0, 8),
-                                  ),
-                                ],
+                        return Expanded(
+                          child: Semantics(
+                            button: true,
+                            selected: isSelected,
+                            label: label,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                if (isSelected) return;
+                                AppHaptics.selectionClick();
+                                onChanged(filter);
+                              },
+                              child: _SegmentTabItem(
+                                label: label,
+                                icon: icon,
+                                isSelected: isSelected,
+                                duration: _animationDuration,
+                                accentColor: accent,
                               ),
                             ),
                           ),
-                        ),
-                        Row(
-                          children: _tabs.map((tab) {
-                            final (filter, icon) = tab;
-                            final label = _labelOf(filter, context);
-                            final isSelected = selected == filter;
-
-                            return Expanded(
-                              child: Semantics(
-                                button: true,
-                                selected: isSelected,
-                                label: label,
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () {
-                                    if (isSelected) return;
-                                    AppHaptics.selectionClick();
-                                    onChanged(filter);
-                                  },
-                                  child: _SegmentTabItem(
-                                    label: label,
-                                    icon: icon,
-                                    isSelected: isSelected,
-                                    duration: _animationDuration,
-                                    accentColor: accent,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    );
-                  },
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 );
               },
             ),
@@ -193,7 +187,7 @@ class _SegmentTabItem extends StatelessWidget {
                   child: Icon(
                     icon,
                     size: 17,
-                    color: isSelected ? accentColor : colors.labelTertiary,
+                    color: isSelected ? accentColor : colors.labelSecondary,
                   ),
                 ),
               ),
