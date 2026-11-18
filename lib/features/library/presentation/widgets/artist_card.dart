@@ -6,6 +6,7 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
+import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -64,6 +65,10 @@ class _ArtistCardState extends State<ArtistCard> {
   StreamSubscription<String>? _artworkSub;
   String? _effectiveArtwork;
 
+  /// Their downloaded photo, when the card shows it: it flies to their
+  /// page. A cover does not.
+  String? _photo;
+
   @override
   void initState() {
     super.initState();
@@ -93,8 +98,12 @@ class _ArtistCardState extends State<ArtistCard> {
       widget.artist.id,
     );
     final next = cached ?? widget.artist.artworkPath;
-    if (next != _effectiveArtwork) {
-      setState(() => _effectiveArtwork = next);
+    final photo = cached != null && cached.isNotEmpty ? cached : null;
+    if (next != _effectiveArtwork || photo != _photo) {
+      setState(() {
+        _effectiveArtwork = next;
+        _photo = photo;
+      });
     }
   }
 
@@ -114,6 +123,16 @@ class _ArtistCardState extends State<ArtistCard> {
     return clean.substring(0, clean.length >= 2 ? 2 : 1).toUpperCase();
   }
 
+  Widget _withPhotoHero(Widget circle) => switch (_photo) {
+    final photo? => ArtistPhotoHero(
+      artistId: widget.artist.id,
+      photo: photo,
+      round: true,
+      child: circle,
+    ),
+    null => circle,
+  };
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -124,28 +143,30 @@ class _ArtistCardState extends State<ArtistCard> {
       children: [
         Stack(
           children: [
-            ClipOval(
-              child: AspectRatio(
-                aspectRatio: 1.0,
-                child: artwork != null && artwork.isNotEmpty
-                    ? ArtworkImage(artwork)
-                    : Container(
-                        color: colors.glassFill,
-                        alignment: Alignment.center,
-                        // Sized from the circle, not the phone's font size: a
-                        // drawing, which the name under it already says.
-                        child: LayoutBuilder(
-                          builder: (context, box) => Text(
-                            _getInitials(widget.artist.name),
-                            textScaler: TextScaler.noScaling,
-                            style: TextStyle(
-                              color: colors.accent,
-                              fontWeight: FontWeight.w700,
-                              fontSize: box.maxWidth * 0.32,
+            _withPhotoHero(
+              ClipOval(
+                child: AspectRatio(
+                  aspectRatio: 1.0,
+                  child: artwork != null && artwork.isNotEmpty
+                      ? ArtworkImage(artwork)
+                      : Container(
+                          color: colors.glassFill,
+                          alignment: Alignment.center,
+                          // Sized from the circle, not the phone's font size: a
+                          // drawing, which the name under it already says.
+                          child: LayoutBuilder(
+                            builder: (context, box) => Text(
+                              _getInitials(widget.artist.name),
+                              textScaler: TextScaler.noScaling,
+                              style: TextStyle(
+                                color: colors.accent,
+                                fontWeight: FontWeight.w700,
+                                fontSize: box.maxWidth * 0.32,
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                ),
               ),
             ),
             // On the circle's edge, low on the right.

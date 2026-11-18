@@ -22,6 +22,7 @@ import 'package:troona/features/library/domain/repositories/artist_detail_reposi
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
+import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/album_row.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
@@ -426,6 +427,30 @@ void main() {
     await tester.pump();
     expect(path(), '/covers/k.jpg');
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('the downloaded photo is the one that flies from the card; '
+      'a cover glowing stays', (tester) async {
+    metadata.downloaded = '/photos/artists/1.jpg';
+    await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
+    final hero = tester.widget<ArtistPhotoHero>(find.byType(ArtistPhotoHero));
+    expect(
+      (hero.artistId, hero.photo, hero.round),
+      ('1', '/photos/artists/1.jpg', false),
+    );
+    // The whole header's picture flies, its fade into the page with it.
+    expect(
+      find.descendant(
+        of: find.byType(ArtistPhotoHero),
+        matching: find.byType(ShaderMask),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.pumpWidget(const SizedBox());
+    metadata.downloaded = null;
+    await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
+    expect(find.byType(ArtistPhotoHero), findsNothing);
   });
 
   testWidgets('without a photo nor a cover, no glow', (tester) async {

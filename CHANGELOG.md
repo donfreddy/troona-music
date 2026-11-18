@@ -16,6 +16,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - A like answers the same way everywhere: the heart that pops over the mini player now pops over Now Playing's heart, with a light vibration, and over a song's row when you like it from its menu.
 - Album pages: pulling the page down draws the record a little further out of its sleeve, and it slides back on release.
 - Album pages: opening the album that plays brings the song playing into view when it lies below the screen, once the page is in. A scroll of yours comes first.
+- Artist pages open from the photo you tapped: the round photo on an artist's card grows into the picture at the top of their page, and shrinks back into the card when you go back.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
 
 ### Changed

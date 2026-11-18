@@ -25,6 +25,7 @@ import 'package:troona/features/library/presentation/bloc/similar_artists/simila
 import 'package:troona/features/library/presentation/widgets/album_row.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
+import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
 import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/utils/queue_songs.dart';
@@ -379,8 +380,8 @@ class _ArtistHeader extends StatelessWidget {
           final path? when path.isNotEmpty => _CoverGlow(path: path),
           _ => null,
         };
-        final Widget background = photo == null
-            ? glow ?? const SizedBox.expand()
+        final Widget? photoView = photo == null
+            ? null
             : _ArtistPhoto(
                 file: photo.file,
                 url: photo.url,
@@ -397,6 +398,17 @@ class _ArtistHeader extends StatelessWidget {
                 ),
                 fallback: glow ?? const SizedBox.expand(),
               );
+        // The downloaded photo flies in from the round card tapped.
+        final Widget background = switch ((photoView, photo?.file)) {
+          (final view?, final file?) => ArtistPhotoHero(
+            artistId: artist.id,
+            photo: file,
+            round: false,
+            child: view,
+          ),
+          (final view?, null) => view,
+          _ => glow ?? const SizedBox.expand(),
+        };
         return GlassSliverHeader(
           leading: const AppBackButton(),
           title: context.artistName(artist.name),
