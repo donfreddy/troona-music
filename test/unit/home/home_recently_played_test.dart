@@ -14,6 +14,9 @@ import 'package:troona/features/home/presentation/bloc/home_bloc.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
+import 'package:troona/features/library/domain/services/library_grouping.dart';
+import 'package:troona/features/library/domain/services/recently_added.dart';
 
 TrackModel _model(String id) => TrackModel()
   ..deviceId = id
@@ -58,8 +61,11 @@ final class _Library implements IsarLibraryDataSource {
     for (final id in library.take(limit)) _model(id),
   ];
 
+  /// Every song, in the database's order (the Library's too).
+  List<TrackModel> all = [];
+
   @override
-  Future<List<TrackModel>> getAllTracks() async => [];
+  Future<List<TrackModel>> getAllTracks() async => all;
   @override
   Future<List<PlaylistModel>> getPlaylists() async => [];
   @override
@@ -195,6 +201,63 @@ void main() {
     final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
     expect(feed.weeklyPlayCount, isNull);
     expect(feed.recentlyPlayed, isNotEmpty, reason: 'the rest of Home stays');
+  });
+
+  group('new albums', () {
+    /// Song [id] of album [album], added to the phone on [day], indexed by
+    /// the app on [indexed].
+    TrackModel song(String id, int album, int day, {int indexed = 1}) =>
+        _model(id)
+          ..album = 'Album $album'
+          ..albumId = album
+          ..artworkPath = '/covers/$id.jpg'
+          ..dateAdded = DateTime(2026, 1, day)
+          ..indexedAt = DateTime(2026, 2, indexed);
+
+    Future<List<Album>> newAlbums(List<TrackModel> all) async {
+      final repo = HomeRepositoryImpl(
+        db: _Library(const [])..all = all,
+        history: _History(const []),
+      );
+      final feed = (await repo.getFeed()).getOrElse(() => throw 'no feed');
+      return feed.newAlbums;
+    }
+
+    test('by the date songs were added to the phone, not when the app '
+        'indexed them: the start of Recent albums', () async {
+      final all = [
+        song('a', 1, 1, indexed: 9),
+        song('b', 2, 8),
+        song('c', 3, 4),
+        // Album 3 got a song after album 2's.
+        song('d', 3, 9),
+      ];
+      final albums = await newAlbums(all);
+      expect([for (final a in albums) a.id], ['3', '2', '1']);
+      // As the page reads them, from the library's songs and albums.
+      final library = [for (final t in all) t.toEntity()];
+      Object card(Album a) => (a.id, a.name, a.artworkPath, a.trackCount);
+      expect(
+        albums.map(card),
+        RecentlyAdded.albumsOf(
+          library,
+          LibraryGrouping.albumsOf(library),
+        ).map(card),
+      );
+    });
+
+    test("an album's card is the Library's: its first song's cover, not "
+        "its newest's", () async {
+      final albums = await newAlbums([song('c', 3, 4), song('d', 3, 9)]);
+      expect(albums.single.artworkPath, '/covers/c.jpg');
+    });
+
+    test('five at most', () async {
+      final albums = await newAlbums([
+        for (var i = 1; i <= 8; i++) song('s$i', i, i),
+      ]);
+      expect([for (final a in albums) a.id], ['8', '7', '6', '5', '4']);
+    });
   });
 
   test('a reload that fails keeps the feed on screen', () async {
