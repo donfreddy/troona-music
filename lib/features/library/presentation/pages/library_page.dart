@@ -12,6 +12,7 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/card_grid.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/library_index.dart';
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
@@ -595,7 +596,7 @@ class _AlbumsView extends StatelessWidget {
       padding: _gridPadding(indexed),
       sliver: SliverGrid.builder(
         key: listKey,
-        gridDelegate: _CardGrid(
+        gridDelegate: CardGrid(
           columns: 2,
           textHeight: AlbumCard.textHeight(context),
         ),
@@ -644,7 +645,7 @@ class _ArtistsView extends StatelessWidget {
         key: listKey,
         // Three across: a circle reads at a third of the width, and twice
         // as many artists fit on a screen.
-        gridDelegate: _CardGrid(
+        gridDelegate: CardGrid(
           columns: 3,
           textHeight: ArtistCard.textHeight(context),
         ),
@@ -673,34 +674,6 @@ EdgeInsets _gridPadding(bool indexed) => EdgeInsets.fromLTRB(
   indexed ? LibraryIndex.width + AppSpacing.xs : AppSpacing.lg,
   0,
 );
-
-/// [columns] square covers across, each cell as tall as its cover and the
-/// [textHeight] under it: no room left empty between the rows.
-class _CardGrid extends SliverGridDelegate {
-  final int columns;
-  final double textHeight;
-
-  const _CardGrid({required this.columns, required this.textHeight});
-
-  static const double _across = AppSpacing.md;
-  static const double _down = AppSpacing.lg;
-
-  @override
-  SliverGridLayout getLayout(SliverConstraints constraints) {
-    final cell =
-        (constraints.crossAxisExtent - _across * (columns - 1)) / columns;
-    return SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: columns,
-      crossAxisSpacing: _across,
-      mainAxisSpacing: _down,
-      mainAxisExtent: cell + textHeight,
-    ).getLayout(constraints);
-  }
-
-  @override
-  bool shouldRelayout(_CardGrid old) =>
-      old.columns != columns || old.textHeight != textHeight;
-}
 
 // ── Sort button ───────────────────────────────────────────
 
