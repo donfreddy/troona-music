@@ -9,9 +9,13 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Seeking on the Now Playing ring: a finger on the glass turns the progress into the whole band, lit like light through frosted glass and brightest under the finger, and the lens rises a little. On release the light goes, then the band narrows back to the line. A plain tap shows it without seeking. Nothing grows when the phone asks for less motion.
 - Closing Now Playing: the lens alone travels into the mini player while the rest fades around it. The title and controls go at once, the covers beside the current one go with the ring, and the page below shows only once the lens has nearly landed, then settles into place. The cover stays centred in the lens all the way.
 - Dragging Now Playing down moves its content only: the background and the tabs stay put.
+- Artist pages have one layout, with or without a photo: the name at the bottom left, Shuffle on its right. Without a photo, their cover's colours glow behind it, and the name and Shuffle sit at the same place on every artist's page. The page no longer switches layout while it loads, and a photo that arrives later fades in without moving anything.
 
 ### Fixed
 
+- Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
+- The name on an artist's photo stays readable over a photo with its own lettering.
+- Scrolling a page with a large header, the small title in the bar showed up from the first pixel, over the big one still there. It now comes in once the big one is nearly gone.
 - The mini player's progress moved stop and go, a step about every second. It now moves smoothly, like the one in Now Playing.
 
 ## [1.6.0] - 2026-11-16
