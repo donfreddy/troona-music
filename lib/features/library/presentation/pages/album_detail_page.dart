@@ -689,7 +689,6 @@ class _AlbumVinylState extends State<_AlbumVinyl>
   }
 }
 
-/// A black record with faint grooves, the album's cover as its label.
 /// How far the album's record comes out at most when the page is pulled
 /// down.
 const double albumRecordPullMax = 28;
@@ -750,6 +749,7 @@ class _AlbumPullScope extends InheritedWidget {
   bool updateShouldNotify(_AlbumPullScope old) => pull != old.pull;
 }
 
+/// A black record with faint grooves, the album's cover as its label.
 class _Record extends StatelessWidget {
   final String? artworkPath;
 
