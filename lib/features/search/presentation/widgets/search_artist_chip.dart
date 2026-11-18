@@ -11,11 +11,7 @@ import 'package:troona/features/library/presentation/widgets/artist_avatar.dart'
 class SearchArtistChip extends StatelessWidget {
   final Artist artist;
 
-  /// Whether the photo flies to their page: one circle per artist on the
-  /// page may carry it.
-  final bool hero;
-
-  const SearchArtistChip({super.key, required this.artist, this.hero = true});
+  const SearchArtistChip({super.key, required this.artist});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +24,7 @@ class SearchArtistChip extends StatelessWidget {
         width: 80,
         child: Column(
           children: [
-            SizedBox.square(
-              dimension: 72,
-              child: ArtistAvatar(artist: artist, hero: hero),
-            ),
+            SizedBox.square(dimension: 72, child: ArtistAvatar(artist: artist)),
             const SizedBox(height: 6),
             Text(
               context.artistName(artist.name),

@@ -96,8 +96,8 @@ GoRoute _buildArtistSongsRoute() => GoRoute(
   },
 );
 
-/// The songs added last (`recent`), pushed in the tab it is opened from.
-/// Before a tab's `:id` route, which would take it for an id.
+/// The songs added last (`/search/recent`), opened from Search's
+/// suggestions.
 GoRoute _buildRecentlyAddedRoute() => GoRoute(
   path: 'recent',
   builder: (_, _) => _overTab(const RecentlyAddedPage()),
@@ -174,7 +174,6 @@ final appRouter = GoRouter(
                 ),
               ),
               routes: [
-                _buildRecentlyAddedRoute(),
                 GoRoute(
                   path: AppRoute.weeklyRecap,
                   name: AppRoute.weeklyRecap,
@@ -227,7 +226,6 @@ final appRouter = GoRouter(
               builder: (_, _) =>
                   const ScrollToTopOnReselect(branch: 1, child: LibraryPage()),
               routes: [
-                _buildRecentlyAddedRoute(),
                 _buildAlbumDetailRoute(name: AppRoute.albumDetail),
                 _buildArtistDetailRoute(name: AppRoute.artistDetail),
                 _buildArtistSongsRoute(),
@@ -272,7 +270,6 @@ final appRouter = GoRouter(
                 ),
               ),
               routes: [
-                _buildRecentlyAddedRoute(),
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
@@ -404,9 +401,9 @@ extension NavigationContextExt on BuildContext {
     push('${tabOf(here)}/artists/$artistId/songs', extra: here);
   }
 
-  /// Pushes the songs added last, in the current tab.
-  void pushRecentlyAdded() =>
-      push('${tabOf(GoRouterState.of(this).uri.path)}/recent');
+  /// Pushes the songs added last, in the Search tab, the only one that
+  /// opens them.
+  void pushRecentlyAdded() => push('${AppRoute.search}/recent');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');
