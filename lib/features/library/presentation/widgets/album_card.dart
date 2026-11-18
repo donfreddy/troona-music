@@ -31,7 +31,22 @@ class AlbumCard extends StatelessWidget {
     this.markSingles = false,
   });
 
-  String _subtitle(BuildContext context) {
+  String _subtitle(BuildContext context) => subtitleOf(
+    context,
+    album,
+    showArtist: showArtist,
+    markSingles: markSingles,
+  );
+
+  /// The line under an album's name: its artist and size, or, where the
+  /// page names the artist ([showArtist] false), its year (with Single when
+  /// [markSingles]). [AlbumRow] says the same.
+  static String subtitleOf(
+    BuildContext context,
+    Album album, {
+    bool showArtist = true,
+    bool markSingles = false,
+  }) {
     final l10n = context.l10n;
     final kind = album.isSingle
         ? l10n.albumSingle

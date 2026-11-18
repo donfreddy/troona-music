@@ -170,6 +170,15 @@ void main() {
       final albums = LibraryGrouping.albumsOfArtist(khaid, [
         _t('1', ['Khaid'], album: 'Emotions', title: 'a', year: 2023),
         _t('2', ['Khaid'], albumId: 2, album: 'Anabella', year: 2024),
+        _t('5', ['Khaid'], albumId: 5, album: 'Early', title: 'e', year: 2019),
+        _t(
+          '6',
+          ['Khaid'],
+          albumId: 6,
+          album: 'Earlier',
+          title: 'f',
+          year: 2018,
+        ),
         // Someone else's album, newer still: not theirs.
         _t('3', ['Mata', 'Khaid'], albumId: 3, album: '2039', year: 2025),
         _t('4', ['Mata'], albumId: 3, album: '2039', year: 2025),
@@ -177,17 +186,25 @@ void main() {
       expect(albums.latest?.name, 'Anabella');
     });
 
-    test('no latest release without a year, nor with one release only', () {
+    test('no latest release without a year, nor under four releases', () {
       final undated = LibraryGrouping.albumsOfArtist(khaid, [
-        _t('1', ['Khaid'], album: 'A', title: 'a'),
-        _t('2', ['Khaid'], albumId: 2, album: 'B', title: 'b'),
+        for (var i = 1; i <= 4; i++)
+          _t('$i', ['Khaid'], albumId: i, album: 'A$i', title: 't$i'),
       ]);
       expect(undated.latest, isNull);
 
-      final one = LibraryGrouping.albumsOfArtist(khaid, [
-        _t('1', ['Khaid'], album: 'A', title: 'a', year: 2024),
+      final three = LibraryGrouping.albumsOfArtist(khaid, [
+        for (var i = 1; i <= 3; i++)
+          _t(
+            '$i',
+            ['Khaid'],
+            albumId: i,
+            album: 'A$i',
+            title: 't$i',
+            year: 2020 + i,
+          ),
       ]);
-      expect(one.latest, isNull, reason: 'its card is right below');
+      expect(three.latest, isNull, reason: 'its cover is right below');
     });
   });
 

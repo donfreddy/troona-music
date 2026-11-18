@@ -25,6 +25,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album pages: a tap on the record pauses and resumes the album while it plays, anywhere on its edge out of the sleeve. It no longer starts the album, which replaced the queue from what looks like decoration: Play, just below, does.
 - Album pages: the record reads on a dark page, with a lit edge, clearer grooves and a soft light on it that stays put while it turns.
 - Home and Settings have fewer outlines: cards in the page (the resume card, the shortcuts, Recently played, the recap, Settings' groups) keep their light fill without an edge, which is left to what floats, the tab bar, headers and sheets. The tabs not selected are easier to read.
+- Artist pages fit small discographies: Latest release shows from four releases (below, its cover is right under it), albums and singles share one Discography under five releases, and a section of one or two albums lists them as rows instead of a lone card.
 - Songs' durations and their options button are easier to read in every list.
 - Settings: every switch that is on shows the app's accent colour, instead of one colour per row (a red switch read as an error).
 - Library: the selected filter keeps the accent colour instead of following the song playing, and the other filters' icons are easier to read.

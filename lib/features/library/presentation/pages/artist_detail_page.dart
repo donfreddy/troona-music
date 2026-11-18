@@ -22,6 +22,7 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
+import 'package:troona/features/library/presentation/widgets/album_row.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
@@ -141,19 +142,28 @@ class ArtistDetailPage extends StatelessWidget {
 
                           // ── 2. Their albums and singles, then the ones they
                           // appear on ─────────────────────────────────────────
-                          if (data.albums.own.isNotEmpty)
+                          if (data.albums.oneDiscography)
                             _ArtistAlbumsCarousel(
-                              title: context.l10n.detailAlbums,
-                              albums: data.albums.own,
+                              title: context.l10n.detailDiscography,
+                              albums: data.albums.releases,
                               order: 5,
-                            ),
-                          if (data.albums.singles.isNotEmpty)
-                            _ArtistAlbumsCarousel(
-                              title: context.l10n.detailSingles,
-                              albums: data.albums.singles,
-                              order: 6,
-                              spaced: data.albums.own.isEmpty,
-                            ),
+                              markSingles: true,
+                            )
+                          else ...[
+                            if (data.albums.own.isNotEmpty)
+                              _ArtistAlbumsCarousel(
+                                title: context.l10n.detailAlbums,
+                                albums: data.albums.own,
+                                order: 5,
+                              ),
+                            if (data.albums.singles.isNotEmpty)
+                              _ArtistAlbumsCarousel(
+                                title: context.l10n.detailSingles,
+                                albums: data.albums.singles,
+                                order: 6,
+                                spaced: data.albums.own.isEmpty,
+                              ),
+                          ],
                           if (data.albums.appearsOn.isNotEmpty)
                             _ArtistAlbumsCarousel(
                               title: context.l10n.detailAppearsOn,
@@ -744,13 +754,21 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
   /// False for the artist's own releases: the cards give the year instead.
   final bool showArtist;
 
+  /// Whether the cards say which are singles: albums and singles together.
+  final bool markSingles;
+
   const _ArtistAlbumsCarousel({
     required this.title,
     required this.albums,
     required this.order,
     this.spaced = true,
     this.showArtist = false,
+    this.markSingles = false,
   });
+
+  /// Albums needed for a carousel: one or two show as rows, not as a lone
+  /// card beside an empty row.
+  static const carouselFrom = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -764,27 +782,46 @@ class _ArtistAlbumsCarousel extends StatelessWidget {
             ],
           ),
         ),
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 215,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              itemCount: albums.length,
-              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
-              itemBuilder: (context, i) => _animatedArtistItem(
-                AlbumCard(
-                  key: ValueKey('artist-album-${albums[i].id}'),
-                  album: albums[i],
-                  size: 140,
-                  showArtist: showArtist,
+        if (albums.length < carouselFrom)
+          SliverList.list(
+            children: [
+              for (final (i, album) in albums.indexed)
+                _animatedArtistItem(
+                  AlbumRow(
+                    key: ValueKey('artist-album-${album.id}'),
+                    album: album,
+                    showArtist: showArtist,
+                    markSingles: markSingles,
+                  ),
+                  i + order + 1,
+                  slideY: 0.04,
                 ),
-                i + order + 1,
-                slideY: 0.04,
+            ],
+          )
+        else
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 215,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: albums.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.md),
+                itemBuilder: (context, i) => _animatedArtistItem(
+                  AlbumCard(
+                    key: ValueKey('artist-album-${albums[i].id}'),
+                    album: albums[i],
+                    size: 140,
+                    showArtist: showArtist,
+                    markSingles: markSingles,
+                  ),
+                  i + order + 1,
+                  slideY: 0.04,
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

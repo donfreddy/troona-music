@@ -1010,6 +1010,12 @@ abstract class AppLocalizations {
   /// **'Singles'**
   String get detailSingles;
 
+  /// No description provided for @detailDiscography.
+  ///
+  /// In en, this message translates to:
+  /// **'Discography'**
+  String get detailDiscography;
+
   /// No description provided for @detailLatestRelease.
   ///
   /// In en, this message translates to:

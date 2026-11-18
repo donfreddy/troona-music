@@ -21,6 +21,8 @@ import 'package:troona/features/library/domain/repositories/artist_detail_reposi
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
+import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_row.dart';
 import 'package:troona/features/metadata/domain/entities/artist_online_info.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
@@ -193,8 +195,15 @@ void main() {
     await open(
       tester,
       ArtistAlbums(
-        own: [_album('2', 'Emotions', year: 2023)],
-        singles: [_album('3', 'Anabella', year: 2024, single: true)],
+        own: [
+          _album('2', 'Emotions', year: 2023),
+          _album('4', 'Before', year: 2021),
+          _album('5', 'First', year: 2019),
+        ],
+        singles: [
+          _album('3', 'Anabella', year: 2024, single: true),
+          _album('6', 'Other', year: 2020, single: true),
+        ],
       ),
     );
     expect(find.text('Latest release'), findsOneWidget);
@@ -202,6 +211,74 @@ void main() {
     final latest = tester.getTopLeft(find.text('Latest release'));
     final albums = tester.getTopLeft(find.text('Albums'));
     expect(latest.dy, lessThan(albums.dy));
+  });
+
+  testWidgets('no latest release under four: its cover is right below', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      ArtistAlbums(
+        own: [_album('2', 'Emotions', year: 2023)],
+        singles: [_album('3', 'Anabella', year: 2024, single: true)],
+      ),
+    );
+    expect(find.text('Latest release'), findsNothing);
+  });
+
+  testWidgets('few releases: one Discography, singles marked, as rows', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      ArtistAlbums(
+        own: [_album('2', 'Emotions', year: 2023)],
+        singles: [_album('3', 'Anabella', year: 2024, single: true)],
+      ),
+    );
+    expect(find.text('Discography'), findsOneWidget);
+    expect(find.text('Albums'), findsNothing);
+    expect(find.text('Singles'), findsNothing);
+    expect(find.byType(AlbumRow), findsNWidgets(2));
+    expect(find.byType(AlbumCard), findsNothing);
+    expect(find.text('2024 • Single'), findsOneWidget);
+    // The album first.
+    expect(
+      tester.getTopLeft(find.text('Emotions')).dy,
+      lessThan(tester.getTopLeft(find.text('Anabella')).dy),
+    );
+  });
+
+  testWidgets('three or more in a section: a carousel; fewer: rows', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      ArtistAlbums(
+        own: [
+          _album('2', 'A', year: 2023),
+          _album('4', 'B', year: 2021),
+          _album('5', 'C', year: 2019),
+        ],
+        singles: [
+          _album('3', 'S', year: 2024, single: true),
+          _album('6', 'T', year: 2020, single: true),
+        ],
+        appearsOn: [_album('7', 'Guest', year: 2022)],
+      ),
+    );
+    expect(find.text('Albums'), findsOneWidget);
+    expect(find.text('Singles'), findsOneWidget);
+    expect(find.byType(AlbumCard), findsNWidgets(3));
+    // Two singles and the album they appear on, which names its artist.
+    expect(find.byType(AlbumRow), findsNWidgets(3));
+    expect(
+      find.descendant(
+        of: find.widgetWithText(AlbumRow, 'Guest'),
+        matching: find.textContaining('Khaid'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('no latest release when no release has a year', (tester) async {
