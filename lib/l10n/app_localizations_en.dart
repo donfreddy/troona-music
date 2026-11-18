@@ -664,6 +664,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchRecentlyAdded => 'Recently added';
 
   @override
+  String get recentlyAddedTitle => 'Recently added';
+
+  @override
+  String get recentlyAddedEmptyTitle => 'Nothing added yet';
+
+  @override
+  String get recentlyAddedEmptyBody =>
+      'Songs you add to your phone show here, newest first.';
+
+  @override
   String get searchBadgeArtist => 'Artist';
 
   @override

@@ -16,6 +16,7 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_songs_page.dart';
+import 'package:troona/features/library/presentation/pages/recently_added_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
@@ -95,6 +96,13 @@ GoRoute _buildArtistSongsRoute() => GoRoute(
   },
 );
 
+/// The songs added last (`recent`), pushed in the tab it is opened from.
+/// Before a tab's `:id` route, which would take it for an id.
+GoRoute _buildRecentlyAddedRoute() => GoRoute(
+  path: 'recent',
+  builder: (_, _) => _overTab(const RecentlyAddedPage()),
+);
+
 /// go_router's indexed stack of tabs, with heroes off in the tabs not shown.
 /// Their pages stay mounted, and a flight on the root navigator (the mini
 /// player into Now Playing) gathers the heroes of every navigator: the same
@@ -166,6 +174,7 @@ final appRouter = GoRouter(
                 ),
               ),
               routes: [
+                _buildRecentlyAddedRoute(),
                 GoRoute(
                   path: AppRoute.weeklyRecap,
                   name: AppRoute.weeklyRecap,
@@ -218,6 +227,7 @@ final appRouter = GoRouter(
               builder: (_, _) =>
                   const ScrollToTopOnReselect(branch: 1, child: LibraryPage()),
               routes: [
+                _buildRecentlyAddedRoute(),
                 _buildAlbumDetailRoute(name: AppRoute.albumDetail),
                 _buildArtistDetailRoute(name: AppRoute.artistDetail),
                 _buildArtistSongsRoute(),
@@ -239,6 +249,7 @@ final appRouter = GoRouter(
                 ),
               ),
               routes: [
+                _buildRecentlyAddedRoute(),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
                 _buildArtistSongsRoute(),
@@ -261,6 +272,7 @@ final appRouter = GoRouter(
                 ),
               ),
               routes: [
+                _buildRecentlyAddedRoute(),
                 GoRoute(
                   path: ':id',
                   name: AppRoute.playlistDetail,
@@ -391,6 +403,10 @@ extension NavigationContextExt on BuildContext {
     final here = GoRouterState.of(this).uri.path;
     push('${tabOf(here)}/artists/$artistId/songs', extra: here);
   }
+
+  /// Pushes the songs added last, in the current tab.
+  void pushRecentlyAdded() =>
+      push('${tabOf(GoRouterState.of(this).uri.path)}/recent');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

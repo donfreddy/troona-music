@@ -1166,6 +1166,24 @@ abstract class AppLocalizations {
   /// **'Recently added'**
   String get searchRecentlyAdded;
 
+  /// No description provided for @recentlyAddedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get recentlyAddedTitle;
+
+  /// No description provided for @recentlyAddedEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing added yet'**
+  String get recentlyAddedEmptyTitle;
+
+  /// No description provided for @recentlyAddedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs you add to your phone show here, newest first.'**
+  String get recentlyAddedEmptyBody;
+
   /// No description provided for @searchBadgeArtist.
   ///
   /// In en, this message translates to:

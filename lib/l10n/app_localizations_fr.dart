@@ -670,6 +670,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get searchRecentlyAdded => 'Ajouts récents';
 
   @override
+  String get recentlyAddedTitle => 'Ajouts récents';
+
+  @override
+  String get recentlyAddedEmptyTitle => 'Rien d\'ajouté pour l\'instant';
+
+  @override
+  String get recentlyAddedEmptyBody =>
+      'Les titres ajoutés à votre téléphone s\'affichent ici, du plus récent au plus ancien.';
+
+  @override
   String get searchBadgeArtist => 'Artiste';
 
   @override
