@@ -29,6 +29,7 @@ import 'package:troona/features/library/presentation/widgets/album_artist_links.
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:troona/shared/widgets/entrance_fader.dart';
@@ -472,16 +473,34 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
     if (!mounted) return;
     final animation = ModalRoute.of(context)?.animation;
     if (animation == null || animation.isCompleted) {
-      _reveal();
+      _whenUncovered();
       return;
     }
     void listener(AnimationStatus status) {
       if (!status.isCompleted) return;
       animation.removeStatusListener(listener);
-      _reveal();
+      _whenUncovered();
     }
 
     animation.addStatusListener(listener);
+  }
+
+  /// Then for Now Playing to be gone, when the album was opened from it
+  /// (Go to album): the list would move behind it as it closes.
+  void _whenUncovered() {
+    if (!mounted) return;
+    final cover = NowPlayingHero.coverAnimation;
+    if (cover.value == null) {
+      _reveal();
+      return;
+    }
+    void listener() {
+      if (cover.value != null) return;
+      cover.removeListener(listener);
+      _reveal();
+    }
+
+    cover.addListener(listener);
   }
 
   RenderBox? _built(String id) {

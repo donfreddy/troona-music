@@ -28,6 +28,7 @@ import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
 import '../../helpers/fake_player.dart';
@@ -475,6 +476,24 @@ void main() {
         final row = tester.getRect(playingRow());
         expect((row.center.dy - middle(tester)).abs(), greaterThan(50));
       }
+    });
+
+    testWidgets('opened from Now Playing: it waits for Now Playing to be '
+        'gone', (tester) async {
+      // Go to album: the album comes in under Now Playing as it closes.
+      NowPlayingHero.coverAnimation.value = const AlwaysStoppedAnimation(1);
+      addTearDown(() => NowPlayingHero.coverAnimation.value = null);
+      _albumTracks = long;
+      await open(tester, playing: [long[24]]);
+      await settle(tester);
+      expect(scroll(tester).pixels, 0, reason: 'behind Now Playing');
+
+      NowPlayingHero.coverAnimation.value = null;
+      await settle(tester);
+      expect(
+        tester.getRect(playingRow()).center.dy,
+        closeTo(middle(tester), 1),
+      );
     });
 
     testWidgets('pushed: it waits for the page to be in, then comes to it', (
