@@ -529,6 +529,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get librarySortRecent => 'Ajout récent';
 
   @override
+  String get librarySortPlays => 'Les plus écoutés';
+
+  @override
   String get libraryUpdating => 'Mise à jour de la bibliothèque…';
 
   @override

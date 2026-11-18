@@ -556,6 +556,11 @@ class _ArtistTopTracksList extends StatefulWidget {
   /// Songs shown before "See all": the albums stay within reach.
   static const shown = 5;
 
+  /// Beyond this many songs, See all opens them on a page of their own:
+  /// unfolded in place, they would push the albums far down, and Show
+  /// less to the bottom of a long list.
+  static const unfoldUpTo = 20;
+
   @override
   State<_ArtistTopTracksList> createState() => _ArtistTopTracksListState();
 }
@@ -628,6 +633,11 @@ class _ArtistTopTracksListState extends State<_ArtistTopTracksList> {
                       : l10n.detailSeeAllSongs(tracks.length),
                   size: AppButtonSize.small,
                   onPressed: () {
+                    // A page opening says enough; unfolding ticks.
+                    if (tracks.length > _ArtistTopTracksList.unfoldUpTo) {
+                      context.pushArtistSongs(widget.artist.id);
+                      return;
+                    }
                     AppHaptics.selectionClick();
                     setState(() => _expanded = !_expanded);
                   },

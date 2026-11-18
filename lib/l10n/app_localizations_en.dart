@@ -524,6 +524,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get librarySortRecent => 'Recently added';
 
   @override
+  String get librarySortPlays => 'Most played';
+
+  @override
   String get libraryUpdating => 'Updating your library…';
 
   @override

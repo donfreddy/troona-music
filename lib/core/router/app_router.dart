@@ -15,6 +15,7 @@ import 'package:troona/features/library/presentation/bloc/artist_detail/artist_d
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
+import 'package:troona/features/library/presentation/pages/artist_songs_page.dart';
 import 'package:troona/features/library/presentation/pages/library_page.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
@@ -76,6 +77,20 @@ GoRoute _buildArtistDetailRoute({String? name}) => GoRoute(
     return BlocProvider(
       create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
       child: ArtistDetailPage(id: id.toString()),
+    );
+  },
+);
+
+/// Every song of an artist (`artists/:id/songs`), beside their page rather
+/// than under it: pushed, a nested route would bring a second copy of the
+/// artist page along.
+GoRoute _buildArtistSongsRoute() => GoRoute(
+  path: 'artists/:id/songs',
+  builder: (context, state) {
+    final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+    return BlocProvider(
+      create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
+      child: _overTab(const ArtistSongsPage()),
     );
   },
 );
@@ -189,6 +204,7 @@ final appRouter = GoRouter(
                 ),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -204,6 +220,7 @@ final appRouter = GoRouter(
               routes: [
                 _buildAlbumDetailRoute(name: AppRoute.albumDetail),
                 _buildArtistDetailRoute(name: AppRoute.artistDetail),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -221,7 +238,11 @@ final appRouter = GoRouter(
                   child: SearchPage(),
                 ),
               ),
-              routes: [_buildAlbumDetailRoute(), _buildArtistDetailRoute()],
+              routes: [
+                _buildAlbumDetailRoute(),
+                _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
+              ],
             ),
           ],
         ),
@@ -255,6 +276,7 @@ final appRouter = GoRouter(
                 ),
                 _buildAlbumDetailRoute(),
                 _buildArtistDetailRoute(),
+                _buildArtistSongsRoute(),
               ],
             ),
           ],
@@ -361,6 +383,10 @@ extension NavigationContextExt on BuildContext {
     }
     push(target, extra: here);
   }
+
+  /// Pushes every song of an artist, in the current tab.
+  void pushArtistSongs(String artistId) =>
+      push('${tabOf(GoRouterState.of(this).uri.path)}/artists/$artistId/songs');
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

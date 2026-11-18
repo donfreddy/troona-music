@@ -234,6 +234,7 @@
   "librarySortArtist": "Artist",
   "librarySortAlbum": "Album",
   "librarySortRecent": "Recently added",
+  "librarySortPlays": "Most played",
   "libraryUpdating": "Updating your library…",
   "libraryShuffleAll": "Shuffle all",
   "albumByArtist": "{artist} • {songs}",

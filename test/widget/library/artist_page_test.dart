@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:troona/features/player/presentation/bloc/palette/cover_palette.dart';
 import 'package:troona/shared/widgets/cover_background.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -117,6 +118,8 @@ void main() {
     String? artworkPath,
     Size size = const Size(400, 1600),
     double textScale = 1,
+    int songs = 2,
+    GoRouter? router,
   }) async {
     // Tall enough to build every section, by default.
     tester.view
@@ -142,8 +145,8 @@ void main() {
             artworkPath: artworkPath,
           ),
           topTracks: [
-            testTrack('a', durationMs: 1000),
-            testTrack('b', durationMs: 1000),
+            for (var i = 0; i < songs; i++)
+              testTrack(i < 2 ? 'ab'[i] : 's$i', durationMs: 1000),
           ],
           albums: albums,
         ),
@@ -164,18 +167,69 @@ void main() {
           BlocProvider<PlayerBloc>.value(value: player),
           BlocProvider<TrackPaletteCubit>.value(value: palette),
         ],
-        child: MaterialApp(
-          theme: AppTheme.dark,
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: const ArtistDetailPage(id: '1'),
-        ),
+        child: router != null
+            ? MaterialApp.router(
+                theme: AppTheme.dark,
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                routerConfig: router,
+              )
+            : MaterialApp(
+                theme: AppTheme.dark,
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: const ArtistDetailPage(id: '1'),
+              ),
       ),
     );
     await tester.pumpAndSettle();
     return player;
   }
+
+  group('See all', () {
+    GoRouter routes() => GoRouter(
+      initialLocation: '/library/artists/1',
+      routes: [
+        GoRoute(
+          path: '/library/artists/:id',
+          builder: (_, _) => const ArtistDetailPage(id: '1'),
+        ),
+        GoRoute(
+          path: '/library/artists/:id/songs',
+          builder: (_, state) => Text('songs of ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+
+    Future<void> seeAll(WidgetTester tester) async {
+      final button = find.textContaining('See all');
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('up to twenty songs, they unfold in place', (tester) async {
+      final router = routes();
+      await open(tester, const ArtistAlbums(), songs: 20, router: router);
+      await seeAll(tester);
+      await tester.scrollUntilVisible(
+        find.text('Show less'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.text('Show less'), findsOneWidget);
+      expect(router.routerDelegate.currentConfiguration.matches, hasLength(1));
+    });
+
+    testWidgets('more, and they open on a page of their own', (tester) async {
+      final router = routes();
+      await open(tester, const ArtistAlbums(), songs: 21, router: router);
+      await seeAll(tester);
+      expect(find.text('songs of 1'), findsOneWidget);
+    });
+  });
 
   testWidgets('one action, Shuffle, as a round button: it plays the artist '
       'shuffled', (tester) async {

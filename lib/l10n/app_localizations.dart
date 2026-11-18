@@ -944,6 +944,12 @@ abstract class AppLocalizations {
   /// **'Recently added'**
   String get librarySortRecent;
 
+  /// No description provided for @librarySortPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played'**
+  String get librarySortPlays;
+
   /// No description provided for @libraryUpdating.
   ///
   /// In en, this message translates to:
