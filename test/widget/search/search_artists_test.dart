@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
@@ -62,13 +63,16 @@ void main() {
 
   /// The Search tab showing [body], with the pages it can push, and the
   /// Library's, which it must not open.
+  late LibraryBloc library;
+
   Future<GoRouter> search(
     WidgetTester tester,
     Widget body, {
     List<Track> tracks = const [],
+    List<Album> albums = const [],
   }) async {
     final (:player, port: _) = await testPlayer(addTearDown);
-    final library = LibraryBloc(
+    library = LibraryBloc(
       scanLibrary: ScanLibraryUseCase(_UnusedLibrary()),
       getTracks: GetTracksUseCase(_UnusedLibrary()),
     );
@@ -76,10 +80,10 @@ void main() {
     library.emit(
       LibraryLoaded(
         allTracks: tracks,
-        allAlbums: const [],
+        allAlbums: albums,
         allArtists: const [_khaid],
         visibleTracks: tracks,
-        visibleAlbums: const [],
+        visibleAlbums: albums,
         visibleArtists: const [_khaid],
       ),
     );
@@ -206,4 +210,35 @@ void main() {
     expect(find.text('recent'), findsOneWidget);
     expect(find.text('library'), findsNothing);
   });
+
+  for (final (section, filter) in [
+    ('Artists', LibraryFilter.artists),
+    ('Albums', LibraryFilter.albums),
+  ]) {
+    testWidgets("$section' See all opens the Library on that list", (
+      tester,
+    ) async {
+      await search(
+        tester,
+        const SearchSuggestions(),
+        tracks: [testTrack('a', durationMs: 1000)],
+        albums: const [
+          Album(
+            id: '9',
+            name: 'Nexus',
+            artist: 'Khaid',
+            artistId: 1,
+            trackCount: 1,
+          ),
+        ],
+      );
+      // Artists first, then albums.
+      final seeAll = find.text('See all').at(section == 'Artists' ? 0 : 1);
+      await tester.ensureVisible(seeAll);
+      await tester.tap(seeAll);
+      await tester.pumpAndSettle();
+      expect(find.text('library'), findsOneWidget);
+      expect((library.state as LibraryLoaded).filter, filter);
+    });
+  }
 }

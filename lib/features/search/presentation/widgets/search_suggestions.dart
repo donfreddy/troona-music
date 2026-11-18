@@ -54,7 +54,7 @@ class SearchSuggestions extends StatelessWidget {
           if (artists.isNotEmpty) ...[
             SectionHeader(
               title: context.l10n.searchSuggestedArtists,
-              onViewAll: () => context.go(AppRoute.library),
+              onViewAll: () => _openLibrary(context, LibraryFilter.artists),
             ),
             SizedBox(
               height: 120,
@@ -76,7 +76,7 @@ class SearchSuggestions extends StatelessWidget {
           if (albums.isNotEmpty) ...[
             SectionHeader(
               title: context.l10n.searchSuggestedAlbums,
-              onViewAll: () => context.go(AppRoute.library),
+              onViewAll: () => _openLibrary(context, LibraryFilter.albums),
             ),
             SizedBox(
               height: 220,
@@ -120,5 +120,12 @@ class SearchSuggestions extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Every artist or album lives in the Library: See all opens it on that
+  /// list, not on everything.
+  static void _openLibrary(BuildContext context, LibraryFilter filter) {
+    context.read<LibraryBloc>().add(LibraryFilterChanged(filter));
+    context.go(AppRoute.library);
   }
 }

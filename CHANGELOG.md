@@ -40,6 +40,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Search: See all next to the suggested artists, or albums, opens the Library on its artists, or albums, instead of everything.
 - Artist pages: Play next and Add to queue, asked while the page still loads, queue the songs most played first, as once it is loaded, instead of in the library's order.
 - An artist without a photo opens on the same cover as their card, and under the same spelling of their name, instead of switching to another album's cover once the page has loaded.
 - Search shows artists with their downloaded photo, as the Library does, instead of an album cover, and an artist opens in the Search tab instead of switching to the Library.
