@@ -14,9 +14,11 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/recent_albums_page.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
+import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -177,5 +179,112 @@ void main() {
     );
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Nothing added yet'), findsNothing);
+  });
+
+  group('heroes', () {
+    const albumPage = ValueKey('album page cover');
+
+    /// Home with a card of album 1, which Recent albums lists too.
+    GoRouter home() => GoRouter(
+      initialLocation: '/home',
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (context, _) => Scaffold(
+            body: Column(
+              children: [
+                TextButton(
+                  onPressed: context.pushRecentAlbums,
+                  child: const Text('See all'),
+                ),
+                SizedBox(
+                  width: 130,
+                  child: AlbumCard(
+                    album: library.state is LibraryLoaded
+                        ? (library.state as LibraryLoaded).allAlbums.first
+                        : throw StateError('no library'),
+                    size: 130,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'recent/albums',
+              builder: (_, _) => const RecentAlbumsPage(),
+            ),
+            GoRoute(
+              path: 'albums/:id',
+              builder: (_, state) => Scaffold(
+                body: AlbumCoverHero(
+                  albumId: state.pathParameters['id']!,
+                  artworkPath: null,
+                  radius: 0,
+                  child: const SizedBox.square(key: albumPage, dimension: 300),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    /// Covers shown in place: a cover in flight leaves an empty box at both
+    /// ends.
+    int inPlace(WidgetTester tester) => tester
+        .widgetList(
+          // A pushed page is offstage for its first frame, while the
+          // heroes are measured.
+          find.descendant(
+            of: find.byType(Hero, skipOffstage: false),
+            matching: find.byWidgetPredicate(
+              (w) => w is ArtworkImage || w.key == albumPage,
+              skipOffstage: false,
+            ),
+          ),
+        )
+        .length;
+
+    testWidgets("nothing flies from Home's row into the page, nor back", (
+      tester,
+    ) async {
+      final router = home();
+      addTearDown(router.dispose);
+      await open(tester, [_song('a', 1, 1)], router: router);
+      expect(inPlace(tester), 1);
+      await tester.tap(find.text('See all'));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(inPlace(tester), 2, reason: 'coming in, frame $i');
+      }
+      await tester.pumpAndSettle();
+      router.pop();
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(inPlace(tester), 2, reason: 'going, frame $i');
+      }
+    });
+
+    testWidgets('a card of the page still flies into its album', (
+      tester,
+    ) async {
+      final router = home();
+      addTearDown(router.dispose);
+      await open(tester, [_song('a', 1, 1)], router: router);
+      await tester.tap(find.text('See all'));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(RecentAlbumsPage),
+          matching: find.byType(AlbumCard),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byKey(albumPage), findsNothing, reason: 'in flight');
+      await tester.pumpAndSettle();
+      expect(find.byKey(albumPage), findsOneWidget);
+    });
   });
 }

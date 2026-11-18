@@ -11,6 +11,7 @@ import 'package:troona/features/library/presentation/widgets/library_snapshot_bu
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/empty_state.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+import 'package:troona/shared/widgets/heroes_once_in.dart';
 import 'package:troona/shared/widgets/meta_line.dart';
 
 /// The albums added last, newest first ([RecentlyAdded.albumsOf]), on a
@@ -74,7 +75,10 @@ class RecentAlbumsPage extends StatelessWidget {
                 // Two across, as the Library's albums.
                 SliverPadding(
                   padding: const EdgeInsets.all(AppSpacing.lg),
-                  sliver: SliverGrid.builder(
+                  // Home's row holds the first of these cards: they would
+                  // fly in from it, some from off screen.
+                  sliver: HeroesOnceIn(
+                    child: SliverGrid.builder(
                       gridDelegate: CardGrid(
                         columns: 2,
                         textHeight: AlbumCard.textHeight(context),
@@ -85,6 +89,7 @@ class RecentAlbumsPage extends StatelessWidget {
                         album: albums[i],
                       ),
                     ),
+                  ),
                 ),
               ],
               SliverToBoxAdapter(
