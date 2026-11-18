@@ -18,6 +18,7 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/pages/album_detail_page.dart';
+import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
 import 'package:troona/features/metadata/domain/entities/album_online_info.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
@@ -42,13 +43,34 @@ final _tracks = [
   for (final id in ['a', 'b']) testTrack(id, durationMs: 60000),
 ];
 
+/// A song of the album sung by someone else: its row names them.
+Track _guest(String id) {
+  final t = testTrack(id, durationMs: 60000);
+  return Track(
+    id: id,
+    title: t.title,
+    artist: 'Guest',
+    artistId: 2,
+    album: t.album,
+    albumId: t.albumId,
+    path: t.path,
+    uri: t.uri,
+    size: t.size,
+    durationMs: t.durationMs,
+    fileName: t.fileName,
+  );
+}
+
+/// The album's songs; a test may hand a longer list.
+var _albumTracks = _tracks;
+
 class _Albums implements AlbumDetailRepository {
   @override
   Future<Either<Failure, Album>> getAlbumById(String id) async => right(_album);
 
   @override
   Future<Either<Failure, List<Track>>> getTracksByAlbumId(int id) async =>
-      right(_tracks);
+      right(_albumTracks);
 
   @override
   Future<Either<Failure, List<Album>>> getAlbumsByArtistId(int id) async =>
@@ -79,11 +101,12 @@ class _UnusedLibrary extends Fake implements LibraryRepository {
 }
 
 void main() {
-  setUp(
-    () => getIt.registerFactory<AlbumMetadataCubit>(
+  setUp(() {
+    _albumTracks = _tracks;
+    getIt.registerFactory<AlbumMetadataCubit>(
       () => AlbumMetadataCubit(repo: _NoMetadata()),
-    ),
-  );
+    );
+  });
   tearDown(getIt.reset);
 
   late FakeAudioPort port;
@@ -93,6 +116,8 @@ void main() {
     WidgetTester tester, {
     List<Track>? playing,
     bool reducedMotion = false,
+    double textScale = 1,
+    GlobalKey<NavigatorState>? pushedOn,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -129,17 +154,34 @@ void main() {
           BlocProvider.value(value: palette),
         ],
         child: MediaQuery(
-          data: MediaQueryData(disableAnimations: reducedMotion),
+          data: MediaQueryData(
+            disableAnimations: reducedMotion,
+            textScaler: TextScaler.linear(textScale),
+          ),
           child: MaterialApp(
             theme: AppTheme.dark,
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const AlbumDetailPage(id: '7'),
+            navigatorKey: pushedOn,
+            // Pushed over a first page, its transition left to the test.
+            home: pushedOn == null
+                ? const AlbumDetailPage(id: '7')
+                : const SizedBox(),
           ),
         ),
       ),
     );
+    if (pushedOn != null) {
+      unawaited(
+        pushedOn.currentState!.push(
+          MaterialPageRoute<void>(
+            builder: (_) => const AlbumDetailPage(id: '7'),
+          ),
+        ),
+      );
+      return;
+    }
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
   }
@@ -280,6 +322,138 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(tester.getRect(record()).left, closeTo(rest, 0.5));
+  });
+
+  group('opening the album that plays', () {
+    final long = [
+      for (var i = 0; i < 30; i++) testTrack('s$i', durationMs: 60000),
+    ];
+    ScrollPosition scroll(WidgetTester tester) => tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(CustomScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        )
+        .position;
+    // A tall phone: the first rows show under the cover.
+    setUp(() {
+      final view =
+          TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
+      view
+        ..devicePixelRatio = 1
+        ..physicalSize = const Size(400, 900);
+    });
+    tearDown(
+      () => TestWidgetsFlutterBinding.instance.platformDispatcher.views.first
+          .reset(),
+    );
+    Future<void> settle(WidgetTester tester) async {
+      // The record turns: frames, not pumpAndSettle.
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('its song far below: the list comes to it', (tester) async {
+      _albumTracks = long;
+      await open(tester, playing: [long[24]]);
+      await settle(tester);
+      final row = find.byWidgetPredicate(
+        (w) => w is AlbumTrackListTile && w.track.id == 's24',
+      );
+      expect(row, findsOneWidget);
+      final rect = tester.getRect(row);
+      final view = tester.getRect(find.byType(CustomScrollView));
+      expect(rect.top, greaterThanOrEqualTo(view.top));
+      expect(rect.bottom, lessThanOrEqualTo(view.bottom - 100));
+      // Brought near the middle, not left at the bottom edge.
+      expect(rect.center.dy, closeTo(view.center.dy, view.height / 4));
+    });
+
+    testWidgets('reduced motion: there at once', (tester) async {
+      _albumTracks = long;
+      await open(tester, playing: [long[24]], reducedMotion: true);
+      await tester.pump();
+      await tester.pump();
+      final row = find.byWidgetPredicate(
+        (w) => w is AlbumTrackListTile && w.track.id == 's24',
+      );
+      final view = tester.getRect(find.byType(CustomScrollView));
+      expect(tester.getRect(row).bottom, lessThanOrEqualTo(view.bottom - 100));
+      expect(tester.getRect(row).top, greaterThanOrEqualTo(view.top));
+    });
+
+    testWidgets('its song in view: the page stays at the top', (tester) async {
+      _albumTracks = long;
+      await open(tester, playing: [long[1]]);
+      await settle(tester);
+      expect(scroll(tester).pixels, 0);
+    });
+
+    testWidgets('another album playing: the page stays at the top', (
+      tester,
+    ) async {
+      _albumTracks = long;
+      await open(tester, playing: [testTrack('z', durationMs: 60000)]);
+      await settle(tester);
+      expect(scroll(tester).pixels, 0);
+    });
+
+    testWidgets('scrolled by the user while the page comes in: left where '
+        'they are', (tester) async {
+      _albumTracks = long;
+      final nav = GlobalKey<NavigatorState>();
+      await open(tester, playing: [long[24]], pushedOn: nav);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(AlbumTrackListTile), findsWidgets);
+      scroll(tester).jumpTo(40);
+      await settle(tester);
+      expect(scroll(tester).pixels, 40);
+    });
+
+    testWidgets('pushed: it waits for the page to be in, then comes to it', (
+      tester,
+    ) async {
+      _albumTracks = long;
+      final nav = GlobalKey<NavigatorState>();
+      await open(tester, playing: [long[24]], pushedOn: nav);
+      // Frames of the transition: a scroll started now would show.
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(scroll(tester).pixels, 0, reason: 'still coming in');
+      await settle(tester);
+      final row = find.byWidgetPredicate(
+        (w) => w is AlbumTrackListTile && w.track.id == 's24',
+      );
+      final view = tester.getRect(find.byType(CustomScrollView));
+      expect(tester.getRect(row).center.dy, closeTo(view.center.dy, 20));
+    });
+
+    testWidgets('rows above taller than the first: still brought to the '
+        'middle', (tester) async {
+      // Songs by a guest carry a second line, which makes their rows
+      // taller at a large font size: the first row alone underestimates
+      // where the song is.
+      // The rows built at first are the short ones, the tall ones lie
+      // between them and the song.
+      _albumTracks = [
+        ...long.take(13),
+        for (var i = 13; i < 24; i++) _guest('s$i'),
+        ...long.skip(24),
+      ];
+      await open(tester, playing: [long[24]], textScale: 2);
+      await settle(tester);
+      final row = find.byWidgetPredicate(
+        (w) => w is AlbumTrackListTile && w.track.id == 's24',
+      );
+      final view = tester.getRect(find.byType(CustomScrollView));
+      expect(tester.getRect(row).center.dy, closeTo(view.center.dy, 20));
+    });
   });
 
   test('the pull eases towards its limit', () {

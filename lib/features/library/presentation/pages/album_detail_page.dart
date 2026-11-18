@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/layout/app_layout.dart';
@@ -425,7 +426,7 @@ class _AlbumHeader extends StatelessWidget {
 }
 
 // ── Tracks List ───────────────────────────────────────────────────────────────
-class _AlbumTracksView extends StatelessWidget {
+class _AlbumTracksView extends StatefulWidget {
   final Album album;
 
   /// Every song of the album, in its order: an album is its whole track
@@ -435,7 +436,128 @@ class _AlbumTracksView extends StatelessWidget {
   const _AlbumTracksView({required this.album, required this.tracks});
 
   @override
+  State<_AlbumTracksView> createState() => _AlbumTracksViewState();
+}
+
+/// Opens on the song playing: when the album that plays is opened and its
+/// song is below the screen, the list comes to it once the page is in,
+/// showing that the app knows where you are. Once per page, and never
+/// over a scroll of the user's.
+class _AlbumTracksViewState extends State<_AlbumTracksView> {
+  /// One per row, to measure the rows built: the song is found from the
+  /// built row nearest to it.
+  final _rows = <int, GlobalKey>{};
+
+  /// Place of the song playing when the page opened; null when it plays
+  /// another album, or nothing.
+  int? _playingAt;
+
+  @override
+  void initState() {
+    super.initState();
+    if (context.read<PlayerBloc>().state case PlayerActive(
+      :final currentTrack,
+    )) {
+      final at = widget.tracks.indexWhere((t) => t.id == currentTrack.id);
+      if (at > 0) _playingAt = at;
+    }
+    if (_playingAt != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _whenIn());
+    }
+  }
+
+  /// Waits for the page's transition to end: the cover lands first.
+  void _whenIn() {
+    if (!mounted) return;
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      _reveal();
+      return;
+    }
+    void listener(AnimationStatus status) {
+      if (!status.isCompleted) return;
+      animation.removeStatusListener(listener);
+      _reveal();
+    }
+
+    animation.addStatusListener(listener);
+  }
+
+  RenderBox? _built(int i) {
+    final box = _rows[i]?.currentContext?.findRenderObject();
+    return box is RenderBox && box.attached && box.hasSize ? box : null;
+  }
+
+  Future<void> _reveal() async {
+    final at = _playingAt;
+    if (!mounted || at == null) return;
+    final position = Scrollable.maybeOf(context)?.position;
+    // Scrolled already: the user went somewhere of their own.
+    if (position == null || position.pixels > 0) return;
+    final still = MediaQuery.disableAnimationsOf(context);
+    final visible =
+        position.viewportDimension - context.bottomBarInset(tabs: false);
+
+    // Rows far down are not built: aimed at from the nearest built row,
+    // as tall as it, then again from closer, until the song's is built.
+    for (var pass = 0; pass < 3; pass++) {
+      if (_built(at) case final row?) {
+        final top = RenderAbstractViewport.of(
+          row,
+        ).getOffsetToReveal(row, 0).offset;
+        final shown =
+            top >= position.pixels &&
+            top + row.size.height <= position.pixels + visible;
+        if (pass == 0 && shown) return;
+        await Scrollable.ensureVisible(
+          _rows[at]!.currentContext!,
+          alignment: 0.5,
+          duration: still ? Duration.zero : const Duration(milliseconds: 300),
+          curve: Curves.easeInOutCubic,
+        );
+        return;
+      }
+      int? near;
+      for (final i in _rows.keys) {
+        if (_built(i) != null &&
+            (near == null || (i - at).abs() < (near - at).abs())) {
+          near = i;
+        }
+      }
+      final anchor = near == null ? null : _built(near);
+      if (anchor == null) return;
+      final height = anchor.size.height;
+      final top =
+          RenderAbstractViewport.of(
+            anchor,
+          ).getOffsetToReveal(anchor, 0).offset +
+          (at - near!) * (height + _divider);
+      final target = (top - (visible - height) / 2).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
+      if (still) {
+        position.jumpTo(target);
+      } else {
+        await position.animateTo(
+          target,
+          duration: Duration(milliseconds: pass == 0 ? 450 : 250),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+      // The rows the scroll brought in are built in the next frame.
+      await WidgetsBinding.instance.endOfFrame;
+      // Stopped on its way by a drag: left where the user took it.
+      if (!mounted || (position.pixels - target).abs() > 1) return;
+    }
+  }
+
+  static const double _divider = 0.5;
+
+  @override
   Widget build(BuildContext context) {
+    final tracks = widget.tracks;
+    final album = widget.album;
     final numbers = AlbumOrder.numbers(tracks);
     return SliverMainAxisGroup(
       slivers: [
@@ -444,29 +566,38 @@ class _AlbumTracksView extends StatelessWidget {
         SliverList.separated(
           itemCount: tracks.length,
           separatorBuilder: (_, _) => Divider(
-            height: 0.5,
+            height: _divider,
             indent: 52,
             color: context.colors.separator.withValues(alpha: 0.4),
           ),
           itemBuilder: (context, i) => _animatedAlbumItem(
-            AlbumTrackListTile(
-              key: ValueKey('track-${tracks[i].id}'),
-              track: tracks[i],
-              number: numbers[i],
-              subtitle: switch (LibraryGrouping.creditLine(tracks[i], album)) {
-                final line? => context.artistName(line),
-                null => null,
-              },
-              onTap: () => context.read<PlayerBloc>().add(
-                PlayTrackRequested(
+            // Measures the row, under its own key, which the list keeps
+            // its rows by.
+            KeyedSubtree(
+              key: _rows.putIfAbsent(i, GlobalKey.new),
+              child: AlbumTrackListTile(
+                key: ValueKey('track-${tracks[i].id}'),
+                track: tracks[i],
+                number: numbers[i],
+                subtitle: switch (LibraryGrouping.creditLine(
                   tracks[i],
-                  contextQueue: tracks,
-                  contextIndex: i,
-                  origin: _originOf(album),
+                  album,
+                )) {
+                  final line? => context.artistName(line),
+                  null => null,
+                },
+                onTap: () => context.read<PlayerBloc>().add(
+                  PlayTrackRequested(
+                    tracks[i],
+                    contextQueue: tracks,
+                    contextIndex: i,
+                    origin: _originOf(album),
+                  ),
                 ),
               ),
             ),
             i + 6,
+            key: ValueKey('track-${tracks[i].id}'),
           ),
         ),
       ],
