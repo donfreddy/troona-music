@@ -70,6 +70,15 @@ void main() {
     expect(port.restoredPlaying, isFalse);
   });
 
+  test('a restore the player refuses leaves Loading: nothing is loaded',
+      () async {
+    port.failLoads = true;
+    final bloc = await restoreWith(right([a, b]));
+    expect(bloc.state, isA<PlayerIdle>());
+    expect(bloc.hasQueue, isFalse);
+    expect(bloc.origin.value, isNull);
+  });
+
   test('restores where the queue came from', () async {
     final bloc = await restoreWith(right([a, b]));
     expect(

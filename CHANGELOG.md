@@ -34,7 +34,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
-- Play next and Add to queue with nothing playing, including after the mini player was swiped away: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone. Songs queued while the first one loads are no longer lost, and an album still going into the queue when another starts stays out of the new one.
+- Play next and Add to queue with nothing playing, including after the mini player was swiped away: a song, an album or an artist now starts playing. Add to queue did nothing while saying it had, and an album's Play next played its last song alone. Songs queued while the first one loads are no longer lost, and wait no longer than that song: if it cannot be played, they play instead. An album still going into the queue when another starts, or when shuffle is turned on, stops there, and songs queued while a new album fades in go into it rather than the one leaving. A saved queue that can no longer be played after a restart leaves the player empty instead of loading forever.
 - Playlist covers no longer repeat one album: songs of the same album count once, and a playlist with fewer than four albums shows its first song's cover alone instead of a grid of copies.
 - Artist photos: an artist Deezer has no photo for no longer shows a grey silhouette, and an artist no longer gets the photo of someone else with the same name. A photo is taken only when Deezer has one of their songs in your library under that name. Photos downloaded before are fetched again, once.
 - The name on an artist's photo stays readable over a photo with its own lettering.

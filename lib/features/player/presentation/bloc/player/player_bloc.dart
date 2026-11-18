@@ -542,6 +542,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
     if (result.isLeft()) {
       _restoringSnapshot = null;
+      // Out of Loading: nothing else would ever end it.
+      _sourceIds = null;
+      _origin.value = null;
+      emit(const PlayerIdle());
       await _clearPersistedSession();
     }
   }
@@ -675,6 +679,8 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         for (final track in tracks) {
           final now = _audioServicePort.currentQueue;
           if (!identical(_sourceIds, source) || now == null) break;
+          // Shuffle turned on or off: the places counted are another order.
+          if (now.shuffleEnabled != queue.shuffleEnabled) break;
           // A skip meanwhile: still after the song playing.
           at = math.max(at, now.currentIndex + 1);
           final result = await _addToQueue(
@@ -690,30 +696,44 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
 
   /// The queue Play next and Add to queue edit; null when nothing is
   /// loaded, and the songs play instead. Dismissing the player stops the
-  /// engine but keeps its queue: a dead one, not edited. A first song still
-  /// loading publishes its queue once loaded: wait for it rather than drop
-  /// the songs (a play request would be dropped while loading).
+  /// engine but keeps its queue: a dead one, not edited. While a queue
+  /// loads, the one to edit is the one coming (the engine still holds the
+  /// last one while it fades out, or none at a cold start): wait for it,
+  /// or for the load to end without one, rather than edit a queue about to
+  /// go or play over a load (a play request is dropped while loading).
   Future<Queue?> _queueToEdit() async {
     if (state is PlayerIdle) return null;
-    final queue = _audioServicePort.currentQueue;
-    if (queue != null || state is! PlayerLoading) return queue;
+    if (state is! PlayerLoading || _loaded(_audioServicePort.currentQueue)) {
+      return _audioServicePort.currentQueue;
+    }
     try {
-      await _audioServicePort.queueStream.first.timeout(
-        const Duration(seconds: 5),
-      );
+      await Future.any<Object?>([
+        _audioServicePort.queueStream.firstWhere(_loaded),
+        stream.firstWhere((state) => state is! PlayerLoading),
+      ]).timeout(const Duration(seconds: 30));
     } on Object {
-      return null;
+      // Closed, or a load that never ends: what the port has.
     }
     // Past the delivery of that event (editing now would emit inside it),
     // and the queue as the port has it: the stream may replay an old one.
     await Future<void>.delayed(Duration.zero);
+    if (state is PlayerIdle) return null;
     return _audioServicePort.currentQueue;
+  }
+
+  /// Whether [queue] is the one being loaded, not the one leaving.
+  bool _loaded(Queue? queue) {
+    if (queue == null) return false;
+    final requested = _requestedTrackId;
+    return requested == null || queue.currentTrack?.id == requested;
   }
 
   /// Whether Play next and Add to queue would queue now; without a queue
   /// they play instead, and the action says nothing (the mini player that
-  /// comes up does).
-  bool get hasQueue => state is! PlayerIdle;
+  /// comes up does). A queue loading counts: the songs wait for it.
+  bool get hasQueue =>
+      state is! PlayerIdle &&
+      (state is PlayerLoading || _audioServicePort.currentQueue != null);
 
   /// Tells the mini player [count] songs joined the queue, once they did.
   void _noticeQueued([int count = 1]) {

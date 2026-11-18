@@ -169,8 +169,23 @@ final class FakeAudioPort implements AudioServicePort {
   }) {
     setQueueCalls++;
     lastSetQueue = (tracks: tracks, startIndex: startIndex, shuffle: shuffle);
-    return _ok;
+    final gate = loadGate;
+    loadGate = null;
+    if (gate != null) {
+      return gate.future.then((_) => failLoads ? _failed : _ok);
+    }
+    return failLoads ? _failed : _ok;
   }
+
+  /// When set, loading a queue (setQueue, restoreQueue) fails.
+  bool failLoads = false;
+
+  /// When set, the next setQueue answers only once it completes. Consumed
+  /// by that call: keep a local reference to complete it.
+  Completer<void>? loadGate;
+
+  static Future<Either<Failure, Unit>> get _failed async =>
+      const Left(PlaybackFailure('unreadable'));
 
   ({List<Track> tracks, int startIndex, bool? shuffle})? lastSetQueue;
 
@@ -253,7 +268,7 @@ final class FakeAudioPort implements AudioServicePort {
     restoredPlaying = play;
     restoredQueue = queue;
     restoredPosition = position;
-    return _ok;
+    return failLoads ? _failed : _ok;
   }
 
   @override

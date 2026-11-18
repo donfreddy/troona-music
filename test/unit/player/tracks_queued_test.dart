@@ -193,5 +193,57 @@ void main() {
         expect(notices, [const TrackQueued(1)]);
       },
     );
+
+    test('a first song that fails to load while songs wait for it: they '
+        'play, without waiting any longer, and nothing says queued', () async {
+      final load = port.loadGate = Completer<void>();
+      bloc.add(PlayTrackRequested(a, contextQueue: [a, b], contextIndex: 0));
+      await pumpEventQueue();
+      expect(bloc.state, isA<PlayerLoading>());
+
+      bloc.add(TracksQueued([x], next: false));
+      await pumpEventQueue();
+      expect(port.lastSetQueue!.tracks, [a, b], reason: 'still waiting');
+
+      port.failLoads = true;
+      load.complete();
+      await pumpEventQueue();
+      expect(bloc.state, isNot(isA<PlayerLoading>()));
+      expect(bloc.hasQueue, isFalse);
+      expect(port.lastSetQueue!.tracks, [x], reason: 'played at once');
+      expect(notices, isEmpty);
+    });
+
+    test('a new queue fading in: the songs go into it, not the one leaving',
+        () async {
+      await playing();
+      bloc.add(PlayTrackRequested(c, contextQueue: [c, d], contextIndex: 0));
+      await pumpEventQueue();
+      expect(bloc.state, isA<PlayerLoading>());
+      // The engine still holds [a, b] while it fades out.
+      bloc.add(TracksQueued([x], next: true));
+      await pumpEventQueue();
+      expect(queued(), ['a', 'b'], reason: 'not into the queue leaving');
+
+      port.queue = Queue.fromTracks([c, d]);
+      port.queueCtrl.add(port.queue!);
+      await pumpEventQueue();
+      expect(queued(), ['c', 'x', 'd']);
+    });
+
+    test('shuffle turned on while they go in: the rest stops', () async {
+      await playing();
+      final gate = port.editGate = Completer<void>();
+      bloc.add(TracksQueued([x, y, z], next: true));
+      await pumpEventQueue();
+      port.queue = Queue.fromTracks(
+        port.queue!.playbackTracks,
+        shuffleEnabled: true,
+      );
+      gate.complete();
+      await pumpEventQueue();
+      expect(queued(), hasLength(3), reason: 'x only');
+      expect(notices, [const TrackQueued(1)]);
+    });
   });
 }
