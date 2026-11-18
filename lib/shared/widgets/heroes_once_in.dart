@@ -6,8 +6,10 @@ import 'package:flutter/widgets.dart';
 /// share, from off screen for the ones built past its edge. Its heroes
 /// still fly to and from a page pushed over it (an album's).
 ///
-/// A pop gathers heroes a frame after it starts, once this has rebuilt;
-/// a back swipe gathers them at once, so it may still fly them.
+/// A pop gathers heroes a frame after it starts, once this has rebuilt.
+/// A back swipe flies only heroes that ask to (`transitionOnUserGestures`),
+/// which album covers do not. An album pushed while the page is still
+/// coming in gets no flight in, yet flies back once the page is in.
 class HeroesOnceIn extends StatefulWidget {
   final Widget child;
 

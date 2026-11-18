@@ -6,9 +6,8 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 /// albums): the last songs and albums loaded, kept while a scan or an
 /// error replaces them, null before any.
 ///
-/// [builder] runs again only when those songs or albums change, or the
-/// first scan starts or ends ([loading]: nothing stored yet, more to
-/// come). A scan's progress, a search or a filter in the Library emit
+/// [builder] runs again only when those songs or albums change, or
+/// [loading] does (nothing to show yet, more to come). A scan's progress, a search or a filter in the Library emit
 /// often and change neither: the page stays mounted under the pages
 /// pushed over it, and in its tab when another is shown.
 class LibrarySnapshotBuilder extends StatelessWidget {
@@ -28,8 +27,15 @@ class LibrarySnapshotBuilder extends StatelessWidget {
     LibraryInitial() => null,
   };
 
-  static bool _loading(LibraryState state) =>
-      state is LibraryScanning && state.cached == null;
+  /// Nothing to show yet, more to come: the library is still being read,
+  /// or a scan runs over an empty one. A new install reads an empty
+  /// database first, so its first scan runs over an empty library, not
+  /// over none, while Home's row may already show what it stored.
+  static bool _loading(LibraryState state) => switch (state) {
+    LibraryInitial() => true,
+    LibraryScanning(:final cached) => cached?.allTracks.isEmpty ?? true,
+    _ => false,
+  };
 
   static bool _changed(LibraryState before, LibraryState after) {
     final (a, b) = (snapshotOf(before), snapshotOf(after));

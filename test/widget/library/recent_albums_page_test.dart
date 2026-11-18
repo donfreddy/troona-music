@@ -175,6 +175,15 @@ void main() {
       const [],
       state: const LibraryScanning(
         progress: ScanProgress(phase: ScanPhase.scanning, progress: 0),
+        // A new install reads an empty database first.
+        cached: LibraryLoaded(
+          allTracks: [],
+          allAlbums: [],
+          allArtists: [],
+          visibleTracks: [],
+          visibleAlbums: [],
+          visibleArtists: [],
+        ),
       ),
     );
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -285,6 +294,14 @@ void main() {
       expect(find.byKey(albumPage), findsNothing, reason: 'in flight');
       await tester.pumpAndSettle();
       expect(find.byKey(albumPage), findsOneWidget);
+      // And back into its card.
+      router.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      // Only Home's card, under the page, stays in place.
+      expect(inPlace(tester), 1, reason: 'in flight back');
+      await tester.pumpAndSettle();
+      expect(inPlace(tester), 2, reason: "landed, beside Home's card");
     });
   });
 }

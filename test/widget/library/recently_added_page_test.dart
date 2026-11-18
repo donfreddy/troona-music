@@ -145,6 +145,15 @@ void main() {
       const [],
       state: const LibraryScanning(
         progress: ScanProgress(phase: ScanPhase.scanning, progress: 0),
+        // A new install reads an empty database first.
+        cached: LibraryLoaded(
+          allTracks: [],
+          allAlbums: [],
+          allArtists: [],
+          visibleTracks: [],
+          visibleAlbums: [],
+          visibleArtists: [],
+        ),
       ),
     );
     expect(find.byType(TrackShimmer), findsWidgets);
