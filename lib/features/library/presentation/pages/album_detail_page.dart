@@ -637,11 +637,25 @@ class _AlbumVinylState extends State<_AlbumVinyl>
         child: GestureDetector(
           key: const ValueKey('albumVinyl'),
           onTap: ours ? () => _tap(playing) : null,
-          child: RepaintBoundary(
-            child: RotationTransition(
-              turns: _spin,
-              child: _Record(artworkPath: widget.album.artworkPath),
-            ),
+          child: Stack(
+            children: [
+              RepaintBoundary(
+                child: RotationTransition(
+                  turns: _spin,
+                  child: _Record(artworkPath: widget.album.artworkPath),
+                ),
+              ),
+              // The light on it stays put while it turns, as on a real
+              // record: that is what shows it turning, and black on the dark
+              // page still reads as a disc.
+              const IgnorePointer(
+                child: CustomPaint(
+                  key: ValueKey('vinylSheen'),
+                  size: Size.square(_AlbumVinyl.size),
+                  painter: _Sheen(),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -662,7 +676,7 @@ class _Record extends StatelessWidget {
       height: _AlbumVinyl.size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFF161618),
+        color: const Color(0xFF1A1A1D),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.5),
@@ -670,7 +684,8 @@ class _Record extends StatelessWidget {
             offset: const Offset(4, 4),
           ),
         ],
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        // A lit edge: the shadow alone is lost on a dark page.
+        border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
       ),
       child: CustomPaint(
         painter: const _Grooves(),
@@ -723,7 +738,7 @@ class _Grooves extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = .6
-      ..color = Colors.white.withValues(alpha: .05);
+      ..color = Colors.white.withValues(alpha: .07);
     for (var r = 38.0; r < size.width / 2 - 4; r += 5) {
       canvas.drawCircle(center, r, paint);
     }
@@ -731,6 +746,36 @@ class _Grooves extends CustomPainter {
 
   @override
   bool shouldRepaint(_Grooves oldDelegate) => false;
+}
+
+/// Two soft reflections across the grooves, top right and bottom left,
+/// between the label and the rim.
+class _Sheen extends CustomPainter {
+  const _Sheen();
+
+  /// Where the grooves start: the label and its margin.
+  static const double inner = 34;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final outer = size.shortestSide / 2 - 1;
+    const light = Color(0x2EFFFFFF);
+    const none = Color(0x00FFFFFF);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = outer - inner
+      ..shader = const SweepGradient(
+        // Clockwise from three o'clock: bottom left, then top right, the
+        // part out of the sleeve.
+        colors: [none, light, none, none, light, none],
+        stops: [.34, .43, .52, .84, .93, 1],
+      ).createShader(Rect.fromCircle(center: center, radius: outer));
+    canvas.drawCircle(center, (outer + inner) / 2, paint);
+  }
+
+  @override
+  bool shouldRepaint(_Sheen oldDelegate) => false;
 }
 
 /// The album a queue started on its page comes from, for Home's resume card.

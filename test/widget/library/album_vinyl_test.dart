@@ -237,4 +237,16 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(turns(tester), before);
   });
+
+  testWidgets('its light stays put while it turns, and slides with it', (
+    tester,
+  ) async {
+    await open(tester, playing: _tracks);
+    final sheen = find.byKey(const ValueKey('vinylSheen'));
+    expect(
+      find.ancestor(of: sheen, matching: find.byType(RotationTransition)),
+      findsNothing,
+    );
+    expect(tester.getRect(sheen), tester.getRect(record()));
+  });
 }
