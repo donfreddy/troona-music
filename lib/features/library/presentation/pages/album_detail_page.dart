@@ -218,24 +218,26 @@ class _AlbumHeader extends StatelessWidget {
                   // Vinyl record emerging from case
                   _animatedAlbumItem(
                     SizedBox(
-                      width: 220,
+                      // Room on both sides for the record sliding further
+                      // out while it plays: out of the box, its edge could
+                      // not be tapped.
+                      width: 220 + 2 * _AlbumVinyl.slide,
                       height: 190,
                       child: Stack(
                         alignment: Alignment.center,
-                        // The record slides further out while it plays.
                         clipBehavior: Clip.none,
                         children: [
                           // The record, out of its sleeve: further out
                           // and turning while the album plays.
                           Positioned(
-                            right: 0,
+                            right: _AlbumVinyl.slide,
                             child: _AlbumVinyl(album: album, tracks: tracks),
                           ),
 
                           // Front album artwork, landing from the card
                           // that opened the page.
                           Positioned(
-                            left: 6,
+                            left: 6 + _AlbumVinyl.slide,
                             child: AlbumCoverHero(
                               albumId: album.id,
                               artworkPath: album.artworkPath,
@@ -580,8 +582,8 @@ class _AlbumFootnote extends StatelessWidget {
 
 /// The record behind the album's sleeve. While the album plays it slides
 /// further out and turns, its label (the cover) showing the spin; paused, it
-/// stops where it is; another album playing, it slides back in. A tap on it
-/// plays the album, or pauses and resumes it.
+/// stops where it is; another album playing, it slides back in. While its
+/// album plays, a tap pauses and resumes it; it never starts the album.
 ///
 /// It does not turn when the phone asks for reduced motion.
 class _AlbumVinyl extends StatefulWidget {
@@ -623,21 +625,14 @@ class _AlbumVinylState extends State<_AlbumVinyl>
     return (ours, ours && state.isPlaying);
   }
 
-  void _tap(bool ours, bool playing) {
-    final tracks = widget.tracks;
-    if (tracks.isEmpty) return;
+  /// Pauses or resumes this album while it plays. It never starts it: that
+  /// would replace the queue from what reads as decoration, and Play sits
+  /// right below.
+  void _tap(bool playing) {
     // The player ticks for it.
-    final bloc = context.read<PlayerBloc>();
-    bloc.add(switch ((ours, playing)) {
-      (true, true) => const PauseRequested(),
-      (true, false) => const ResumeRequested(),
-      _ => PlayTrackRequested(
-        tracks[0],
-        contextQueue: tracks,
-        contextIndex: 0,
-        origin: _originOf(widget.album),
-      ),
-    });
+    context.read<PlayerBloc>().add(
+      playing ? const PauseRequested() : const ResumeRequested(),
+    );
   }
 
   @override
@@ -653,17 +648,23 @@ class _AlbumVinylState extends State<_AlbumVinyl>
     }
 
     final l10n = context.l10n;
-    return Semantics(
-      button: true,
-      label: playing ? l10n.playerPause : l10n.actionPlay,
-      excludeSemantics: true,
-      child: GestureDetector(
-        key: const ValueKey('albumVinyl'),
-        onTap: widget.tracks.isEmpty ? null : () => _tap(ours, playing),
-        child: AnimatedSlide(
-          offset: Offset(ours ? _AlbumVinyl.slide / _AlbumVinyl.size : 0, 0),
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeOutCubic,
+    // The slide outermost: a box around it would keep the record's place
+    // before it slid, and its edge out there could not be tapped.
+    return AnimatedSlide(
+      offset: Offset(ours ? _AlbumVinyl.slide / _AlbumVinyl.size : 0, 0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      child: Semantics(
+        button: ours,
+        label: !ours
+            ? null
+            : playing
+            ? l10n.playerPause
+            : l10n.actionPlay,
+        excludeSemantics: true,
+        child: GestureDetector(
+          key: const ValueKey('albumVinyl'),
+          onTap: ours ? () => _tap(playing) : null,
           child: RepaintBoundary(
             child: RotationTransition(
               turns: _spin,

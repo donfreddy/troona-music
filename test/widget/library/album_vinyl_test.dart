@@ -158,7 +158,7 @@ void main() {
       .offset
       .dx;
 
-  testWidgets('at rest, in its sleeve and still; a tap plays the album', (
+  testWidgets('at rest, in its sleeve and still; a tap starts nothing', (
     tester,
   ) async {
     await open(tester);
@@ -171,7 +171,8 @@ void main() {
     final rect = tester.getRect(record());
     await tester.tapAt(rect.centerRight - const Offset(12, 0));
     await tester.pump();
-    expect(port.lastSetQueue?.tracks, _tracks);
+    expect(port.lastSetQueue, isNull, reason: 'Play, below, starts it');
+    expect((port.pauseCalls, port.resumeCalls), (0, 0));
   });
 
   testWidgets('while the album plays, out further and turning', (tester) async {
@@ -180,6 +181,34 @@ void main() {
     final before = turns(tester);
     await tester.pump(const Duration(milliseconds: 500));
     expect(turns(tester), isNot(before));
+  });
+
+  testWidgets('while the album plays, a tap pauses it; paused, resumes it', (
+    tester,
+  ) async {
+    await open(tester, playing: _tracks);
+    final queued = port.lastSetQueue;
+    // Its edge, out of the sleeve: the cover hides the rest.
+    Offset edge() => tester.getRect(record()).centerRight - const Offset(12, 0);
+    await tester.tapAt(edge());
+    await tester.pump();
+    expect(port.pauseCalls, 1);
+
+    port.status.add(PlaybackStatus.paused);
+    await tester.pump();
+    await tester.tapAt(edge());
+    await tester.pump();
+    expect(port.resumeCalls, 1);
+    expect(port.lastSetQueue, same(queued), reason: 'the queue stays');
+  });
+
+  testWidgets('another album playing: a tap leaves it alone', (tester) async {
+    await open(tester, playing: [testTrack('z', durationMs: 60000)]);
+    final rect = tester.getRect(record());
+    await tester.tapAt(rect.centerRight - const Offset(12, 0));
+    await tester.pump();
+    expect((port.pauseCalls, port.resumeCalls), (0, 0));
+    expect(port.lastSetQueue?.tracks.single.id, 'z');
   });
 
   testWidgets('another album playing: it stays in its sleeve', (tester) async {

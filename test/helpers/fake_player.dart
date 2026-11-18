@@ -77,6 +77,7 @@ final class FakeAudioPort implements AudioServicePort {
   int skipNextCalls = 0;
   int setQueueCalls = 0;
   int resumeCalls = 0;
+  int pauseCalls = 0;
 
   /// The `play` flag of the last [restoreQueue] call.
   bool? restoredPlaying;
@@ -231,6 +232,12 @@ final class FakeAudioPort implements AudioServicePort {
   }
 
   @override
+  Future<Either<Failure, Unit>> pause({Duration fade = Duration.zero}) {
+    pauseCalls++;
+    return _ok;
+  }
+
+  @override
   Future<Either<Failure, Unit>> restoreQueue(
     Queue queue, {
     required Duration position,
@@ -259,6 +266,9 @@ final class PortRepository implements PlayerRepository {
 
   @override
   Future<Either<Failure, Unit>> resume() => _port.resume();
+
+  @override
+  Future<Either<Failure, Unit>> pause() => _port.pause();
 
   @override
   Future<Either<Failure, Unit>> skipToNext() => _port.skipToNext();

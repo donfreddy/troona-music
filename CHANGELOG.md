@@ -18,6 +18,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Library: artists show three across, and the rows of albums and artists are as tall as their cards, so no empty band sits between them and more fit on a screen, at any font size.
 - Album and artist pages take the colours of their own cover (an artist's photo once downloaded), instead of the colours of the song playing. They open in the colours of the page below and turn to theirs. A cover that cannot be read gives the neutral glow at once, instead of after a long wait.
 - Home is lighter: music starts right after the resume card and the shortcuts. Only one card about the app shows at a time (a new version, else the offer of online extras), this week's plays are a line under the greeting instead of a banner, last week's recap comes after Recently played, and Your artists and Your playlists are gone (the Library and the Playlists tab hold them).
+- Album pages: a tap on the record pauses and resumes the album while it plays, anywhere on its edge out of the sleeve. It no longer starts the album, which replaced the queue from what looks like decoration: Play, just below, does.
 - Songs' durations and their options button are easier to read in every list.
 - Settings: every switch that is on shows the app's accent colour, instead of one colour per row (a red switch read as an error).
 - Library: the selected filter keeps the accent colour instead of following the song playing, and the other filters' icons are easier to read.
