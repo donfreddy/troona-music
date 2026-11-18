@@ -37,6 +37,10 @@ class ArtistPhotoHero extends StatelessWidget {
 
   static Object tagOf(String artistId) => 'artist-photo-$artistId';
 
+  /// The photo in flight.
+  @visibleForTesting
+  static const shuttleKey = ValueKey('artistPhotoShuttle');
+
   @override
   Widget build(BuildContext context) =>
       Hero(tag: tagOf(artistId), flightShuttleBuilder: _shuttle, child: child);
@@ -48,21 +52,39 @@ class ArtistPhotoHero extends StatelessWidget {
     BuildContext fromHeroContext,
     BuildContext toHeroContext,
   ) {
-    // The route's animation is 1 with the page in, whichever way it runs:
-    // its value is how far the photo looks like the page's.
     final pageEnd = [fromHeroContext, toHeroContext].firstWhere(
       (end) =>
           end.findAncestorWidgetOfExactType<ArtistPhotoHero>()?.round == false,
       orElse: () => toHeroContext,
     );
     final page = (pageEnd.widget as Hero).child;
-    final plain = ArtworkImage(photo, placeholder: AppIcons.artist);
+    // Most often the page is the route coming or going, but a pop can land
+    // on a page below (the artist's page, from a card on another one).
+    final towardsPage = identical(pageEnd, toHeroContext);
+    // Decoded once, at the width of the screen it grows to: sized by the
+    // flight, it would be decoded again at each frame's size.
+    final side = MediaQuery.sizeOf(flightContext).width;
+    final plain = FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: ArtworkImage(
+        photo,
+        width: side,
+        height: side,
+        placeholder: AppIcons.artist,
+      ),
+    );
     return AnimatedBuilder(
       animation: animation,
       builder: (_, _) {
-        final t = animation.value.clamp(0.0, 1.0);
+        // How far the flight went, whichever way the route runs (a pop
+        // runs it from 1 to 0), then how far it looks like the page's.
+        final v = animation.value.clamp(0.0, 1.0);
+        final flown = direction == HeroFlightDirection.push ? v : 1 - v;
+        final t = towardsPage ? flown : 1 - flown;
         return LayoutBuilder(
           builder: (_, box) => ClipRRect(
+            key: shuttleKey,
             borderRadius: BorderRadius.circular(
               lerpDouble(box.biggest.shortestSide / 2, 0, t)!,
             ),

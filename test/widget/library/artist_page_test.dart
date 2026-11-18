@@ -19,7 +19,11 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/artist_albums.dart';
 import 'package:troona/features/library/domain/entities/artist_detail.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
+import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
 import 'package:troona/features/library/presentation/pages/artist_detail_page.dart';
 import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
@@ -92,6 +96,22 @@ Album _album(String id, String name, {int? year, bool single = false}) => Album(
   year: year,
 );
 
+class _UnusedLibrary extends Fake implements LibraryRepository {
+  @override
+  void cancelScan() {}
+}
+
+/// The shell's library, in [state] when given.
+LibraryBloc _library([LibraryState? state]) {
+  final bloc = LibraryBloc(
+    scanLibrary: ScanLibraryUseCase(_UnusedLibrary()),
+    getTracks: GetTracksUseCase(_UnusedLibrary()),
+  );
+  // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+  if (state != null) bloc.emit(state);
+  return bloc;
+}
+
 void main() {
   late _NoMetadata metadata;
 
@@ -154,8 +174,10 @@ void main() {
       ),
     );
     final palette = TrackPaletteCubit();
+    final library = _library();
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
+      unawaited(library.close());
       unawaited(detail.close());
       unawaited(player.close());
       unawaited(palette.close());
@@ -167,6 +189,7 @@ void main() {
           BlocProvider<ArtistDetailBloc>.value(value: detail),
           BlocProvider<PlayerBloc>.value(value: player),
           BlocProvider<TrackPaletteCubit>.value(value: palette),
+          BlocProvider<LibraryBloc>.value(value: library),
         ],
         child: router != null
             ? MaterialApp.router(
@@ -451,6 +474,94 @@ void main() {
     metadata.downloaded = null;
     await open(tester, const ArtistAlbums(), artworkPath: '/covers/k.jpg');
     expect(find.byType(ArtistPhotoHero), findsNothing);
+  });
+
+  testWidgets('the photo flies in from the card tapped while the page is '
+      'still loading the artist', (tester) async {
+    // A hero that is not there on the page's first frame never flies: the
+    // header shows at once, from the artist as the library groups them.
+    metadata.downloaded = '/photos/artists/1.jpg';
+    const khaid = Artist(id: '1', name: 'Khaid', albumCount: 2, trackCount: 2);
+    final library = _library(
+      const LibraryLoaded(
+        allTracks: [],
+        allAlbums: [],
+        allArtists: [khaid],
+        visibleTracks: [],
+        visibleAlbums: [],
+        visibleArtists: [khaid],
+      ),
+    );
+    // Never answered: the page stays loading.
+    final detail = ArtistDetailBloc(repo: _UnusedArtists());
+    SharedPreferences.setMockInitialValues({});
+    final port = FakeAudioPort();
+    final player = buildTestPlayerBloc(
+      port,
+      PlaybackSessionStore(await SharedPreferences.getInstance()),
+    );
+    final palette = TrackPaletteCubit();
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox());
+      unawaited(library.close());
+      unawaited(detail.close());
+      unawaited(player.close());
+      unawaited(palette.close());
+      unawaited(port.close());
+    });
+    const card = ValueKey('card');
+    await tester.pumpWidget(
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<ArtistDetailBloc>.value(value: detail),
+          BlocProvider<PlayerBloc>.value(value: player),
+          BlocProvider<TrackPaletteCubit>.value(value: palette),
+          BlocProvider<LibraryBloc>.value(value: library),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.dark,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ArtistDetailPage(id: '1'),
+                    ),
+                  ),
+                  child: const SizedBox.square(
+                    dimension: 100,
+                    child: ArtistPhotoHero(
+                      artistId: '1',
+                      photo: '/photos/artists/1.jpg',
+                      round: true,
+                      child: ClipOval(
+                        key: card,
+                        child: ColoredBox(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(card));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(find.byKey(ArtistPhotoHero.shuttleKey), findsOneWidget);
+    expect(find.text('Khaid'), findsWidgets, reason: 'the header, at once');
+    // Its spinner turns: frames, not pumpAndSettle.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byKey(ArtistPhotoHero.shuttleKey), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
   testWidgets('without a photo nor a cover, no glow', (tester) async {

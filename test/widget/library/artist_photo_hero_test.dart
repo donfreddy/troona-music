@@ -87,10 +87,7 @@ void main() {
   }
 
   // The shuttle: the plain photo and the page's, under one clip.
-  final shuttleClip = find.ancestor(
-    of: find.byType(ArtworkImage),
-    matching: find.byType(ClipRRect),
-  );
+  final shuttleClip = find.byKey(ArtistPhotoHero.shuttleKey);
   double radius(WidgetTester tester) =>
       (tester.widget<ClipRRect>(shuttleClip.first).borderRadius as BorderRadius)
           .topLeft
@@ -151,6 +148,78 @@ void main() {
     await tester.pumpAndSettle();
     expect(shuttleClip, findsNothing);
     expect(find.byKey(cardKey), findsOneWidget);
+  });
+
+  testWidgets('a card over the page, popped: the photo goes from the circle '
+      'to the header below, not backwards', (tester) async {
+    // The artist's page, then another page holding their card (as Also in
+    // your library); going back to them pops.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Align(
+              alignment: Alignment.topCenter,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Scaffold(
+                      body: Center(
+                        child: Builder(
+                          builder: (context) => GestureDetector(
+                            onTap: () => Navigator.of(context).pop(),
+                            child: const SizedBox.square(
+                              dimension: 100,
+                              child: ArtistPhotoHero(
+                                artistId: '7',
+                                photo: '/photos/7.jpg',
+                                round: true,
+                                child: ClipOval(
+                                  key: cardKey,
+                                  child: ColoredBox(color: Colors.red),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                child: const SizedBox(
+                  width: 400,
+                  height: 300,
+                  child: ArtistPhotoHero(
+                    artistId: '7',
+                    photo: '/photos/7.jpg',
+                    round: false,
+                    child: ColoredBox(key: pageLook, color: Colors.blue),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(pageLook));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(radius(tester), closeTo(0, 1), reason: 'leaving the header');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(cardKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(radius(tester), closeTo(50, 1), reason: 'leaving the circle');
+    final plain = find.descendant(
+      of: shuttleClip,
+      matching: find.byType(ArtworkImage),
+    );
+    expect(opacityOf(tester, plain), closeTo(1, .02));
+    await tester.pumpAndSettle();
+    expect(shuttleClip, findsNothing);
   });
 
   group('the card', () {
