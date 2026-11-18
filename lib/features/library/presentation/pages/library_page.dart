@@ -15,7 +15,6 @@ import 'package:troona/features/library/presentation/widgets/album_card.dart';
 import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/library_index.dart';
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
-import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
@@ -516,7 +515,6 @@ class _TracksView extends StatelessWidget {
         onTap: () => context.read<PlayerBloc>().add(
           PlayTrackRequested(tracks[i], contextQueue: tracks, contextIndex: i),
         ),
-        onLongPress: () => _showContextMenu(context, tracks[i]),
       ),
       Divider(
         height: 0.5,
@@ -566,10 +564,6 @@ class _TracksView extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  void _showContextMenu(BuildContext context, Track track) {
-    showTrackActions(context, track, origin: TrackActionOrigin.library);
   }
 }
 

@@ -22,6 +22,7 @@ void showTrackActions(
   BuildContext context,
   Track track, {
   TrackActionOrigin origin = TrackActionOrigin.library,
+  ValueChanged<bool>? onLikeToggled,
 }) {
   final isLiked = context.read<LikesCubit>().state.isTrackLiked(track.id);
   final l10n = context.l10n;
@@ -59,6 +60,9 @@ void showTrackActions(
         icon: isLiked ? AppIcons.unlike : AppIcons.like,
         onPressed: () {
           context.read<LikesCubit>().toggle(track);
+          // Where the menu was opened answers with the heart: its row, Now
+          // Playing's heart.
+          onLikeToggled?.call(!isLiked);
           AppToast.show(context, isLiked ? l10n.toastUnliked : l10n.toastLiked);
         },
       ),

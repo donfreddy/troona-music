@@ -23,6 +23,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
@@ -312,7 +313,7 @@ class _MiniPlayerRow extends StatefulWidget {
 
 class _MiniPlayerRowState extends State<_MiniPlayerRow> {
   /// Bumped by each like from here, with what it did.
-  final _burst = ValueNotifier<(int, bool)>((0, false));
+  final _burst = LikeBurstController();
 
   /// Songs queued by hand lately, for [_QueuedAck]. Held here, above the
   /// row's per-song key, so skipping right after Play next keeps the count.
@@ -360,7 +361,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     final liked = !_isLiked(context);
     context.read<LikesCubit>().toggle(track);
     AppHaptics.lightImpact();
-    _burst.value = (_burst.value.$1 + 1, liked);
+    _burst.play(liked: liked);
     AppToast.show(
       context,
       liked ? context.l10n.toastLiked : context.l10n.toastUnliked,
@@ -495,7 +496,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                                               )
                                             : const ArtworkPlaceholder(),
                                       ),
-                                      _LikeBurst(burst: _burst),
+                                      LikeBurst(controller: _burst),
                                     ],
                                   ),
                                 ),
@@ -585,102 +586,6 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     final liked =
         likes?.state.isTrackLiked(widget.state.currentTrack.id) ?? false;
     return liked ? context.l10n.likesRemove : context.l10n.trackLike;
-  }
-}
-
-/// A heart that pops over the mini player's cover and fades: the like,
-/// or a broken heart for one taken back. Still with reduced motion: the
-/// toast says it.
-class _LikeBurst extends StatefulWidget {
-  final ValueNotifier<(int, bool)> burst;
-  const _LikeBurst({required this.burst});
-
-  @override
-  State<_LikeBurst> createState() => _LikeBurstState();
-}
-
-class _LikeBurstState extends State<_LikeBurst>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 750),
-  );
-
-  static final _scale = TweenSequence<double>([
-    TweenSequenceItem(
-      tween: Tween(
-        begin: .3,
-        end: 1.25,
-      ).chain(CurveTween(curve: Curves.easeOut)),
-      weight: 35,
-    ),
-    TweenSequenceItem(
-      tween: Tween(
-        begin: 1.25,
-        end: 1.0,
-      ).chain(CurveTween(curve: Curves.easeInOut)),
-      weight: 25,
-    ),
-    TweenSequenceItem(tween: ConstantTween(1.0), weight: 40),
-  ]);
-
-  @override
-  void initState() {
-    super.initState();
-    widget.burst.addListener(_play);
-  }
-
-  @override
-  void didUpdateWidget(_LikeBurst old) {
-    super.didUpdateWidget(old);
-    if (old.burst != widget.burst) {
-      old.burst.removeListener(_play);
-      widget.burst.addListener(_play);
-    }
-  }
-
-  void _play() {
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _ctrl.forward(from: 0);
-  }
-
-  @override
-  void dispose() {
-    widget.burst.removeListener(_play);
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final liked = widget.burst.value.$2;
-    final colors = context.colors;
-    return IgnorePointer(
-      child: AnimatedBuilder(
-        animation: _ctrl,
-        builder: (context, _) {
-          final t = _ctrl.value;
-          if (t == 0 || t == 1) return const SizedBox.shrink();
-          return Opacity(
-            opacity: t < .6 ? 1 : 1 - (t - .6) / .4,
-            child: Transform.scale(
-              scale: _scale.transform(t),
-              child: Center(
-                child: Icon(
-                  key: const ValueKey('likeBurst'),
-                  liked ? AppIcons.liked : AppIcons.unlike,
-                  size: 28,
-                  color: liked ? colors.accent : Colors.white,
-                  shadows: const [
-                    Shadow(color: Color(0x99000000), blurRadius: 8),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 

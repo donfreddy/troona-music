@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
@@ -47,9 +48,23 @@ class AlbumTrackListTile extends StatefulWidget {
 class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
   bool _pressed = false;
 
+  /// A like from this row's menu pops a heart on it.
+  final _burst = LikeBurstController();
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
+  }
+
   // The menu ticks as it opens.
   void _showContextMenu(BuildContext context) {
-    showTrackActions(context, widget.track, origin: TrackActionOrigin.album);
+    showTrackActions(
+      context,
+      widget.track,
+      origin: TrackActionOrigin.album,
+      onLikeToggled: (liked) => _burst.play(liked: liked),
+    );
   }
 
   @override
@@ -102,27 +117,33 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
               child: Row(
                 children: [
                   // ── Track number or animated MiniEqualizer ─────────────────────
-                  SizedBox.square(
-                    dimension: 32,
-                    child: Center(
-                      child: isActive
-                          ? MiniEqualizer(
-                              isPlaying: isPlaying,
-                              color: colors.accent,
-                              size: 14,
-                            )
-                          : Text(
-                              trackNumStr,
-                              style: TextStyle(
-                                color: colors.labelTertiary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                fontFeatures: const [
-                                  FontFeature.tabularFigures(),
-                                ],
-                              ),
-                            ),
-                    ),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      SizedBox.square(
+                        dimension: 32,
+                        child: Center(
+                          child: isActive
+                              ? MiniEqualizer(
+                                  isPlaying: isPlaying,
+                                  color: colors.accent,
+                                  size: 14,
+                                )
+                              : Text(
+                                  trackNumStr,
+                                  style: TextStyle(
+                                    color: colors.labelTertiary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ),
+                      Positioned.fill(child: LikeBurst(controller: _burst)),
+                    ],
                   ),
 
                   const SizedBox(width: AppSpacing.sm),

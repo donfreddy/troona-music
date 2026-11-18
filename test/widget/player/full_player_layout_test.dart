@@ -43,6 +43,10 @@ final class _NoLikes implements LibraryRepository {
       right(false);
 
   @override
+  Future<Either<Failure, Unit>> addTrackToLikes(String trackId) async =>
+      right(unit);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -291,5 +295,20 @@ void main() {
       await settle();
       expect(find.byType(GlassBottomSheet), findsNothing, reason: name);
     }
+  });
+
+  testWidgets("the heart answers a like as the mini player's does: it pops "
+      'over the button', (tester) async {
+    await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
+    final heart = tester.getCenter(find.byTooltip('Like'));
+    final burst = find.byKey(const ValueKey('likeBurst'));
+    expect(burst, findsNothing);
+    await tester.tapAt(heart);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(burst, findsOneWidget);
+    expect((tester.getCenter(burst) - heart).distance, lessThan(1));
+    await tester.pump(const Duration(seconds: 1));
+    expect(burst, findsNothing, reason: 'the heart fades away');
   });
 }

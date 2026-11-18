@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
@@ -34,9 +35,23 @@ class TrackListTile extends StatefulWidget {
 class _TrackListTileState extends State<TrackListTile> {
   bool _pressed = false;
 
+  /// A like from this row's menu pops a heart on it.
+  final _burst = LikeBurstController();
+
+  @override
+  void dispose() {
+    _burst.dispose();
+    super.dispose();
+  }
+
   // The menu ticks as it opens.
   void _showContextMenu(BuildContext context) {
-    showTrackActions(context, widget.track, origin: TrackActionOrigin.library);
+    showTrackActions(
+      context,
+      widget.track,
+      origin: TrackActionOrigin.library,
+      onLikeToggled: (liked) => _burst.play(liked: liked),
+    );
   }
 
   @override
@@ -77,7 +92,13 @@ class _TrackListTileState extends State<TrackListTile> {
               ),
               child: Row(
                 children: [
-                  TrackRowArtwork(track: widget.track),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      TrackRowArtwork(track: widget.track),
+                      Positioned.fill(child: LikeBurst(controller: _burst)),
+                    ],
+                  ),
 
                   const SizedBox(width: AppSpacing.md),
 

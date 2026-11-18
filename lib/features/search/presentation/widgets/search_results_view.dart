@@ -5,7 +5,6 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
-import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/search/domain/entities/search_result.dart';
@@ -118,13 +117,6 @@ class SearchResultsView extends StatelessWidget {
                       contextQueue: result.tracks,
                       contextIndex: index,
                     ),
-                  );
-                },
-                onLongPress: () {
-                  showTrackActions(
-                    context,
-                    track,
-                    origin: TrackActionOrigin.library,
                   );
                 },
               );

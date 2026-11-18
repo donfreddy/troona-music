@@ -36,6 +36,10 @@ final class _NoLikes implements LibraryRepository {
       right(false);
 
   @override
+  Future<Either<Failure, Unit>> addTrackToLikes(String trackId) async =>
+      right(unit);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -177,5 +181,25 @@ void main() {
     await tester.longPress(find.byType(TrackListTile));
     await tester.pumpAndSettle();
     expect(ticks, hasLength(1));
+  });
+
+  testWidgets('a like from the menu pops the heart on the row it came from', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.longPress(find.byType(TrackListTile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Like'));
+    // The menu closes, then runs the action.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(
+      find.descendant(
+        of: find.byType(TrackListTile),
+        matching: find.byKey(const ValueKey('likeBurst')),
+      ),
+      findsOneWidget,
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 4));
   });
 }
