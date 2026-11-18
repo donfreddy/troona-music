@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:async';
 
 import 'package:flutter/material.dart' hide RepeatMode;
@@ -287,5 +288,118 @@ void main() {
     expect(find.byKey(const ValueKey('likeBurst')), findsNothing);
     expect(find.text('Added to Liked songs'), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 4));
+  });
+
+  group('songs queued by hand', () {
+    final songs = [
+      for (final id in ['a', 'b', 'c']) testTrack(id, durationMs: 60000),
+    ];
+    final extra = testTrack('x', durationMs: 60000);
+    const badge = ValueKey('queuedBadge');
+
+    double badgeOpacity(WidgetTester tester) => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(
+            of: find.byKey(badge),
+            matching: find.byType(AnimatedOpacity),
+          ),
+        )
+        .opacity;
+
+    String badgeText(WidgetTester tester) => tester
+        .widget<Text>(
+          find.descendant(of: find.byKey(badge), matching: find.byType(Text)),
+        )
+        .data!;
+
+    double coverScale(WidgetTester tester) => tester
+        .widget<ScaleTransition>(
+          find.descendant(
+            of: find
+                .ancestor(of: find.byKey(badge), matching: find.byType(Stack))
+                .first,
+            matching: find.byType(ScaleTransition),
+          ),
+        )
+        .scale
+        .value;
+
+    /// The largest the cover grows over the next half second, frame by
+    /// frame: the edit runs through the bloc, its notice comes frames later.
+    Future<double> peakScale(WidgetTester tester) async {
+      var peak = coverScale(tester);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+        peak = math.max(peak, coverScale(tester));
+      }
+      return peak;
+    }
+
+    testWidgets('the cover pulses and counts them, then the count leaves', (
+      tester,
+    ) async {
+      final bloc = await pump(tester, AppTab.home, queue: songs);
+      expect(badgeOpacity(tester), 0);
+
+      bloc.add(TrackAddedToQueue(extra));
+      expect(await peakScale(tester), greaterThan(1.05));
+      expect(badgeOpacity(tester), 1);
+      expect(badgeText(tester), '+1');
+      expect(coverScale(tester), 1, reason: 'one pulse, then at rest');
+
+      // An album queued next: its songs add up in the same badge.
+      bloc
+        ..add(TrackQueuedNext(songs[1]))
+        ..add(TrackQueuedNext(songs[2]));
+      expect(await peakScale(tester), greaterThan(1.05));
+      expect(badgeText(tester), '+3');
+
+      await tester.pump(const Duration(seconds: 2));
+      expect(badgeOpacity(tester), 0);
+
+      // A song queued later counts from one again.
+      bloc.add(TrackAddedToQueue(extra));
+      await peakScale(tester);
+      expect(badgeText(tester), '+1');
+      expect(badgeOpacity(tester), 1);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+
+    testWidgets('nothing for a song put back, or one the player refused', (
+      tester,
+    ) async {
+      final bloc = await pump(tester, AppTab.home, queue: songs);
+
+      // A song swiped out of the queue sheet, then put back with Undo.
+      const removal = TrackRemovedFromQueue(index: 1, trackId: 'b');
+      bloc
+        ..add(removal)
+        ..add(TrackAddedToQueue(songs[1], index: 1, undoing: removal));
+      expect(await peakScale(tester), 1);
+      expect(port.queue!.playbackTracks.map((t) => t.id), ['a', 'b', 'c']);
+      expect(badgeOpacity(tester), 0);
+
+      port.failEdits = true;
+      bloc.add(TrackAddedToQueue(extra));
+      expect(await peakScale(tester), 1);
+      expect(port.queue!.playbackTracks, hasLength(3));
+      expect(badgeOpacity(tester), 0);
+    });
+
+    testWidgets('with reduced motion the count shows, the cover stays still', (
+      tester,
+    ) async {
+      final bloc = await pump(
+        tester,
+        AppTab.home,
+        queue: songs,
+        reduceMotion: true,
+      );
+      bloc.add(TrackQueuedNext(extra));
+      expect(await peakScale(tester), 1);
+      expect(badgeText(tester), '+1');
+      expect(badgeOpacity(tester), 1);
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
   });
 }

@@ -22,3 +22,10 @@ final class TrackUnplayable extends PlayerNotice {
 final class QueueReplaced extends PlayerNotice {
   const QueueReplaced();
 }
+
+/// A song joined the queue by hand (Play next, Add to queue). The mini
+/// player acknowledges it; the action that queued it already says so in a
+/// toast.
+final class TrackQueued extends PlayerNotice {
+  const TrackQueued();
+}

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/semantics.dart';
@@ -427,8 +428,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                             child: Row(
                               children: [
                                 // ── Artwork thumbnail ────────────────────────
-                                SizedBox.square(
-                                  dimension: 42,
+                                _QueuedAck(
                                   child: Stack(
                                     clipBehavior: Clip.none,
                                     fit: StackFit.expand,
@@ -647,6 +647,130 @@ class _LikeBurstState extends State<_LikeBurst>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Acknowledges songs queued by hand ([TrackQueued]) on the mini player's
+/// cover: it pulses once and a "+N" counts them, then leaves [shown] after
+/// the last one. Queueing an album counts its songs in one badge.
+class _QueuedAck extends StatefulWidget {
+  final Widget child;
+  const _QueuedAck({required this.child});
+
+  static const size = 42.0;
+  static const shown = Duration(milliseconds: 1500);
+
+  @override
+  State<_QueuedAck> createState() => _QueuedAckState();
+}
+
+class _QueuedAckState extends State<_QueuedAck>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  );
+
+  static final _scale = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: 1.1,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 40,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.1,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 60,
+    ),
+  ]);
+
+  late final StreamSubscription<PlayerNotice> _sub;
+  Timer? _hide;
+
+  /// Songs counted since the badge came in; kept while it fades out.
+  int _count = 0;
+  bool _visible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _sub = context.read<PlayerBloc>().notices.listen(_onNotice);
+  }
+
+  void _onNotice(PlayerNotice notice) {
+    if (notice is! TrackQueued || !mounted) return;
+    _hide?.cancel();
+    _hide = Timer(_QueuedAck.shown, () {
+      if (mounted) setState(() => _visible = false);
+    });
+    setState(() {
+      _count = _visible ? _count + 1 : 1;
+      _visible = true;
+    });
+    if (!MediaQuery.disableAnimationsOf(context)) _pulse.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _hide?.cancel();
+    _sub.cancel();
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return SizedBox.square(
+      dimension: _QueuedAck.size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
+          ScaleTransition(scale: _pulse.drive(_scale), child: widget.child),
+          // The toast of the action says it to screen readers.
+          Positioned(
+            top: -6,
+            right: -8,
+            child: IgnorePointer(
+              child: ExcludeSemantics(
+                child: AnimatedOpacity(
+                  opacity: _visible ? 1 : 0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Container(
+                    key: const ValueKey('queuedBadge'),
+                    constraints: const BoxConstraints(minWidth: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.accent,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x66000000), blurRadius: 4),
+                      ],
+                    ),
+                    child: Text(
+                      '+$_count',
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: colors.accentForeground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

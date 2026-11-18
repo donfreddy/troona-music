@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Album pages: the artists' line opens an album by several artists to any of them: a tap asks which one. Go to album and Go to artist, and the artist's name in Now Playing, open the page in the tab you are in, instead of jumping to the Library.
 - Album and artist cards show a small equalizer while one of their songs plays, still while paused, as song rows do.
 - A long press on an album card opens its menu: Play, Shuffle, Play next, Add to queue. The album page's menu is the same one.
+- The mini player acknowledges songs you queue: its cover pulses once and a small count (+1, or +12 for an album) shows on it for a moment. With less motion asked, only the count shows.
 - Now Playing: the artist's name opens their page. For a song by several artists, as for "Go to artist", a list asks which one.
 
 ### Changed

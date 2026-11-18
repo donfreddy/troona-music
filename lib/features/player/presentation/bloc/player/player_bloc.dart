@@ -616,8 +616,12 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           when identical(undoing, _failedRemoval):
         _failedRemoval = null;
         return;
-      case TrackAddedToQueue(:final track, :final index):
-        await _addToQueue(AddToQueueParams(track: track, index: index));
+      case TrackAddedToQueue(:final track, :final index, :final undoing):
+        final result = await _addToQueue(
+          AddToQueueParams(track: track, index: index),
+        );
+        // Putting back a song just removed queues nothing new.
+        if (undoing == null && result.isRight()) _noticeQueued();
       case TrackRemovedFromQueue(:final index, :final trackId):
         _failedRemoval = event;
         if (!_isAt(index, trackId)) return;
@@ -636,9 +640,17 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           add(PlayTrackRequested(track));
           return;
         }
-        await _addToQueue(
+        final result = await _addToQueue(
           AddToQueueParams(track: track, index: queue.currentIndex + 1),
         );
+        if (result.isRight()) _noticeQueued();
+    }
+  }
+
+  /// Tells the mini player a song joined the queue, once it did.
+  void _noticeQueued() {
+    if (!_noticesController.isClosed) {
+      _noticesController.add(const TrackQueued());
     }
   }
 
