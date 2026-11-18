@@ -47,7 +47,7 @@ class _OfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
     final l10n = context.l10n;
     final cubit = context.read<SettingsCubit>();
 

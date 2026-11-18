@@ -255,7 +255,7 @@ class _ResumeCard extends StatelessWidget {
     required Widget origin,
     required Widget? progress,
   }) {
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
     final colors = context.colors;
     return Semantics(
       button: true,

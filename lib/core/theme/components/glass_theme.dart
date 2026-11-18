@@ -185,6 +185,24 @@ abstract final class GlassTheme {
     };
   }
 
+  /// Config for cards in scrolling content (Home's cards, Settings'
+  /// groups): flat, no edge, the fill alone, grouped by spacing. On the
+  /// high tier the fill is a step above [card]'s, which leans on its edge
+  /// to show: without one, 4 % white barely parts from the page.
+  static GlassConfig content(BuildContext ctx, {GlassQuality? quality}) {
+    final isDark = Theme.of(ctx).brightness == Brightness.dark;
+    final high = _resolveQuality(ctx, quality) == GlassQuality.high;
+    return card(ctx, quality: quality).copyWith(
+      blurSigma: 0,
+      borderWidth: 0,
+      fill: high && isDark ? contentFillDark : null,
+    );
+  }
+
+  /// [content]'s fill on the high tier, dark theme: 8 % white, the low end
+  /// of `.ultraThinMaterial` (the low tier's card fill is 12 %).
+  static const Color contentFillDark = Color(0x14FFFFFF);
+
   /// Config for chrome that carries text and controls: the tab bar (with
   /// the mini player inside it) and the collapsed page header. A light dark
   /// tint and a mild saturation: covers behind stay rich without showing as

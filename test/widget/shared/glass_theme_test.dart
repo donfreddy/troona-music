@@ -46,6 +46,39 @@ void main() {
     }
   });
 
+  testWidgets('content cards have no edge, so their fill shows on its own '
+      'on every tier', (tester) async {
+    final content = <GlassQuality, GlassConfig>{};
+    final cards = <GlassQuality, GlassConfig>{};
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark,
+        home: Builder(
+          builder: (context) {
+            for (final q in GlassQuality.values) {
+              content[q] = GlassTheme.content(context, quality: q);
+              cards[q] = GlassTheme.card(context, quality: q);
+            }
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    for (final q in GlassQuality.values) {
+      final glass = content[q]!;
+      expect(glass.borderWidth, 0, reason: q.name);
+      expect(glass.blurSigma, 0, reason: 'scrolling content: ${q.name}');
+      // At least as visible as the low tier's boosted card, the floor
+      // a card without an edge reads at against the page.
+      expect(glass.fill.a, greaterThanOrEqualTo(.075), reason: q.name);
+    }
+    // The high tier's card leans on its edge; its fill alone does not.
+    expect(cards[GlassQuality.high]!.fill.a, lessThan(.05));
+    expect(content[GlassQuality.low]!.fill, cards[GlassQuality.low]!.fill);
+    expect(content[GlassQuality.off]!.fill, cards[GlassQuality.off]!.fill);
+  });
+
   /// Relative luminance of an sRGB channel value in 0..1.
   double linear(double c) =>
       c <= 0.04045 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();

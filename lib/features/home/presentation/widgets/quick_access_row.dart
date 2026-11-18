@@ -133,7 +133,7 @@ class _QuickChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = GlassTheme.card(context);
+    final glass = GlassTheme.content(context);
 
     return GestureDetector(
       onTap: onTap,
