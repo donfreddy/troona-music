@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,6 +7,8 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/player/domain/entities/playback_state.dart';
+import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -70,13 +74,35 @@ void main() {
     expect(port.restoredPlaying, isFalse);
   });
 
-  test('a restore the player refuses leaves Loading: nothing is loaded',
-      () async {
-    port.failLoads = true;
+  test(
+    'a restore the player refuses leaves Loading: nothing is loaded',
+    () async {
+      port.failLoads = true;
+      final bloc = await restoreWith(right([a, b]));
+      expect(bloc.state, isA<PlayerIdle>());
+      expect(bloc.hasQueue, isFalse);
+      expect(bloc.origin.value, isNull);
+    },
+  );
+
+  test('a song played while the restore loads stays, even when the restore '
+      'then fails', () async {
+    final restore = port.restoreGate = Completer();
     final bloc = await restoreWith(right([a, b]));
-    expect(bloc.state, isA<PlayerIdle>());
-    expect(bloc.hasQueue, isFalse);
-    expect(bloc.origin.value, isNull);
+    final x = testTrack('x', durationMs: 60000);
+
+    bloc.add(PlayTrackRequested(x));
+    await pumpEventQueue();
+    // The newer load interrupted the restore.
+    restore.complete(const Left(PlaybackFailure('interrupted')));
+    await pumpEventQueue();
+    expect((bloc.state as PlayerLoading).track, x);
+
+    port.queue = Queue.fromTracks([x]);
+    port.queueCtrl.add(port.queue!);
+    port.status.add(PlaybackStatus.playing);
+    await pumpEventQueue();
+    expect(bloc.state, isA<PlayerActive>());
   });
 
   test('restores where the queue came from', () async {

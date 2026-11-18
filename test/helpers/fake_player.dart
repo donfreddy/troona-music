@@ -180,6 +180,9 @@ final class FakeAudioPort implements AudioServicePort {
   /// When set, loading a queue (setQueue, restoreQueue) fails.
   bool failLoads = false;
 
+  /// When set, the next restoreQueue answers with what it completes with.
+  Completer<Either<Failure, Unit>>? restoreGate;
+
   /// When set, the next setQueue answers only once it completes. Consumed
   /// by that call: keep a local reference to complete it.
   Completer<void>? loadGate;
@@ -268,6 +271,9 @@ final class FakeAudioPort implements AudioServicePort {
     restoredPlaying = play;
     restoredQueue = queue;
     restoredPosition = position;
+    final gate = restoreGate;
+    restoreGate = null;
+    if (gate != null) return gate.future;
     return failLoads ? _failed : _ok;
   }
 

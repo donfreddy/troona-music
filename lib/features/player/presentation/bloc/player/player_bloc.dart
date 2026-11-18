@@ -530,7 +530,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // Songs queued by hand last time are part of the queue now.
     _sourceIds = [for (final t in playbackTracks) t.id];
     _origin.value = snapshot.origin;
-    emit(PlayerLoading(queue.currentTrack ?? playbackTracks[currentIndex]));
+    final loading = PlayerLoading(
+      queue.currentTrack ?? playbackTracks[currentIndex],
+    );
+    emit(loading);
 
     final result = await _audioServicePort.restoreQueue(
       queue,
@@ -541,7 +544,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     );
 
     if (result.isLeft()) {
-      _restoringSnapshot = null;
+      if (identical(_restoringSnapshot, snapshot)) _restoringSnapshot = null;
+      // A song played meanwhile interrupts the restore, which then fails:
+      // that load is the player's now, not this one's to end.
+      if (!identical(state, loading)) return;
       // Out of Loading: nothing else would ever end it.
       _sourceIds = null;
       _origin.value = null;
