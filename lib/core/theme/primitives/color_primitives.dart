@@ -16,7 +16,8 @@ abstract final class ColorPrimitives {
   // ── Text ─────────────────────────────────────────────────
   static const labelPrimaryDark = Color(0xFFFFFFFF);
   static const labelSecondaryDark = Color(0x99EBEBF5);
-  static const labelTertiaryDark = Color(0x4DEBEBF5);
+  // Half alpha: 4.6:1 on black, text at any size (30 % gave 2.3:1).
+  static const labelTertiaryDark = Color(0x80EBEBF5);
   static const labelQuaternaryDark = Color(0x29EBEBF5);
 
   // ── Separators ───────────────────────────────────────────
