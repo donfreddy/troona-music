@@ -1,17 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:troona/features/player/presentation/widgets/playing_badge.dart';
-import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
-import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
-import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/features/library/presentation/widgets/artist_avatar.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
-class ArtistCard extends StatefulWidget {
+class ArtistCard extends StatelessWidget {
   final Artist artist;
   final double? size;
 
@@ -58,124 +53,22 @@ class ArtistCard extends StatefulWidget {
   }
 
   @override
-  State<ArtistCard> createState() => _ArtistCardState();
-}
-
-class _ArtistCardState extends State<ArtistCard> {
-  StreamSubscription<String>? _artworkSub;
-  String? _effectiveArtwork;
-
-  /// Their downloaded photo, when the card shows it: it flies to their
-  /// page. A cover does not.
-  String? _photo;
-
-  @override
-  void initState() {
-    super.initState();
-    _resolveArtwork();
-    _artworkSub = getIt<MetadataRepository>().onArtistArtworkUpdated.listen((
-      updatedId,
-    ) {
-      final mine =
-          updatedId == widget.artist.id ||
-          updatedId == MetadataRepository.allArtists;
-      if (mine && mounted) {
-        _resolveArtwork();
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant ArtistCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.artist.id != widget.artist.id) {
-      _resolveArtwork();
-    }
-  }
-
-  void _resolveArtwork() {
-    final cached = getIt<MetadataRepository>().getCachedArtistArtworkPath(
-      widget.artist.id,
-    );
-    final next = cached ?? widget.artist.artworkPath;
-    final photo = cached != null && cached.isNotEmpty ? cached : null;
-    if (next != _effectiveArtwork || photo != _photo) {
-      setState(() {
-        _effectiveArtwork = next;
-        _photo = photo;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _artworkSub?.cancel();
-    super.dispose();
-  }
-
-  String _getInitials(String name) {
-    final clean = name.trim();
-    if (clean.isEmpty) return '?';
-    final parts = clean.split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return clean.substring(0, clean.length >= 2 ? 2 : 1).toUpperCase();
-  }
-
-  Widget _withPhotoHero(Widget circle) => switch (_photo) {
-    final photo? => ArtistPhotoHero(
-      artistId: widget.artist.id,
-      photo: photo,
-      round: true,
-      child: circle,
-    ),
-    null => circle,
-  };
-
-  @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final artwork = _effectiveArtwork;
 
     final cardContent = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Stack(
           children: [
-            _withPhotoHero(
-              ClipOval(
-                child: AspectRatio(
-                  aspectRatio: 1.0,
-                  child: artwork != null && artwork.isNotEmpty
-                      ? ArtworkImage(artwork)
-                      : Container(
-                          color: colors.glassFill,
-                          alignment: Alignment.center,
-                          // Sized from the circle, not the phone's font size: a
-                          // drawing, which the name under it already says.
-                          child: LayoutBuilder(
-                            builder: (context, box) => Text(
-                              _getInitials(widget.artist.name),
-                              textScaler: TextScaler.noScaling,
-                              style: TextStyle(
-                                color: colors.accent,
-                                fontWeight: FontWeight.w700,
-                                fontSize: box.maxWidth * 0.32,
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
+            ArtistAvatar(artist: artist),
             // On the circle's edge, low on the right.
             Positioned.fill(
               child: Align(
                 alignment: const Alignment(0.78, 0.78),
                 child: PlayingBadge(
                   matches: (current) =>
-                      current.credits.any((c) => '${c.id}' == widget.artist.id),
+                      current.credits.any((c) => '${c.id}' == artist.id),
                 ),
               ),
             ),
@@ -183,20 +76,18 @@ class _ArtistCardState extends State<ArtistCard> {
         ),
         const SizedBox(height: 6),
         Text(
-          context.artistName(widget.artist.name),
-          style: ArtistCard._nameStyle,
-          strutStyle: ArtistCard.strutOf(ArtistCard._nameStyle),
+          context.artistName(artist.name),
+          style: _nameStyle,
+          strutStyle: strutOf(_nameStyle),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
         ),
-        if (widget.artist.trackCount > 0)
+        if (artist.trackCount > 0)
           Text(
-            context.l10n.songCount(widget.artist.trackCount),
-            strutStyle: ArtistCard.strutOf(ArtistCard._countStyle),
-            style: ArtistCard._countStyle.copyWith(
-              color: colors.labelSecondary,
-            ),
+            context.l10n.songCount(artist.trackCount),
+            strutStyle: strutOf(_countStyle),
+            style: _countStyle.copyWith(color: colors.labelSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -205,9 +96,9 @@ class _ArtistCardState extends State<ArtistCard> {
     );
 
     return GestureDetector(
-      onTap: () => context.pushArtist(widget.artist.id),
-      child: widget.size != null
-          ? SizedBox(width: widget.size, child: cardContent)
+      onTap: () => context.pushArtist(artist.id),
+      child: size != null
+          ? SizedBox(width: size, child: cardContent)
           : cardContent,
     );
   }

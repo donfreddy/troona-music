@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -8,9 +7,9 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/search/domain/entities/search_result.dart';
+import 'package:troona/features/library/presentation/widgets/artist_avatar.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -84,10 +83,6 @@ class SearchTopResult extends StatelessWidget {
     Artist artist,
     AppColors colors,
   ) {
-    final cachedArtwork = getIt<MetadataRepository>()
-        .getCachedArtistArtworkPath(artist.id);
-    final artwork = cachedArtwork ?? artist.artworkPath;
-
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
@@ -97,11 +92,11 @@ class SearchTopResult extends StatelessWidget {
         onTap: () => context.pushArtist(artist.id),
         child: Row(
           children: [
-            ClipOval(
-              child: SizedBox.square(
-                dimension: 64,
-                child: ArtworkImage(artwork, placeholder: AppIcons.artist),
-              ),
+            // The same artist is among the circles below, which carry the
+            // photo's flight to their page.
+            SizedBox.square(
+              dimension: 64,
+              child: ArtistAvatar(artist: artist, hero: false),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(

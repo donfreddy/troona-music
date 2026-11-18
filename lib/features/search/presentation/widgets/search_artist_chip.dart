@@ -1,40 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
-import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/features/library/presentation/widgets/artist_avatar.dart';
 
 /// An artist as a round photo over its name, in search suggestions and
-/// results. Opens the artist page.
+/// results: their downloaded photo, else their cover. Opens the artist
+/// page in the Search tab.
 class SearchArtistChip extends StatelessWidget {
   final Artist artist;
 
-  const SearchArtistChip({super.key, required this.artist});
+  /// Whether the photo flies to their page: one circle per artist on the
+  /// page may carry it.
+  final bool hero;
+
+  const SearchArtistChip({super.key, required this.artist, this.hero = true});
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
 
     return GestureDetector(
-      onTap: () => context.pushNamed(
-        AppRoute.artistDetail,
-        pathParameters: {'id': artist.id},
-      ),
+      // In the Search tab: the Library's named route would switch tabs.
+      onTap: () => context.pushArtist(artist.id),
       child: SizedBox(
         width: 80,
         child: Column(
           children: [
-            ClipOval(
-              child: SizedBox.square(
-                dimension: 72,
-                child: ArtworkImage(
-                  artist.artworkPath,
-                  placeholder: AppIcons.artist,
-                ),
-              ),
+            SizedBox.square(
+              dimension: 72,
+              child: ArtistAvatar(artist: artist, hero: hero),
             ),
             const SizedBox(height: 6),
             Text(
