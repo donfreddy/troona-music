@@ -249,4 +249,16 @@ void main() {
     );
     expect(tester.getRect(sheen), tester.getRect(record()));
   });
+
+  testWidgets('the record is painted once and turned as a layer', (
+    tester,
+  ) async {
+    await open(tester, playing: _tracks);
+    // A boundary right inside the rotation: the turning transform sits
+    // above it, so the grooves are not repainted on every frame.
+    expect(
+      tester.widget<RotationTransition>(record()).child,
+      isA<RepaintBoundary>(),
+    );
+  });
 }

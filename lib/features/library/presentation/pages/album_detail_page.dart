@@ -639,9 +639,12 @@ class _AlbumVinylState extends State<_AlbumVinyl>
           onTap: ours ? () => _tap(playing) : null,
           child: Stack(
             children: [
-              RepaintBoundary(
-                child: RotationTransition(
-                  turns: _spin,
+              // The boundary inside the rotation: the record is painted
+              // once and its layer turned, instead of repainting the
+              // grooves on every frame.
+              RotationTransition(
+                turns: _spin,
+                child: RepaintBoundary(
                   child: _Record(artworkPath: widget.album.artworkPath),
                 ),
               ),
