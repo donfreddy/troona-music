@@ -25,7 +25,8 @@ void showTrackActions(
 }) {
   final isLiked = context.read<LikesCubit>().state.isTrackLiked(track.id);
   final l10n = context.l10n;
-  AppHaptics.mediumImpact();
+  // Opening a menu: a small step.
+  AppHaptics.lightImpact();
 
   showActionSheet(
     context,
@@ -36,16 +37,21 @@ void showTrackActions(
         label: l10n.trackPlayNext,
         icon: AppIcons.playNext,
         onPressed: () {
-          context.read<PlayerBloc>().add(TrackQueuedNext(track));
-          AppToast.show(context, l10n.toastPlaysNext);
+          final player = context.read<PlayerBloc>();
+          final queues = player.hasQueue;
+          player.add(TrackQueuedNext(track));
+          // With nothing loaded it plays: the mini player says so.
+          if (queues) AppToast.show(context, l10n.toastPlaysNext);
         },
       ),
       SheetAction(
         label: l10n.trackAddToQueue,
         icon: AppIcons.addToQueue,
         onPressed: () {
-          context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-          AppToast.show(context, l10n.toastAddedToQueue);
+          final player = context.read<PlayerBloc>();
+          final queues = player.hasQueue;
+          player.add(TrackAddedToQueue(track));
+          if (queues) AppToast.show(context, l10n.toastAddedToQueue);
         },
       ),
       SheetAction(

@@ -23,6 +23,7 @@ import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 
 import '../../helpers/fake_player.dart';
@@ -405,6 +406,27 @@ void main() {
       expect(find.text('Title x'), findsWidgets);
       expect(badgeOpacity(tester), 1);
       expect(badgeText(tester), '+1');
+      await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+
+    testWidgets('not while Now Playing covers the row: the cover is a hero '
+        'in flight', (tester) async {
+      final bloc = await pump(tester, AppTab.home, queue: songs);
+      addTearDown(() => NowPlayingHero.coverAnimation.value = null);
+
+      // A pulse under way stops when Now Playing comes over.
+      bloc.add(TrackAddedToQueue(extra));
+      while (coverScale(tester) <= 1.02) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      NowPlayingHero.coverAnimation.value = kAlwaysCompleteAnimation;
+      await tester.pump();
+      expect(coverScale(tester), 1);
+
+      // None starts under it; the count still goes up.
+      bloc.add(TrackAddedToQueue(extra));
+      expect(await peakScale(tester), 1);
+      expect(badgeText(tester), '+2');
       await tester.pumpAndSettle(const Duration(seconds: 2));
     });
 

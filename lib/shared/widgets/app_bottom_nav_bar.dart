@@ -737,6 +737,15 @@ class _QueuedAckState extends State<_QueuedAck>
     super.initState();
     _serial = widget.queued.value.serial;
     widget.queued.addListener(_changed);
+    NowPlayingHero.coverAnimation.addListener(_covered);
+  }
+
+  /// Now Playing coming over the row: a pulse under way stops, so the cover
+  /// flies from its place at rest.
+  void _covered() {
+    if (NowPlayingHero.coverAnimation.value != null && _pulse.isAnimating) {
+      _pulse.value = 0;
+    }
   }
 
   @override
@@ -762,11 +771,12 @@ class _QueuedAckState extends State<_QueuedAck>
   bool get _canPulse =>
       !MediaQuery.disableAnimationsOf(context) &&
       !_pulse.isAnimating &&
-      (NowPlayingHero.coverAnimation.value?.value ?? 0) == 0;
+      NowPlayingHero.coverAnimation.value == null;
 
   @override
   void dispose() {
     widget.queued.removeListener(_changed);
+    NowPlayingHero.coverAnimation.removeListener(_covered);
     _pulse.dispose();
     super.dispose();
   }

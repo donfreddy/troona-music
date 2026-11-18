@@ -9,8 +9,8 @@ import 'package:troona/shared/widgets/app_toast.dart';
 /// the end, then says so. Every Play next and Add to queue of a whole album
 /// or artist goes through here.
 ///
-/// With nothing playing they start instead, as songs of [origin]: the mini
-/// player that comes up says it, no toast.
+/// With nothing loaded they start instead, as songs of [origin]: the mini
+/// player that comes up says it, no toast ([PlayerBloc.hasQueue]).
 void queueSongs(
   BuildContext context,
   PlayerBloc player,
@@ -19,9 +19,9 @@ void queueSongs(
   QueueOrigin? origin,
 }) {
   if (tracks.isEmpty) return;
-  final playing = player.state is PlayerActive;
+  final queues = player.hasQueue;
   player.add(TracksQueued(tracks, next: next, origin: origin));
-  if (!playing || !context.mounted) return;
+  if (!queues || !context.mounted) return;
   final l10n = context.l10n;
   AppToast.show(context, next ? l10n.toastPlaysNext : l10n.toastAddedToQueue);
 }

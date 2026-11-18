@@ -21,7 +21,9 @@ void main() {
   ];
   final song = testTrack('x', durationMs: 60000);
 
-  Future<FakeAudioPort> pump(WidgetTester tester) async {
+  late PlayerBloc player;
+
+  Future<FakeAudioPort> pump(WidgetTester tester, {bool idle = false}) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final port = FakeAudioPort()
@@ -33,10 +35,13 @@ void main() {
       unawaited(bloc.close());
       unawaited(port.close());
     });
-    bloc.add(QueueSetRequested(playing));
-    await tester.pump();
-    port.status.add(PlaybackStatus.playing);
-    await tester.pump();
+    player = bloc;
+    if (!idle) {
+      bloc.add(QueueSetRequested(playing));
+      await tester.pump();
+      port.status.add(PlaybackStatus.playing);
+      await tester.pump();
+    }
 
     await tester.pumpWidget(
       BlocProvider.value(
@@ -85,6 +90,18 @@ void main() {
     expect(port.queue!.playbackTracks.last.id, 'x');
     expect(find.text('Added to queue'), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  testWidgets('with nothing playing, either swipe plays the song, and no '
+      'message says it was queued', (tester) async {
+    for (final dx in [120.0, -120.0]) {
+      await pump(tester, idle: true);
+      await swipe(tester, dx);
+      expect((player.state as PlayerLoading).track.id, 'x');
+      expect(find.text('Plays next'), findsNothing);
+      expect(find.text('Added to queue'), findsNothing);
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    }
   });
 
   testWidgets('screen readers get both as actions of the row', (tester) async {

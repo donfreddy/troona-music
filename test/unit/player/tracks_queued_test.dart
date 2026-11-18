@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
@@ -112,5 +114,84 @@ void main() {
     await pumpEventQueue();
     expect(queued(), ['a', 'x', 'b', 'y']);
     expect(notices, [const TrackQueued(), const TrackQueued()]);
+  });
+
+  group('the cases where the queue is not the one to edit', () {
+    final c = testTrack('c', durationMs: 200000);
+    final d = testTrack('d', durationMs: 200000);
+
+    test('after the mini player was swiped away, queueing plays: the '
+        "engine's old queue is dead", () async {
+      await playing();
+      bloc.add(const PlayerDismissed());
+      await pumpEventQueue();
+      expect(bloc.state, isA<PlayerIdle>());
+      expect(bloc.hasQueue, isFalse);
+      final before = port.setQueueCalls;
+
+      bloc.add(TracksQueued([x, y], next: false, origin: album));
+      await pumpEventQueue();
+      expect(port.setQueueCalls, before + 1);
+      expect(port.lastSetQueue!.tracks, [x, y]);
+      expect(notices, isEmpty);
+    });
+
+    test('one song after a dismissal plays too', () async {
+      await playing();
+      bloc.add(const PlayerDismissed());
+      await pumpEventQueue();
+      bloc.add(TrackQueuedNext(x));
+      await pumpEventQueue();
+      expect((bloc.state as PlayerLoading).track, x);
+      expect(notices, isEmpty);
+    });
+
+    test('a new queue started while the songs go in: the rest stays out of '
+        'it', () async {
+      await playing();
+      final gate = port.editGate = Completer<void>();
+      bloc.add(TracksQueued([x, y, z], next: true));
+      await pumpEventQueue();
+
+      // Another album, tapped while the first insert is on the player.
+      bloc.add(PlayTrackRequested(c, contextQueue: [c, d], contextIndex: 0));
+      await pumpEventQueue();
+      port.queue = Queue.fromTracks([c, d]);
+      gate.complete();
+      await pumpEventQueue();
+      expect(queued(), ['c', 'd']);
+      expect(notices.whereType<TrackQueued>(), [const TrackQueued(1)]);
+    });
+
+    test('a skip while they go in: the rest still comes after the song '
+        'playing', () async {
+      await playing();
+      final gate = port.editGate = Completer<void>();
+      bloc.add(TracksQueued([x, y], next: true));
+      await pumpEventQueue();
+      // x is in, at 1; the player moves on to b, now at 2.
+      port.queue = Queue.fromTracks([a, x, b], startIndex: 2);
+      gate.complete();
+      await pumpEventQueue();
+      expect(queued(), ['a', 'x', 'b', 'y']);
+    });
+
+    test(
+      'queued while the first song loads: they wait for its queue',
+      () async {
+        bloc.add(PlayTrackRequested(a, contextQueue: [a, b], contextIndex: 0));
+        await pumpEventQueue();
+        expect(bloc.state, isA<PlayerLoading>());
+        expect(port.currentQueue, isNull);
+
+        bloc.add(TracksQueued([x], next: false));
+        await pumpEventQueue();
+        port.queue = Queue.fromTracks([a, b]);
+        port.queueCtrl.add(port.queue!);
+        await pumpEventQueue();
+        expect(queued(), ['a', 'b', 'x']);
+        expect(notices, [const TrackQueued(1)]);
+      },
+    );
   });
 }

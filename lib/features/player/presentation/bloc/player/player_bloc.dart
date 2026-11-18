@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -616,10 +617,14 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           when identical(undoing, _failedRemoval):
         _failedRemoval = null;
         return;
-      case TrackAddedToQueue(:final track, index: null, undoing: null)
-          when _audioServicePort.currentQueue == null:
-        // Nothing loaded: a queue of one is the song playing.
-        add(PlayTrackRequested(track));
+      case TrackAddedToQueue(:final track, index: null, undoing: null):
+        if (await _queueToEdit() == null) {
+          // Nothing loaded: a queue of one is the song playing.
+          add(PlayTrackRequested(track));
+          return;
+        }
+        final result = await _addToQueue(AddToQueueParams(track: track));
+        if (result.isRight()) _noticeQueued();
       case TrackAddedToQueue(:final track, :final index, :final undoing):
         final result = await _addToQueue(
           AddToQueueParams(track: track, index: index),
@@ -639,7 +644,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           MoveQueueItemParams(oldIndex: oldIndex, newIndex: newIndex),
         );
       case TrackQueuedNext(:final track):
-        final queue = _audioServicePort.currentQueue;
+        final queue = await _queueToEdit();
         if (queue == null) {
           add(PlayTrackRequested(track));
           return;
@@ -650,7 +655,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         if (result.isRight()) _noticeQueued();
       case TracksQueued(:final tracks, :final next, :final origin):
         if (tracks.isEmpty) return;
-        final queue = _audioServicePort.currentQueue;
+        final queue = await _queueToEdit();
         if (queue == null) {
           add(
             PlayTrackRequested(
@@ -662,9 +667,16 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
           );
           return;
         }
+        // Plays and dismissals run beside this loop: stop once the queue
+        // is another (the rest would land in it at an old place), or gone.
+        final source = _sourceIds;
         var at = queue.currentIndex + 1;
         var added = 0;
         for (final track in tracks) {
+          final now = _audioServicePort.currentQueue;
+          if (!identical(_sourceIds, source) || now == null) break;
+          // A skip meanwhile: still after the song playing.
+          at = math.max(at, now.currentIndex + 1);
           final result = await _addToQueue(
             AddToQueueParams(track: track, index: next ? at : null),
           );
@@ -675,6 +687,33 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         if (added > 0) _noticeQueued(added);
     }
   }
+
+  /// The queue Play next and Add to queue edit; null when nothing is
+  /// loaded, and the songs play instead. Dismissing the player stops the
+  /// engine but keeps its queue: a dead one, not edited. A first song still
+  /// loading publishes its queue once loaded: wait for it rather than drop
+  /// the songs (a play request would be dropped while loading).
+  Future<Queue?> _queueToEdit() async {
+    if (state is PlayerIdle) return null;
+    final queue = _audioServicePort.currentQueue;
+    if (queue != null || state is! PlayerLoading) return queue;
+    try {
+      await _audioServicePort.queueStream.first.timeout(
+        const Duration(seconds: 5),
+      );
+    } on Object {
+      return null;
+    }
+    // Past the delivery of that event (editing now would emit inside it),
+    // and the queue as the port has it: the stream may replay an old one.
+    await Future<void>.delayed(Duration.zero);
+    return _audioServicePort.currentQueue;
+  }
+
+  /// Whether Play next and Add to queue would queue now; without a queue
+  /// they play instead, and the action says nothing (the mini player that
+  /// comes up does).
+  bool get hasQueue => state is! PlayerIdle;
 
   /// Tells the mini player [count] songs joined the queue, once they did.
   void _noticeQueued([int count = 1]) {

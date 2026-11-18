@@ -23,13 +23,18 @@ class QueueSwipe extends StatelessWidget {
   const QueueSwipe({super.key, required this.track, required this.child});
 
   void _playNext(BuildContext context) {
-    context.read<PlayerBloc>().add(TrackQueuedNext(track));
-    AppToast.show(context, context.l10n.toastPlaysNext);
+    final player = context.read<PlayerBloc>();
+    final queues = player.hasQueue;
+    player.add(TrackQueuedNext(track));
+    // With nothing loaded it plays: the mini player says so.
+    if (queues) AppToast.show(context, context.l10n.toastPlaysNext);
   }
 
   void _addToQueue(BuildContext context) {
-    context.read<PlayerBloc>().add(TrackAddedToQueue(track));
-    AppToast.show(context, context.l10n.toastAddedToQueue);
+    final player = context.read<PlayerBloc>();
+    final queues = player.hasQueue;
+    player.add(TrackAddedToQueue(track));
+    if (queues) AppToast.show(context, context.l10n.toastAddedToQueue);
   }
 
   @override
