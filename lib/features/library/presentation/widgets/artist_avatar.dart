@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/presentation/widgets/artist_photo_hero.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
@@ -93,7 +94,7 @@ class _ArtistAvatarState extends State<ArtistAvatar> {
       child: AspectRatio(
         aspectRatio: 1.0,
         child: artwork != null && artwork.isNotEmpty
-            ? ArtworkImage(artwork)
+            ? ArtworkImage(artwork, placeholder: AppIcons.artist)
             : Container(
                 color: colors.glassFill,
                 alignment: Alignment.center,

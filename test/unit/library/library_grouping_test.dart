@@ -260,18 +260,19 @@ void main() {
       'songs: the Library and their page show the same artist', () {
     // The same songs, as the Library reads them and as the artist page
     // does (by album and track): the name and cover of the song added
-    // first (the lowest id), the cover of the first one that has one.
+    // first (the lowest id).
     final songs = [
       _t('30', ['KHAID'], albumId: 2)..artworkPath = '/covers/b.jpg',
       _t('12', ['Khaid'])..artworkPath = '/covers/a.jpg',
-      _t('7', ['Khaid']),
+      // Added first: '7' comes before '12' by number, not by text.
+      _t('7', ['Khaid'])..artworkPath = '/covers/c.jpg',
     ];
     final id = TrackTags.artistIdFor('Khaid');
     for (final order in [songs, songs.reversed.toList()]) {
       final listed = LibraryGrouping.artistsOf(order).single;
       final page = LibraryGrouping.artistOf(id, order)!;
       for (final artist in [listed, page]) {
-        expect((artist.name, artist.artworkPath), ('Khaid', '/covers/a.jpg'));
+        expect((artist.name, artist.artworkPath), ('Khaid', '/covers/c.jpg'));
       }
     }
   });
