@@ -3,7 +3,7 @@ import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 
 /// A glass-styled card that adapts fill and border to the current
-/// [GlassQuality] preset and device brightness.
+/// [GlassQuality] tier.
 ///
 /// Flat by default: cards sit in scrolling content, and blur is kept for
 /// chrome (bars, headers, sheets), as on iOS. Pass a [config] with a blur to
@@ -47,7 +47,11 @@ class GlassCard extends StatelessWidget {
         child: ClipRRect(
           borderRadius: cfg.borderRadius,
           child: BackdropFilter(
-            filter: GlassFilter.of(cfg.blurSigma),
+            filter: GlassFilter.of(
+              cfg.blurSigma,
+              saturation: cfg.saturation,
+              exposure: cfg.exposure,
+            ),
             child: content,
           ),
         ),

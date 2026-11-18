@@ -19,13 +19,13 @@ abstract final class AppTheme {
     systemNavigationBarContrastEnforced: true,
   );
 
-  static ThemeData get light => _build(Brightness.light);
-  static ThemeData get dark => _build(Brightness.dark);
+  /// The app's only theme (`ThemeMode.dark`).
+  static ThemeData get dark => _build();
 
-  static ThemeData _build(Brightness brightness) {
-    final isDark = brightness == Brightness.dark;
-    final colors = isDark ? AppColors.dark : AppColors.light;
-    final base = isDark ? ThemeData.dark() : ThemeData.light();
+  static ThemeData _build() {
+    const brightness = Brightness.dark;
+    const colors = AppColors.dark;
+    final base = ThemeData.dark();
 
     return base.copyWith(
       brightness: brightness,
@@ -61,7 +61,7 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         // Not SystemUiOverlayStyle.light: it paints the navigation bar black.
-        systemOverlayStyle: isDark ? systemOverlay : SystemUiOverlayStyle.dark,
+        systemOverlayStyle: systemOverlay,
         titleTextStyle: AppTypography.textTheme.headlineSmall?.copyWith(
           color: colors.labelPrimary,
         ),

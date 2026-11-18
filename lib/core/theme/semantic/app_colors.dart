@@ -17,12 +17,10 @@ final class AppColors extends ThemeExtension<AppColors> {
 
   // ── Separators ──────────────────────────────────────────
   final Color separator;
-  final Color separatorOpaque;
 
   // ── Accent ───────────────────────────────────────────────
   final Color accent; // lilac
   final Color accentForeground; // text on the accent colour
-  final Color accentGlow; // glow under the active tab
 
   // ── Progress ─────────────────────────────────────────────
   final Color progressStart; // start of the arc (icy blue)
@@ -32,10 +30,6 @@ final class AppColors extends ThemeExtension<AppColors> {
   final Color glassFill; // glass fill
   final Color glassBorder; // bright top border
   final Color glassHighlight; // diagonal sheen
-
-  // ── Vibrancy ─────────────────────────────────────────────
-  final Color vibrancyLabel;
-  final Color vibrancySecondary;
 
   const AppColors({
     required this.bgPrimary,
@@ -47,43 +41,16 @@ final class AppColors extends ThemeExtension<AppColors> {
     required this.labelTertiary,
     required this.labelQuaternary,
     required this.separator,
-    required this.separatorOpaque,
     required this.accent,
     required this.accentForeground,
-    required this.accentGlow,
     required this.progressStart,
     required this.progressEnd,
     required this.glassFill,
     required this.glassBorder,
     required this.glassHighlight,
-    required this.vibrancyLabel,
-    required this.vibrancySecondary,
   });
 
-  // ── Static instances ──────────────────────────────────
-
-  static const light = AppColors(
-    bgPrimary: ColorPrimitives.bgPrimaryLight,
-    bgSecondary: ColorPrimitives.bgSecondaryLight,
-    bgTertiary: ColorPrimitives.bgTertiaryLight,
-    bgElevated: ColorPrimitives.bgElevatedLight,
-    labelPrimary: ColorPrimitives.labelPrimaryLight,
-    labelSecondary: ColorPrimitives.labelSecondaryLight,
-    labelTertiary: ColorPrimitives.labelTertiaryLight,
-    labelQuaternary: ColorPrimitives.labelQuaternaryLight,
-    separator: ColorPrimitives.separatorLight,
-    separatorOpaque: ColorPrimitives.separatorOpaqueLight,
-    accent: ColorPrimitives.accent,
-    accentForeground: ColorPrimitives.accentForeground,
-    accentGlow: ColorPrimitives.accentGlow,
-    progressStart: ColorPrimitives.progressStart,
-    progressEnd: ColorPrimitives.progressEnd,
-    glassFill: ColorPrimitives.glassFillLight,
-    glassBorder: ColorPrimitives.glassBorderLight,
-    glassHighlight: ColorPrimitives.glassHighlightLight,
-    vibrancyLabel: ColorPrimitives.vibrancyLabelLight,
-    vibrancySecondary: ColorPrimitives.vibrancySecondaryLight,
-  );
+  // ── The app's only theme: dark ─────────────────────────
 
   static const dark = AppColors(
     bgPrimary: ColorPrimitives.bgPrimaryDark,
@@ -95,17 +62,13 @@ final class AppColors extends ThemeExtension<AppColors> {
     labelTertiary: ColorPrimitives.labelTertiaryDark,
     labelQuaternary: ColorPrimitives.labelQuaternaryDark,
     separator: ColorPrimitives.separatorDark,
-    separatorOpaque: ColorPrimitives.separatorOpaqueDark,
     accent: ColorPrimitives.accent,
     accentForeground: ColorPrimitives.accentForeground,
-    accentGlow: ColorPrimitives.accentGlow,
     progressStart: ColorPrimitives.progressStart,
     progressEnd: ColorPrimitives.progressEnd,
     glassFill: ColorPrimitives.glassFillDark,
     glassBorder: ColorPrimitives.glassBorderDark,
     glassHighlight: ColorPrimitives.glassHighlightDark,
-    vibrancyLabel: ColorPrimitives.vibrancyLabelDark,
-    vibrancySecondary: ColorPrimitives.vibrancySecondaryDark,
   );
 
   // ── ThemeExtension (lerp during transitions) ──────
@@ -121,17 +84,13 @@ final class AppColors extends ThemeExtension<AppColors> {
     Color? labelTertiary,
     Color? labelQuaternary,
     Color? separator,
-    Color? separatorOpaque,
     Color? accent,
     Color? accentForeground,
-    Color? accentGlow,
     Color? progressStart,
     Color? progressEnd,
     Color? glassFill,
     Color? glassBorder,
     Color? glassHighlight,
-    Color? vibrancyLabel,
-    Color? vibrancySecondary,
   }) => AppColors(
     bgPrimary: bgPrimary ?? this.bgPrimary,
     bgSecondary: bgSecondary ?? this.bgSecondary,
@@ -142,17 +101,13 @@ final class AppColors extends ThemeExtension<AppColors> {
     labelTertiary: labelTertiary ?? this.labelTertiary,
     labelQuaternary: labelQuaternary ?? this.labelQuaternary,
     separator: separator ?? this.separator,
-    separatorOpaque: separatorOpaque ?? this.separatorOpaque,
     accent: accent ?? this.accent,
     accentForeground: accentForeground ?? this.accentForeground,
-    accentGlow: accentGlow ?? this.accentGlow,
     progressStart: progressStart ?? this.progressStart,
     progressEnd: progressEnd ?? this.progressEnd,
     glassFill: glassFill ?? this.glassFill,
     glassBorder: glassBorder ?? this.glassBorder,
     glassHighlight: glassHighlight ?? this.glassHighlight,
-    vibrancyLabel: vibrancyLabel ?? this.vibrancyLabel,
-    vibrancySecondary: vibrancySecondary ?? this.vibrancySecondary,
   );
 
   @override
@@ -168,25 +123,17 @@ final class AppColors extends ThemeExtension<AppColors> {
       labelTertiary: Color.lerp(labelTertiary, other.labelTertiary, t)!,
       labelQuaternary: Color.lerp(labelQuaternary, other.labelQuaternary, t)!,
       separator: Color.lerp(separator, other.separator, t)!,
-      separatorOpaque: Color.lerp(separatorOpaque, other.separatorOpaque, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       accentForeground: Color.lerp(
         accentForeground,
         other.accentForeground,
         t,
       )!,
-      accentGlow: Color.lerp(accentGlow, other.accentGlow, t)!,
       progressStart: Color.lerp(progressStart, other.progressStart, t)!,
       progressEnd: Color.lerp(progressEnd, other.progressEnd, t)!,
       glassFill: Color.lerp(glassFill, other.glassFill, t)!,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,
-      vibrancyLabel: Color.lerp(vibrancyLabel, other.vibrancyLabel, t)!,
-      vibrancySecondary: Color.lerp(
-        vibrancySecondary,
-        other.vibrancySecondary,
-        t,
-      )!,
     );
   }
 }
