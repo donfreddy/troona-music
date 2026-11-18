@@ -510,6 +510,13 @@ class _AlbumTracksViewState extends State<_AlbumTracksView> {
 
   Future<void> _reveal() async {
     if (!mounted) return;
+    // Another song since (Now Playing stayed open over the page): there is
+    // nothing of this album's to come to.
+    if (context.read<PlayerBloc>().state case PlayerActive(
+      :final currentTrack,
+    ) when currentTrack.id != _playingId) {
+      return;
+    }
     final tracks = widget.tracks;
     final at = tracks.indexWhere((t) => t.id == _playingId);
     final position = Scrollable.maybeOf(context)?.position;
