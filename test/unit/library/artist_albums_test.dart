@@ -2,13 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/artist_albums.dart';
 
-Album _album(String id, {bool single = false}) => Album(
+Album _album(String id, {bool single = false, int? year}) => Album(
   id: id,
   name: 'Album $id',
   artist: 'Khaid',
   artistId: 1,
   trackCount: single ? 1 : 10,
   isSingle: single,
+  year: year,
 );
 
 void main() {
@@ -44,5 +45,24 @@ void main() {
     );
     expect(albumsOf.oneDiscography, isTrue);
     expect([for (final a in albumsOf.releases) a.id], ['a0', 's0']);
+  });
+
+  test('one discography reads newest first, albums and singles mixed, the '
+      'undated last, an album before a single of its year', () {
+    final releases = ArtistAlbums(
+      own: [_album('a2019', year: 2019), _album('a2023', year: 2023)],
+      singles: [
+        _album('undated', single: true),
+        _album('s2023', single: true, year: 2023),
+        _album('s2021', single: true, year: 2021),
+      ],
+    );
+    expect([for (final a in releases.discography) a.id], [
+      'a2023',
+      's2023',
+      's2021',
+      'a2019',
+      'undated',
+    ]);
   });
 }

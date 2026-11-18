@@ -24,6 +24,24 @@ final class ArtistAlbums {
   /// Their releases: [own], then [singles].
   List<Album> get releases => [...own, ...singles];
 
+  /// [releases] as one list, as Discography shows them: newest first, the
+  /// ones without a year last; on a tie, albums before singles.
+  List<Album> get discography {
+    final releases = this.releases;
+    final order = [for (var i = 0; i < releases.length; i++) i]
+      ..sort((i, j) {
+        final a = releases[i].year;
+        final b = releases[j].year;
+        if (a != b) {
+          if (a == null) return 1;
+          if (b == null) return -1;
+          return b.compareTo(a);
+        }
+        return i.compareTo(j);
+      });
+    return [for (final i in order) releases[i]];
+  }
+
   /// Releases needed for Latest release: with fewer, its cover is a screen
   /// away at most, in the section below.
   static const latestFrom = 4;

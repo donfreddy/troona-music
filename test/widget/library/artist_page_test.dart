@@ -242,10 +242,26 @@ void main() {
     expect(find.byType(AlbumRow), findsNWidgets(2));
     expect(find.byType(AlbumCard), findsNothing);
     expect(find.text('2024 • Single'), findsOneWidget);
-    // The album first.
+    // Its ink shows: drawn on a Material of its own, not under the page's
+    // background.
+    final ink = find
+        .descendant(
+          of: find.byType(AlbumRow).first,
+          matching: find.byType(InkWell),
+        )
+        .first;
     expect(
-      tester.getTopLeft(find.text('Emotions')).dy,
-      lessThan(tester.getTopLeft(find.text('Anabella')).dy),
+      tester
+          .widget<Material>(
+            find.ancestor(of: ink, matching: find.byType(Material)).first,
+          )
+          .type,
+      MaterialType.transparency,
+    );
+    // Newest first, the 2024 single before the 2023 album.
+    expect(
+      tester.getTopLeft(find.text('Anabella')).dy,
+      lessThan(tester.getTopLeft(find.text('Emotions')).dy),
     );
   });
 

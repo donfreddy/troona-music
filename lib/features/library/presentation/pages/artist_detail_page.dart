@@ -145,7 +145,7 @@ class ArtistDetailPage extends StatelessWidget {
                           if (data.albums.oneDiscography)
                             _ArtistAlbumsCarousel(
                               title: context.l10n.detailDiscography,
-                              albums: data.albums.releases,
+                              albums: data.albums.discography,
                               order: 5,
                               markSingles: true,
                             )
