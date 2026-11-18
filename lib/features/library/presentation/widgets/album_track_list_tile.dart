@@ -74,114 +74,121 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
 
     return QueueSwipe(
       track: widget.track,
-      child: InkWell(
-        // The player ticks when the song starts.
-        onTap: widget.onTap,
-        onHighlightChanged: (value) => setState(() => _pressed = value),
-        onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
-        // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
-        // played song ticks in the player. The system's long-press buzz would
-        // be a second one.
-        enableFeedback: false,
-        highlightColor: colors.glassHighlight,
-        splashColor: colors.glassHighlight,
-        child: AnimatedScale(
-          scale: _pressed ? 0.98 : 1.0,
-          duration: const Duration(milliseconds: 120),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                // ── Track number or animated MiniEqualizer ─────────────────────
-                SizedBox.square(
-                  dimension: 32,
-                  child: Center(
-                    child: isActive
-                        ? MiniEqualizer(
-                            isPlaying: isPlaying,
-                            color: colors.accent,
-                            size: 14,
-                          )
-                        : Text(
-                            trackNumStr,
-                            style: TextStyle(
-                              color: colors.labelTertiary,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
+      // Its ink on a Material of its own: album and artist pages paint
+      // their background over the Scaffold's, which would hide it.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          // The player ticks when the song starts.
+          onTap: widget.onTap,
+          onHighlightChanged: (value) => setState(() => _pressed = value),
+          onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
+          // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
+          // played song ticks in the player. The system's long-press buzz would
+          // be a second one.
+          enableFeedback: false,
+          highlightColor: colors.glassHighlight,
+          splashColor: colors.glassHighlight,
+          child: AnimatedScale(
+            scale: _pressed ? 0.98 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  // ── Track number or animated MiniEqualizer ─────────────────────
+                  SizedBox.square(
+                    dimension: 32,
+                    child: Center(
+                      child: isActive
+                          ? MiniEqualizer(
+                              isPlaying: isPlaying,
+                              color: colors.accent,
+                              size: 14,
+                            )
+                          : Text(
+                              trackNumStr,
+                              style: TextStyle(
+                                color: colors.labelTertiary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
                             ),
-                          ),
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── Track Title ───────────────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.track.title,
-                        style: TextStyle(
-                          color: isActive ? colors.accent : colors.labelPrimary,
-                          fontSize: 15,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          letterSpacing: -0.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (widget.subtitle case final subtitle?)
+                  // ── Track Title ───────────────────────────────────────────────
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          subtitle,
+                          widget.track.title,
                           style: TextStyle(
-                            color: colors.labelSecondary,
-                            fontSize: 13,
+                            color: isActive
+                                ? colors.accent
+                                : colors.labelPrimary,
+                            fontSize: 15,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            letterSpacing: -0.2,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        if (widget.subtitle case final subtitle?)
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: colors.labelSecondary,
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── Track Duration (mm:ss) ────────────────────────────────────
-                Text(
-                  durationStr,
-                  style: TextStyle(
-                    color: isActive
-                        ? colors.accent.withValues(alpha: 0.8)
-                        : colors.labelSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                  // ── Track Duration (mm:ss) ────────────────────────────────────
+                  Text(
+                    durationStr,
+                    style: TextStyle(
+                      color: isActive
+                          ? colors.accent.withValues(alpha: 0.8)
+                          : colors.labelSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── More options button ───────────────────────────────────────
-                AppIconButton(
-                  icon: AppIcons.more,
-                  tooltip: context.l10n.detailMore,
-                  size: 18,
-                  color: context.colors.labelSecondary,
-                  onPressed: () => _showContextMenu(context),
-                ),
-              ],
+                  // ── More options button ───────────────────────────────────────
+                  AppIconButton(
+                    icon: AppIcons.more,
+                    tooltip: context.l10n.detailMore,
+                    size: 18,
+                    color: context.colors.labelSecondary,
+                    onPressed: () => _showContextMenu(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

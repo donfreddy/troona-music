@@ -98,6 +98,20 @@ void main() {
       find.byType(AppIconButton),
     )) {
       expect(button.color, colors.labelSecondary);
+    } // Their ink shows on pages that paint their own background: each row
+    // draws it on a Material of its own.
+    for (final row in [
+      find.byType(TrackListTile),
+      find.byType(AlbumTrackListTile),
+    ]) {
+      final ink = find
+          .descendant(of: row, matching: find.byType(InkWell))
+          .first;
+      final surface = find
+          .ancestor(of: ink, matching: find.byType(Material))
+          .first;
+      expect(tester.widget<Material>(surface).type, MaterialType.transparency);
+      expect(find.descendant(of: row, matching: surface), findsOneWidget);
     }
   });
 

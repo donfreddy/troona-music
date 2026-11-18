@@ -50,107 +50,112 @@ class _TrackListTileState extends State<TrackListTile> {
 
     return QueueSwipe(
       track: widget.track,
-      child: InkWell(
-        // The player ticks when the song starts.
-        onTap: widget.onTap,
-        onHighlightChanged: (value) => setState(() => _pressed = value),
-        onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
-        // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
-        // played song ticks in the player. The system's long-press buzz would
-        // be a second one.
-        enableFeedback: false,
-        highlightColor: colors.glassHighlight,
-        splashColor: colors.glassHighlight,
-        child: AnimatedScale(
-          scale: _pressed ? 0.98 : 1.0,
-          duration: const Duration(milliseconds: 120),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                TrackRowArtwork(track: widget.track),
+      // Its ink on a Material of its own: album and artist pages paint
+      // their background over the Scaffold's, which would hide it.
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          // The player ticks when the song starts.
+          onTap: widget.onTap,
+          onHighlightChanged: (value) => setState(() => _pressed = value),
+          onLongPress: widget.onLongPress ?? () => _showContextMenu(context),
+          // Haptics are the app's (AppHaptics): the menu ticks as it opens, a
+          // played song ticks in the player. The system's long-press buzz would
+          // be a second one.
+          enableFeedback: false,
+          highlightColor: colors.glassHighlight,
+          splashColor: colors.glassHighlight,
+          child: AnimatedScale(
+            scale: _pressed ? 0.98 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  TrackRowArtwork(track: widget.track),
 
-                const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
 
-                // ── Track Title & Artist ──────────────────────────────────────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.track.title,
-                        style: TextStyle(
-                          color: isActive ? colors.accent : Colors.white,
-                          fontSize: 15,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          letterSpacing: -0.2,
-                          height: 1.2,
+                  // ── Track Title & Artist ──────────────────────────────────────
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.track.title,
+                          style: TextStyle(
+                            color: isActive ? colors.accent : Colors.white,
+                            fontSize: 15,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            letterSpacing: -0.2,
+                            height: 1.2,
+                          ),
+                          // Lines of a set height, whatever fonts draw them
+                          // (a title mixing Latin and CJK runs taller): the
+                          // Library's list gives every row one height.
+                          strutStyle: const StrutStyle(
+                            fontSize: 15,
+                            height: 1.2,
+                            forceStrutHeight: true,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        // Lines of a set height, whatever fonts draw them
-                        // (a title mixing Latin and CJK runs taller): the
-                        // Library's list gives every row one height.
-                        strutStyle: const StrutStyle(
-                          fontSize: 15,
-                          height: 1.2,
-                          forceStrutHeight: true,
+                        const SizedBox(height: 2),
+                        Text(
+                          widget.subtitle ??
+                              context.artistName(widget.track.artist),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: .55),
+                            fontSize: 13,
+                            height: 1.2,
+                          ),
+                          strutStyle: const StrutStyle(
+                            fontSize: 13,
+                            height: 1.2,
+                            forceStrutHeight: true,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        widget.subtitle ??
-                            context.artistName(widget.track.artist),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: .55),
-                          fontSize: 13,
-                          height: 1.2,
-                        ),
-                        strutStyle: const StrutStyle(
-                          fontSize: 13,
-                          height: 1.2,
-                          forceStrutHeight: true,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── Track Duration ────────────────────────────────────────────
-                Text(
-                  durationStr,
-                  style: TextStyle(
-                    color: isActive
-                        ? colors.accent.withValues(alpha: 0.8)
-                        : colors.labelSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+                  // ── Track Duration ────────────────────────────────────────────
+                  Text(
+                    durationStr,
+                    style: TextStyle(
+                      color: isActive
+                          ? colors.accent.withValues(alpha: 0.8)
+                          : colors.labelSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
 
-                // ── More options button ───────────────────────────────────────
-                AppIconButton(
-                  icon: AppIcons.more,
-                  tooltip: context.l10n.detailMore,
-                  size: 18,
-                  color: context.colors.labelSecondary,
-                  onPressed: () => _showContextMenu(context),
-                ),
-              ],
+                  // ── More options button ───────────────────────────────────────
+                  AppIconButton(
+                    icon: AppIcons.more,
+                    tooltip: context.l10n.detailMore,
+                    size: 18,
+                    color: context.colors.labelSecondary,
+                    onPressed: () => _showContextMenu(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
