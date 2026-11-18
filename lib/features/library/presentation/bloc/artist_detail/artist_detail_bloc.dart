@@ -45,20 +45,33 @@ class ArtistDetailBloc extends Bloc<ArtistDetailEvent, ArtistDetailState> {
     final tracksRes = results[1] as Either<Failure, ArtistSongs>;
     final albumsRes = results[2] as Either<Failure, ArtistAlbums>;
 
-    artistRes.fold((f) => emit(ArtistDetailError(f.message)), (artist) {
-      final songs = tracksRes.getOrElse(() => const ArtistSongs());
-      final albums = albumsRes.getOrElse(() => const ArtistAlbums());
-
-      emit(
-        ArtistDetailLoaded(
-          ArtistDetail(
-            artist: artist,
-            topTracks: songs.tracks,
-            topTracksByPlays: songs.byPlays,
-            albums: albums,
+    switch ((artistRes, tracksRes, albumsRes)) {
+      case (
+        Right(value: final artist),
+        Right(value: final songs),
+        Right(value: final albums),
+      ):
+        emit(
+          ArtistDetailLoaded(
+            ArtistDetail(
+              artist: artist,
+              topTracks: songs.tracks,
+              topTracksByPlays: songs.byPlays,
+              albums: albums,
+            ),
           ),
-        ),
-      );
-    });
+        );
+      default:
+        // A page already shown stays as it was: a reload that fails (after
+        // a scan) would otherwise swap it for an error. A first load says
+        // so, rather than show an artist with no songs or no albums.
+        if (state is ArtistDetailLoaded) return;
+        final failure = [
+          artistRes,
+          tracksRes,
+          albumsRes,
+        ].map((r) => r.fold<Failure?>((f) => f, (_) => null)).nonNulls.first;
+        emit(ArtistDetailError(failure.message));
+    }
   }
 }
