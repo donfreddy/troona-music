@@ -74,7 +74,10 @@ enum ArtistSongOrder {
 /// a few and unfolds a short list in place, but a long one would push
 /// their albums far down. Sorted by plays, title, album or date added.
 class ArtistSongsPage extends StatefulWidget {
-  const ArtistSongsPage({super.key});
+  /// The artist's id, to load them again after an error.
+  final int id;
+
+  const ArtistSongsPage({super.key, required this.id});
 
   @override
   State<ArtistSongsPage> createState() => _ArtistSongsPageState();
@@ -126,9 +129,19 @@ class _ArtistSongsPageState extends State<ArtistSongsPage> {
               if (state is ArtistDetailError)
                 SliverFillRemaining(
                   hasScrollBody: false,
-                  child: ErrorView(body: l10n.artistLoadError),
+                  child: ErrorView(
+                    body: l10n.artistLoadError,
+                    onRetry: () => context.read<ArtistDetailBloc>().add(
+                      ArtistDetailRequested(widget.id),
+                    ),
+                  ),
                 )
-              else if (data != null) ...[
+              else if (data == null)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(

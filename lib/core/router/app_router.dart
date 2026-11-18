@@ -90,7 +90,7 @@ GoRoute _buildArtistSongsRoute() => GoRoute(
     final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
     return BlocProvider(
       create: (_) => getIt<ArtistDetailBloc>()..add(ArtistDetailRequested(id)),
-      child: _overTab(const ArtistSongsPage()),
+      child: _overTab(ArtistSongsPage(id: id)),
     );
   },
 );
@@ -384,9 +384,13 @@ extension NavigationContextExt on BuildContext {
     push(target, extra: here);
   }
 
-  /// Pushes every song of an artist, in the current tab.
-  void pushArtistSongs(String artistId) =>
-      push('${tabOf(GoRouterState.of(this).uri.path)}/artists/$artistId/songs');
+  /// Pushes every song of an artist, in the current tab, handed the page
+  /// it was opened from (their page): opening that artist again from the
+  /// songs goes back to it instead of piling up a copy.
+  void pushArtistSongs(String artistId) {
+    final here = GoRouterState.of(this).uri.path;
+    push('${tabOf(here)}/artists/$artistId/songs', extra: here);
+  }
 
   void pushPlaylist(String playlistId) {
     push('${AppRoute.playlists}/$playlistId');

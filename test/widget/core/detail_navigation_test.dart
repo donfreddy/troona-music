@@ -23,6 +23,10 @@ class _Page extends StatelessWidget {
           onPressed: () => context.pushAlbum('7'),
           child: const Text('open album 7'),
         ),
+        TextButton(
+          onPressed: () => context.pushArtistSongs('1'),
+          child: const Text('open songs of 1'),
+        ),
       ],
     ),
   );
@@ -39,6 +43,10 @@ void main() {
     GoRoute(
       path: 'artists/:id',
       builder: (_, s) => _Page('artist ${s.pathParameters['id']}'),
+    ),
+    GoRoute(
+      path: 'artists/:id/songs',
+      builder: (_, s) => _Page('songs of ${s.pathParameters['id']}'),
     ),
   ];
 
@@ -85,6 +93,21 @@ void main() {
     router.pop();
     await tester.pumpAndSettle();
     expect(shown(), '/library');
+  });
+
+  testWidgets('an artist opened from their songs goes back to their page', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tap(tester, 'open artist 1');
+    await tap(tester, 'open songs of 1');
+    expect(shown(), '/library/artists/1/songs');
+
+    await tap(tester, 'open artist 1');
+    expect(shown(), '/library/artists/1');
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(shown(), '/library', reason: 'no copy of the artist piled up');
   });
 
   testWidgets('the album, opened again from its artist, goes back to it', (

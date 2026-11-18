@@ -20,6 +20,16 @@ import '../../helpers/fake_player.dart';
 
 class _Unused extends Fake implements ArtistDetailRepository {}
 
+/// Keeps the events it is sent instead of loading anything.
+class _Spy extends ArtistDetailBloc {
+  _Spy() : super(repo: _Unused());
+
+  final requests = <ArtistDetailEvent>[];
+
+  @override
+  void add(ArtistDetailEvent event) => requests.add(event);
+}
+
 Track _song(
   String id,
   String title, {
@@ -75,9 +85,12 @@ void main() {
     });
   });
 
+  late _Spy detail;
+
   Future<FakeAudioPort> open(
     WidgetTester tester, {
-    required bool byPlays,
+    bool byPlays = true,
+    ArtistDetailState? state,
   }) async {
     tester.view
       ..devicePixelRatio = 1
@@ -89,22 +102,23 @@ void main() {
       port,
       PlaybackSessionStore(await SharedPreferences.getInstance()),
     );
-    final detail = ArtistDetailBloc(repo: _Unused());
+    detail = _Spy();
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     detail.emit(
-      ArtistDetailLoaded(
-        ArtistDetail(
-          artist: const Artist(
-            id: '7',
-            name: 'Khaid',
-            albumCount: 2,
-            trackCount: 3,
+      state ??
+          ArtistDetailLoaded(
+            ArtistDetail(
+              artist: const Artist(
+                id: '7',
+                name: 'Khaid',
+                albumCount: 2,
+                trackCount: 3,
+              ),
+              topTracks: ranked,
+              topTracksByPlays: byPlays,
+              albums: const ArtistAlbums(),
+            ),
           ),
-          topTracks: ranked,
-          topTracksByPlays: byPlays,
-          albums: const ArtistAlbums(),
-        ),
-      ),
     );
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
@@ -115,7 +129,7 @@ void main() {
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: [
-          BlocProvider.value(value: detail),
+          BlocProvider<ArtistDetailBloc>.value(value: detail),
           BlocProvider.value(value: player),
         ],
         child: MaterialApp(
@@ -123,11 +137,16 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ArtistSongsPage(),
+          home: const ArtistSongsPage(id: 7),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    // A spinner never settles.
+    if (state == null) {
+      await tester.pumpAndSettle();
+    } else {
+      await tester.pump();
+    }
     return port;
   }
 
@@ -171,5 +190,17 @@ void main() {
     await tester.pump();
     expect(ids(port.lastSetQueue!.tracks), ['2', '3', '1']);
     expect(port.lastSetQueue!.startIndex, 1);
+  });
+
+  testWidgets('loading: a spinner, nothing to sort yet', (tester) async {
+    await open(tester, state: const ArtistDetailLoading());
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byTooltip('Sort'), findsNothing);
+  });
+
+  testWidgets('an error offers to load the artist again', (tester) async {
+    await open(tester, state: const ArtistDetailError('boom'));
+    await tester.tap(find.text('Try again'));
+    expect(detail.requests, [const ArtistDetailRequested(7)]);
   });
 }
