@@ -56,7 +56,6 @@ class _OfferCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: glass.fill,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: glass.border, width: glass.borderWidth),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

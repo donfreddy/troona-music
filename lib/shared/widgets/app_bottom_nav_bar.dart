@@ -925,6 +925,10 @@ class _TabItem extends StatelessWidget {
   static const dotSize = 4.0;
   static const dotOffset = 19.0;
 
+  /// The other tabs: readable over a light cover under the bar's glass,
+  /// still a step below the selected one (and its dot).
+  static const inactiveOpacity = 0.6;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -946,7 +950,7 @@ class _TabItem extends StatelessWidget {
               // Centred, in line with the artwork disc of the middle slot.
               AnimatedOpacity(
                 duration: _duration,
-                opacity: isActive ? 1.0 : 0.4,
+                opacity: isActive ? 1.0 : inactiveOpacity,
                 child: Icon(icon, color: colors.labelPrimary, size: 24),
               ),
               // The selected tab is told by more than its colour.
