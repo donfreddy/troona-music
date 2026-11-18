@@ -255,4 +255,24 @@ void main() {
     ).firstWhere((a) => a.name == 'Khaid');
     expect((listed.albumCount, listed.singleCount), (2, 1));
   });
+
+  test("an artist's name and cover do not hang on the order of their "
+      'songs: the Library and their page show the same artist', () {
+    // The same songs, as the Library reads them and as the artist page
+    // does (by album and track): the name and cover of the song added
+    // first (the lowest id), the cover of the first one that has one.
+    final songs = [
+      _t('30', ['KHAID'], albumId: 2)..artworkPath = '/covers/b.jpg',
+      _t('12', ['Khaid'])..artworkPath = '/covers/a.jpg',
+      _t('7', ['Khaid']),
+    ];
+    final id = TrackTags.artistIdFor('Khaid');
+    for (final order in [songs, songs.reversed.toList()]) {
+      final listed = LibraryGrouping.artistsOf(order).single;
+      final page = LibraryGrouping.artistOf(id, order)!;
+      for (final artist in [listed, page]) {
+        expect((artist.name, artist.artworkPath), ('Khaid', '/covers/a.jpg'));
+      }
+    }
+  });
 }
