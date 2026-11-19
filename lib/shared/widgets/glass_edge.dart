@@ -55,3 +55,49 @@ class GlassEdgePainter extends CustomPainter {
       oldDelegate.sides != sides ||
       oldDelegate.width != width;
 }
+
+/// A soft shadow around a floating surface, painted outside its rounded
+/// rect only: glass that blurs what is behind it would otherwise take the
+/// shadow under it in and darken.
+class OuterShadowPainter extends CustomPainter {
+  final BorderRadius borderRadius;
+  final Color color;
+  final double blurSigma;
+  final Offset offset;
+
+  const OuterShadowPainter({
+    required this.borderRadius,
+    this.color = const Color(0x66000000),
+    this.blurSigma = 12,
+    this.offset = const Offset(0, 8),
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final surface = borderRadius.toRRect(Offset.zero & size);
+    final reach = blurSigma * 3 + offset.distance;
+    canvas
+      ..save()
+      ..clipPath(
+        Path.combine(
+          PathOperation.difference,
+          Path()..addRect((Offset.zero & size).inflate(reach)),
+          Path()..addRRect(surface),
+        ),
+      )
+      ..drawRRect(
+        surface.shift(offset),
+        Paint()
+          ..color = color
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, blurSigma),
+      )
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(OuterShadowPainter oldDelegate) =>
+      oldDelegate.borderRadius != borderRadius ||
+      oldDelegate.color != color ||
+      oldDelegate.blurSigma != blurSigma ||
+      oldDelegate.offset != offset;
+}

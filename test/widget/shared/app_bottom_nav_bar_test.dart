@@ -176,15 +176,14 @@ void main() {
           .whereType<GlassEdgePainter>();
       expect(edges.first.width, greaterThan(0), reason: glass.name);
       final shadows = tester
-          .widgetList<DecoratedBox>(
+          .widgetList<CustomPaint>(
             find.descendant(
               of: find.byType(AppBottomNavBar),
-              matching: find.byType(DecoratedBox),
+              matching: find.byType(CustomPaint),
             ),
           )
-          .map((d) => d.decoration)
-          .whereType<BoxDecoration>()
-          .where((d) => d.boxShadow?.isNotEmpty ?? false);
+          .map((p) => p.painter)
+          .whereType<OuterShadowPainter>();
       expect(shadows, isNotEmpty, reason: glass.name);
     }
   });

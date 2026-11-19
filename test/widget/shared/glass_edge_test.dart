@@ -96,4 +96,38 @@ void main() {
     );
     expect(tester.renderObject(find.byType(CustomPaint).last), paintsNothing);
   });
+
+  testWidgets('the shadow is painted outside the surface only, so a blur '
+      'under it does not take it in', (tester) async {
+    await tester.pumpWidget(
+      const Center(
+        child: CustomPaint(
+          size: Size(200, 60),
+          painter: OuterShadowPainter(
+            borderRadius: BorderRadius.all(Radius.circular(24)),
+          ),
+        ),
+      ),
+    );
+    final box = tester.renderObject(find.byType(CustomPaint).last);
+    expect(
+      box,
+      paints
+        ..clipPath()
+        ..rrect(),
+    );
+    // The clip leaves out the surface: a point inside it is outside the
+    // clip, one just below its edge is in.
+    late Path clip;
+    expect(
+      box,
+      paints..something((method, args) {
+        if (method != #clipPath) return false;
+        clip = args.first as Path;
+        return true;
+      }),
+    );
+    expect(clip.contains(const Offset(100, 30)), isFalse);
+    expect(clip.contains(const Offset(100, 64)), isTrue);
+  });
 }

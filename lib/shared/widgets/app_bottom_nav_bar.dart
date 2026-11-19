@@ -269,30 +269,21 @@ class _NavBarBody extends StatelessWidget {
       foregroundPainter: GlassEdgePainter.of(glass, borderRadius: radius),
       child: body,
     );
-    // Outside the clip, so it shows: lifts the floating bar off the page,
-    // most where it does not blur.
-    final shadow = BoxDecoration(
-      borderRadius: radius,
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x66000000),
-          blurRadius: 24,
-          offset: Offset(0, 8),
-        ),
-      ],
-    );
+    // Lifts the floating bar off the page, painted outside it only: under
+    // it, the bar's blur would take the shadow in and darken the glass.
+    final shadow = OuterShadowPainter(borderRadius: radius);
 
     if (glass.blurSigma == 0) {
-      return DecoratedBox(
-        decoration: shadow,
+      return CustomPaint(
+        painter: shadow,
         child: ClipRRect(borderRadius: radius, child: edged),
       );
     }
 
     // RepaintBoundary isolates the BackdropFilter compositing layer so
     // position-stream rebuilds above in the tree do not trigger a re-blur.
-    return DecoratedBox(
-      decoration: shadow,
+    return CustomPaint(
+      painter: shadow,
       child: RepaintBoundary(
         child: ClipRRect(
           borderRadius: radius,
