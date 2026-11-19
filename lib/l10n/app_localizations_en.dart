@@ -1871,4 +1871,49 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew170PhotosBody =>
       'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.';
+
+  @override
+  String playlistAddedSongsTo(int count, String name) {
+    return '$count songs added to $name';
+  }
+
+  @override
+  String selectionSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs selected',
+      one: '1 song selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'selected',
+      one: 'selected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Select all';
+
+  @override
+  String get selectionDeselectAll => 'Deselect all';
+
+  @override
+  String get selectionEnd => 'End selection';
+
+  @override
+  String get selectionHintStart => 'pick songs';
+
+  @override
+  String get selectionHintPick => 'select';
+
+  @override
+  String get selectionHintUnpick => 'deselect';
 }

@@ -1,13 +1,14 @@
 import 'dart:math' as math;
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:dartz/dartz.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -27,6 +28,10 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/like_burst.dart';
+import 'package:flutter/rendering.dart';
+import 'package:troona/features/player/domain/entities/repeat_mode.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -68,6 +73,9 @@ void main() {
     int start = 0,
     bool reduceMotion = false,
     GlassQuality glass = GlassQuality.high,
+    bool showTabs = true,
+    ValueListenable<Widget?>? actions,
+    ValueListenable<bool>? tabs,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -114,7 +122,18 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: AppBottomNavBar(currentTab: tab, onTabChanged: (_) {}),
+              child: ValueListenableBuilder(
+                valueListenable: tabs ?? ValueNotifier(showTabs),
+                builder: (_, showTabs, _) => ValueListenableBuilder(
+                  valueListenable: actions ?? ValueNotifier(null),
+                  builder: (_, actions, _) => AppBottomNavBar(
+                    currentTab: tab,
+                    onTabChanged: (_) {},
+                    showTabs: showTabs,
+                    actions: actions,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -231,36 +250,612 @@ void main() {
     );
   });
 
-  testWidgets('a swipe on the mini player\'s song plays the next one, or '
-      'the previous one', (tester) async {
+  group('the mini player\'s song carousel', () {
     final tracks = [
       for (final id in ['a', 'b', 'c']) testTrack(id, durationMs: 60000),
     ];
-    final bloc = await pump(tester, AppTab.home, queue: tracks, start: 1);
-    expect((bloc.state as PlayerActive).currentTrack.id, 'b');
 
-    Future<void> swipe(double dx) async {
-      final gesture = await tester.startGesture(
-        tester.getCenter(find.text('Title b')),
-      );
-      for (var i = 0; i < 12; i++) {
-        await gesture.moveBy(Offset(dx / 12, 0));
-        await tester.pump(const Duration(milliseconds: 50));
+    Finder title(String id) => find.text('Title $id');
+    double xOf(WidgetTester tester, String id) =>
+        tester.getTopLeft(title(id)).dx;
+    double opacityOf(WidgetTester tester, String id) => tester
+        .widget<Opacity>(
+          find.ancestor(of: title(id), matching: find.byType(Opacity)).first,
+        )
+        .opacity;
+
+    /// Where the cover's images are: the song's, and the old one fading.
+    List<Rect> coverAt(WidgetTester tester) => [
+      for (final element
+          in find
+              .descendant(
+                of: find
+                    .ancestor(
+                      of: find.byType(LikeBurst),
+                      matching: find.byType(Stack),
+                    )
+                    .first,
+                matching: find.byType(ArtworkPlaceholder),
+              )
+              .evaluate())
+        switch (element.renderObject) {
+          final RenderBox box => box.localToGlobal(Offset.zero) & box.size,
+          _ => Rect.zero,
+        },
+    ];
+
+    /// Every image of the cover sits at [cover], where it was at rest.
+    void expectCoverAt(WidgetTester tester, List<Rect> cover, [String? why]) {
+      expect(cover, hasLength(1));
+      for (final rect in coverAt(tester)) {
+        expect(rect, cover.single, reason: why);
       }
-      await gesture.up();
-      await tester.pumpAndSettle();
     }
 
-    await swipe(-120);
-    expect(port.skipNextCalls, 1);
-    await swipe(120);
-    // The previous song itself, not back to the start of this one.
-    expect(port.indexJumps, [0]);
-    expect(port.skipPreviousCalls, 0);
+    Finder oldCover() => find.byWidgetPredicate(
+      (w) => w is FadeTransition && w.opacity is ReverseAnimation,
+    );
+    int masks(WidgetTester tester) =>
+        tester.layers.whereType<ShaderMaskLayer>().length;
 
-    // Short: nothing.
-    await swipe(-40);
-    expect(port.skipNextCalls, 1);
+    /// The engine moves on to [index], as after a jump.
+    Future<void> engineTo(WidgetTester tester, int index) async {
+      port.queue = Queue.fromTracks(tracks, startIndex: index);
+      port.track.add(tracks[index]);
+      // The bloc hears it, then the bar rebuilds.
+      await tester.pump();
+      await tester.pump();
+    }
+
+    /// Drags the song [from] by [dx] and keeps the finger down.
+    Future<TestGesture> drag(
+      WidgetTester tester,
+      double dx, {
+      String from = 'b',
+    }) async {
+      final gesture = await tester.startGesture(tester.getCenter(title(from)));
+      for (var i = 0; i < 10; i++) {
+        await gesture.moveBy(Offset(dx / 10, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      return gesture;
+    }
+
+    testWidgets('the next title comes in with the finger; the cover stays', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+      final cover = coverAt(tester);
+      expect(title('c'), findsNothing);
+
+      final gesture = await drag(tester, -100);
+      expectCoverAt(tester, cover);
+      // Past the touch slop, the titles follow the finger.
+      expect(xOf(tester, 'b'), lessThan(rest - 60));
+      // The neighbour, one text width along, each fading with its
+      // distance from the middle.
+      final span = xOf(tester, 'c') - xOf(tester, 'b');
+      expect(span, greaterThan(100));
+      expect(
+        opacityOf(tester, 'c'),
+        moreOrLessEquals(1 - (xOf(tester, 'c') - rest) / span, epsilon: .01),
+      );
+      expect(
+        opacityOf(tester, 'b'),
+        moreOrLessEquals(1 - (rest - xOf(tester, 'b')) / span, epsilon: .01),
+      );
+      expect(title('a'), findsNothing);
+
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [2]);
+      await engineTo(tester, 2);
+      // The old cover fades out over the new one, in place.
+      expect(oldCover(), findsOneWidget);
+      final xs = <double>[];
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expectCoverAt(tester, cover, 'frame $i');
+        xs.add(xOf(tester, 'c'));
+      }
+      await tester.pumpAndSettle();
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+      // Right to left all the way: never back the other way.
+      for (var i = 1; i < xs.length; i++) {
+        expect(xs[i], lessThanOrEqualTo(xs[i - 1]), reason: '$xs');
+      }
+      expect(title('b'), findsNothing);
+      expectCoverAt(tester, cover);
+    });
+
+    testWidgets('a swipe right plays the previous song itself, which comes '
+        'in from the left', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+
+      final gesture = await drag(tester, 100);
+      expect(xOf(tester, 'a'), lessThan(xOf(tester, 'b')));
+      expect(title('c'), findsNothing);
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [0]);
+      expect(port.skipPreviousCalls, 0);
+
+      await engineTo(tester, 0);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(xOf(tester, 'a'), lessThan(rest));
+      // The old song leaves to the right, fading out.
+      expect(xOf(tester, 'b'), greaterThan(rest));
+      await tester.pumpAndSettle();
+      expect(xOf(tester, 'a'), moreOrLessEquals(rest));
+    });
+
+    testWidgets('a short swipe springs back; one the player never answers '
+        'puts the song back', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+
+      await (await drag(tester, -40)).up();
+      await tester.pumpAndSettle();
+      expect(port.indexJumps, isEmpty);
+      expect(xOf(tester, 'b'), moreOrLessEquals(rest));
+      expect(title('c'), findsNothing);
+
+      await (await drag(tester, -100)).up();
+      await tester.pumpAndSettle();
+      expect(port.indexJumps, [2]);
+      // Still the old song: it comes back once the player had its chance.
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(xOf(tester, 'b'), moreOrLessEquals(rest));
+      expect(opacityOf(tester, 'b'), 1);
+      expect(title('c'), findsNothing);
+    });
+
+    testWidgets('no song that way: the finger meets resistance, nothing '
+        'shows', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 2);
+      final rest = tester.getTopLeft(title('c')).dx;
+
+      final gesture = await drag(tester, -100, from: 'c');
+      expect(tester.getTopLeft(title('c')).dx, greaterThan(rest - 30));
+      expect(title('a'), findsNothing);
+      expect(title('b'), findsNothing);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(port.indexJumps, isEmpty);
+    });
+
+    testWidgets('under repeat all, the last song swipes round to the first', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 2);
+      port.queueCtrl.add(
+        Queue.fromTracks(tracks, startIndex: 2, repeatMode: RepeatMode.all),
+      );
+      await tester.pump();
+
+      final gesture = await drag(tester, -100, from: 'c');
+      expect(title('a'), findsOneWidget);
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [0]);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+    });
+
+    testWidgets('while titles move both edges fade; at rest no mask', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      expect(masks(tester), 0);
+      final gesture = await drag(tester, -100);
+      expect(masks(tester), 1);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(masks(tester), 0);
+    });
+
+    testWidgets('a quick swipe after Next goes on to the song after, not '
+        'back', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 0);
+      await tester.tap(find.byTooltip('Next'));
+      await tester.pump();
+      await engineTo(tester, 1);
+      // The new title still settling from the right, a short left drag.
+      await tester.pump(const Duration(milliseconds: 20));
+      final gesture = await tester.startGesture(tester.getCenter(title('b')));
+      for (var i = 0; i < 8; i++) {
+        await gesture.moveBy(const Offset(-15, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [2]);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+    });
+
+    testWidgets('a fling short of the threshold still changes song', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      await tester.fling(title('b'), const Offset(-50, 0), 1500);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [2]);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+    });
+
+    testWidgets('while a swipe waits for its song, Next and other swipes '
+        'wait too', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 0);
+      await (await drag(tester, -100, from: 'a')).up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [1]);
+      await tester.tap(find.byTooltip('Next'));
+      await tester.pump();
+      expect(port.skipNextCalls, 0);
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('under repeat one, Next replays the song and swipes stay '
+        'free', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      port.queueCtrl.add(
+        Queue.fromTracks(tracks, startIndex: 1, repeatMode: RepeatMode.one),
+      );
+      // The bloc hears it, then the bar rebuilds.
+      await tester.pump();
+      await tester.pump();
+      await tester.tap(find.byTooltip('Next'));
+      await tester.pump();
+      expect(port.skipNextCalls, 1);
+      // Right after: a swipe still goes to the next song itself.
+      await (await drag(tester, -100)).up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [2]);
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a song changing under the finger ends that drag', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+      final gesture = await drag(tester, -100);
+      await engineTo(tester, 2);
+      await tester.pumpAndSettle();
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+      // The finger goes on: nothing follows it, nothing is sent.
+      await gesture.moveBy(const Offset(-60, 0));
+      await tester.pump();
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(port.indexJumps, isEmpty);
+    });
+
+    testWidgets('screen readers read the song playing only, even while it '
+        'is moved out', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final gesture = await drag(tester, -100);
+      expect(find.bySemanticsLabel(RegExp('Title c')), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('Title b')), findsOneWidget);
+      await gesture.up();
+      // Waiting for the player: the song is moved out of sight, still read.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(opacityOf(tester, 'b'), 0);
+      expect(find.bySemanticsLabel(RegExp('Title b')), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      semantics.dispose();
+    });
+
+    testWidgets('under repeat all with two songs, either way is the other', (
+      tester,
+    ) async {
+      final two = tracks.take(2).toList();
+      await pump(tester, AppTab.home, queue: two, start: 0);
+      port.queueCtrl.add(
+        Queue.fromTracks(two, startIndex: 0, repeatMode: RepeatMode.all),
+      );
+      await tester.pump();
+      final gesture = await drag(tester, 100, from: 'a');
+      // From the left, as the song before.
+      expect(xOf(tester, 'b'), lessThan(xOf(tester, 'a')));
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(port.indexJumps, [1]);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+    });
+
+    testWidgets('the cover keeps its image across a change, so the old one '
+        'shows until the new one is decoded', (tester) async {
+      for (final track in tracks) {
+        track.artworkPath = '/covers/${track.id}.jpg';
+      }
+      addTearDown(() {
+        for (final track in tracks) {
+          track.artworkPath = null;
+        }
+      });
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      Finder heroImage() => find.descendant(
+        of: find.byWidgetPredicate(
+          (w) => w is Hero && w.tag == NowPlayingHero.artworkTag,
+        ),
+        matching: find.byType(Image),
+      );
+      final before = tester.state(heroImage());
+      await engineTo(tester, 2);
+      await tester.pumpAndSettle();
+      final image = tester.widget<Image>(heroImage());
+      expect(tester.state(heroImage()), same(before));
+      expect(image.gaplessPlayback, isTrue);
+      expect((image.image as FileImage).file.path, '/covers/c.jpg');
+    });
+
+    testWidgets('leaving while a swipe waits leaves nothing behind', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      await (await drag(tester, -100)).up();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpWidget(const SizedBox());
+      // A timer or ticker left running would fail the test here.
+    });
+
+    testWidgets('Next slides the new song in from the right', (tester) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+      final cover = coverAt(tester);
+
+      await tester.tap(find.byTooltip('Next'));
+      await tester.pump();
+      expect(port.skipNextCalls, 1);
+      await engineTo(tester, 2);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(xOf(tester, 'c'), greaterThan(rest + 10));
+      expectCoverAt(tester, cover);
+      await tester.pumpAndSettle();
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+    });
+
+    testWidgets('a change from elsewhere fades in place: nothing slides', (
+      tester,
+    ) async {
+      await pump(tester, AppTab.home, queue: tracks, start: 1);
+      final rest = xOf(tester, 'b');
+
+      await engineTo(tester, 2);
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+      expect(xOf(tester, 'b'), moreOrLessEquals(rest));
+      expect(opacityOf(tester, 'c'), inExclusiveRange(0, 1));
+      expect(opacityOf(tester, 'b'), inExclusiveRange(0, 1));
+      // The old cover fades out over the new one.
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is FadeTransition && w.opacity is ReverseAnimation,
+        ),
+        findsOneWidget,
+      );
+      await tester.pumpAndSettle();
+      expect(title('b'), findsNothing);
+      expect(opacityOf(tester, 'c'), 1);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is FadeTransition && w.opacity is ReverseAnimation,
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('with reduced motion a swipe still changes song, and the '
+        'titles fade in place', (tester) async {
+      await pump(
+        tester,
+        AppTab.home,
+        queue: tracks,
+        start: 1,
+        reduceMotion: true,
+      );
+      final rest = xOf(tester, 'b');
+
+      await (await drag(tester, -100)).up();
+      await tester.pump();
+      expect(port.indexJumps, [2]);
+      expect(xOf(tester, 'b'), moreOrLessEquals(rest));
+      await engineTo(tester, 2);
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(xOf(tester, 'c'), moreOrLessEquals(rest));
+      expect(opacityOf(tester, 'c'), inExclusiveRange(0, 1));
+      await tester.pumpAndSettle();
+    });
+  });
+
+  testWidgets('a swipe down on the mini player closes it, the bar coming '
+      'down in one movement', (tester) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+    );
+    double barTop() => tester.getTopLeft(find.byType(AppBottomNavBar)).dy;
+    final tops = [barTop()];
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 6; i++) {
+      await gesture.moveBy(const Offset(0, 15));
+      await tester.pump(const Duration(milliseconds: 16));
+      tops.add(barTop());
+    }
+    await gesture.up();
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      tops.add(barTop());
+    }
+    await tester.pumpAndSettle();
+    tops.add(barTop());
+    expect(bloc.state, isA<PlayerIdle>());
+    expect(find.text('Title a'), findsNothing);
+    // Down all the way, never back up, and down already under the finger.
+    for (var i = 1; i < tops.length; i++) {
+      expect(tops[i], greaterThanOrEqualTo(tops[i - 1]), reason: '$tops');
+    }
+    expect(tops[6], greaterThan(tops[0] + 40));
+    // Nothing left once the player is idle: no second shrink after it.
+    final idleAt = tops.length - 1;
+    expect(tops[idleAt], tops[idleAt - 20]);
+  });
+
+  testWidgets('a short swipe down springs back and keeps playing', (
+    tester,
+  ) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+    );
+    final rest = tester.getTopLeft(find.text('Title a'));
+    final barHeight = tester.getSize(find.byType(AppBottomNavBar)).height;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 4; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    // The bar's top edge follows the finger: the bar itself shrinks, and
+    // the row comes down with it, over the tabs, dissolving from the bottom.
+    expect(
+      tester.getTopLeft(find.text('Title a')).dy,
+      greaterThan(rest.dy + 15),
+    );
+    expect(tester.layers.whereType<ShaderMaskLayer>(), isNotEmpty);
+    expect(
+      tester.getSize(find.byType(AppBottomNavBar)).height,
+      moreOrLessEquals(barHeight - 40, epsilon: 20),
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    expect(tester.getTopLeft(find.text('Title a')), rest);
+  });
+
+  testWidgets('alone, the mini player slides down whole, without fading', (
+    tester,
+  ) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+      showTabs: false,
+    );
+    Rect bar() => tester.getRect(find.byType(LikeBurst));
+    final rest = bar();
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 4; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    // With the finger, unshrunk, unfaded, unmasked.
+    expect(bar().top, greaterThan(rest.top + 15));
+    expect(bar().size, rest.size);
+    expect(tester.layers.whereType<ShaderMaskLayer>(), isEmpty);
+    for (final opacity in tester.widgetList<Opacity>(
+      find.ancestor(of: find.text('Title a'), matching: find.byType(Opacity)),
+    )) {
+      expect(opacity.opacity, 1);
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    expect(bar(), rest);
+
+    await tester.fling(find.text('Title a'), const Offset(0, 80), 1500);
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerIdle>());
+  });
+
+  testWidgets('the mini player paints over the tabs, which it comes down '
+      'on', (tester) async {
+    await pump(tester, AppTab.home, queue: [testTrack('a', durationMs: 60000)]);
+    final column = tester.widget<Column>(
+      find.ancestor(
+        of: find.text('Title a'),
+        matching: find.byWidgetPredicate(
+          (w) => w is Column && w.verticalDirection == VerticalDirection.up,
+        ),
+      ),
+    );
+    // Listed bottom up: the mini player last, so painted last.
+    expect(
+      find.descendant(
+        of: find.byWidget(column.children.last),
+        matching: find.text('Title a'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(find.text('Title a')).dy,
+      lessThan(tester.getTopLeft(find.byIcon(AppIcons.home)).dy),
+    );
+  });
+
+  test('the row dissolves from its bottom up, gone by the end', () {
+    // Untouched at rest: the band sits below the row.
+    final rest = dropOutMaskAt(0);
+    expect((rest.begin as Alignment).y, greaterThanOrEqualTo(1));
+    // Half way: the bottom is clear, the top still shows.
+    final half = dropOutMaskAt(.35);
+    expect((half.begin as Alignment).y, lessThan(1));
+    expect((half.end as Alignment).y, greaterThan(-1));
+    expect((half.end as Alignment).y, lessThan(1));
+    // Gone: the whole row is below the clear end.
+    expect((dropOutMaskAt(.7).end as Alignment).y, lessThan(-.999));
+  });
+
+  testWidgets('a song played while the row leaves keeps it', (tester) async {
+    final tracks = [
+      for (final id in ['a', 'b']) testTrack(id, durationMs: 60000),
+    ];
+    final bloc = await pump(tester, AppTab.home, queue: tracks);
+    final rest = tester.getTopLeft(find.text('Title a'));
+    await tester.fling(find.text('Title a'), const Offset(0, 60), 1500);
+    await tester.pump();
+    // Mid-way out, the engine moves on to another song.
+    port.queue = Queue.fromTracks(tracks, startIndex: 1);
+    port.track.add(tracks[1]);
+    await tester.pump();
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    // Back in place, fully shown.
+    expect(tester.getTopLeft(find.text('Title b')), rest);
+    expect(
+      tester
+          .widget<Opacity>(
+            find
+                .ancestor(
+                  of: find.text('Title b'),
+                  matching: find.byType(Opacity),
+                )
+                .last,
+          )
+          .opacity,
+      1,
+    );
   });
 
   testWidgets('the mini player\'s fill moves on every position tick', (
@@ -354,10 +949,13 @@ void main() {
 
     double badgeOpacity(WidgetTester tester) => tester
         .widget<AnimatedOpacity>(
-          find.ancestor(
-            of: find.byKey(badge),
-            matching: find.byType(AnimatedOpacity),
-          ),
+          // The badge's own, the nearest: the bar's rows fade too.
+          find
+              .ancestor(
+                of: find.byKey(badge),
+                matching: find.byType(AnimatedOpacity),
+              )
+              .first,
         )
         .opacity;
 
@@ -519,6 +1117,157 @@ void main() {
       expect(badgeText(tester), '+1');
       expect(badgeOpacity(tester), 1);
       await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+  });
+
+  group('a row of actions', () {
+    const row = SizedBox.expand(child: Center(child: Text('actions')));
+    final song = [testTrack('a', durationMs: 180000)];
+
+    Size barSize(WidgetTester tester) =>
+        tester.getSize(find.byType(AppBottomNavBar));
+
+    bool covered(WidgetTester tester, Finder finder) => tester
+        .widgetList<IgnorePointer>(
+          find.ancestor(of: finder, matching: find.byType(IgnorePointer)),
+        )
+        .any((p) => p.ignoring);
+
+    testWidgets('on a tab, it covers the tabs; the bar keeps its height', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(tester, AppTab.home, queue: song, actions: actions);
+      final before = barSize(tester);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester), before);
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isTrue,
+      );
+      // The mini player stays above, in reach.
+      expect(covered(tester, find.text('Title a').first), isFalse);
+      // The row sits where the tabs were, below the mini player.
+      expect(
+        tester.getCenter(find.text('actions')).dy,
+        greaterThan(tester.getCenter(find.text('Title a').first).dy),
+      );
+
+      actions.value = null;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isFalse,
+      );
+    });
+
+    testWidgets('alone, it covers the mini player; the bar keeps its height', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(
+        tester,
+        AppTab.home,
+        queue: song,
+        showTabs: false,
+        actions: actions,
+      );
+      final before = barSize(tester);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester), before);
+      expect(covered(tester, find.text('Title a').first), isTrue);
+    });
+
+    testWidgets('alone with nothing playing, it comes as a row of its own', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(tester, AppTab.home, showTabs: false, actions: actions);
+      expect(barSize(tester).height, 0);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester).height, AppSpacing.miniPlayerHeight);
+
+      // It slides off before it goes, rather than vanishing.
+      final rest = tester.getTopLeft(find.text('actions')).dy;
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 110));
+      expect(find.text('actions'), findsOneWidget);
+      expect(tester.getTopLeft(find.text('actions')).dy, greaterThan(rest));
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(barSize(tester).height, 0);
+
+      // Back before it is gone: it comes back in place.
+      actions.value = row;
+      await tester.pumpAndSettle();
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('actions')).dy, rest);
+    });
+
+    testWidgets('the tabs coming back while it slides off show at once', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(row);
+      final tabs = ValueNotifier(false);
+      await pump(tester, AppTab.home, tabs: tabs, actions: actions);
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+
+      // Popped back to a tab before the row was gone.
+      tabs.value = true;
+      await tester.pump();
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isFalse,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+    });
+
+    testWidgets('a song starting while it slides off leaves the mini player '
+        'alone', (tester) async {
+      final actions = ValueNotifier<Widget?>(row);
+      final bloc = await pump(
+        tester,
+        AppTab.home,
+        showTabs: false,
+        actions: actions,
+      );
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      port.queue = Queue.fromTracks(song);
+      port.duration = const Duration(minutes: 3);
+      bloc.add(QueueSetRequested(song));
+      await tester.pump();
+      port.status.add(PlaybackStatus.playing);
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(find.text('Title a'), findsWidgets);
+      expect(barSize(tester).height, AppSpacing.miniPlayerHeight);
+      // At rest in the bar, not slid off with the actions.
+      expect(
+        tester
+            .getRect(find.byType(AppBottomNavBar))
+            .contains(tester.getCenter(find.text('Title a').first)),
+        isTrue,
+      );
     });
   });
 }

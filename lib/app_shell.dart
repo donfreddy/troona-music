@@ -16,6 +16,9 @@ import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/selection/track_selection_cubit.dart';
+import 'package:troona/features/library/presentation/widgets/selection/selection_actions.dart';
+import 'package:troona/features/library/presentation/widgets/selection/selection_place.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -285,49 +288,72 @@ class _AppShellState extends State<AppShell> {
 
           final isRootPage = _isRootPage;
 
-          return TabReselectScope(
-            controller: _reselect,
-            child: Scaffold(
-              backgroundColor: Colors.black,
-              body: Stack(
-                children: [
-                  const Positioned.fill(child: AmbientBackground()),
+          // Songs picked end with the page or the tab shown.
+          return SelectionPlace(
+            place: (_currentLocation, widget.navigationShell.currentIndex),
+            child: TabReselectScope(
+              controller: _reselect,
+              child: Scaffold(
+                backgroundColor: Colors.black,
+                body: Stack(
+                  children: [
+                    const Positioned.fill(child: AmbientBackground()),
 
-                  // ── The Branch Content ─────────────────────────────────────────
-                  // Lowered while Now Playing covers it, risen back as
-                  // the surface lands in the mini player.
-                  Positioned.fill(
-                    child: NowPlayingCoveredDrop(child: widget.navigationShell),
-                  ),
-
-                  // ── Floor: content fades out under the floating bar ─────
-                  // As tall as the room pages keep for the bar: content at
-                  // rest is never dimmed, only what scrolls under the bar.
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOutCubic,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    height: context.bottomBarInset(tabs: isRootPage),
-                    child: const IgnorePointer(child: _BottomFade()),
-                  ),
-
-                  // ── Bottom Bar ────────────────────────────────────────────────
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                      child: AppBottomNavBar(
-                        currentTab: currentTab,
-                        onTabChanged: _onTabChanged,
-                        showTabs: isRootPage,
+                    // ── The Branch Content ─────────────────────────────────────────
+                    // Lowered while Now Playing covers it, risen back as
+                    // the surface lands in the mini player.
+                    Positioned.fill(
+                      child: NowPlayingCoveredDrop(
+                        child: widget.navigationShell,
                       ),
                     ),
-                  ),
-                ],
+
+                    // ── Floor: content fades out under the floating bar ─────
+                    // As tall as the room pages keep for the bar: content at
+                    // rest is never dimmed, only what scrolls under the bar.
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: context.bottomBarInset(tabs: isRootPage),
+                      child: const IgnorePointer(child: _BottomFade()),
+                    ),
+
+                    // ── Bottom Bar ────────────────────────────────────────────────
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          12,
+                          0,
+                          12,
+                          safeBottom + 12,
+                        ),
+                        // Songs picked put their actions in the bar.
+                        child:
+                            BlocSelector<
+                              TrackSelectionCubit,
+                              TrackSelection,
+                              bool
+                            >(
+                              selector: (selection) => selection.active,
+                              builder: (context, picking) => AppBottomNavBar(
+                                currentTab: currentTab,
+                                onTabChanged: _onTabChanged,
+                                showTabs: isRootPage,
+                                actions: picking
+                                    ? const SelectionActions()
+                                    : null,
+                              ),
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

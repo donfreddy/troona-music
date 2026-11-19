@@ -132,6 +132,31 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   }
 
   @override
+  Future<Either<Failure, List<String>>> addTracksToPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    try {
+      return right(await _cache.addTracksToPlaylist(playlistId, trackIds));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeTracksFromPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    try {
+      await _cache.removeTracksFromPlaylist(playlistId, trackIds);
+      return right(unit);
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> reorderTracks(
     String playlistId,
     int oldIndex,

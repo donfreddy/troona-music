@@ -10,6 +10,7 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/album_order.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -105,63 +106,67 @@ class _ArtistSongsPageState extends State<ArtistSongsPage> {
           final tracks = data == null
               ? const <Track>[]
               : order.apply(data.topTracks);
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              GlassSliverHeader.largeTitle(
-                leading: const AppBackButton(),
-                title: l10n.detailSongs,
-                actions: [
-                  if (data != null)
-                    GlassIconButton(
-                      icon: AppIcons.sort,
-                      tooltip: l10n.librarySort,
-                      onTap: () => _showOrders(
-                        context,
-                        order,
-                        byPlays: data.topTracksByPlays,
+          // A long press on a song picks songs in this list.
+          return TrackSelectionScope(
+            tracks: tracks,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                GlassSliverHeader.largeTitle(
+                  leading: const AppBackButton(),
+                  title: l10n.detailSongs,
+                  actions: [
+                    if (data != null)
+                      GlassIconButton(
+                        icon: AppIcons.sort,
+                        tooltip: l10n.librarySort,
+                        onTap: () => _showOrders(
+                          context,
+                          order,
+                          byPlays: data.topTracksByPlays,
+                        ),
+                      ),
+                  ],
+                ),
+                if (state is ArtistDetailError)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: ErrorView(
+                      body: l10n.artistLoadError,
+                      onRetry: () => context.read<ArtistDetailBloc>().add(
+                        ArtistDetailRequested(widget.id),
                       ),
                     ),
+                  )
+                else if (data == null)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                      ),
+                      child: MetaLine([
+                        context.artistName(data.artist.name),
+                        l10n.songCount(tracks.length),
+                      ]),
+                    ),
+                  ),
+                  _SongList(tracks: tracks, artist: data.artist),
                 ],
-              ),
-              if (state is ArtistDetailError)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: ErrorView(
-                    body: l10n.artistLoadError,
-                    onRetry: () => context.read<ArtistDetailBloc>().add(
-                      ArtistDetailRequested(widget.id),
-                    ),
-                  ),
-                )
-              else if (data == null)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else ...[
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                    ),
-                    child: MetaLine([
-                      context.artistName(data.artist.name),
-                      l10n.songCount(tracks.length),
-                    ]),
-                  ),
+                  child: SizedBox(height: context.bottomBarInset()),
                 ),
-                _SongList(tracks: tracks, artist: data.artist),
               ],
-              SliverToBoxAdapter(
-                child: SizedBox(height: context.bottomBarInset()),
-              ),
-            ],
+            ),
           );
         },
       ),

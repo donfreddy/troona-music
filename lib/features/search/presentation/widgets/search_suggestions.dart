@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/recently_added.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/presentation/widgets/album_card.dart';
@@ -20,6 +21,11 @@ class SearchSuggestions extends StatelessWidget {
   final ValueChanged<String>? onQuerySelected;
 
   const SearchSuggestions({super.key, this.onQuerySelected});
+
+  /// The songs it lists: the newest five, the start of Recently added,
+  /// which See all opens.
+  static List<Track> songsOf(List<Track> allTracks) =>
+      RecentlyAdded.of(allTracks, limit: 5);
 
   @override
   Widget build(BuildContext context) {
@@ -40,8 +46,7 @@ class SearchSuggestions extends StatelessWidget {
     final albums = libState.allAlbums;
     final allTracks = libState.allTracks;
 
-    // Newest five: the start of Recently added, which See all opens.
-    final suggestedTracks = RecentlyAdded.of(allTracks, limit: 5);
+    final suggestedTracks = songsOf(allTracks);
 
     // A sliver: the suggestions scroll under the search page's glass bar.
     return SliverPadding(

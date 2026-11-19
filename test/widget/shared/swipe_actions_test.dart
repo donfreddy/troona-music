@@ -156,6 +156,30 @@ void main() {
     expect(ticks, isEmpty);
   });
 
+  testWidgets('its actions gone mid-swipe, the row springs back', (
+    tester,
+  ) async {
+    await pump(tester);
+    final start = rowX(tester);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(rowKey)),
+    );
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(12, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(rowX(tester), greaterThan(start));
+
+    // The list starts picking: no action either way any more.
+    await pump(tester, left: false, right: false);
+    await tester.pumpAndSettle();
+    expect(rowX(tester), start);
+    expect(find.textContaining('bg '), findsNothing);
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(fired, isEmpty);
+  });
+
   testWidgets('a tap still reaches the row', (tester) async {
     await pump(tester);
     await tester.tap(find.byKey(rowKey));

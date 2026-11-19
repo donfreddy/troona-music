@@ -170,6 +170,51 @@ class IsarLibraryDataSource {
     });
   }
 
+  /// Adds [trackIds] to a playlist in one write, in their order, leaving
+  /// out the ones it holds (and repeats). The ids added, in order; none
+  /// when the playlist is gone.
+  Future<List<String>> addTracksToPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    return _isar.write((isar) {
+      final playlist = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlistId)
+          .findFirst();
+      if (playlist == null) return const <String>[];
+      final held = {...playlist.trackIds};
+      final added = [
+        for (final id in trackIds)
+          if (held.add(id)) id,
+      ];
+      if (added.isEmpty) return added;
+      playlist.trackIds = [...playlist.trackIds, ...added];
+      isar.playlistModels.put(playlist);
+      return added;
+    });
+  }
+
+  /// Removes [trackIds] from a playlist in one write.
+  Future<void> removeTracksFromPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    final gone = trackIds.toSet();
+    _isar.write((isar) {
+      final playlist = isar.playlistModels
+          .where()
+          .playlistIdEqualTo(playlistId)
+          .findFirst();
+      if (playlist == null) return;
+      playlist.trackIds = [
+        for (final id in playlist.trackIds)
+          if (!gone.contains(id)) id,
+      ];
+      isar.playlistModels.put(playlist);
+    });
+  }
+
   /// Removes a track from a playlist.
   Future<void> removeTrackFromPlaylist(
     String playlistId,

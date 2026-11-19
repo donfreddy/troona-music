@@ -507,5 +507,14 @@
   "whatsNew170QueueTitle": "Ajouter sans rien en cours",
   "whatsNew170QueueBody": "Lire ensuite et Ajouter à la file lancent maintenant la musique quand rien ne joue, et un album entre entier dans la file.",
   "whatsNew170PhotosTitle": "Photos d'artistes",
-  "whatsNew170PhotosBody": "Plus de silhouettes grises ni de photos d'homonymes, et la recherche affiche les photos téléchargées."
+  "whatsNew170PhotosBody": "Plus de silhouettes grises ni de photos d'homonymes, et la recherche affiche les photos téléchargées.",
+  "playlistAddedSongsTo": "{count} morceaux ajoutés à {name}",
+  "selectionSelected": "{count, plural, =1{1 morceau sélectionné} other{{count} morceaux sélectionnés}}",
+  "selectionSuffix": "{count, plural, =1{sélectionné} other{sélectionnés}}",
+  "selectionSelectAll": "Tout sélectionner",
+  "selectionDeselectAll": "Tout désélectionner",
+  "selectionEnd": "Terminer la sélection",
+  "selectionHintStart": "sélectionner des morceaux",
+  "selectionHintPick": "sélectionner",
+  "selectionHintUnpick": "désélectionner"
 }

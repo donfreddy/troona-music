@@ -1887,4 +1887,49 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew170PhotosBody =>
       'Plus de silhouettes grises ni de photos d\'homonymes, et la recherche affiche les photos téléchargées.';
+
+  @override
+  String playlistAddedSongsTo(int count, String name) {
+    return '$count morceaux ajoutés à $name';
+  }
+
+  @override
+  String selectionSelected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count morceaux sélectionnés',
+      one: '1 morceau sélectionné',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String selectionSuffix(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'sélectionnés',
+      one: 'sélectionné',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectionSelectAll => 'Tout sélectionner';
+
+  @override
+  String get selectionDeselectAll => 'Tout désélectionner';
+
+  @override
+  String get selectionEnd => 'Terminer la sélection';
+
+  @override
+  String get selectionHintStart => 'sélectionner des morceaux';
+
+  @override
+  String get selectionHintPick => 'sélectionner';
+
+  @override
+  String get selectionHintUnpick => 'désélectionner';
 }
