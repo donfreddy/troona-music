@@ -89,11 +89,19 @@ typedef GlassQuality = troona_settings.GlassQuality;
 ///
 /// ### Quality tiers
 ///
-/// | Tier  | Blur                          | Purpose                          |
-/// |-------|-------------------------------|----------------------------------|
-/// | high  | 30 on chrome, 26 on the dock  | Default on capable devices       |
-/// | low   | 8 to 14                       | Devices detected as modest       |
-/// | off   | none                          | Flat tint, no [BackdropFilter]   |
+/// | Tier               | Blur                                     |
+/// |--------------------|------------------------------------------|
+/// | high (Full)        | 30 on chrome, 26 on the dock; sheets too |
+/// | low (Balanced)     | The page header alone, at 30             |
+/// | off (No blur)      | None                                     |
+///
+/// A tier saves by blurring fewer and smaller surfaces, never by a smaller
+/// sigma: Impeller blurs a large sigma on a smaller image, so the cost is
+/// in capturing what is behind, per filter and per pixel. Balanced keeps
+/// the header's blur, where sharp lines of text pass under its title; the
+/// tab bar, whose content the shell darkens first, turns to an opaque tint
+/// with its edge, and so do Now Playing's lens and dock, and sheets. No
+/// blur stays a drawn surface: tints from the palette, with their edge.
 ///
 /// ### Auto-detection ([GlassTier.detect], at start-up)
 ///
@@ -160,23 +168,23 @@ abstract final class GlassTheme {
   static GlassConfig bar(BuildContext ctx, {GlassQuality? quality}) {
     final q = _resolveQuality(ctx, quality);
     return switch (q) {
-      GlassQuality.off => _cardOffDark,
+      GlassQuality.off => _barOffDark,
       GlassQuality.low => _barLowDark,
       _ => _barDark,
     };
   }
 
   /// Config for the collapsed page header ([GlassSliverHeader]): the
-  /// [bar] glass, exposed at [headerExposure]. Covers scroll right under
+  /// high tier's [bar] glass, exposed at [headerExposure], on the
+  /// balanced tier too (the one blur it keeps). Covers scroll right under
   /// its title, unlike the tab bar's, which the shell darkens first: a
-  /// white one under 15 % of tint left white text at 1.4:1. On the low
-  /// tier the header takes the dark tint too: the white veil, exposed or
-  /// not, stays near 3:1.
-  static GlassConfig header(BuildContext ctx, {GlassQuality? quality}) {
-    final bar = GlassTheme.bar(ctx, quality: quality);
-    if (bar.blurSigma == 0) return bar;
-    return bar.copyWith(fill: _barDark.fill, exposure: headerExposure);
-  }
+  /// white one under 15 % of tint left white text at 1.4:1. Without blur,
+  /// the bar's opaque tint.
+  static GlassConfig header(BuildContext ctx, {GlassQuality? quality}) =>
+      switch (_resolveQuality(ctx, quality)) {
+        GlassQuality.off => _barOffDark,
+        _ => _barDark.copyWith(exposure: headerExposure),
+      };
 
   /// Brightness of what the header's glass lets through: white text keeps
   /// about 5:1 over a white cover under the [bar] tint.
@@ -192,28 +200,24 @@ abstract final class GlassTheme {
     };
   }
 
-  /// The blur of Now Playing's dock.
-  static GlassConfig nowPlaying(BuildContext ctx, {GlassQuality? quality}) {
-    final q = _resolveQuality(ctx, quality);
-    return switch (q) {
-      GlassQuality.off => _cardOffDark,
-      GlassQuality.low => _nowPlayingLowDark,
-      _ => _nowPlayingDark,
-    };
-  }
+  /// The blur of Now Playing's dock: none below the high tier, where the
+  /// dock and the lens are a veil.
+  static GlassConfig nowPlaying(BuildContext ctx, {GlassQuality? quality}) =>
+      switch (_resolveQuality(ctx, quality)) {
+        GlassQuality.high || GlassQuality.auto => _nowPlayingDark,
+        _ => _cardOffDark,
+      };
 
   /// Config for bottom sheets (queue sheet, context menu, etc.).
   ///
   /// Top corners are rounded (20 px); bottom corners are square to bleed
   /// to the screen edge.  Top padding (8 px) reserves space for the drag handle.
-  static GlassConfig sheet(BuildContext ctx, {GlassQuality? quality}) {
-    final q = _resolveQuality(ctx, quality);
-    return switch (q) {
-      GlassQuality.off => _sheetOffDark,
-      GlassQuality.low => _sheetLowDark,
-      _ => _sheetDark,
-    };
-  }
+  /// Opaque below the high tier.
+  static GlassConfig sheet(BuildContext ctx, {GlassQuality? quality}) =>
+      switch (_resolveQuality(ctx, quality)) {
+        GlassQuality.high || GlassQuality.auto => _sheetDark,
+        _ => _sheetOffDark,
+      };
 
   // ── High quality ────────────────────────────────────────────────────────
 
@@ -254,13 +258,13 @@ abstract final class GlassTheme {
     saturation: 1.25,
   );
 
+  // Balanced: an opaque tint, the high tier's edge.
   static const _barLowDark = GlassConfig(
-    blurSigma: 8,
-    fill: Color(0x1EFFFFFF), // 12 %
-    border: Color(0x12FFFFFF), // 7 %
-    highlight: Color(0x08FFFFFF), // 3 %
-    borderRadius: BorderRadius.all(Radius.circular(20)),
-    saturation: 1,
+    blurSigma: 0,
+    fill: Color(0xE00C0E14), // 88 % tertiary background
+    border: Color(0x22FFFFFF), // 13 %
+    highlight: Color(0x0DFFFFFF), // 5 %
+    borderRadius: BorderRadius.all(Radius.circular(24)),
   );
 
   // Same glass as [_barDark].
@@ -274,10 +278,11 @@ abstract final class GlassTheme {
     saturation: 1.25,
   );
 
-  // ── Low quality ─────────────────────────────────────────────────────────
+  // ── Balanced (low) ──────────────────────────────────────────────────
 
+  // No blur: the lens and every card are flat ([GlassLens] reads it).
   static const _cardLowDark = GlassConfig(
-    blurSigma: 8,
+    blurSigma: 0,
     fill: Color(0x1EFFFFFF), // 12 %: boosted vs. high quality's 4 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
@@ -285,7 +290,7 @@ abstract final class GlassTheme {
   );
 
   static const _miniPlayerLowDark = GlassConfig(
-    blurSigma: 12,
+    blurSigma: 0,
     fill: Color(0x24FFFFFF), // 14 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
@@ -293,42 +298,32 @@ abstract final class GlassTheme {
     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   );
 
-  static const _nowPlayingLowDark = GlassConfig(
-    blurSigma: 14,
-    fill: Color(0x16FFFFFF), // 9 %
-    border: Color(0x10FFFFFF), // 6 %
-    highlight: Color(0x08FFFFFF), // 3 %
-    borderRadius: BorderRadius.zero,
-    padding: EdgeInsets.zero,
-  );
-
-  static const _sheetLowDark = GlassConfig(
-    blurSigma: 14,
-    fill: Color(0x21FFFFFF), // 13 %
-    border: Color(0x12FFFFFF), // 7 %
-    highlight: Color(0x08FFFFFF), // 3 %
-    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
-    saturation: 1,
-  );
-
   // ── Off: flat tint, no BackdropFilter ───────────────────────────────────
   //
   // [blurSigma] == 0 triggers the fast path in GlassCard (no compositing layer).
 
+  // Palette tints, never iOS's neutral grey, and the edge kept.
   static const _cardOffDark = GlassConfig(
     blurSigma: 0,
-    fill: Color(0xE61C1C1E), // 90 % secondarySystemBackground dark
-    border: Colors.transparent,
-    highlight: Colors.transparent,
+    fill: Color(0xF014161D), // 94 % elevated background
+    border: Color(0x22FFFFFF), // 13 %
+    highlight: Color(0x0DFFFFFF), // 5 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
+  );
+
+  static const _barOffDark = GlassConfig(
+    blurSigma: 0,
+    fill: Color(0xF00C0E14), // 94 % tertiary background
+    border: Color(0x22FFFFFF), // 13 %
+    highlight: Color(0x0DFFFFFF), // 5 %
+    borderRadius: BorderRadius.all(Radius.circular(24)),
   );
 
   static const _sheetOffDark = GlassConfig(
     blurSigma: 0,
-    fill: Color(0xFF1C1C1E), // secondarySystemBackground dark (opaque)
-    border: Colors.transparent,
-    highlight: Colors.transparent,
+    fill: Color(0xFF14161D), // elevated background, opaque
+    border: Color(0x16FFFFFF), // 9 %
+    highlight: Color(0x0AFFFFFF), // 4 %
     borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     padding: EdgeInsets.fromLTRB(0, 8, 0, 0),
   );

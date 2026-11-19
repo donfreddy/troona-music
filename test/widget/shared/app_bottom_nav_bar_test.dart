@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -65,6 +66,7 @@ void main() {
     List<Track>? queue,
     int start = 0,
     bool reduceMotion = false,
+    GlassQuality glass = GlassQuality.high,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -99,7 +101,7 @@ void main() {
           BlocProvider.value(value: likesCubit),
         ],
         child: MaterialApp(
-          theme: AppTheme.dark,
+          theme: AppTheme.withGlass(glass),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => MediaQuery(
@@ -133,6 +135,37 @@ void main() {
           )
           .scale,
   ];
+
+  testWidgets('the bar blurs on full glass only: balanced and no blur draw '
+      'an opaque tint with its edge', (tester) async {
+    final queue = [testTrack('a', durationMs: 180000)];
+    for (final (glass, blurs) in [
+      (GlassQuality.high, 1),
+      (GlassQuality.low, 0),
+      (GlassQuality.off, 0),
+    ]) {
+      await pump(tester, AppTab.home, queue: queue, glass: glass);
+      expect(
+        find.byType(BackdropFilter),
+        findsNWidgets(blurs),
+        reason: glass.name,
+      );
+      if (blurs == 0) {
+        final box = tester
+            .widgetList<Container>(
+              find.descendant(
+                of: find.byType(AppBottomNavBar),
+                matching: find.byType(Container),
+              ),
+            )
+            .map((c) => c.decoration)
+            .whereType<BoxDecoration>()
+            .first;
+        expect(box.color!.a, greaterThan(.87), reason: glass.name);
+        expect(box.border, isNotNull, reason: glass.name);
+      }
+    }
+  });
 
   testWidgets('a dot shows under the selected tab only, and follows it', (
     tester,

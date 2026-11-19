@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/add_track_to_likes_use_case.dart';
@@ -68,6 +69,7 @@ void main() {
     required Size screen,
     required double textScale,
     String artist = 'Artist',
+    GlassQuality glass = GlassQuality.high,
   }) async {
     final queued = [
       for (final id in 'abcde'.split(''))
@@ -122,7 +124,7 @@ void main() {
           BlocProvider.value(value: sleep),
         ],
         child: MaterialApp(
-          theme: AppTheme.dark,
+          theme: AppTheme.withGlass(glass),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const FullPlayerPage(morphFromMini: false),
@@ -253,6 +255,21 @@ void main() {
         .controller!
         .page;
     expect(page, playing.toDouble());
+  });
+
+  testWidgets('below full glass, Now Playing blurs nothing: the lens and '
+      'the dock are a veil', (tester) async {
+    await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
+    expect(find.byType(BackdropFilter), findsWidgets, reason: 'full glass');
+    for (final glass in [GlassQuality.low, GlassQuality.off]) {
+      await pumpPage(
+        tester,
+        screen: const Size(412, 915),
+        textScale: 1,
+        glass: glass,
+      );
+      expect(find.byType(BackdropFilter), findsNothing, reason: glass.name);
+    }
   });
 
   testWidgets('sheets opened from Now Playing add no blur: the queue (from '

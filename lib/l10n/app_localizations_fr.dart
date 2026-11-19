@@ -210,14 +210,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsGlassFull => 'Complet';
 
   @override
-  String get settingsGlassLight => 'Léger';
+  String get settingsGlassBalanced => 'Équilibré';
 
   @override
-  String get settingsGlassOff => 'Désactivé';
+  String get settingsGlassOff => 'Sans flou';
 
   @override
-  String get settingsGlassFooter =>
-      'Auto s\'adapte à votre téléphone. Choisissez Léger ou Désactivé pour plus de fluidité sur les appareils anciens.';
+  String settingsGlassFooter(String tier) {
+    return 'Auto : $tier sur ce téléphone. Équilibré ne garde le flou que dans les en-têtes, Sans flou n\'en dessine aucun : les deux défilent plus fluidement sur les téléphones anciens.';
+  }
 
   @override
   String get settingsHaptics => 'Vibrations';

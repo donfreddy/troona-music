@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -22,6 +23,12 @@ abstract final class GlassTier {
       return;
     }
 
+    // The thresholds below are Android's; elsewhere (iOS), the full glass.
+    if (!Platform.isAndroid) {
+      _detected = GlassQuality.high;
+      return;
+    }
+
     try {
       final info = await DeviceInfoPlugin().androidInfo;
       final ramMb = info.physicalRamSize;
@@ -35,7 +42,8 @@ abstract final class GlassTier {
         _detected = GlassQuality.high;
       }
     } catch (_) {
-      _detected = GlassQuality.high;
+      // Unknown hardware: the balanced tier, which any phone carries.
+      _detected = GlassQuality.low;
     }
   }
 }

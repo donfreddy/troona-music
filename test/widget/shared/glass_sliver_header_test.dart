@@ -175,6 +175,20 @@ void main() {
     expect(row.bottom, greaterThan(barBottom - 20));
   });
 
+  testWidgets('balanced glass keeps the header\'s blur, at full strength', (
+    tester,
+  ) async {
+    final controller = await pump(
+      tester,
+      largeTitle(),
+      quality: GlassQuality.low,
+    );
+    await scrollTo(tester, controller, 400);
+    final blur = tester.widget<BackdropFilter>(find.byType(BackdropFilter));
+    expect(blur.enabled, isTrue);
+    expect(blur.filter.toString(), contains('blur(30.0, 30.0'));
+  });
+
   testWidgets('glass off: no BackdropFilter at all', (tester) async {
     final controller = await pump(
       tester,

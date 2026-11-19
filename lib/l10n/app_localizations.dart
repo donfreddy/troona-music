@@ -416,23 +416,23 @@ abstract class AppLocalizations {
   /// **'Full'**
   String get settingsGlassFull;
 
-  /// No description provided for @settingsGlassLight.
+  /// No description provided for @settingsGlassBalanced.
   ///
   /// In en, this message translates to:
-  /// **'Light'**
-  String get settingsGlassLight;
+  /// **'Balanced'**
+  String get settingsGlassBalanced;
 
   /// No description provided for @settingsGlassOff.
   ///
   /// In en, this message translates to:
-  /// **'Off'**
+  /// **'No blur'**
   String get settingsGlassOff;
 
   /// No description provided for @settingsGlassFooter.
   ///
   /// In en, this message translates to:
-  /// **'Auto adapts to your phone. Choose Light or Off for smoother scrolling on older devices.'**
-  String get settingsGlassFooter;
+  /// **'Auto: {tier} on this phone. Balanced keeps the blur in page headers only, No blur draws none: both scroll more smoothly on older phones.'**
+  String settingsGlassFooter(String tier);
 
   /// No description provided for @settingsHaptics.
   ///
