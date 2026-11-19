@@ -388,6 +388,18 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
   /// How long a swipe waits for the player before putting the song back.
   static const _patience = Duration(milliseconds: 700);
 
+  /// How far the row is swiped down, 0 to 1 of its height: the bar's top
+  /// edge follows the finger and the row fades; let go far or fast enough,
+  /// the row closes and the player stops.
+  late final _drop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  /// Whether the row was swiped away, until the player goes idle and the
+  /// row leaves (or a new song plays and brings it back).
+  bool _dismissed = false;
+
   /// Songs queued by hand lately, for [_QueuedAck]. Held here, so skipping
   /// right after Play next keeps the count.
   final _queued = ValueNotifier<_Queued>((count: 0, shown: false, serial: 0));
@@ -436,6 +448,11 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
         now.queue.currentIndex == _awaitIndex &&
         now.currentTrack.id == _awaitTrackId &&
         now.queue.currentTrack?.id == now.currentTrack.id;
+    if (before.currentTrack.id != now.currentTrack.id && _dismissed) {
+      // A song played while the row was leaving: it stays.
+      _dismissed = false;
+      _drop.value = 0;
+    }
     if (!awaited && before.currentTrack.id == now.currentTrack.id) return;
 
     // Only a change asked for here slides, the way it was asked; one from
@@ -582,9 +599,53 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
     _giveUp = Timer(_patience, _clearAwait);
   }
 
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    if (_dismissed) return;
+    _drop.stop();
+    _drop.value += (details.primaryDelta ?? 0) / AppSpacing.miniPlayerHeight;
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    if (_dismissed) return;
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -300) {
+      // Up, fast enough: Now Playing.
+      _dropBack();
+      openFullPlayer(context);
+      return;
+    }
+    if (_drop.value < .4 && velocity < SwipeActions.flingVelocity) {
+      _dropBack();
+      return;
+    }
+    _dismissed = true;
+    void stop() {
+      // Not if a song played meanwhile and brought the row back.
+      if (!mounted || !_dismissed) return;
+      context.read<PlayerBloc>().add(const PlayerDismissed());
+    }
+
+    if (_reduceMotion) {
+      _drop.value = 1;
+      stop();
+    } else {
+      _drop.animateTo(1, curve: Curves.easeOutCubic).whenComplete(stop);
+    }
+  }
+
+  void _dropBack() {
+    if (_dismissed) return;
+    if (_reduceMotion) {
+      _drop.value = 0;
+    } else {
+      _drop.animateBack(0, curve: Curves.easeOutCubic);
+    }
+  }
+
   @override
   void dispose() {
     _giveUp?.cancel();
+    _drop.dispose();
     _slide.dispose();
     _fade.dispose();
     _queuedHide?.cancel();
@@ -624,25 +685,18 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
       customSemanticsActions: {
         CustomSemanticsAction(label: likeLabel): () => _toggleLike(context),
       },
-      child: Dismissible(
-        // One key for the row's life: a song change keeps everything below
-        // (the cover shows the old image until the new one is decoded, a
-        // drag goes on). Once dismissed, the player goes idle and the row
-        // leaves.
-        key: const ValueKey('miniPlayerDismissible'),
-        direction: DismissDirection.down,
-        onDismissed: (_) {
-          context.read<PlayerBloc>().add(const PlayerDismissed());
-        },
+      // Nothing below is keyed by song: a change keeps it all (the cover
+      // shows the old image until the new one is decoded).
+      child: _DropOut(
+        drop: _drop,
         child: GestureDetector(
           onTap: () => openFullPlayer(context),
           onLongPress: () => _toggleLike(context),
-          onVerticalDragEnd: (d) {
-            // Swipe up with sufficient velocity → open full player.
-            if (d.velocity.pixelsPerSecond.dy < -300) {
-              openFullPlayer(context);
-            }
-          },
+          // Both ways in one place: a second vertical recognizer (a
+          // Dismissible) would never win against this one.
+          onVerticalDragUpdate: _onVerticalDragUpdate,
+          onVerticalDragEnd: _onVerticalDragEnd,
+          onVerticalDragCancel: _dropBack,
           behavior: HitTestBehavior.opaque,
           child: _CoveredFade(
             child: Container(
@@ -866,6 +920,30 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
         likes?.state.isTrackLiked(widget.state.currentTrack.id) ?? false;
     return liked ? context.l10n.likesRemove : context.l10n.trackLike;
   }
+}
+
+/// Shrinks the mini player row by [drop] of its height from the top,
+/// fading it out: the bar's top edge comes down with the finger, in one
+/// movement. Once the row is gone, the bar has nothing left to shrink when
+/// the player goes idle.
+class _DropOut extends StatelessWidget {
+  final Animation<double> drop;
+  final Widget child;
+
+  const _DropOut({required this.drop, required this.child});
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: drop,
+    child: child,
+    builder: (context, child) => ClipRect(
+      child: Align(
+        alignment: Alignment.topCenter,
+        heightFactor: 1 - drop.value,
+        child: Opacity(opacity: 1 - drop.value, child: child),
+      ),
+    ),
+  );
 }
 
 /// The queue index a swipe on the mini player goes to: the song after

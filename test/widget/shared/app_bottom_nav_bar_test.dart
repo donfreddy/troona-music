@@ -665,6 +665,103 @@ void main() {
     });
   });
 
+  testWidgets('a swipe down on the mini player closes it, the bar coming '
+      'down in one movement', (tester) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+    );
+    double barTop() => tester.getTopLeft(find.byType(AppBottomNavBar)).dy;
+    final tops = [barTop()];
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 6; i++) {
+      await gesture.moveBy(const Offset(0, 15));
+      await tester.pump(const Duration(milliseconds: 16));
+      tops.add(barTop());
+    }
+    await gesture.up();
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      tops.add(barTop());
+    }
+    await tester.pumpAndSettle();
+    tops.add(barTop());
+    expect(bloc.state, isA<PlayerIdle>());
+    expect(find.text('Title a'), findsNothing);
+    // Down all the way, never back up, and down already under the finger.
+    for (var i = 1; i < tops.length; i++) {
+      expect(tops[i], greaterThanOrEqualTo(tops[i - 1]), reason: '$tops');
+    }
+    expect(tops[6], greaterThan(tops[0] + 40));
+    // Nothing left once the player is idle: no second shrink after it.
+    final idleAt = tops.length - 1;
+    expect(tops[idleAt], tops[idleAt - 20]);
+  });
+
+  testWidgets('a short swipe down springs back and keeps playing', (
+    tester,
+  ) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+    );
+    final rest = tester.getTopLeft(find.text('Title a'));
+    final barHeight = tester.getSize(find.byType(AppBottomNavBar)).height;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 4; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    // The bar's top edge follows the finger: the bar itself shrinks.
+    expect(tester.getTopLeft(find.text('Title a')).dy, greaterThan(rest.dy));
+    expect(
+      tester.getSize(find.byType(AppBottomNavBar)).height,
+      moreOrLessEquals(barHeight - 40, epsilon: 20),
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    expect(tester.getTopLeft(find.text('Title a')), rest);
+  });
+
+  testWidgets('a song played while the row leaves keeps it', (tester) async {
+    final tracks = [
+      for (final id in ['a', 'b']) testTrack(id, durationMs: 60000),
+    ];
+    final bloc = await pump(tester, AppTab.home, queue: tracks);
+    final rest = tester.getTopLeft(find.text('Title a'));
+    await tester.fling(find.text('Title a'), const Offset(0, 60), 1500);
+    await tester.pump();
+    // Mid-way out, the engine moves on to another song.
+    port.queue = Queue.fromTracks(tracks, startIndex: 1);
+    port.track.add(tracks[1]);
+    await tester.pump();
+    await tester.pump();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    // Back in place, fully shown.
+    expect(tester.getTopLeft(find.text('Title b')), rest);
+    expect(
+      tester
+          .widget<Opacity>(
+            find
+                .ancestor(
+                  of: find.text('Title b'),
+                  matching: find.byType(Opacity),
+                )
+                .last,
+          )
+          .opacity,
+      1,
+    );
+  });
+
   testWidgets('the mini player\'s fill moves on every position tick', (
     tester,
   ) async {

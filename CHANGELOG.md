@@ -15,6 +15,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Fixed
 
 - Changing the glass effects applies at once, everywhere.
+- Swiping the mini player down closes it, the bar coming down with your finger.
 
 ## [1.7.0] - 2026-11-19
 
