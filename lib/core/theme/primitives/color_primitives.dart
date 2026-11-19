@@ -27,8 +27,10 @@ abstract final class ColorPrimitives {
   static const accent = Color(0xFFB79CFF); // lilac, readable on black
   static const accentForeground = Color(0xFF12081F); // dark text on lilac
 
-  // ── Progress (icy blue to white arc) ─────────────────────
-  static const progressStart = Color(0xFF8FB4FF);
+  // ── Progress (light grey to white arc) ───────────────────
+  // Neutral: it reads over every glow, and leaves the lilac the one accent
+  // and the cover the one source of colour.
+  static const progressStart = Color(0xFFC4C4CC);
   static const progressEnd = Color(0xFFFFFFFF);
 
   // ── Ambient background fallback (no artwork) ─────────────

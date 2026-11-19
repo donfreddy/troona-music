@@ -170,7 +170,7 @@ class ProgressRing extends StatefulWidget {
 
   /// The head's colour at [widen]: [end] on the thin arc, most of the way
   /// back to [start] on the band, where a wedge of plain white under the
-  /// finger would glare (the reference's head is a light blue).
+  /// finger would glare.
   @visibleForTesting
   static Color headColor(
     double widen, {

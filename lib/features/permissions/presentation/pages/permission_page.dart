@@ -186,8 +186,8 @@ class _PermissionPageState extends State<PermissionPage>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      colors.progressStart.withValues(alpha: 0.16),
-                      colors.progressStart.withValues(alpha: 0.0),
+                      colors.accent.withValues(alpha: 0.16),
+                      colors.accent.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
@@ -271,7 +271,7 @@ class _PermissionPageState extends State<PermissionPage>
               ),
               _PillarRow(
                 icon: AppIcons.gridView,
-                iconColor: colors.progressStart,
+                iconColor: colors.accent,
                 title: l10n.permissionLibraryTitle,
                 description: l10n.permissionLibraryBody,
               ),

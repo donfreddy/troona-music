@@ -23,7 +23,7 @@ final class AppColors extends ThemeExtension<AppColors> {
   final Color accentForeground; // text on the accent colour
 
   // ── Progress ─────────────────────────────────────────────
-  final Color progressStart; // start of the arc (icy blue)
+  final Color progressStart; // start of the arc (light grey)
   final Color progressEnd; // head of the arc (white)
 
   // ── Quiet surfaces ───────────────────────────────────────
