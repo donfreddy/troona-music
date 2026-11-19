@@ -57,8 +57,8 @@ class GlassEdgePainter extends CustomPainter {
 }
 
 /// A soft shadow around a floating surface, painted outside its rounded
-/// rect only: glass that blurs what is behind it would otherwise take the
-/// shadow under it in and darken.
+/// rect only, as a foreground painter: glass that blurs what is behind it
+/// would otherwise take the shadow in, under it and beside it, and darken.
 class OuterShadowPainter extends CustomPainter {
   final BorderRadius borderRadius;
   final Color color;
@@ -68,7 +68,7 @@ class OuterShadowPainter extends CustomPainter {
   const OuterShadowPainter({
     required this.borderRadius,
     this.color = const Color(0x66000000),
-    this.blurSigma = 12,
+    this.blurSigma = 14.36, // A box shadow's blurRadius 24.
     this.offset = const Offset(0, 8),
   });
 
@@ -78,12 +78,13 @@ class OuterShadowPainter extends CustomPainter {
     final reach = blurSigma * 3 + offset.distance;
     canvas
       ..save()
+      // Even-odd: the band around the surface, with no path operation
+      // on each paint (the bar repaints while it resizes).
       ..clipPath(
-        Path.combine(
-          PathOperation.difference,
-          Path()..addRect((Offset.zero & size).inflate(reach)),
-          Path()..addRRect(surface),
-        ),
+        Path()
+          ..fillType = PathFillType.evenOdd
+          ..addRect((Offset.zero & size).inflate(reach))
+          ..addRRect(surface),
       )
       ..drawRRect(
         surface.shift(offset),

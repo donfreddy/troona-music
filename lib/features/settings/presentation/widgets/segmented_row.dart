@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
@@ -88,44 +89,49 @@ class SegmentedRow<T extends Object> extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm + 4),
-          SizedBox(
-            width: double.infinity,
-            child: CupertinoSlidingSegmentedControl<T>(
-              backgroundColor: Colors.white.withValues(alpha: 0.08),
-              thumbColor: colors.accent,
-              groupValue: selected,
-              children: {
-                for (var i = 0; i < values.length; i++)
-                  // One line, shrunk to fit rather than broken mid-word
-                  // ("Équilibré" at 360 dp, font x2.0).
-                  values[i]: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 7,
-                      horizontal: 2,
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        labels[i],
-                        maxLines: 1,
-                        softWrap: false,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: selected == values[i]
-                              ? Colors.white
-                              : colors.labelSecondary,
+          // A row of fixed segments: the font size is followed up to the
+          // layout cap, so every label keeps one size and fits its segment.
+          MediaQuery.withClampedTextScaling(
+            maxScaleFactor: AppLayout.maxTextScale,
+            child: SizedBox(
+              width: double.infinity,
+              child: CupertinoSlidingSegmentedControl<T>(
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+                thumbColor: colors.accent,
+                groupValue: selected,
+                children: {
+                  for (var i = 0; i < values.length; i++)
+                    // One line, never broken mid-word; shrunk only if a label
+                    // outgrows its segment even at the cap.
+                    values[i]: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 7,
+                        horizontal: 2,
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          labels[i],
+                          maxLines: 1,
+                          softWrap: false,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: selected == values[i]
+                                ? Colors.white
+                                : colors.labelSecondary,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              },
-              onValueChanged: (val) {
-                if (val != null) {
-                  AppHaptics.selectionClick();
-                  onChanged(val);
-                }
-              },
+                },
+                onValueChanged: (val) {
+                  if (val != null) {
+                    AppHaptics.selectionClick();
+                    onChanged(val);
+                  }
+                },
+              ),
             ),
           ),
         ],

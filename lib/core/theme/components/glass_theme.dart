@@ -100,9 +100,10 @@ typedef GlassQuality = troona_settings.GlassQuality;
 /// sigma: Impeller blurs a large sigma on a smaller image, so the cost is
 /// in capturing what is behind, per filter and per pixel. Balanced keeps
 /// the header's blur, where sharp lines of text pass under its title; the
-/// tab bar, whose content the shell darkens first, turns to an opaque tint
-/// with its edge, and so do Now Playing's lens and dock, and sheets. No
-/// blur stays a drawn surface: tints from the palette, with their edge.
+/// tab bar, whose content the shell darkens first, turns to an 88 % tint
+/// with its edge, Now Playing's lens and dock to a light veil, sheets
+/// opaque. No blur stays a drawn surface: tints from the palette, with
+/// their edge.
 ///
 /// ### Auto-detection ([GlassTier.detect], at start-up)
 ///

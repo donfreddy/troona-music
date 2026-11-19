@@ -269,13 +269,14 @@ class _NavBarBody extends StatelessWidget {
       foregroundPainter: GlassEdgePainter.of(glass, borderRadius: radius),
       child: body,
     );
-    // Lifts the floating bar off the page, painted outside it only: under
-    // it, the bar's blur would take the shadow in and darken the glass.
+    // Lifts the floating bar off the page, painted outside it only and
+    // after it: a shadow in the backdrop, even beside the bar, darkens the
+    // glass, whose blur samples well past its edge.
     final shadow = OuterShadowPainter(borderRadius: radius);
 
     if (glass.blurSigma == 0) {
       return CustomPaint(
-        painter: shadow,
+        foregroundPainter: shadow,
         child: ClipRRect(borderRadius: radius, child: edged),
       );
     }
@@ -283,7 +284,7 @@ class _NavBarBody extends StatelessWidget {
     // RepaintBoundary isolates the BackdropFilter compositing layer so
     // position-stream rebuilds above in the tree do not trigger a re-blur.
     return CustomPaint(
-      painter: shadow,
+      foregroundPainter: shadow,
       child: RepaintBoundary(
         child: ClipRRect(
           borderRadius: radius,

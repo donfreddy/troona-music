@@ -97,37 +97,42 @@ void main() {
     expect(tester.renderObject(find.byType(CustomPaint).last), paintsNothing);
   });
 
-  testWidgets('the shadow is painted outside the surface only, so a blur '
-      'under it does not take it in', (tester) async {
+  testWidgets('the shadow is painted outside the surface only, as far as '
+      'it reaches, so a blur under it does not take it in', (tester) async {
+    const painter = OuterShadowPainter(
+      borderRadius: BorderRadius.all(Radius.circular(24)),
+    );
     await tester.pumpWidget(
       const Center(
-        child: CustomPaint(
-          size: Size(200, 60),
-          painter: OuterShadowPainter(
-            borderRadius: BorderRadius.all(Radius.circular(24)),
-          ),
-        ),
+        child: CustomPaint(size: Size(200, 60), foregroundPainter: painter),
       ),
     );
     final box = tester.renderObject(find.byType(CustomPaint).last);
+    late Path clip;
+    late RRect drawn;
     expect(
       box,
       paints
-        ..clipPath()
-        ..rrect(),
+        ..something((method, args) {
+          if (method != #clipPath) return false;
+          clip = args.first as Path;
+          return true;
+        })
+        ..something((method, args) {
+          if (method != #drawRRect) return false;
+          drawn = args.first as RRect;
+          return true;
+        }),
     );
-    // The clip leaves out the surface: a point inside it is outside the
-    // clip, one just below its edge is in.
-    late Path clip;
-    expect(
-      box,
-      paints..something((method, args) {
-        if (method != #clipPath) return false;
-        clip = args.first as Path;
-        return true;
-      }),
-    );
+    // The surface is left out, its rounded corners' outside is in.
     expect(clip.contains(const Offset(100, 30)), isFalse);
-    expect(clip.contains(const Offset(100, 64)), isTrue);
+    expect(clip.contains(const Offset(2, 30)), isFalse);
+    expect(clip.contains(const Offset(1, 1)), isTrue, reason: 'corner');
+    // The band reaches as far as the blurred, shifted shadow.
+    final reach = painter.blurSigma * 3 + painter.offset.dy;
+    expect(clip.contains(Offset(100, 60 + reach - 1)), isTrue);
+    expect(clip.contains(Offset(-reach + 1, 30)), isTrue);
+    // The shadow is the surface, moved down.
+    expect(drawn.outerRect, const Rect.fromLTWH(0, 8, 200, 60));
   });
 }

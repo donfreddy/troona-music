@@ -182,7 +182,7 @@ void main() {
               matching: find.byType(CustomPaint),
             ),
           )
-          .map((p) => p.painter)
+          .map((p) => p.foregroundPainter)
           .whereType<OuterShadowPainter>();
       expect(shadows, isNotEmpty, reason: glass.name);
     }

@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -32,8 +35,8 @@ void main() {
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: Padding(
-                // The section's margin around its card.
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                // The section's margin around its card (AppSpacing.md).
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Builder(
                   builder: (context) {
                     final l10n = AppLocalizations.of(context);
@@ -59,24 +62,32 @@ void main() {
           ),
         );
         expect(tester.takeException(), isNull);
+        final sizes = <double>{};
         for (final label in labels) {
           final paragraph = tester.renderObject<RenderParagraph>(
             find.text(label),
           );
           expect(paragraph.didExceedMaxLines, isFalse, reason: label);
-          // Never cut: the whole label fits the box it is drawn in.
-          expect(
-            paragraph.getMaxIntrinsicWidth(double.infinity),
-            lessThanOrEqualTo(paragraph.size.width + 0.5),
-            reason: label,
+          // Not shrunk: the label's box is as wide as the label.
+          final fitted = tester.renderObject<RenderBox>(
+            find.ancestor(
+              of: find.text(label),
+              matching: find.byType(FittedBox),
+            ),
           );
-          final lineHeight = paragraph.getMinIntrinsicHeight(double.infinity);
           expect(
-            paragraph.size.height,
-            closeTo(lineHeight, 0.5),
-            reason: '$label: one line',
+            fitted.size.width,
+            greaterThanOrEqualTo(paragraph.size.width - 0.5),
+            reason: '$label: not shrunk',
           );
+          sizes.add(paragraph.textScaler.scale(13));
         }
+        // One size for every label, the phone's up to the cap.
+        expect(sizes, hasLength(1));
+        expect(
+          sizes.single,
+          closeTo(13 * math.min(scale, AppLayout.maxTextScale), 0.01),
+        );
       });
     }
   }
