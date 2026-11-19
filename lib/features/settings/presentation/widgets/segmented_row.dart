@@ -96,16 +96,26 @@ class SegmentedRow<T extends Object> extends StatelessWidget {
               groupValue: selected,
               children: {
                 for (var i = 0; i < values.length; i++)
+                  // One line, shrunk to fit rather than broken mid-word
+                  // ("Équilibré" at 360 dp, font x2.0).
                   values[i]: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 7),
-                    child: Text(
-                      labels[i],
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: selected == values[i]
-                            ? Colors.white
-                            : colors.labelSecondary,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 7,
+                      horizontal: 2,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        labels[i],
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: selected == values[i]
+                              ? Colors.white
+                              : colors.labelSecondary,
+                        ),
                       ),
                     ),
                   ),
