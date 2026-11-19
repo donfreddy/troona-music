@@ -105,6 +105,23 @@ class _SwipeActionsState extends State<SwipeActions>
   }
 
   @override
+  void didUpdateWidget(SwipeActions old) {
+    super.didUpdateWidget(old);
+    // Its actions gone mid-swipe (the list started picking): the drag is
+    // dropped without an end, so the row springs back on its own.
+    final none = widget.onSwipeLeft == null && widget.onSwipeRight == null;
+    if (none && _offset != 0 && !_back.isAnimating) {
+      _armed = false;
+      _back.value = _offset;
+      _back.animateTo(
+        0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _back.dispose();
     super.dispose();
@@ -124,11 +141,14 @@ class _SwipeActionsState extends State<SwipeActions>
         child: child,
       );
     }
+    // With no action either way, the row does not move at all (a list
+    // picking songs), and the drag goes to whatever lies below.
+    final swipes = widget.onSwipeLeft != null || widget.onSwipeRight != null;
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onHorizontalDragUpdate: _onUpdate,
-      onHorizontalDragEnd: _onEnd,
-      onHorizontalDragCancel: () => _onEnd(DragEndDetails()),
+      onHorizontalDragUpdate: swipes ? _onUpdate : null,
+      onHorizontalDragEnd: swipes ? _onEnd : null,
+      onHorizontalDragCancel: swipes ? () => _onEnd(DragEndDetails()) : null,
       // One structure, moving or not: the child keeps its state (and a
       // hero in it) through a swipe.
       child: Stack(
