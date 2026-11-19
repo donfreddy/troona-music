@@ -132,131 +132,138 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
   Widget build(BuildContext context) {
     final colors = context.colors;
 
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.playlistAddTo,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+    // Its own Material: the sheet's glass would hide the rows' ink.
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    context.l10n.playlistAddTo,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                AppIconButton(
-                  icon: AppIcons.close,
-                  tooltip: context.l10n.actionClose,
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: Colors.white12),
-
-          ListTile(
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: colors.accent.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                  AppIconButton(
+                    icon: AppIcons.close,
+                    tooltip: context.l10n.actionClose,
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              child: Icon(AppIcons.add, color: colors.accent),
             ),
-            title: Text(
-              context.l10n.playlistNew,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+            const Divider(color: Colors.white12),
+
+            ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: colors.accent.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(AppIcons.add, color: colors.accent),
+              ),
+              title: Text(
+                context.l10n.playlistNew,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              onTap: _createAndAdd,
             ),
-            onTap: _createAndAdd,
-          ),
 
-          const SizedBox(height: 4),
+            const SizedBox(height: 4),
 
-          // Playlists list
-          Flexible(
-            child: FutureBuilder<List<Playlist>>(
-              future: _playlistsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Shrink-wrapped: the sheet only grows with its list.
-                  return const Center(
-                    heightFactor: 1,
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.lg),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                final playlists = snapshot.data ?? [];
-                if (playlists.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Center(
+            // Playlists list
+            Flexible(
+              child: FutureBuilder<List<Playlist>>(
+                future: _playlistsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    // Shrink-wrapped: the sheet only grows with its list.
+                    return const Center(
                       heightFactor: 1,
-                      child: Text(
-                        context.l10n.playlistNoneYet,
-                        style: const TextStyle(color: Colors.white38),
+                      child: Padding(
+                        padding: EdgeInsets.all(AppSpacing.lg),
+                        child: CircularProgressIndicator(),
                       ),
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: playlists.length,
-                  itemBuilder: (context, index) {
-                    final p = playlists[index];
-                    final alreadyIn = missingTrackIds(p, widget.tracks).isEmpty;
-
-                    return ListTile(
-                      leading: Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: Colors.white10,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          AppIcons.playlist,
-                          color: Colors.white30,
-                        ),
-                      ),
-                      title: Text(
-                        p.name,
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        context.l10n.songCount(p.trackIds.length),
-                        style: const TextStyle(
-                          color: Colors.white38,
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: alreadyIn
-                          ? Icon(
-                              AppIcons.selected,
-                              color: colors.accent,
-                              size: 18,
-                            )
-                          : null,
-                      onTap: alreadyIn ? null : () => _addTracksTo(p),
                     );
-                  },
-                );
-              },
+                  }
+
+                  final playlists = snapshot.data ?? [];
+                  if (playlists.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: Center(
+                        heightFactor: 1,
+                        child: Text(
+                          context.l10n.playlistNoneYet,
+                          style: const TextStyle(color: Colors.white38),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: playlists.length,
+                    itemBuilder: (context, index) {
+                      final p = playlists[index];
+                      final alreadyIn = missingTrackIds(
+                        p,
+                        widget.tracks,
+                      ).isEmpty;
+
+                      return ListTile(
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white10,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            AppIcons.playlist,
+                            color: Colors.white30,
+                          ),
+                        ),
+                        title: Text(
+                          p.name,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: Text(
+                          context.l10n.songCount(p.trackIds.length),
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 12,
+                          ),
+                        ),
+                        trailing: alreadyIn
+                            ? Icon(
+                                AppIcons.selected,
+                                color: colors.accent,
+                                size: 18,
+                              )
+                            : null,
+                        onTap: alreadyIn ? null : () => _addTracksTo(p),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
