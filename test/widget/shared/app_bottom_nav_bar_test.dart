@@ -1,12 +1,14 @@
 import 'dart:math' as math;
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -72,6 +74,7 @@ void main() {
     bool reduceMotion = false,
     GlassQuality glass = GlassQuality.high,
     bool showTabs = true,
+    ValueListenable<Widget?>? actions,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -118,10 +121,14 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: AppBottomNavBar(
-                currentTab: tab,
-                onTabChanged: (_) {},
-                showTabs: showTabs,
+              child: ValueListenableBuilder(
+                valueListenable: actions ?? ValueNotifier(null),
+                builder: (_, actions, _) => AppBottomNavBar(
+                  currentTab: tab,
+                  onTabChanged: (_) {},
+                  showTabs: showTabs,
+                  actions: actions,
+                ),
               ),
             ),
           ),
@@ -938,10 +945,13 @@ void main() {
 
     double badgeOpacity(WidgetTester tester) => tester
         .widget<AnimatedOpacity>(
-          find.ancestor(
-            of: find.byKey(badge),
-            matching: find.byType(AnimatedOpacity),
-          ),
+          // The badge's own, the nearest: the bar's rows fade too.
+          find
+              .ancestor(
+                of: find.byKey(badge),
+                matching: find.byType(AnimatedOpacity),
+              )
+              .first,
         )
         .opacity;
 
@@ -1103,6 +1113,90 @@ void main() {
       expect(badgeText(tester), '+1');
       expect(badgeOpacity(tester), 1);
       await tester.pumpAndSettle(const Duration(seconds: 2));
+    });
+  });
+
+  group('a row of actions', () {
+    const row = SizedBox.expand(child: Center(child: Text('actions')));
+    final song = [testTrack('a', durationMs: 180000)];
+
+    Size barSize(WidgetTester tester) =>
+        tester.getSize(find.byType(AppBottomNavBar));
+
+    bool covered(WidgetTester tester, Finder finder) => tester
+        .widgetList<IgnorePointer>(
+          find.ancestor(of: finder, matching: find.byType(IgnorePointer)),
+        )
+        .any((p) => p.ignoring);
+
+    testWidgets('on a tab, it covers the tabs; the bar keeps its height', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(tester, AppTab.home, queue: song, actions: actions);
+      final before = barSize(tester);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester), before);
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isTrue,
+      );
+      // The mini player stays above, in reach.
+      expect(covered(tester, find.text('Title a').first), isFalse);
+      // The row sits where the tabs were, below the mini player.
+      expect(
+        tester.getCenter(find.text('actions')).dy,
+        greaterThan(tester.getCenter(find.text('Title a').first).dy),
+      );
+
+      actions.value = null;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isFalse,
+      );
+    });
+
+    testWidgets('alone, it covers the mini player; the bar keeps its height', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(
+        tester,
+        AppTab.home,
+        queue: song,
+        showTabs: false,
+        actions: actions,
+      );
+      final before = barSize(tester);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester), before);
+      expect(covered(tester, find.text('Title a').first), isTrue);
+    });
+
+    testWidgets('alone with nothing playing, it comes as a row of its own', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(null);
+      await pump(tester, AppTab.home, showTabs: false, actions: actions);
+      expect(barSize(tester).height, 0);
+
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsOneWidget);
+      expect(barSize(tester).height, AppSpacing.miniPlayerHeight);
+
+      actions.value = null;
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(barSize(tester).height, 0);
     });
   });
 }

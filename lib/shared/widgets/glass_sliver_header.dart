@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/cross_fade_swap.dart';
 import 'package:flutter/rendering.dart'
     show OverScrollHeaderStretchConfiguration;
 import 'package:troona/core/layout/app_layout.dart';
@@ -390,10 +391,14 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             left: 0,
             right: 0,
             height: navHeight,
-            child: _NavRow(
-              leading: header.leading,
-              title: header.title,
-              actions: header.actions,
+            // A bar given in its place fades in over it.
+            child: _NavSwitch(
+              bar: GlassNavOverride.barOf(context),
+              child: _NavRow(
+                leading: header.leading,
+                title: header.title,
+                actions: header.actions,
+              ),
             ),
           ),
 
@@ -799,6 +804,43 @@ class _Fade extends StatelessWidget {
           child: RepaintBoundary(child: child),
         ),
       ),
+    );
+  }
+}
+
+/// Puts [bar] in place of the navigation row of the [GlassSliverHeader]s
+/// below it while not null (a list picking songs shows its count and
+/// actions there). Kept in the tree with a null [bar] otherwise, so turning
+/// it on or off rebuilds the headers without remounting the page.
+class GlassNavOverride extends InheritedWidget {
+  final Widget? bar;
+
+  const GlassNavOverride({super.key, required this.bar, required super.child});
+
+  static Widget? barOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GlassNavOverride>()?.bar;
+
+  @override
+  bool updateShouldNotify(GlassNavOverride old) => bar != old.bar;
+}
+
+class _NavSwitch extends StatelessWidget {
+  final Widget? bar;
+  final Widget child;
+
+  const _NavSwitch({required this.bar, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final bar = this.bar;
+    return CrossFadeSwap(
+      alt: bar == null
+          ? null
+          : MediaQuery.withClampedTextScaling(
+              maxScaleFactor: AppLayout.maxTextScale,
+              child: bar,
+            ),
+      child: child,
     );
   }
 }

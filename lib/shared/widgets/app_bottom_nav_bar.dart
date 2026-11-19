@@ -24,6 +24,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/cross_fade_swap.dart';
 import 'package:troona/shared/widgets/edge_fade.dart';
 import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/shared/widgets/like_burst.dart';
@@ -79,6 +80,12 @@ class AppBottomNavBar extends StatefulWidget {
   /// above a bar of tabs only.
   final Animation<double>? miniSlot;
 
+  /// A row of actions shown in place of the bottom row while not null:
+  /// over the tabs on a tab's page, over the mini player (or alone) on a
+  /// pushed one, so the bar keeps its height. Songs being picked show
+  /// theirs.
+  final Widget? actions;
+
   const AppBottomNavBar({
     super.key,
     required this.currentTab,
@@ -86,6 +93,7 @@ class AppBottomNavBar extends StatefulWidget {
     this.showMiniPlayer = true,
     this.showTabs = true,
     this.miniSlot,
+    this.actions,
   });
 
   @override
@@ -127,6 +135,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
               showMiniPlayer: widget.showMiniPlayer,
               showTabs: widget.showTabs,
               miniSlot: widget.miniSlot,
+              actions: widget.actions,
             );
           },
         ),
@@ -199,6 +208,7 @@ class _NavBarBody extends StatelessWidget {
   final bool showTabs;
   final Animation<double>? miniSlot;
   final AnimationController drop;
+  final Widget? actions;
 
   const _NavBarBody({
     required this.drop,
@@ -208,6 +218,7 @@ class _NavBarBody extends StatelessWidget {
     required this.showMiniPlayer,
     required this.showTabs,
     required this.miniSlot,
+    required this.actions,
   });
 
   static const _tabs = [
@@ -232,7 +243,13 @@ class _NavBarBody extends StatelessWidget {
     final radius = BorderRadius.circular(AppSpacing.radiusXl + 4);
     final isMiniPlayerVisible = showMiniPlayer && playerState != null;
 
-    if (!isMiniPlayerVisible && !showTabs) return const SizedBox.shrink();
+    final actions = this.actions;
+    if (!isMiniPlayerVisible && !showTabs && actions == null) {
+      return const SizedBox.shrink();
+    }
+    // Alone (a pushed page) the actions cover the mini player; with
+    // nothing playing they come as a row of their own.
+    final overMiniPlayer = !showTabs && actions != null;
 
     final body = Container(
       decoration: BoxDecoration(color: glass.fill, borderRadius: radius),
@@ -246,32 +263,48 @@ class _NavBarBody extends StatelessWidget {
           if (showTabs)
             SizedBox(
               height: AppSpacing.navBarHeight,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Row(
-                    children: _tabs.map((tab) {
-                      final (appTab, icon) = tab;
-                      if (appTab == AppTab.player) {
+              child: CrossFadeSwap(
+                alt: actions,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Row(
+                      children: _tabs.map((tab) {
+                        final (appTab, icon) = tab;
+                        if (appTab == AppTab.player) {
+                          return Expanded(
+                            child: _CenterArtworkSlot(
+                              track: playerState?.currentTrack,
+                              isPlaying: playerState?.isPlaying ?? false,
+                            ),
+                          );
+                        }
                         return Expanded(
-                          child: _CenterArtworkSlot(
-                            track: playerState?.currentTrack,
-                            isPlaying: playerState?.isPlaying ?? false,
+                          child: _TabItem(
+                            icon: icon!,
+                            label: _labelOf(appTab, context.l10n),
+                            isActive: currentTab == appTab,
+                            onTap: () => onTabChanged(appTab),
                           ),
                         );
-                      }
-                      return Expanded(
-                        child: _TabItem(
-                          icon: icon!,
-                          label: _labelOf(appTab, context.l10n),
-                          isActive: currentTab == appTab,
-                          onTap: () => onTabChanged(appTab),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
+            ),
+
+          // ── Actions alone: a pushed page with nothing playing ───────────
+          if (!showTabs)
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              child: actions != null && !isMiniPlayerVisible
+                  ? SizedBox(
+                      height: AppSpacing.miniPlayerHeight,
+                      child: actions,
+                    )
+                  : const SizedBox(width: double.infinity),
             ),
 
           // ── Empty mini player slot: the glass alone, as tall as the row ─
@@ -286,17 +319,20 @@ class _NavBarBody extends StatelessWidget {
           _DropOut(
             drop: drop,
             fold: showTabs,
-            child: AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              child: isMiniPlayerVisible
-                  ? _MiniPlayerRow(
-                      state: playerState!,
-                      radius: radius,
-                      showTabs: showTabs,
-                      drop: drop,
-                    )
-                  : const SizedBox.shrink(),
+            child: CrossFadeSwap(
+              alt: overMiniPlayer && isMiniPlayerVisible ? actions : null,
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                child: isMiniPlayerVisible
+                    ? _MiniPlayerRow(
+                        state: playerState!,
+                        radius: radius,
+                        showTabs: showTabs,
+                        drop: drop,
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ),
           ),
         ],
