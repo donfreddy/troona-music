@@ -57,12 +57,9 @@ void main() {
         _album('s2021', single: true, year: 2021),
       ],
     );
-    expect([for (final a in releases.discography) a.id], [
-      'a2023',
-      's2023',
-      's2021',
-      'a2019',
-      'undated',
-    ]);
+    expect(
+      [for (final a in releases.discography) a.id],
+      ['a2023', 's2023', 's2021', 'a2019', 'undated'],
+    );
   });
 }

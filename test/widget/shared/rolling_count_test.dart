@@ -80,9 +80,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('with reduced motion the digit changes in place', (
-    tester,
-  ) async {
+  testWidgets('with reduced motion the digit changes in place', (tester) async {
     await pump(tester, 1, reduce: true);
     await pump(tester, 2, reduce: true);
     await tester.pump();

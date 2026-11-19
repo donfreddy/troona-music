@@ -27,10 +27,7 @@ abstract interface class PlayerRepository {
     bool? shuffle,
   });
   Future<Either<Failure, Unit>> addToQueue(Track track, {int? index});
-  Future<Either<Failure, Unit>> addAllToQueue(
-    List<Track> tracks, {
-    int? index,
-  });
+  Future<Either<Failure, Unit>> addAllToQueue(List<Track> tracks, {int? index});
   Future<Either<Failure, Unit>> removeFromQueue(int index);
   Future<Either<Failure, Unit>> moveQueueItem(int oldIndex, int newIndex);
   Future<Either<Failure, Unit>> setShuffleEnabled(bool enabled);
