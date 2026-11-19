@@ -189,6 +189,105 @@ void main() {
     expect(blur.filter.toString(), contains('blur(30.0, 30.0'));
   });
 
+  group('between two collapsed headers', () {
+    final navigator = GlobalKey<NavigatorState>();
+    late ScrollController first;
+
+    Widget page(String title, ScrollController controller) => Scaffold(
+      body: CustomScrollView(
+        controller: controller,
+        slivers: [
+          GlassSliverHeader.largeTitle(title: title),
+          SliverList.builder(
+            itemCount: 40,
+            itemBuilder: (_, i) => SizedBox(height: 56, child: Text('$i')),
+          ),
+        ],
+      ),
+    );
+
+    /// The blurs drawing, and the title of the page each belongs to.
+    List<String> blurring(WidgetTester tester) => [
+      for (final element
+          in find.byType(BackdropFilter, skipOffstage: false).evaluate())
+        if ((element.widget as BackdropFilter).enabled)
+          (element
+                      .findAncestorWidgetOfExactType<CustomScrollView>()!
+                      .controller ==
+                  first
+              ? 'A'
+              : 'B'),
+    ];
+
+    Future<List<List<String>>> pushThenPop(
+      WidgetTester tester,
+      GlassQuality quality,
+    ) async {
+      tester.view
+        ..devicePixelRatio = 3
+        ..physicalSize = const Size(360, 640) * 3;
+      addTearDown(tester.view.reset);
+      first = ScrollController();
+      final second = ScrollController();
+      addTearDown(first.dispose);
+      addTearDown(second.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigator,
+          theme: robotoTheme(AppTheme.withGlass(quality)),
+          home: page('A', first),
+        ),
+      );
+      first.jumpTo(400);
+      await tester.pumpAndSettle();
+      expect(blurring(tester), ['A']);
+
+      final frames = <List<String>>[];
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(builder: (_) => page('B', second)),
+        ),
+      );
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        frames.add(blurring(tester));
+      }
+      await tester.pumpAndSettle();
+      second.jumpTo(400);
+      await tester.pump();
+      expect(blurring(tester), contains('B'));
+
+      navigator.currentState!.pop();
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        frames.add(blurring(tester));
+      }
+      await tester.pumpAndSettle();
+      expect(blurring(tester), ['A'], reason: 'back where it was');
+      return frames;
+    }
+
+    testWidgets('balanced glass: one blur at most during a push and a pop, '
+        'the page that stays keeping its own', (tester) async {
+      final frames = await pushThenPop(tester, GlassQuality.low);
+      for (final blurs in frames) {
+        expect(blurs.length, lessThanOrEqualTo(1), reason: '$blurs');
+      }
+      // Popping, the page coming back blurs from the start.
+      expect(frames.last, ['A']);
+      expect(frames[10], ['A']);
+    });
+
+    testWidgets('full glass is left as it was: both blur while they cross', (
+      tester,
+    ) async {
+      final frames = await pushThenPop(tester, GlassQuality.high);
+      expect(frames.any((blurs) => blurs.length == 2), isTrue);
+    });
+  });
+
   testWidgets('glass off: no BackdropFilter at all', (tester) async {
     final controller = await pump(
       tester,

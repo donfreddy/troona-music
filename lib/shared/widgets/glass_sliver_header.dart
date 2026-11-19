@@ -627,7 +627,13 @@ class _ExpandedBox extends StatelessWidget {
 /// The blur cannot fade itself: a [BackdropFilter] under a [ShaderMask]
 /// reads the mask's empty layer, not the page, and blurs nothing (checked
 /// on Impeller).
-class _GlassLayer extends StatelessWidget {
+///
+/// On the balanced tier, the one blur it keeps is the header's: a push or
+/// a pop between two collapsed headers would show two. The page that goes
+/// away (popped) or under (covered by the page pushed) yields: its bar
+/// takes the opaque tint for the transition. The page that stays keeps
+/// its glass throughout, so nothing changes where the eye lands.
+class _GlassLayer extends StatefulWidget {
   final GlassConfig glass;
 
   /// Share of the bar's tint, 0 to 1.
@@ -641,7 +647,68 @@ class _GlassLayer extends StatelessWidget {
   });
 
   @override
+  State<_GlassLayer> createState() => _GlassLayerState();
+}
+
+class _GlassLayerState extends State<_GlassLayer> {
+  ModalRoute<Object?>? _route;
+  Animation<double>? _animation;
+  Animation<double>? _secondary;
+  bool _yields = false;
+
+  /// Leaving (popped), or a page coming over it (pushed, or the pop that
+  /// reveals it not begun): the other page's header has the blur.
+  bool get _leaving {
+    final route = _route;
+    if (route == null) return false;
+    final secondary = route.secondaryAnimation?.status;
+    return route.animation?.status == AnimationStatus.reverse ||
+        secondary == AnimationStatus.forward ||
+        secondary == AnimationStatus.completed;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _route = ModalRoute.of(context);
+    _listen(_animation, _route?.animation, (a) => _animation = a);
+    _listen(_secondary, _route?.secondaryAnimation, (a) => _secondary = a);
+    _yields = _leaving;
+  }
+
+  void _listen(
+    Animation<double>? old,
+    Animation<double>? now,
+    void Function(Animation<double>?) keep,
+  ) {
+    if (identical(old, now)) return;
+    old?.removeStatusListener(_onStatus);
+    now?.addStatusListener(_onStatus);
+    keep(now);
+  }
+
+  void _onStatus(AnimationStatus _) {
+    final yields = _leaving;
+    if (yields != _yields) setState(() => _yields = yields);
+  }
+
+  @override
+  void dispose() {
+    _animation?.removeStatusListener(_onStatus);
+    _secondary?.removeStatusListener(_onStatus);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final tint = widget.tint;
+    final blur = widget.blur;
+    final glass =
+        blur &&
+            _yields &&
+            GlassTheme.resolveQuality(context) == GlassQuality.low
+        ? GlassTheme.header(context, quality: GlassQuality.off)
+        : widget.glass;
     final fill = Color.lerp(Colors.transparent, glass.fill, tint)!;
     final bar = ColoredBox(color: fill);
     return Stack(
