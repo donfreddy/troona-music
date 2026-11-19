@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 
@@ -122,7 +123,11 @@ class GlassBottomSheet extends StatelessWidget {
       child: ClipRRect(
         borderRadius: cfg.borderRadius,
         child: BackdropFilter(
-          filter: GlassFilter.of(cfg.blurSigma, saturation: cfg.saturation),
+          filter: GlassFilter.of(
+            cfg.blurSigma,
+            saturation: cfg.saturation,
+            exposure: cfg.exposure,
+          ),
           child: content,
         ),
       ),
@@ -152,29 +157,29 @@ class _SheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // One colour on every drawn side: Flutter cannot paint a rounded border
-    // whose sides differ in colour. The bottom edge bleeds to the screen.
-    final side = BorderSide(color: config.border, width: config.borderWidth);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: config.fill,
-        borderRadius: config.borderRadius,
-        border: Border(top: side, left: side, right: side),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (showHandle) ...[
-            const SizedBox(height: AppSpacing.sm),
-            const _DragHandle(),
-            const SizedBox(height: AppSpacing.sm),
-          ] else
-            SizedBox(height: config.padding.top),
-          Flexible(
-            child: Padding(padding: padding, child: child),
-          ),
-        ],
+    // The edge fades out down the sides: the bottom bleeds to the screen.
+    return CustomPaint(
+      foregroundPainter: GlassEdgePainter.of(config),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: config.fill,
+          borderRadius: config.borderRadius,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (showHandle) ...[
+              const SizedBox(height: AppSpacing.sm),
+              const _DragHandle(),
+              const SizedBox(height: AppSpacing.sm),
+            ] else
+              SizedBox(height: config.padding.top),
+            Flexible(
+              child: Padding(padding: padding, child: child),
+            ),
+          ],
+        ),
       ),
     );
   }

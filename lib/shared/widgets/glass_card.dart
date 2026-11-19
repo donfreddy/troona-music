@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 
 /// A glass-styled card that adapts fill and border to the current
 /// [GlassQuality] tier.
@@ -80,12 +81,7 @@ class _GlassDecoration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      foregroundPainter: _GlassEdgePainter(
-        borderRadius: config.borderRadius,
-        top: config.border,
-        sides: config.highlight,
-        width: config.borderWidth,
-      ),
+      foregroundPainter: GlassEdgePainter.of(config),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: config.fill,
@@ -95,47 +91,4 @@ class _GlassDecoration extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Light from above: a bright top edge fading down the sides to nothing at
-/// the bottom. One gradient stroke.
-class _GlassEdgePainter extends CustomPainter {
-  final BorderRadius borderRadius;
-  final Color top;
-  final Color sides;
-  final double width;
-
-  const _GlassEdgePainter({
-    required this.borderRadius,
-    required this.top,
-    required this.sides,
-    required this.width,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (width <= 0 || (top.a == 0 && sides.a == 0)) return;
-    final rect = Offset.zero & size;
-    final stroke = rect.deflate(width / 2);
-    if (stroke.isEmpty) return;
-    canvas.drawRRect(
-      borderRadius.toRRect(stroke),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [top, sides, sides.withValues(alpha: 0)],
-          stops: const [0, .45, 1],
-        ).createShader(rect),
-    );
-  }
-
-  @override
-  bool shouldRepaint(_GlassEdgePainter oldDelegate) =>
-      oldDelegate.borderRadius != borderRadius ||
-      oldDelegate.top != top ||
-      oldDelegate.sides != sides ||
-      oldDelegate.width != width;
 }

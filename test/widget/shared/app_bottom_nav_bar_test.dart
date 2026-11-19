@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -162,8 +163,29 @@ void main() {
             .whereType<BoxDecoration>()
             .first;
         expect(box.color!.a, greaterThan(.87), reason: glass.name);
-        expect(box.border, isNotNull, reason: glass.name);
       }
+      // On every tier: the shared edge, and a shadow under the bar.
+      final edges = tester
+          .widgetList<CustomPaint>(
+            find.descendant(
+              of: find.byType(AppBottomNavBar),
+              matching: find.byType(CustomPaint),
+            ),
+          )
+          .map((p) => p.foregroundPainter)
+          .whereType<GlassEdgePainter>();
+      expect(edges.first.width, greaterThan(0), reason: glass.name);
+      final shadows = tester
+          .widgetList<DecoratedBox>(
+            find.descendant(
+              of: find.byType(AppBottomNavBar),
+              matching: find.byType(DecoratedBox),
+            ),
+          )
+          .map((d) => d.decoration)
+          .whereType<BoxDecoration>()
+          .where((d) => d.boxShadow?.isNotEmpty ?? false);
+      expect(shadows, isNotEmpty, reason: glass.name);
     }
   });
 

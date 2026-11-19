@@ -23,9 +23,6 @@ class GlassLens extends StatelessWidget {
     required this.holeDiameter,
   });
 
-  /// Frosted enough to blur neighbour covers, light enough to stay cheap.
-  static const double _maxBlurSigma = 12;
-
   /// Radius of the thin inner line, as a fraction of the outer radius. The
   /// progress arc is drawn on it.
   static const double hairlineFraction = 0.795;
@@ -41,10 +38,11 @@ class GlassLens extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final holeFraction = holeDiameter / diameter;
-    final sigma = math.min(GlassTheme.card(context).blurSigma, _maxBlurSigma);
+    final glass = GlassTheme.lens(context);
+    final sigma = glass.blurSigma;
     final clipper = _AnnulusClipper(holeFraction);
 
-    const fill = ColoredBox(color: Color(0x14FFFFFF), child: SizedBox.expand());
+    final fill = ColoredBox(color: glass.fill, child: const SizedBox.expand());
 
     return RepaintBoundary(
       child: SizedBox.square(

@@ -23,6 +23,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:troona/shared/widgets/marquee.dart';
 import 'package:troona/shared/widgets/toast_anchor.dart';
@@ -204,11 +205,7 @@ class _NavBarBody extends StatelessWidget {
     if (!isMiniPlayerVisible && !showTabs) return const SizedBox.shrink();
 
     final body = Container(
-      decoration: BoxDecoration(
-        color: glass.fill,
-        borderRadius: radius,
-        border: Border.all(color: glass.border, width: glass.borderWidth),
-      ),
+      decoration: BoxDecoration(color: glass.fill, borderRadius: radius),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -268,18 +265,45 @@ class _NavBarBody extends StatelessWidget {
       ),
     );
 
+    final edged = CustomPaint(
+      foregroundPainter: GlassEdgePainter.of(glass, borderRadius: radius),
+      child: body,
+    );
+    // Outside the clip, so it shows: lifts the floating bar off the page,
+    // most where it does not blur.
+    final shadow = BoxDecoration(
+      borderRadius: radius,
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x66000000),
+          blurRadius: 24,
+          offset: Offset(0, 8),
+        ),
+      ],
+    );
+
     if (glass.blurSigma == 0) {
-      return ClipRRect(borderRadius: radius, child: body);
+      return DecoratedBox(
+        decoration: shadow,
+        child: ClipRRect(borderRadius: radius, child: edged),
+      );
     }
 
     // RepaintBoundary isolates the BackdropFilter compositing layer so
     // position-stream rebuilds above in the tree do not trigger a re-blur.
-    return RepaintBoundary(
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: GlassFilter.of(glass.blurSigma, saturation: glass.saturation),
-          child: body,
+    return DecoratedBox(
+      decoration: shadow,
+      child: RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: radius,
+          child: BackdropFilter(
+            filter: GlassFilter.of(
+              glass.blurSigma,
+              saturation: glass.saturation,
+              exposure: glass.exposure,
+            ),
+            child: edged,
+          ),
         ),
       ),
     );
@@ -374,7 +398,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     final radius = widget.radius;
     final showTabs = widget.showTabs;
     final colors = context.colors;
-    final glass = GlassTheme.miniPlayer(context);
+    final tint = GlassTheme.miniPlayerTint(context);
 
     final likeLabel = _likeLabelOf(context);
     return Semantics(
@@ -406,9 +430,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
               // asserts if its hero is recreated).
               decoration: BoxDecoration(
                 borderRadius: radius,
-                border: showTabs
-                    ? Border.all(width: 0, color: glass.border)
-                    : null,
+                border: showTabs ? Border.all(width: 0, color: tint) : null,
               ),
               child: ClipRRect(
                 borderRadius: radius,
@@ -433,7 +455,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                           ),
                         ),
                       ),
-                    _MiniPlayerProgressFill(progressTint: glass.border),
+                    _MiniPlayerProgressFill(progressTint: tint),
                     Row(
                       children: [
                         const SizedBox(width: 12),

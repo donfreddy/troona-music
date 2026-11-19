@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 
 /// A circular icon button with a flat glass fill.
@@ -110,6 +111,7 @@ class _GlassIconButtonState extends State<GlassIconButton> {
       GlassIconButtonSize.lg => 28,
     };
 
+    final glass = GlassTheme.card(context);
     final Color bgColor;
     final Color resolvedIconColor;
 
@@ -117,7 +119,7 @@ class _GlassIconButtonState extends State<GlassIconButton> {
       bgColor = colors.accent;
       resolvedIconColor = widget.iconColor ?? colors.accentForeground;
     } else {
-      bgColor = GlassTheme.card(context).fill;
+      bgColor = glass.fill;
       resolvedIconColor = widget.iconColor ?? colors.labelPrimary;
     }
 
@@ -128,20 +130,19 @@ class _GlassIconButtonState extends State<GlassIconButton> {
         scale: _pressed ? 0.90 : 1.0,
         duration: const Duration(milliseconds: 80),
         curve: Curves.easeInOut,
-        child: Container(
-          width: diameter,
-          height: diameter,
-          decoration: BoxDecoration(
-            color: bgColor,
-            shape: BoxShape.circle,
-            border: isAccent
-                ? null
-                : Border.all(
-                    color: Colors.white.withValues(alpha: .12),
-                    width: 0.5,
-                  ),
+        child: CustomPaint(
+          foregroundPainter: isAccent
+              ? null
+              : GlassEdgePainter.of(
+                  glass,
+                  borderRadius: BorderRadius.circular(diameter / 2),
+                ),
+          child: Container(
+            width: diameter,
+            height: diameter,
+            decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+            child: Icon(widget.icon, color: resolvedIconColor, size: iconSize),
           ),
-          child: Icon(widget.icon, color: resolvedIconColor, size: iconSize),
         ),
       ),
     );

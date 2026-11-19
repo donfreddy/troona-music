@@ -190,22 +190,29 @@ abstract final class GlassTheme {
   /// about 5:1 over a white cover under the [bar] tint.
   static const double headerExposure = 0.5;
 
-  /// The mini player's edge, inside the tab bar's glass.
-  static GlassConfig miniPlayer(BuildContext ctx, {GlassQuality? quality}) {
-    final q = _resolveQuality(ctx, quality);
-    return switch (q) {
-      GlassQuality.off => _cardOffDark,
-      GlassQuality.low => _miniPlayerLowDark,
-      _ => _miniPlayerDark,
-    };
-  }
+  /// The tint of the mini player's progress, inside the tab bar's glass:
+  /// the bar's edge, a step brighter where the bar blurs.
+  static Color miniPlayerTint(BuildContext ctx, {GlassQuality? quality}) =>
+      switch (_resolveQuality(ctx, quality)) {
+        GlassQuality.high || GlassQuality.auto => const Color(0x28FFFFFF),
+        _ => _barLowDark.border,
+      };
 
-  /// The blur of Now Playing's dock: none below the high tier, where the
-  /// dock and the lens are a veil.
+  /// Now Playing's dock: blurred on the high tier, the same veil without
+  /// blur below it.
   static GlassConfig nowPlaying(BuildContext ctx, {GlassQuality? quality}) =>
       switch (_resolveQuality(ctx, quality)) {
         GlassQuality.high || GlassQuality.auto => _nowPlayingDark,
-        _ => _cardOffDark,
+        _ => _nowPlayingDark.copyWith(blurSigma: 0),
+      };
+
+  /// Now Playing's lens: a light frost on the high tier (enough to blur
+  /// the neighbour covers, cheap at that sigma), the same veil without
+  /// blur below it.
+  static GlassConfig lens(BuildContext ctx, {GlassQuality? quality}) =>
+      switch (_resolveQuality(ctx, quality)) {
+        GlassQuality.high || GlassQuality.auto => _lensDark,
+        _ => _lensDark.copyWith(blurSigma: 0),
       };
 
   /// Config for bottom sheets (queue sheet, context menu, etc.).
@@ -229,22 +236,23 @@ abstract final class GlassTheme {
     borderRadius: BorderRadius.all(Radius.circular(24)),
   );
 
-  static const _miniPlayerDark = GlassConfig(
-    blurSigma: 28, // Heavy blur for the pill
-    fill: Color(0x08FFFFFF), // 3 %
-    border: Color(0x28FFFFFF), // 16 %: Brighter edge to define the pill
-    highlight: Color(0x0FFFFFFF), // 6 %
-    borderRadius: BorderRadius.all(Radius.circular(40)), // Pill shape
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-  );
-
   static const _nowPlayingDark = GlassConfig(
     blurSigma: 26,
-    fill: Color(0x10FFFFFF), // 6 %: very thin to let artwork breathe
-    border: Color(0x16FFFFFF), // 9 %
-    highlight: Color(0x0AFFFFFF), // 4 %
-    borderRadius: BorderRadius.zero, // full-screen: no rounded corners
-    padding: EdgeInsets.zero,
+    fill: Color(0x0AFFFFFF), // 4 %: the covers show through
+    border: Color(0x1FFFFFFF), // 12 %
+    highlight: Color(0x0DFFFFFF), // 5 %
+    borderWidth: 0.8,
+    borderRadius: BorderRadius.all(Radius.circular(999)), // a pill
+    padding: EdgeInsets.symmetric(horizontal: 4),
+  );
+
+  // The lens draws its own rim; only the blur and the veil are read.
+  static const _lensDark = GlassConfig(
+    blurSigma: 12,
+    fill: Color(0x14FFFFFF), // 8 %
+    border: Color(0x00000000),
+    highlight: Color(0x00000000),
+    borderWidth: 0,
   );
 
   // Between the thin glass (stains) and a thick material (too dim): the
@@ -280,22 +288,13 @@ abstract final class GlassTheme {
 
   // ── Balanced (low) ──────────────────────────────────────────────────
 
-  // No blur: the lens and every card are flat ([GlassLens] reads it).
+  // No blur: every card is flat.
   static const _cardLowDark = GlassConfig(
     blurSigma: 0,
     fill: Color(0x1EFFFFFF), // 12 %: boosted vs. high quality's 4 %
     border: Color(0x12FFFFFF), // 7 %
     highlight: Color(0x08FFFFFF), // 3 %
     borderRadius: BorderRadius.all(Radius.circular(20)),
-  );
-
-  static const _miniPlayerLowDark = GlassConfig(
-    blurSigma: 0,
-    fill: Color(0x24FFFFFF), // 14 %
-    border: Color(0x12FFFFFF), // 7 %
-    highlight: Color(0x08FFFFFF), // 3 %
-    borderRadius: BorderRadius.all(Radius.circular(16)),
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   );
 
   // ── Off: flat tint, no BackdropFilter ───────────────────────────────────
