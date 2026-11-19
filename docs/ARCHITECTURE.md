@@ -52,10 +52,10 @@ The visual direction started from a concept by [Shimon Bar Yacov](https://www.be
 Three-level token hierarchy in `lib/core/theme/`:
 
 1. **Primitives**: raw colors, sizes, radii.
-2. **Semantic**: `bgPrimary`, `glassFill`, `glassBorder`, `accent`.
-3. **Components**: `GlassConfig` presets per surface and quality tier (high, low, off). `GlassCard` is flat by default: blur is reserved for chrome (tab bar, header, sheets, Now Playing), never for cards inside scrolling content.
+2. **Semantic**: `bgPrimary`, `accent`, labels; `subtleFill`, `hairline` and `pressedInk` for what is not glass.
+3. **Components**: `GlassConfig` presets per surface and quality tier (Full, Balanced, No blur), carried by the theme (`GlassSettings`). `GlassCard` is flat by default: blur is reserved for chrome (tab bar, header, sheets, Now Playing), never for cards inside scrolling content.
 
-Every `BackdropFilter` takes `GlassFilter.of(sigma, saturation: config.saturation)`, never a bare `ImageFilter.blur`. Surfaces that carry text (`GlassTheme.bar` for the tab bar, mini player and collapsed header; `GlassTheme.sheet`) use a middle material, tuned on a Pixel 8: blur 30, a 15% dark tint and a mild 1.25x saturation boost. The boost never ships without the tint, or thin glass turns covers and colored icons behind it into vivid stains. Their low tier keeps saturation at 1. The full 1.6x boost is reserved for decorative glass over artwork (Now Playing lens and dock).
+Every `BackdropFilter` takes `GlassFilter.of(sigma, saturation: config.saturation, exposure: config.exposure)`, never a bare `ImageFilter.blur`. Surfaces that carry text (`GlassTheme.bar` for the tab bar and mini player, `GlassTheme.header` for the collapsed header, the bar glass at half exposure; `GlassTheme.sheet`) use a middle material, tuned on a Pixel 8: blur 30, a 15% dark tint and a mild 1.25x saturation boost. The boost never ships without the tint, or thin glass turns covers and colored icons behind it into vivid stains. Balanced keeps the blur in page headers only: the tab bar becomes an 88% tint with its edge, Now Playing's lens and dock a light veil, sheets opaque. No blur draws no blur anywhere, keeping the tints and edges. The full 1.6x boost is reserved for decorative glass over artwork (Now Playing lens and dock).
 
 **`BackdropFilter` performance rules** (enforced throughout the codebase):
 

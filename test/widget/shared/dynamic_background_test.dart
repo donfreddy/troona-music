@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
@@ -62,21 +64,33 @@ void main() {
     });
   });
 
-  for (final (tone, settles, stillMoving) in [
+  for (final (tone, glass, settles, stillMoving) in [
     (
       DynamicBackgroundTone.ambient,
+      GlassQuality.high,
       const Duration(milliseconds: 2100),
       const Duration(seconds: 1),
     ),
-    (DynamicBackgroundTone.immersive, const Duration(milliseconds: 400), null),
+    // Below the high tier, every glow follows quickly.
+    (
+      DynamicBackgroundTone.ambient,
+      GlassQuality.low,
+      const Duration(milliseconds: 400),
+      null,
+    ),
+    (
+      DynamicBackgroundTone.immersive,
+      GlassQuality.high,
+      const Duration(milliseconds: 400),
+      null,
+    ),
   ]) {
-    testWidgets('${tone.name}: a new song\'s colours take '
-        '${DynamicBackground.transitionOf(tone).inMilliseconds} ms', (
-      tester,
-    ) async {
-      Widget glow(Color a) => Directionality(
-        textDirection: TextDirection.ltr,
-        child: DynamicBackground(
+    testWidgets('${tone.name} on ${glass.name} glass: a new song\'s colours '
+        'take ${DynamicBackground.transitionOf(tone, glass).inMilliseconds} '
+        'ms', (tester) async {
+      Widget glow(Color a) => MaterialApp(
+        theme: AppTheme.withGlass(glass),
+        home: DynamicBackground(
           colorA: a,
           colorB: a,
           tone: tone,

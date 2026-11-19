@@ -8,20 +8,27 @@ import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 
-Widget _app(Widget Function(BuildContext) home, {bool spent = false}) =>
-    MaterialApp(
-      theme: AppTheme.dark,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: spent
-            ? BlurBudgetSpent(child: Builder(builder: home))
-            : Builder(builder: home),
-      ),
-    );
+Widget _app(
+  Widget Function(BuildContext) home, {
+  bool spent = false,
+  GlassQuality glass = GlassQuality.high,
+}) => MaterialApp(
+  theme: AppTheme.withGlass(glass),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(
+    body: spent
+        ? BlurBudgetSpent(child: Builder(builder: home))
+        : Builder(builder: home),
+  ),
+);
 
 /// A button that opens an action sheet with [actions].
-Widget _opener(List<SheetAction> actions, {bool spent = false}) => _app(
+Widget _opener(
+  List<SheetAction> actions, {
+  bool spent = false,
+  GlassQuality glass = GlassQuality.high,
+}) => _app(
   (context) => TextButton(
     onPressed: () => showActionSheet(
       context,
@@ -32,6 +39,7 @@ Widget _opener(List<SheetAction> actions, {bool spent = false}) => _app(
     child: const Text('Open'),
   ),
   spent: spent,
+  glass: glass,
 );
 
 Finder get _sheetBlur => find.descendant(
@@ -40,11 +48,6 @@ Finder get _sheetBlur => find.descendant(
 );
 
 void main() {
-  tearDown(() {
-    GlassTheme.setDetectedTier(GlassQuality.high);
-    GlassTheme.overrideQuality(null);
-  });
-
   testWidgets('shows the title, the message and the actions; a tap closes '
       'the sheet, then runs the action', (tester) async {
     var sheetOpenWhenRun = true;
@@ -110,7 +113,8 @@ void main() {
 
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    GlassTheme.setDetectedTier(GlassQuality.low);
+    await tester.pumpWidget(_opener(actions, glass: GlassQuality.low));
+    await tester.pumpAndSettle(); // The theme's change animation.
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(find.byType(GlassBottomSheet), findsOneWidget);

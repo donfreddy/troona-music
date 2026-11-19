@@ -78,8 +78,8 @@ class _TrackListTileState extends State<TrackListTile> {
           // played song ticks in the player. The system's long-press buzz would
           // be a second one.
           enableFeedback: false,
-          highlightColor: colors.glassHighlight,
-          splashColor: colors.glassHighlight,
+          highlightColor: colors.pressedInk,
+          splashColor: colors.pressedInk,
           child: AnimatedScale(
             scale: _pressed ? 0.98 : 1.0,
             duration: const Duration(milliseconds: 120),

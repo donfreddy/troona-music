@@ -4,6 +4,17 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Changed
+
+- Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.
+- The tab bar casts a shadow, and floating glass shares one edge.
+- Now Playing's ring is drawn in light grey to white, which reads over every cover's colours.
+- Small grey text is easier to read.
+
+### Fixed
+
+- Changing the glass effects applies at once, everywhere.
+
 ## [1.7.0] - 2026-11-19
 
 ### Added

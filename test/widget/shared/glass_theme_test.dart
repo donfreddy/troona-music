@@ -41,8 +41,9 @@ void main() {
       expect(glass.saturation, inExclusiveRange(1, nowPlaying), reason: name);
       expect(glass.fill.a, greaterThan(.14), reason: name); // about 15 %
     }
+    // Balanced: an opaque tint, nothing behind to boost.
     for (final name in ['bar low', 'sheet low']) {
-      expect(configs[name]!.saturation, 1, reason: name);
+      expect(configs[name]!.blurSigma, 0, reason: name);
     }
   });
 

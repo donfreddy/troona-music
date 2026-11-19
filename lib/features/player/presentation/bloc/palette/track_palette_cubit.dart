@@ -4,16 +4,14 @@ import 'package:troona/features/player/presentation/bloc/palette/cover_palette.d
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
+/// The glow colours of a cover: the background behind the tabs, Now
+/// Playing and the playlist pages.
 class TrackPaletteState {
-  final Color primary;
-  final Color secondary;
   final Color backgroundColorA;
   final Color backgroundColorB;
   final String? trackId;
 
   const TrackPaletteState({
-    required this.primary,
-    required this.secondary,
     required this.backgroundColorA,
     required this.backgroundColorB,
     this.trackId,
@@ -21,16 +19,12 @@ class TrackPaletteState {
 
   /// The same colours, as [trackId]'s.
   TrackPaletteState forTrack(String trackId) => TrackPaletteState(
-    primary: primary,
-    secondary: secondary,
     backgroundColorA: backgroundColorA,
     backgroundColorB: backgroundColorB,
     trackId: trackId,
   );
 
   factory TrackPaletteState.initial() => const TrackPaletteState(
-    primary: Color(0xFF7B4D91),
-    secondary: Color(0xFF4A244F),
     backgroundColorA: ColorPrimitives.ambientTop,
     backgroundColorB: ColorPrimitives.ambientEdge,
   );

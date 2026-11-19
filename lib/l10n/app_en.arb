@@ -91,9 +91,16 @@
   "settingsGlass": "Glass effects",
   "settingsGlassAuto": "Auto",
   "settingsGlassFull": "Full",
-  "settingsGlassLight": "Light",
-  "settingsGlassOff": "Off",
-  "settingsGlassFooter": "Auto adapts to your phone. Choose Light or Off for smoother scrolling on older devices.",
+  "settingsGlassBalanced": "Balanced",
+  "settingsGlassOff": "No blur",
+  "settingsGlassFooter": "Auto: {tier} on this phone. Balanced keeps the blur in page headers only, No blur draws none: both scroll more smoothly on older phones.",
+  "@settingsGlassFooter": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "settingsHaptics": "Haptics",
   "settingsSupport": "Help and feedback",
   "settingsReport": "Report a problem",

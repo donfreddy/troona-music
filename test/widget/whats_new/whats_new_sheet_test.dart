@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/components/glass_settings.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/features/updates/domain/version.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
@@ -12,14 +13,17 @@ import 'package:troona/l10n/app_localizations_fr.dart';
 
 import '../../helpers/roboto.dart';
 
-Widget _app(Widget Function(BuildContext) home, {Locale? locale}) =>
-    MaterialApp(
-      theme: AppTheme.dark,
-      locale: locale ?? const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: Builder(builder: home)),
-    );
+Widget _app(
+  Widget Function(BuildContext) home, {
+  Locale? locale,
+  GlassQuality glass = GlassQuality.high,
+}) => MaterialApp(
+  theme: AppTheme.withGlass(glass),
+  locale: locale ?? const Locale('en'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(body: Builder(builder: home)),
+);
 
 /// An earlier release's row: its label also holds the date.
 Finder _row(String version) =>
@@ -291,18 +295,17 @@ void main() {
   });
 
   group('glass above the tab bar', () {
-    tearDown(() {
-      GlassTheme.setDetectedTier(GlassQuality.high);
-      GlassTheme.overrideQuality(null);
-    });
-
-    Future<Finder> openSheet(WidgetTester tester) async {
+    Future<Finder> openSheet(
+      WidgetTester tester, {
+      GlassQuality glass = GlassQuality.high,
+    }) async {
       await tester.pumpWidget(
         _app(
           (context) => TextButton(
             onPressed: () => showWhatsNewSheet(context, releases: releases),
             child: const Text('Open'),
           ),
+          glass: glass,
         ),
       );
       await tester.tap(find.text('Open'));
@@ -314,7 +317,6 @@ void main() {
     }
 
     testWidgets('blurs on a high-tier device', (tester) async {
-      GlassTheme.setDetectedTier(GlassQuality.high);
       expect(await openSheet(tester), findsOneWidget);
     });
 
@@ -334,15 +336,23 @@ void main() {
       expect(sheet.saturation, lessThan(nowPlaying.saturation));
     });
 
-    testWidgets('is opaque on a low-tier device', (tester) async {
-      GlassTheme.setDetectedTier(GlassQuality.low);
-      expect(await openSheet(tester), findsNothing);
-    });
-
-    testWidgets('is opaque when the user turns glass down', (tester) async {
-      GlassTheme.setDetectedTier(GlassQuality.high);
-      GlassTheme.overrideQuality(GlassQuality.low);
-      expect(await openSheet(tester), findsNothing);
+    // The app resolves the tier and the setting into the theme (main.dart).
+    testWidgets('is opaque on a low-tier device, or when the user turns '
+        'glass down', (tester) async {
+      expect(
+        await openSheet(
+          tester,
+          glass: GlassSettings.effective(GlassQuality.auto, GlassQuality.low),
+        ),
+        findsNothing,
+      );
+      expect(
+        await openSheet(
+          tester,
+          glass: GlassSettings.effective(GlassQuality.low, GlassQuality.high),
+        ),
+        findsNothing,
+      );
     });
   });
 

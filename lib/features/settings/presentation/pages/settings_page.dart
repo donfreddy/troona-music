@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
+import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
@@ -37,6 +38,15 @@ import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
+
+/// The name of [quality] in the glass setting.
+String _glassLabelOf(GlassQuality quality, AppLocalizations l10n) =>
+    switch (quality) {
+      GlassQuality.auto => l10n.settingsGlassAuto,
+      GlassQuality.high => l10n.settingsGlassFull,
+      GlassQuality.low => l10n.settingsGlassBalanced,
+      GlassQuality.off => l10n.settingsGlassOff,
+    };
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -196,7 +206,9 @@ class _SettingsList extends StatelessWidget {
         ),
         SettingsSection(
           title: l10n.settingsAppearance,
-          footer: l10n.settingsGlassFooter,
+          footer: l10n.settingsGlassFooter(
+            _glassLabelOf(GlassTier.detected, l10n),
+          ),
           children: [
             SegmentedRow<GlassQuality>(
               icon: AppIcons.glassEffect,
@@ -204,10 +216,7 @@ class _SettingsList extends StatelessWidget {
               label: l10n.settingsGlass,
               values: GlassQuality.values,
               labels: [
-                l10n.settingsGlassAuto,
-                l10n.settingsGlassFull,
-                l10n.settingsGlassLight,
-                l10n.settingsGlassOff,
+                for (final q in GlassQuality.values) _glassLabelOf(q, l10n),
               ],
               selected: settings.glassQuality,
               onChanged: cubit.setGlassQuality,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
@@ -23,17 +24,14 @@ class PlayerUtilityDock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sigma = GlassTheme.nowPlaying(context).blurSigma;
+    final glass = GlassTheme.nowPlaying(context);
+    final sigma = glass.blurSigma;
     final body = Container(
       height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: glass.padding,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-          width: 0.8,
-        ),
+        color: glass.fill,
+        borderRadius: glass.borderRadius,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -74,12 +72,23 @@ class PlayerUtilityDock extends StatelessWidget {
       ),
     );
 
+    final edged = CustomPaint(
+      foregroundPainter: GlassEdgePainter.of(glass),
+      child: body,
+    );
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+      borderRadius: glass.borderRadius,
       child: sigma == 0
-          ? body
+          ? edged
           : RepaintBoundary(
-              child: BackdropFilter(filter: GlassFilter.of(sigma), child: body),
+              child: BackdropFilter(
+                filter: GlassFilter.of(
+                  sigma,
+                  saturation: glass.saturation,
+                  exposure: glass.exposure,
+                ),
+                child: edged,
+              ),
             ),
     );
   }

@@ -97,8 +97,6 @@ import 'package:troona/services/history/play_history_recorder.dart';
 import 'package:troona/services/metadata/artist_artwork_prefetch_service.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
-import 'package:troona/core/theme/components/glass_theme.dart'
-    hide GlassQuality;
 import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -209,14 +207,8 @@ Future<void> configureDependencies() async {
     (s) => s,
   );
 
-  // Detect hardware GPU tier and apply the saved glass quality preference.
+  // The device's glass tier, which the "auto" setting draws with (main.dart).
   await GlassTier.detect();
-  GlassTheme.setDetectedTier(GlassTier.detected);
-  GlassTheme.overrideQuality(
-    initialSettings.glassQuality == GlassQuality.auto
-        ? null
-        : initialSettings.glassQuality,
-  );
   AppHaptics.enabled = initialSettings.hapticFeedbackEnabled;
 
   final likeButton = AudioServiceInitializer.likeButton(
@@ -387,13 +379,15 @@ Future<void> configureDependencies() async {
   // ── Presentation layer ────────────────────────────────────────────────────
   // AudioSessionService is injected so runtime setting changes (call handling,
   // ducking) are propagated immediately without an app restart.
-  getIt.registerLazySingleton<SettingsCubit>(
-    () => SettingsCubit(
-      getIt(),
-      getIt<AudioSessionService>(),
-      getIt<MetadataRepository>(),
-    )..load(),
+  // Loaded before the first frame: the app's theme draws its glass at the
+  // saved quality (main.dart), so no frame shows another tier first.
+  final settingsCubit = SettingsCubit(
+    getIt(),
+    getIt<AudioSessionService>(),
+    getIt<MetadataRepository>(),
   );
+  await settingsCubit.load();
+  getIt.registerSingleton<SettingsCubit>(settingsCubit);
   getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
   // Singleton: a restore keeps running after Settings closes, and reopening
   // it must not start a second task beside it.

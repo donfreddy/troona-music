@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:troona/core/theme/components/glass_theme.dart' as glass;
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -49,11 +48,6 @@ class SettingsCubit extends Cubit<SettingsState> {
   /// Pushes [settings] to the services that cache them.
   void _applyRuntime(AppSettings settings) {
     AppHaptics.enabled = settings.hapticFeedbackEnabled;
-    glass.GlassTheme.overrideQuality(
-      settings.glassQuality == glass.GlassQuality.auto
-          ? null
-          : settings.glassQuality,
-    );
     _audioSession?.updateSettings(settings);
   }
 
@@ -127,12 +121,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     return _update((s) => s.copyWith(hapticFeedbackEnabled: value));
   }
 
-  Future<void> setGlassQuality(GlassQuality quality) {
-    glass.GlassTheme.overrideQuality(
-      quality == glass.GlassQuality.auto ? null : quality,
-    );
-    return _update((s) => s.copyWith(glassQuality: quality));
-  }
+  Future<void> setGlassQuality(GlassQuality quality) =>
+      _update((s) => s.copyWith(glassQuality: quality));
 
   // Reset
   Future<void> resetToDefaults() async {

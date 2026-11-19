@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -6,7 +7,8 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 /// Detects the appropriate [GlassQuality] tier at startup using hardware signals.
 ///
 /// Call [detect] once from [configureDependencies] before the first frame.
-/// The result is stored in [detected] and consumed by [GlassTheme].
+/// The result is stored in [detected], which the "auto" glass setting draws
+/// with (`AppThemeBuilder`).
 abstract final class GlassTier {
   static GlassQuality _detected = GlassQuality.high;
 
@@ -22,12 +24,21 @@ abstract final class GlassTier {
       return;
     }
 
+    // The thresholds below are Android's; elsewhere (iOS), the full glass.
+    if (!Platform.isAndroid) {
+      _detected = GlassQuality.high;
+      return;
+    }
+
     try {
       final info = await DeviceInfoPlugin().androidInfo;
       final ramMb = info.physicalRamSize;
       final sdkInt = info.version.sdkInt;
 
-      if (ramMb < 3072) {
+      if (ramMb <= 0) {
+        // Unknown: the balanced tier, as when nothing can be read.
+        _detected = GlassQuality.low;
+      } else if (ramMb < 3072) {
         _detected = GlassQuality.off;
       } else if (ramMb < 6144 || sdkInt < 29) {
         _detected = GlassQuality.low;
@@ -35,7 +46,8 @@ abstract final class GlassTier {
         _detected = GlassQuality.high;
       }
     } catch (_) {
-      _detected = GlassQuality.high;
+      // Unknown hardware: the balanced tier, which any phone carries.
+      _detected = GlassQuality.low;
     }
   }
 }

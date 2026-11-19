@@ -61,8 +61,6 @@ void main() {
       _contrast(colors.labelSecondary, colors.bgPrimary),
       greaterThan(4.5),
     );
-    // The level they were at: squinting.
-    expect(_contrast(colors.labelTertiary, colors.bgPrimary), lessThan(3));
   });
 
   testWidgets('song rows draw them at that level', (tester) async {

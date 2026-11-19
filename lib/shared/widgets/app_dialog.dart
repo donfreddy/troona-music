@@ -123,7 +123,7 @@ class _AppDialog extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        side: BorderSide(color: colors.glassBorder, width: .5),
+        side: BorderSide(color: colors.hairline, width: .5),
       ),
       title: Text(title),
       titleTextStyle: context.textTheme.headlineSmall?.copyWith(
@@ -248,7 +248,7 @@ class _TextInputDialogState extends State<_TextInputDialog> {
           // The limit only stops typing; no "0/80" under the field.
           counterText: '',
           filled: true,
-          fillColor: colors.glassFill,
+          fillColor: colors.subtleFill,
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,

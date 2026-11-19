@@ -208,14 +208,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGlassFull => 'Full';
 
   @override
-  String get settingsGlassLight => 'Light';
+  String get settingsGlassBalanced => 'Balanced';
 
   @override
-  String get settingsGlassOff => 'Off';
+  String get settingsGlassOff => 'No blur';
 
   @override
-  String get settingsGlassFooter =>
-      'Auto adapts to your phone. Choose Light or Off for smoother scrolling on older devices.';
+  String settingsGlassFooter(String tier) {
+    return 'Auto: $tier on this phone. Balanced keeps the blur in page headers only, No blur draws none: both scroll more smoothly on older phones.';
+  }
 
   @override
   String get settingsHaptics => 'Haptics';

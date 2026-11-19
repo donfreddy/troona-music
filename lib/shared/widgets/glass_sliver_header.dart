@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart'
     show OverScrollHeaderStretchConfiguration;
@@ -627,7 +628,16 @@ class _ExpandedBox extends StatelessWidget {
 /// The blur cannot fade itself: a [BackdropFilter] under a [ShaderMask]
 /// reads the mask's empty layer, not the page, and blurs nothing (checked
 /// on Impeller).
-class _GlassLayer extends StatelessWidget {
+///
+/// On the balanced tier, the one blur it keeps is the header's: a pop
+/// between two collapsed headers would show two (a page pushed opens
+/// expanded, so a push never does). The header that goes away yields,
+/// only when the page it reveals blurs: its bar takes the opaque tint for
+/// the transition. The page that stays keeps its glass throughout, so
+/// nothing changes where the eye lands. A back swipe hands the blur to the
+/// page below as the drag starts; called off, it comes back once the
+/// page on top has slid back.
+class _GlassLayer extends StatefulWidget {
   final GlassConfig glass;
 
   /// Share of the bar's tint, 0 to 1.
@@ -641,7 +651,82 @@ class _GlassLayer extends StatelessWidget {
   });
 
   @override
+  State<_GlassLayer> createState() => _GlassLayerState();
+}
+
+class _GlassLayerState extends State<_GlassLayer> {
+  /// Every header's glass on screen, to know whether the page a leaving
+  /// header goes back to blurs too.
+  static final _live = <_GlassLayerState>{};
+
+  ModalRoute<Object?>? _route;
+  Animation<double>? _animation;
+  ValueListenable<bool>? _gesture;
+
+  /// Going away while another page of its navigator blurs: popped, or on
+  /// top while a back swipe drags it off (the page it reveals holds the
+  /// blur from the start, so a swipe that goes through changes nothing on
+  /// it; one called off hands the blur back at the end).
+  bool get _yields {
+    final route = _route;
+    if (route == null) return false;
+    final going =
+        route.animation?.status == AnimationStatus.reverse ||
+        (route.isCurrent && (_gesture?.value ?? false));
+    if (!going) return false;
+    return _live.any(
+      (other) =>
+          other._route != route &&
+          other._route?.navigator == route.navigator &&
+          (other._route?.isActive ?? false) &&
+          other.widget.blur,
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _live.add(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _route = ModalRoute.of(context);
+    final animation = _route?.animation;
+    if (!identical(animation, _animation)) {
+      _animation?.removeStatusListener(_onChange);
+      _animation = animation?..addStatusListener(_onChange);
+    }
+    final gesture = _route?.navigator?.userGestureInProgressNotifier;
+    if (!identical(gesture, _gesture)) {
+      _gesture?.removeListener(_onGesture);
+      _gesture = gesture?..addListener(_onGesture);
+    }
+  }
+
+  void _onChange(AnimationStatus _) => setState(() {});
+
+  void _onGesture() => setState(() {});
+
+  @override
+  void dispose() {
+    _live.remove(this);
+    _animation?.removeStatusListener(_onChange);
+    _gesture?.removeListener(_onGesture);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final tint = widget.tint;
+    final blur = widget.blur;
+    final glass =
+        blur &&
+            GlassTheme.resolveQuality(context) == GlassQuality.low &&
+            _yields
+        ? GlassTheme.header(context, quality: GlassQuality.off)
+        : widget.glass;
     final fill = Color.lerp(Colors.transparent, glass.fill, tint)!;
     final bar = ColoredBox(color: fill);
     return Stack(

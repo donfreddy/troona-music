@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 
 enum DynamicBackgroundTone { ambient, immersive }
@@ -25,15 +26,19 @@ class DynamicBackground extends StatefulWidget {
     this.tone = DynamicBackgroundTone.ambient,
   });
 
-  /// How long the glow takes to follow a new song: slowly behind the tabs,
-  /// where it sets the mood; quickly on Now Playing and the detail pages,
-  /// where it follows a swipe of the covers. A transition costs a re-blur
-  /// of every [BackdropFilter] above it on each frame, so it stays short
-  /// where two of them sit on screen for long.
-  static Duration transitionOf(DynamicBackgroundTone tone) => switch (tone) {
-    DynamicBackgroundTone.ambient => const Duration(seconds: 2),
-    DynamicBackgroundTone.immersive => const Duration(milliseconds: 380),
-  };
+  /// How long the glow takes to follow a new song on [glass]: slowly
+  /// behind the tabs, where it sets the mood; quickly on Now Playing and
+  /// the detail pages, where it follows a swipe of the covers. A
+  /// transition costs a re-blur of every [BackdropFilter] above it on each
+  /// frame, so it stays short where two of them sit on screen for long,
+  /// and everywhere below the high tier, on devices that can least afford
+  /// the frames.
+  static Duration transitionOf(
+    DynamicBackgroundTone tone, [
+    GlassQuality glass = GlassQuality.high,
+  ]) => tone == DynamicBackgroundTone.ambient && glass == GlassQuality.high
+      ? const Duration(seconds: 2)
+      : const Duration(milliseconds: 380);
 
   /// Brightest a glow may paint: secondary labels (60 % white) keep 4.5:1
   /// over it. Measured as relative luminance: by HSL lightness, a yellow
@@ -90,10 +95,21 @@ class _DynamicBackgroundState extends State<DynamicBackground>
     _toB = b;
   }
 
+  Duration get _transition => DynamicBackground.transitionOf(
+    widget.tone,
+    GlassTheme.resolveQuality(context),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ctrl.duration = _transition;
+  }
+
   @override
   void didUpdateWidget(DynamicBackground old) {
     super.didUpdateWidget(old);
-    _ctrl.duration = DynamicBackground.transitionOf(widget.tone);
+    _ctrl.duration = _transition;
     final newA = widget.colorA ?? _defaultColorA;
     final newB = widget.colorB ?? _defaultColorB;
     final oldA = old.colorA ?? _defaultColorA;

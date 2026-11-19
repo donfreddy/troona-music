@@ -96,7 +96,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 
 ### 🎨 Design
 - Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
-- Glass quality: Auto (chosen by device), Full, Light or Off, applied at runtime and tuned for low-end devices
+- Glass quality: Auto (chosen by device), Full, Balanced (blur in page headers only) or No blur, applied at once
 - Dark theme, portrait-locked; layouts adapt to the room on screen (down to 360 x 640 dp) and to the phone's font size
 
 ### ⚙️ Settings & maintenance
@@ -214,7 +214,7 @@ Troona's glassmorphism direction started from a concept by **[Shimon Bar Yacov](
 
 ## Privacy
 
-Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The three online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer, the latest release number via GitHub) are opt-in and independently toggled. Bios and photos send only an artist/album name; the update check sends nothing about you or your music. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
+Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The three online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer, the latest release number via GitHub) are opt-in and independently toggled. Bios send only artist and album names. Photos send those names plus up to three titles of each artist's most played songs, so the photo found is of that artist and not a namesake. The update check sends nothing about you or your music. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
 
 ## License
 
