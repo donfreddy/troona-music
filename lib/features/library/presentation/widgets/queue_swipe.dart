@@ -20,7 +20,16 @@ class QueueSwipe extends StatelessWidget {
   final Track track;
   final Widget child;
 
-  const QueueSwipe({super.key, required this.track, required this.child});
+  /// Off while the row's list picks songs: a swipe would queue one of them
+  /// alone.
+  final bool enabled;
+
+  const QueueSwipe({
+    super.key,
+    required this.track,
+    required this.child,
+    this.enabled = true,
+  });
 
   void _playNext(BuildContext context) =>
       queueSong(context, context.read<PlayerBloc>(), track, next: true);
@@ -32,15 +41,17 @@ class QueueSwipe extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Semantics(
-      customSemanticsActions: {
-        CustomSemanticsAction(label: l10n.trackPlayNext): () =>
-            _playNext(context),
-        CustomSemanticsAction(label: l10n.trackAddToQueue): () =>
-            _addToQueue(context),
-      },
+      customSemanticsActions: enabled
+          ? {
+              CustomSemanticsAction(label: l10n.trackPlayNext): () =>
+                  _playNext(context),
+              CustomSemanticsAction(label: l10n.trackAddToQueue): () =>
+                  _addToQueue(context),
+            }
+          : null,
       child: SwipeActions(
-        onSwipeRight: () => _playNext(context),
-        onSwipeLeft: () => _addToQueue(context),
+        onSwipeRight: enabled ? () => _playNext(context) : null,
+        onSwipeLeft: enabled ? () => _addToQueue(context) : null,
         background: (context, direction, progress, armed) =>
             _Background(direction: direction, progress: progress, armed: armed),
         child: child,

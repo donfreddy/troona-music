@@ -947,5 +947,49 @@
   "whatsNew170QueueTitle": "Queueing with nothing playing",
   "whatsNew170QueueBody": "Play next and Add to queue now start the music when nothing plays, and an album goes into the queue whole.",
   "whatsNew170PhotosTitle": "Artist photos",
-  "whatsNew170PhotosBody": "No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos."
+  "whatsNew170PhotosBody": "No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.",
+  "playlistAddedSongsTo": "{count} songs added to {name}",
+  "@playlistAddedSongsTo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "selectionSelected": "{count, plural, =1{1 song selected} other{{count} songs selected}}",
+  "@selectionSelected": {
+    "description": "What a screen reader reads for the selection bar's count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectionSuffix": "{count, plural, =1{selected} other{selected}}",
+  "@selectionSuffix": {
+    "description": "The word after the rolling count in the selection bar (the number is drawn apart).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectionSelectAll": "Select all",
+  "selectionDeselectAll": "Deselect all",
+  "selectionEnd": "End selection",
+  "selectionHintStart": "pick songs",
+  "@selectionHintStart": {
+    "description": "Screen reader hint for a long press on a song row: it starts picking songs. Read after 'double tap and hold to'."
+  },
+  "selectionHintPick": "select",
+  "@selectionHintPick": {
+    "description": "Screen reader hint for a tap on a song row while picking songs, when the song is not picked yet. Read after 'double tap to'."
+  },
+  "selectionHintUnpick": "deselect",
+  "@selectionHintUnpick": {
+    "description": "Screen reader hint for a tap on a picked song row while picking songs: it lets the song go. Read after 'double tap to'."
+  }
 }

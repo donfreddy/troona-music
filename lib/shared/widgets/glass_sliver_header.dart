@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:troona/shared/widgets/cross_fade_swap.dart';
 import 'package:flutter/rendering.dart'
     show OverScrollHeaderStretchConfiguration;
 import 'package:troona/core/layout/app_layout.dart';
@@ -338,6 +339,8 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     final background = header.background;
     final expanded = header.expanded;
     final pinnedBottom = header.pinnedBottom;
+    // A bar given for the navigation row (songs being picked).
+    final navBar = GlassNavOverride.barOf(context);
 
     // Keyed: a background that comes later (a photo once loaded) must not
     // shift the other layers and rebuild their state.
@@ -390,10 +393,14 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             left: 0,
             right: 0,
             height: navHeight,
-            child: _NavRow(
-              leading: header.leading,
-              title: header.title,
-              actions: header.actions,
+            // A bar given in its place fades in over it.
+            child: _NavSwitch(
+              bar: navBar,
+              child: _NavRow(
+                leading: header.leading,
+                title: header.title,
+                actions: header.actions,
+              ),
             ),
           ),
 
@@ -407,11 +414,25 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             height: header.pinnedBottomHeight,
             child: MediaQuery.withClampedTextScaling(
               maxScaleFactor: AppLayout.maxTextScale,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: pinnedBottom,
+              // With no navigation row (Search), a bar given in its place
+              // takes this one's, as tall as a field.
+              child: CrossFadeSwap(
+                alt: switch (navBar) {
+                  final bar? when navHeight == 0 => Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: SizedBox(height: 56, child: bar),
+                    ),
+                  ),
+                  _ => null,
+                },
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: pinnedBottom,
+                  ),
                 ),
               ),
             ),
@@ -799,6 +820,44 @@ class _Fade extends StatelessWidget {
           child: RepaintBoundary(child: child),
         ),
       ),
+    );
+  }
+}
+
+/// Puts [bar] in place of the navigation row of the [GlassSliverHeader]s
+/// below it (of the pinned bottom, for a header with no navigation row)
+/// while not null (a list picking songs shows its count and
+/// actions there). Kept in the tree with a null [bar] otherwise, so turning
+/// it on or off rebuilds the headers without remounting the page.
+class GlassNavOverride extends InheritedWidget {
+  final Widget? bar;
+
+  const GlassNavOverride({super.key, required this.bar, required super.child});
+
+  static Widget? barOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<GlassNavOverride>()?.bar;
+
+  @override
+  bool updateShouldNotify(GlassNavOverride old) => bar != old.bar;
+}
+
+class _NavSwitch extends StatelessWidget {
+  final Widget? bar;
+  final Widget child;
+
+  const _NavSwitch({required this.bar, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final bar = this.bar;
+    return CrossFadeSwap(
+      alt: bar == null
+          ? null
+          : MediaQuery.withClampedTextScaling(
+              maxScaleFactor: AppLayout.maxTextScale,
+              child: bar,
+            ),
+      child: child,
     );
   }
 }

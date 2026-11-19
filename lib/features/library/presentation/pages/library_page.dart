@@ -16,6 +16,7 @@ import 'package:troona/features/library/presentation/widgets/artist_card.dart';
 import 'package:troona/features/library/presentation/widgets/card_grid.dart';
 import 'package:troona/features/library/presentation/widgets/library_index.dart';
 import 'package:troona/features/library/presentation/widgets/library_segment_control.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
@@ -88,7 +89,19 @@ class _LibraryPageState extends State<LibraryPage> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          _scrollView(context),
+          // Songs, alone, pick with a long press, in the order shown.
+          BlocSelector<LibraryBloc, LibraryState, List<Track>?>(
+            selector: (state) => switch (_loadedOf(state)) {
+              final loaded? when loaded.filter == LibraryFilter.tracks =>
+                loaded.visibleTracks,
+              _ => null,
+            },
+            builder: (context, songs) => TrackSelectionScope(
+              tracks: songs ?? const [],
+              enabled: songs != null,
+              child: _scrollView(context),
+            ),
+          ),
           BlocBuilder<LibraryBloc, LibraryState>(
             buildWhen: (prev, curr) => _bodyKey(prev) != _bodyKey(curr),
             builder: (context, state) {

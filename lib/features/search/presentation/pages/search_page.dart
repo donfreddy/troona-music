@@ -4,6 +4,9 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/search/presentation/bloc/search_bloc.dart';
 import 'package:troona/features/search/presentation/widgets/search_results_view.dart';
 import 'package:troona/features/search/presentation/widgets/search_suggestions.dart';
@@ -50,71 +53,104 @@ class _SearchPageState extends State<SearchPage> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        // Scrolling the results puts the keyboard away, as on iOS.
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        slivers: [
-          // ── Search field: a glass bar once results pass under it ──────
-          GlassSliverHeader(
-            pinnedBottomHeight: _fieldBarHeight,
-            pinnedBottom: _searchField(colors),
-          ),
-
-          BlocBuilder<SearchBloc, SearchState>(
-            builder: (context, state) {
-              if (state is SearchLoading) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
-                      strokeWidth: 2.5,
-                    ),
-                  ),
-                );
-              }
-
-              if (state is SearchLoaded) {
-                return SearchResultsView(
-                  result: state.result,
-                  query: state.query,
-                );
-              }
-
-              if (state is SearchError) {
-                return SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(
-                    child: ErrorView(
-                      body: context.l10n.searchError,
-                      onRetry: () {
-                        if (_controller.text.isNotEmpty) {
-                          context.read<SearchBloc>().add(
-                            SearchTextChanged(_controller.text),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                );
-              }
-
-              // SearchInitial / Query empty
-              return SearchSuggestions(
-                onQuerySelected: (query) {
-                  _controller.text = query;
-                  context.read<SearchBloc>().add(SearchTextChanged(query));
-                  setState(() {});
-                },
-              );
+      // A long press on a song picks songs among the ones listed: the
+      // results, or the suggestions before a search.
+      body: TrackSelectionScope(
+        tracks: _songsShown(
+          context.watch<SearchBloc>().state,
+          // The songs alone: a scan's progress and the Library's search
+          // emit often, and would rebuild the whole page.
+          context.select(
+            (LibraryBloc bloc) => switch (bloc.state) {
+              LibraryLoaded(:final allTracks) => allTracks,
+              _ => null,
             },
           ),
-        ],
+        ),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          // Scrolling the results puts the keyboard away, as on iOS.
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            // ── Search field: a glass bar once results pass under it ──────
+            GlassSliverHeader(
+              pinnedBottomHeight: _fieldBarHeight,
+              pinnedBottom: _searchField(colors),
+            ),
+
+            BlocBuilder<SearchBloc, SearchState>(
+              builder: (context, state) {
+                if (state is SearchLoading) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colors.accent,
+                        ),
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  );
+                }
+
+                if (state is SearchLoaded) {
+                  return SearchResultsView(
+                    result: state.result,
+                    query: state.query,
+                  );
+                }
+
+                if (state is SearchError) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: ErrorView(
+                        body: context.l10n.searchError,
+                        onRetry: () {
+                          if (_controller.text.isNotEmpty) {
+                            context.read<SearchBloc>().add(
+                              SearchTextChanged(_controller.text),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                }
+
+                // SearchInitial / Query empty
+                return SearchSuggestions(
+                  onQuerySelected: (query) {
+                    _controller.text = query;
+                    context.read<SearchBloc>().add(SearchTextChanged(query));
+                    setState(() {});
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  List<Track>? _suggestedFrom;
+  List<Track> _suggested = const [];
+
+  /// The songs the page lists, in its order. The suggestions are worked
+  /// out again only when the library's songs change: a new list each build
+  /// would tell every row.
+  List<Track> _songsShown(SearchState search, List<Track>? library) {
+    if (search is SearchLoaded) return search.result.tracks;
+    if (search is! SearchInitial || library == null) return const [];
+    if (!identical(library, _suggestedFrom)) {
+      _suggestedFrom = library;
+      _suggested = SearchSuggestions.songsOf(library);
+    }
+    return _suggested;
   }
 
   /// Room for the field in the bar: its 48 dp at the capped font size,

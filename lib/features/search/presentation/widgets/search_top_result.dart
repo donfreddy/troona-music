@@ -15,6 +15,7 @@ import 'package:troona/shared/widgets/glass_card.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/shared/widgets/app_badge.dart';
 import 'package:troona/features/library/presentation/widgets/artist_releases.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 
 class SearchTopResult extends StatelessWidget {
   final SearchResult result;
@@ -202,6 +203,14 @@ class SearchTopResult extends StatelessWidget {
   }
 
   Widget _buildTrackTop(BuildContext context, Track track, AppColors colors) {
+    // It plays the song: out of reach while songs are being picked.
+    return TrackSelectionScope.inertWhilePicking(
+      context,
+      _trackCard(context, track, colors),
+    );
+  }
+
+  Widget _trackCard(BuildContext context, Track track, AppColors colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,

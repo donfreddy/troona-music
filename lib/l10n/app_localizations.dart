@@ -3145,6 +3145,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
   String get whatsNew170PhotosBody;
+
+  /// No description provided for @playlistAddedSongsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} songs added to {name}'**
+  String playlistAddedSongsTo(int count, String name);
+
+  /// What a screen reader reads for the selection bar's count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song selected} other{{count} songs selected}}'**
+  String selectionSelected(int count);
+
+  /// The word after the rolling count in the selection bar (the number is drawn apart).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{selected} other{selected}}'**
+  String selectionSuffix(int count);
+
+  /// No description provided for @selectionSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectionSelectAll;
+
+  /// No description provided for @selectionDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get selectionDeselectAll;
+
+  /// No description provided for @selectionEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End selection'**
+  String get selectionEnd;
+
+  /// Screen reader hint for a long press on a song row: it starts picking songs. Read after 'double tap and hold to'.
+  ///
+  /// In en, this message translates to:
+  /// **'pick songs'**
+  String get selectionHintStart;
+
+  /// Screen reader hint for a tap on a song row while picking songs, when the song is not picked yet. Read after 'double tap to'.
+  ///
+  /// In en, this message translates to:
+  /// **'select'**
+  String get selectionHintPick;
+
+  /// Screen reader hint for a tap on a picked song row while picking songs: it lets the song go. Read after 'double tap to'.
+  ///
+  /// In en, this message translates to:
+  /// **'deselect'**
+  String get selectionHintUnpick;
 }
 
 class _AppLocalizationsDelegate

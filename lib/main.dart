@@ -9,6 +9,7 @@ import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/glass_tier.dart';
+import 'package:troona/features/library/presentation/bloc/selection/track_selection_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/widgets/app_theme_builder.dart';
 import 'package:troona/core/utils/crash_log.dart';
@@ -73,6 +74,7 @@ class TroonaApp extends StatelessWidget {
         BlocProvider.value(value: getIt<TrackPaletteCubit>()),
         BlocProvider.value(value: getIt<LikesCubit>()),
         BlocProvider.value(value: getIt<SleepTimerCubit>()),
+        BlocProvider.value(value: getIt<TrackSelectionCubit>()),
       ],
       child: AppThemeBuilder(
         settings: getIt<SettingsCubit>(),
