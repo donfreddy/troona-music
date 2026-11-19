@@ -1923,4 +1923,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get selectionEnd => 'Terminer la sélection';
+
+  @override
+  String get selectionHintStart => 'sélectionner des morceaux';
+
+  @override
+  String get selectionHintPick => 'sélectionner';
+
+  @override
+  String get selectionHintUnpick => 'désélectionner';
 }

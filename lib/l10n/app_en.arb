@@ -979,5 +979,17 @@
   },
   "selectionSelectAll": "Select all",
   "selectionDeselectAll": "Deselect all",
-  "selectionEnd": "End selection"
+  "selectionEnd": "End selection",
+  "selectionHintStart": "pick songs",
+  "@selectionHintStart": {
+    "description": "Screen reader hint for a long press on a song row: it starts picking songs. Read after 'double tap and hold to'."
+  },
+  "selectionHintPick": "select",
+  "@selectionHintPick": {
+    "description": "Screen reader hint for a tap on a song row while picking songs, when the song is not picked yet. Read after 'double tap to'."
+  },
+  "selectionHintUnpick": "deselect",
+  "@selectionHintUnpick": {
+    "description": "Screen reader hint for a tap on a picked song row while picking songs: it lets the song go. Read after 'double tap to'."
+  }
 }

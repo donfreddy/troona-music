@@ -1907,4 +1907,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectionEnd => 'End selection';
+
+  @override
+  String get selectionHintStart => 'pick songs';
+
+  @override
+  String get selectionHintPick => 'select';
+
+  @override
+  String get selectionHintUnpick => 'deselect';
 }

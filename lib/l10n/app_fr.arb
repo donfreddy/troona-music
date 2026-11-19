@@ -513,5 +513,8 @@
   "selectionSuffix": "{count, plural, =1{sélectionné} other{sélectionnés}}",
   "selectionSelectAll": "Tout sélectionner",
   "selectionDeselectAll": "Tout désélectionner",
-  "selectionEnd": "Terminer la sélection"
+  "selectionEnd": "Terminer la sélection",
+  "selectionHintStart": "sélectionner des morceaux",
+  "selectionHintPick": "sélectionner",
+  "selectionHintUnpick": "désélectionner"
 }

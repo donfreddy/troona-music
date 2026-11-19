@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:dartz/dartz.dart' hide State;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
@@ -21,6 +23,7 @@ import 'package:troona/features/library/presentation/widgets/selection/selection
 import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
+import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -474,5 +477,116 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 5));
       }
     });
+
+    group('Add to playlist', () {
+      late _Playlists playlists;
+
+      setUp(() {
+        playlists = _Playlists();
+        getIt.registerSingleton<PlaylistRepository>(playlists);
+      });
+      tearDown(() => getIt.unregister<PlaylistRepository>());
+
+      testWidgets('adds the songs it lacks, in order, then ends it', (
+        tester,
+      ) async {
+        await pump(tester);
+        await pick(tester, ['c', 'b', 'a']);
+        await tester.tap(find.byTooltip('Add to playlist'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Mix'));
+        await tester.pumpAndSettle();
+        // The playlist holds b already.
+        expect(playlists.added.single.$1, 'mix');
+        expect(playlists.added.single.$2, ['a', 'c']);
+        expect(selection.state.active, isFalse);
+        expect(find.text('2 songs added to Mix'), findsOneWidget);
+
+        await tester.tap(find.text('Undo'));
+        await tester.pumpAndSettle();
+        expect(playlists.removed.single.$1, 'mix');
+        expect(playlists.removed.single.$2, ['a', 'c']);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+
+      testWidgets('closed empty, or failing, the songs stay picked', (
+        tester,
+      ) async {
+        await pump(tester);
+        await pick(tester, ['a', 'c']);
+        await tester.tap(find.byTooltip('Add to playlist'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Close'));
+        await tester.pumpAndSettle();
+        expect(playlists.added, isEmpty);
+        expect(picked(), ['a', 'c']);
+
+        playlists.fail = true;
+        await tester.tap(find.byTooltip('Add to playlist'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Mix'));
+        await tester.pumpAndSettle();
+        expect(picked(), ['a', 'c']);
+        expect(find.text('Something went wrong. Try again.'), findsOneWidget);
+        await tester.pumpAndSettle(const Duration(seconds: 5));
+      });
+    });
   });
+
+  testWidgets('a screen reader hears what a long press and a tap do', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester);
+    Set<String> hints(String id) {
+      final data = tester.getSemantics(row(id)).getSemanticsData();
+      return {
+        for (final action in data.customSemanticsActionIds ?? <int>[])
+          ?CustomSemanticsAction.getAction(action)?.hint,
+      };
+    }
+
+    expect(hints('a'), contains('pick songs'));
+    await tester.longPress(row('a'));
+    await tester.pumpAndSettle();
+    expect(hints('a'), contains('deselect'));
+    expect(hints('b'), contains('select'));
+    expect(hints('b'), isNot(contains('pick songs')));
+    handle.dispose();
+  });
+}
+
+/// One playlist, Mix, holding b; records the writes.
+final class _Playlists implements PlaylistRepository {
+  final added = <(String, List<String>)>[];
+  final removed = <(String, List<String>)>[];
+  bool fail = false;
+
+  @override
+  Future<Either<Failure, List<Playlist>>> getPlaylists() async => right(const [
+    Playlist(id: 'mix', name: 'Mix', trackIds: ['b']),
+  ]);
+
+  @override
+  Future<Either<Failure, List<String>>> addTracksToPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    if (fail) return left(const DatabaseFailure());
+    added.add((playlistId, trackIds));
+    return right(trackIds);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeTracksFromPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  ) async {
+    removed.add((playlistId, trackIds));
+    return right(unit);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

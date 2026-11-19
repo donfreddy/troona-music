@@ -93,6 +93,11 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
       context,
       widget.track.id,
     );
+    final hints = TrackSelectionScope.hintsOf(
+      context,
+      picking: picking,
+      selected: selected,
+    );
 
     return QueueSwipe(
       track: widget.track,
@@ -109,6 +114,8 @@ class _AlbumTrackListTileState extends State<AlbumTrackListTile> {
           type: MaterialType.transparency,
           child: Semantics(
             selected: picking ? selected : null,
+            onTapHint: hints.tap,
+            onLongPressHint: hints.longPress,
             child: InkWell(
               // The player ticks when the song starts. While its list picks,
               // a tap picks the song or lets it go.

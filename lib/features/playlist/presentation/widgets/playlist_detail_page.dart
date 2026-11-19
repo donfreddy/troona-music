@@ -335,6 +335,11 @@ class _TrackTile extends StatelessWidget {
     final colors = context.colors;
     final (isActive, _) = TrackRowArtwork.statusOf(context, track.id);
     final (picking, selected) = TrackSelectionScope.statusOf(context, track.id);
+    final hints = TrackSelectionScope.hintsOf(
+      context,
+      picking: picking,
+      selected: selected,
+    );
 
     // A long press picks songs, as in every list of songs: the handle alone
     // moves a row.
@@ -347,6 +352,8 @@ class _TrackTile extends StatelessWidget {
         color: Colors.transparent,
         child: Semantics(
           selected: picking ? selected : null,
+          onTapHint: hints.tap,
+          onLongPressHint: hints.longPress,
           child: InkWell(
             onLongPress: () => TrackSelectionScope.longPress(context, track),
             // The pick ticks on its own: no system buzz on top.
@@ -437,7 +444,6 @@ class _TrackTile extends StatelessWidget {
                           ),
                           ReorderableDragStartListener(
                             index: index,
-                            enabled: !picking,
                             child: const Padding(
                               padding: EdgeInsets.symmetric(horizontal: 4),
                               child: Icon(
