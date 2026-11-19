@@ -92,8 +92,21 @@ class AppBottomNavBar extends StatefulWidget {
   State<AppBottomNavBar> createState() => _AppBottomNavBarState();
 }
 
-class _AppBottomNavBarState extends State<AppBottomNavBar> {
+class _AppBottomNavBarState extends State<AppBottomNavBar>
+    with SingleTickerProviderStateMixin {
   PlayerActive? _lastActiveState;
+
+  /// How far the mini player is swiped down: see [_MiniPlayerRow.drop].
+  late final _drop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  @override
+  void dispose() {
+    _drop.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +120,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
           builder: (context, playerState) {
             final resolvedPlayerState = _resolvePlayerState(playerState);
             return _NavBarBody(
+              drop: _drop,
               currentTab: widget.currentTab,
               onTabChanged: widget.onTabChanged,
               playerState: resolvedPlayerState,
@@ -140,6 +154,12 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
   };
 
   PlayerActive? _resolvePlayerState(PlayerState state) {
+    final active = state is PlayerActive || state is PlayerLoading;
+    if (active && _lastActiveState == null) {
+      // Playing again after the mini player was swiped away: it comes back
+      // whole.
+      _drop.value = 0;
+    }
     if (state is PlayerActive) {
       _lastActiveState = state;
       return state;
@@ -178,8 +198,10 @@ class _NavBarBody extends StatelessWidget {
   final bool showMiniPlayer;
   final bool showTabs;
   final Animation<double>? miniSlot;
+  final AnimationController drop;
 
   const _NavBarBody({
+    required this.drop,
     required this.currentTab,
     required this.onTabChanged,
     required this.playerState,
@@ -214,30 +236,12 @@ class _NavBarBody extends StatelessWidget {
 
     final body = Container(
       decoration: BoxDecoration(color: glass.fill, borderRadius: radius),
+      // Laid out top down as a column, listed (and painted) bottom up: the
+      // mini player paints over the tabs, which a swipe down brings it on.
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        verticalDirection: VerticalDirection.up,
         children: [
-          // ── Mini player section: slides in/out smoothly ─────────────────
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            child: isMiniPlayerVisible
-                ? _MiniPlayerRow(
-                    state: playerState!,
-                    radius: radius,
-                    showTabs: showTabs,
-                  )
-                : const SizedBox.shrink(),
-          ),
-
-          // ── Empty mini player slot: the glass alone, as tall as the row ─
-          if (miniSlot case final slot?)
-            SizeTransition(
-              key: const ValueKey('miniSlot'),
-              sizeFactor: slot,
-              child: const SizedBox(height: AppSpacing.miniPlayerHeight),
-            ),
-
           // ── Nav tabs row: visible only on root pages ────────────────────
           if (showTabs)
             SizedBox(
@@ -269,6 +273,32 @@ class _NavBarBody extends StatelessWidget {
                 ],
               ),
             ),
+
+          // ── Empty mini player slot: the glass alone, as tall as the row ─
+          if (miniSlot case final slot?)
+            SizeTransition(
+              key: const ValueKey('miniSlot'),
+              sizeFactor: slot,
+              child: const SizedBox(height: AppSpacing.miniPlayerHeight),
+            ),
+
+          // ── Mini player section: slides in/out smoothly ─────────────────
+          _DropOut(
+            drop: drop,
+            fold: showTabs,
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              child: isMiniPlayerVisible
+                  ? _MiniPlayerRow(
+                      state: playerState!,
+                      radius: radius,
+                      showTabs: showTabs,
+                      drop: drop,
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ],
       ),
     );
@@ -283,31 +313,53 @@ class _NavBarBody extends StatelessWidget {
     final shadow = OuterShadowPainter(borderRadius: radius);
 
     if (glass.blurSigma == 0) {
-      return CustomPaint(
-        foregroundPainter: shadow,
-        child: ClipRRect(borderRadius: radius, child: edged),
+      return _slideOut(
+        context,
+        CustomPaint(
+          foregroundPainter: shadow,
+          child: ClipRRect(borderRadius: radius, child: edged),
+        ),
       );
     }
 
     // RepaintBoundary isolates the BackdropFilter compositing layer so
     // position-stream rebuilds above in the tree do not trigger a re-blur.
-    return CustomPaint(
-      foregroundPainter: shadow,
-      child: RepaintBoundary(
-        child: ClipRRect(
-          borderRadius: radius,
-          child: BackdropFilter(
-            filter: GlassFilter.of(
-              glass.blurSigma,
-              saturation: glass.saturation,
-              exposure: glass.exposure,
+    return _slideOut(
+      context,
+      CustomPaint(
+        foregroundPainter: shadow,
+        child: RepaintBoundary(
+          child: ClipRRect(
+            borderRadius: radius,
+            child: BackdropFilter(
+              filter: GlassFilter.of(
+                glass.blurSigma,
+                saturation: glass.saturation,
+                exposure: glass.exposure,
+              ),
+              child: edged,
             ),
-            child: edged,
           ),
         ),
       ),
     );
   }
+
+  /// The mini player alone (no tabs) is swiped down whole, glass and all,
+  /// off the screen: nothing to fold it into. The same tree with tabs or
+  /// without, so going between a tab and a page pushed over it keeps the
+  /// heroes below.
+  Widget _slideOut(BuildContext context, Widget bar) => AnimatedBuilder(
+    animation: drop,
+    child: bar,
+    builder: (context, child) => Transform.translate(
+      offset: Offset(
+        0,
+        showTabs ? 0 : drop.value * _DropOut.travelOf(context, tabs: false),
+      ),
+      child: child,
+    ),
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -325,9 +377,16 @@ class _MiniPlayerRow extends StatefulWidget {
   final BorderRadius radius;
   final bool showTabs;
 
+  /// How far the row is swiped down, 0 to 1 of its height, driven here and
+  /// drawn by the bar ([_DropOut]), around the row's [AnimatedSize]: inside
+  /// it, the row would be clipped and its height eased, not follow the
+  /// finger.
+  final AnimationController drop;
+
   const _MiniPlayerRow({
     required this.state,
     required this.radius,
+    required this.drop,
     this.showTabs = true,
   });
 
@@ -388,13 +447,11 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
   /// How long a swipe waits for the player before putting the song back.
   static const _patience = Duration(milliseconds: 700);
 
-  /// How far the row is swiped down, 0 to 1 of its height: the bar's top
-  /// edge follows the finger and the row fades; let go far or fast enough,
-  /// the row closes and the player stops.
-  late final _drop = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 220),
-  );
+  /// How far the row is swiped down ([_MiniPlayerRow.drop]): the bar's
+  /// top edge follows the finger and the row comes down over the tabs,
+  /// dissolving; let go far or fast enough, the row closes and the player
+  /// stops.
+  AnimationController get _drop => widget.drop;
 
   /// Whether the row was swiped away, until the player goes idle and the
   /// row leaves (or a new song plays and brings it back).
@@ -449,9 +506,13 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
         now.currentTrack.id == _awaitTrackId &&
         now.queue.currentTrack?.id == now.currentTrack.id;
     if (before.currentTrack.id != now.currentTrack.id && _dismissed) {
-      // A song played while the row was leaving: it stays.
+      // A song played while the row was leaving: it stays. The bar draws
+      // the drop, above this row: it is told after this build.
       _dismissed = false;
-      _drop.value = 0;
+      _drop.stop();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_dismissed) _drop.value = 0;
+      });
     }
     if (!awaited && before.currentTrack.id == now.currentTrack.id) return;
 
@@ -602,7 +663,9 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
   void _onVerticalDragUpdate(DragUpdateDetails details) {
     if (_dismissed) return;
     _drop.stop();
-    _drop.value += (details.primaryDelta ?? 0) / AppSpacing.miniPlayerHeight;
+    _drop.value +=
+        (details.primaryDelta ?? 0) /
+        _DropOut.travelOf(context, tabs: widget.showTabs);
   }
 
   void _onVerticalDragEnd(DragEndDetails details) {
@@ -645,7 +708,6 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
   @override
   void dispose() {
     _giveUp?.cancel();
-    _drop.dispose();
     _slide.dispose();
     _fade.dispose();
     _queuedHide?.cancel();
@@ -687,149 +749,143 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
       },
       // Nothing below is keyed by song: a change keeps it all (the cover
       // shows the old image until the new one is decoded).
-      child: _DropOut(
-        drop: _drop,
-        child: GestureDetector(
-          onTap: () => openFullPlayer(context),
-          onLongPress: () => _toggleLike(context),
-          // Both ways in one place: a second vertical recognizer (a
-          // Dismissible) would never win against this one.
-          onVerticalDragUpdate: _onVerticalDragUpdate,
-          onVerticalDragEnd: _onVerticalDragEnd,
-          onVerticalDragCancel: _dropBack,
-          behavior: HitTestBehavior.opaque,
-          child: _CoveredFade(
-            child: Container(
-              height: AppSpacing.miniPlayerHeight,
-              // Always a decoration, so toggling the tabs keeps the same element
-              // tree and the heroes below survive (an interrupted flight
-              // asserts if its hero is recreated).
-              decoration: BoxDecoration(
-                borderRadius: radius,
-                border: showTabs ? Border.all(width: 0, color: tint) : null,
-              ),
-              child: ClipRRect(
-                borderRadius: radius,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Landing spot of the Now Playing ring morph (invisible at
-                    // rest: the bar itself draws the glass).
-                    const Hero(
-                      tag: NowPlayingHero.surfaceTag,
-                      createRectTween: NowPlayingHero.flightTween,
-                      flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
-                      child: SizedBox.expand(),
+      child: GestureDetector(
+        onTap: () => openFullPlayer(context),
+        onLongPress: () => _toggleLike(context),
+        // Both ways in one place: a second vertical recognizer (a
+        // Dismissible) would never win against this one.
+        onVerticalDragUpdate: _onVerticalDragUpdate,
+        onVerticalDragEnd: _onVerticalDragEnd,
+        onVerticalDragCancel: _dropBack,
+        behavior: HitTestBehavior.opaque,
+        child: _CoveredFade(
+          child: Container(
+            height: AppSpacing.miniPlayerHeight,
+            // Always a decoration, so toggling the tabs keeps the same element
+            // tree and the heroes below survive (an interrupted flight
+            // asserts if its hero is recreated).
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              border: showTabs ? Border.all(width: 0, color: tint) : null,
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Landing spot of the Now Playing ring morph (invisible at
+                  // rest: the bar itself draws the glass).
+                  const Hero(
+                    tag: NowPlayingHero.surfaceTag,
+                    createRectTween: NowPlayingHero.flightTween,
+                    flightShuttleBuilder: NowPlayingHero.surfaceShuttle,
+                    child: SizedBox.expand(),
+                  ),
+                  if (showTabs)
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                        ),
+                      ),
                     ),
-                    if (showTabs)
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Color(0x1FFFFFFF), Color(0x0AFFFFFF)],
+                  _MiniPlayerProgressFill(progressTint: tint),
+                  Row(
+                    children: [
+                      const SizedBox(width: 12),
+
+                      // A swipe on the song changes it: left for the next,
+                      // right for the previous (not back to its start, as
+                      // the button does past 3 s), like the Now Playing
+                      // covers. Only the titles move: the neighbour's
+                      // shows as the finger goes, and the cover stays,
+                      // taking the new song's.
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onHorizontalDragStart: _onDragStart,
+                          onHorizontalDragUpdate: _onDragUpdate,
+                          onHorizontalDragEnd: _onDragEnd,
+                          onHorizontalDragCancel: () =>
+                              _onDragEnd(DragEndDetails()),
+                          child: Row(
+                            children: [
+                              // ── Artwork thumbnail ────────────────────────
+                              _QueuedAck(
+                                queued: _queued,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  fit: StackFit.expand,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        NowPlayingHero.miniArtworkRadius,
+                                      ),
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          _MiniArtwork(
+                                            path:
+                                                state.currentTrack.artworkPath,
+                                            hero: true,
+                                          ),
+                                          // The old cover, fading out over
+                                          // the new one (outside the hero:
+                                          // it never flies).
+                                          if (_from case final from?)
+                                            IgnorePointer(
+                                              child: FadeTransition(
+                                                opacity: ReverseAnimation(
+                                                  _fade,
+                                                ),
+                                                child: _MiniArtwork(
+                                                  path: from.artworkPath,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    LikeBurst(controller: _burst),
+                                  ],
+                                ),
+                              ),
+
+                              // ── Track title and artist ─────────────────────
+                              Expanded(child: _carousel(state)),
+                            ],
                           ),
                         ),
                       ),
-                    _MiniPlayerProgressFill(progressTint: tint),
-                    Row(
-                      children: [
-                        const SizedBox(width: 12),
 
-                        // A swipe on the song changes it: left for the next,
-                        // right for the previous (not back to its start, as
-                        // the button does past 3 s), like the Now Playing
-                        // covers. Only the titles move: the neighbour's
-                        // shows as the finger goes, and the cover stays,
-                        // taking the new song's.
-                        Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.translucent,
-                            onHorizontalDragStart: _onDragStart,
-                            onHorizontalDragUpdate: _onDragUpdate,
-                            onHorizontalDragEnd: _onDragEnd,
-                            onHorizontalDragCancel: () =>
-                                _onDragEnd(DragEndDetails()),
-                            child: Row(
-                              children: [
-                                // ── Artwork thumbnail ────────────────────────
-                                _QueuedAck(
-                                  queued: _queued,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    fit: StackFit.expand,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          NowPlayingHero.miniArtworkRadius,
-                                        ),
-                                        child: Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            _MiniArtwork(
-                                              path: state
-                                                  .currentTrack
-                                                  .artworkPath,
-                                              hero: true,
-                                            ),
-                                            // The old cover, fading out over
-                                            // the new one (outside the hero:
-                                            // it never flies).
-                                            if (_from case final from?)
-                                              IgnorePointer(
-                                                child: FadeTransition(
-                                                  opacity: ReverseAnimation(
-                                                    _fade,
-                                                  ),
-                                                  child: _MiniArtwork(
-                                                    path: from.artworkPath,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                      LikeBurst(controller: _burst),
-                                    ],
-                                  ),
-                                ),
+                      // ── Play / Pause ───────────────────────────────────────
+                      AppIconButton(
+                        icon: state.isPlaying ? AppIcons.pause : AppIcons.play,
+                        tooltip: state.isPlaying
+                            ? context.l10n.playerPause
+                            : context.l10n.actionPlay,
+                        color: context.colors.labelPrimary,
+                        onPressed: () {
+                          context.read<PlayerBloc>().add(
+                            state.isPlaying
+                                ? const PauseRequested()
+                                : const ResumeRequested(),
+                          );
+                        },
+                      ),
 
-                                // ── Track title and artist ─────────────────────
-                                Expanded(child: _carousel(state)),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // ── Play / Pause ───────────────────────────────────────
-                        AppIconButton(
-                          icon: state.isPlaying
-                              ? AppIcons.pause
-                              : AppIcons.play,
-                          tooltip: state.isPlaying
-                              ? context.l10n.playerPause
-                              : context.l10n.actionPlay,
-                          color: context.colors.labelPrimary,
-                          onPressed: () {
-                            context.read<PlayerBloc>().add(
-                              state.isPlaying
-                                  ? const PauseRequested()
-                                  : const ResumeRequested(),
-                            );
-                          },
-                        ),
-
-                        // ── Skip next ──────────────────────────────────────────
-                        AppIconButton(
-                          icon: AppIcons.skipNext,
-                          tooltip: context.l10n.playerNext,
-                          color: context.colors.labelPrimary,
-                          onPressed: state.hasNext ? _onNextPressed : null,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      // ── Skip next ──────────────────────────────────────────
+                      AppIconButton(
+                        icon: AppIcons.skipNext,
+                        tooltip: context.l10n.playerNext,
+                        color: context.colors.labelPrimary,
+                        onPressed: state.hasNext ? _onNextPressed : null,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -922,27 +978,69 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow>
   }
 }
 
-/// Shrinks the mini player row by [drop] of its height from the top,
-/// fading it out: the bar's top edge comes down with the finger, in one
-/// movement. Once the row is gone, the bar has nothing left to shrink when
-/// the player goes idle.
+/// Takes the mini player row away by [drop] of its height: the bar's top
+/// edge comes down with the finger, in one movement, and the row comes
+/// down with it, over the tabs (painted above them: see [_NavBarBody]),
+/// dissolving from its bottom up. Gone by [goneBy], so nothing reaches the
+/// bar's bottom edge to be cut; once gone, the bar has nothing left to
+/// shrink when the player goes idle.
 class _DropOut extends StatelessWidget {
   final Animation<double> drop;
   final Widget child;
 
-  const _DropOut({required this.drop, required this.child});
+  /// Whether the row folds into the tabs below it. Without tabs, the bar
+  /// slides away whole instead ([_NavBarBody._slideOut]).
+  final bool fold;
+
+  const _DropOut({required this.drop, required this.fold, required this.child});
+
+  /// How far down the row is gone.
+  static const goneBy = .7;
+
+  /// How far the finger travels for the whole way down: the row's height
+  /// over the tabs; alone, the bar's height and what lies below it (the
+  /// safe area, the bar's margin and its shadow), to leave the screen.
+  static double travelOf(BuildContext context, {required bool tabs}) => tabs
+      ? AppSpacing.miniPlayerHeight
+      : AppSpacing.miniPlayerHeight +
+            MediaQuery.viewPaddingOf(context).bottom +
+            40;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: drop,
     child: child,
-    builder: (context, child) => ClipRect(
-      child: Align(
+    builder: (context, child) {
+      final value = fold ? drop.value : 0.0;
+      // Not clipped: the row hangs out of its shrinking box, over the tabs.
+      return Align(
         alignment: Alignment.topCenter,
-        heightFactor: 1 - drop.value,
-        child: Opacity(opacity: 1 - drop.value, child: child),
-      ),
-    ),
+        heightFactor: 1 - value,
+        child: ShaderMaskWhile(
+          active: value > 0,
+          shaderCallback: dropOutMaskAt(value).createShader,
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+/// Height of the mini player's fade as it is swiped down, as a share of
+/// the row.
+const _dropBand = .5;
+
+/// The mini player row's mask, swiped down by [drop]: opaque above the
+/// band, clear below it. The band starts below the row and climbs past its
+/// top by [_DropOut.goneBy].
+@visibleForTesting
+LinearGradient dropOutMaskAt(double drop) {
+  final clear = 1 + _dropBand - drop * (1 + _dropBand) / _DropOut.goneBy;
+  final opaque = clear - _dropBand;
+  return LinearGradient(
+    begin: Alignment(0, opaque * 2 - 1),
+    end: Alignment(0, clear * 2 - 1),
+    colors: const [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
   );
 }
 

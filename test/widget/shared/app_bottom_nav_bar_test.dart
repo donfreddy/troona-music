@@ -71,6 +71,7 @@ void main() {
     int start = 0,
     bool reduceMotion = false,
     GlassQuality glass = GlassQuality.high,
+    bool showTabs = true,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -117,7 +118,11 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: AppBottomNavBar(currentTab: tab, onTabChanged: (_) {}),
+              child: AppBottomNavBar(
+                currentTab: tab,
+                onTabChanged: (_) {},
+                showTabs: showTabs,
+              ),
             ),
           ),
         ),
@@ -718,8 +723,13 @@ void main() {
       await gesture.moveBy(const Offset(0, 10));
       await tester.pump(const Duration(milliseconds: 16));
     }
-    // The bar's top edge follows the finger: the bar itself shrinks.
-    expect(tester.getTopLeft(find.text('Title a')).dy, greaterThan(rest.dy));
+    // The bar's top edge follows the finger: the bar itself shrinks, and
+    // the row comes down with it, over the tabs, dissolving from the bottom.
+    expect(
+      tester.getTopLeft(find.text('Title a')).dy,
+      greaterThan(rest.dy + 15),
+    );
+    expect(tester.layers.whereType<ShaderMaskLayer>(), isNotEmpty);
     expect(
       tester.getSize(find.byType(AppBottomNavBar)).height,
       moreOrLessEquals(barHeight - 40, epsilon: 20),
@@ -728,6 +738,81 @@ void main() {
     await tester.pumpAndSettle();
     expect(bloc.state, isA<PlayerActive>());
     expect(tester.getTopLeft(find.text('Title a')), rest);
+  });
+
+  testWidgets('alone, the mini player slides down whole, without fading', (
+    tester,
+  ) async {
+    final bloc = await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 60000)],
+      showTabs: false,
+    );
+    Rect bar() => tester.getRect(find.byType(LikeBurst));
+    final rest = bar();
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Title a')),
+    );
+    for (var i = 0; i < 4; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    // With the finger, unshrunk, unfaded, unmasked.
+    expect(bar().top, greaterThan(rest.top + 15));
+    expect(bar().size, rest.size);
+    expect(tester.layers.whereType<ShaderMaskLayer>(), isEmpty);
+    for (final opacity in tester.widgetList<Opacity>(
+      find.ancestor(of: find.text('Title a'), matching: find.byType(Opacity)),
+    )) {
+      expect(opacity.opacity, 1);
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerActive>());
+    expect(bar(), rest);
+
+    await tester.fling(find.text('Title a'), const Offset(0, 80), 1500);
+    await tester.pumpAndSettle();
+    expect(bloc.state, isA<PlayerIdle>());
+  });
+
+  testWidgets('the mini player paints over the tabs, which it comes down '
+      'on', (tester) async {
+    await pump(tester, AppTab.home, queue: [testTrack('a', durationMs: 60000)]);
+    final column = tester.widget<Column>(
+      find.ancestor(
+        of: find.text('Title a'),
+        matching: find.byWidgetPredicate(
+          (w) => w is Column && w.verticalDirection == VerticalDirection.up,
+        ),
+      ),
+    );
+    // Listed bottom up: the mini player last, so painted last.
+    expect(
+      find.descendant(
+        of: find.byWidget(column.children.last),
+        matching: find.text('Title a'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(find.text('Title a')).dy,
+      lessThan(tester.getTopLeft(find.byIcon(AppIcons.home)).dy),
+    );
+  });
+
+  test('the row dissolves from its bottom up, gone by the end', () {
+    // Untouched at rest: the band sits below the row.
+    final rest = dropOutMaskAt(0);
+    expect((rest.begin as Alignment).y, greaterThanOrEqualTo(1));
+    // Half way: the bottom is clear, the top still shows.
+    final half = dropOutMaskAt(.35);
+    expect((half.begin as Alignment).y, lessThan(1));
+    expect((half.end as Alignment).y, greaterThan(-1));
+    expect((half.end as Alignment).y, lessThan(1));
+    // Gone: the whole row is below the clear end.
+    expect((dropOutMaskAt(.7).end as Alignment).y, lessThan(-.999));
   });
 
   testWidgets('a song played while the row leaves keeps it', (tester) async {
