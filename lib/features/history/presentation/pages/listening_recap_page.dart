@@ -506,8 +506,8 @@ class _TopSongRow extends StatelessWidget {
     return InkWell(
       // The player ticks when the song starts.
       onTap: onTap,
-      highlightColor: colors.glassHighlight,
-      splashColor: colors.glassHighlight,
+      highlightColor: colors.pressedInk,
+      splashColor: colors.pressedInk,
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,

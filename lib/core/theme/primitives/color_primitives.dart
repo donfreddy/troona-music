@@ -35,12 +35,9 @@ abstract final class ColorPrimitives {
   static const ambientTop = Color(0xFFA670AB); // top glow (sampled)
   static const ambientEdge = Color(0xFF644573); // glow edges (sampled)
 
-  // ── Glass primitives (DEEP GLASS STYLE) ──────────────────
+  // ── Quiet surfaces (not glass: see GlassTheme) ──────────
 
-  // Dark: "Deep Glass", much darker and more transparent
-  static const glassFillDark = Color(
-    0x08FFFFFF,
-  ); // 3% - Ultra thin for deep look
-  static const glassBorderDark = Color(0x28FFFFFF); // 16% - Sharper highlight
-  static const glassHighlightDark = Color(0x0FFFFFFF); // 6%
+  static const subtleFillDark = Color(0x08FFFFFF); // 3 %
+  static const hairlineDark = Color(0x28FFFFFF); // 16 %
+  static const pressedInkDark = Color(0x0FFFFFFF); // 6 %
 }

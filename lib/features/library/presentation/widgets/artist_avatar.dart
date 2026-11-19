@@ -96,7 +96,7 @@ class _ArtistAvatarState extends State<ArtistAvatar> {
         child: artwork != null && artwork.isNotEmpty
             ? ArtworkImage(artwork, placeholder: AppIcons.artist)
             : Container(
-                color: colors.glassFill,
+                color: colors.subtleFill,
                 alignment: Alignment.center,
                 // Sized from the circle, not the phone's font size: a
                 // drawing, which the name beside it already says.

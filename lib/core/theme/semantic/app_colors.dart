@@ -26,10 +26,12 @@ final class AppColors extends ThemeExtension<AppColors> {
   final Color progressStart; // start of the arc (icy blue)
   final Color progressEnd; // head of the arc (white)
 
-  // ── Glass ────────────────────────────────────────────────
-  final Color glassFill; // glass fill
-  final Color glassBorder; // bright top border
-  final Color glassHighlight; // diagonal sheen
+  // ── Quiet surfaces ───────────────────────────────────────
+  // Not glass: glass surfaces take their colours from [GlassTheme], per
+  // tier. These stay the same on every tier.
+  final Color subtleFill; // a field, a placeholder behind an image
+  final Color hairline; // the edge of an opaque surface (dialogs, rows)
+  final Color pressedInk; // the ink of a pressed row
 
   const AppColors({
     required this.bgPrimary,
@@ -45,9 +47,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     required this.accentForeground,
     required this.progressStart,
     required this.progressEnd,
-    required this.glassFill,
-    required this.glassBorder,
-    required this.glassHighlight,
+    required this.subtleFill,
+    required this.hairline,
+    required this.pressedInk,
   });
 
   // ── The app's only theme: dark ─────────────────────────
@@ -66,9 +68,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     accentForeground: ColorPrimitives.accentForeground,
     progressStart: ColorPrimitives.progressStart,
     progressEnd: ColorPrimitives.progressEnd,
-    glassFill: ColorPrimitives.glassFillDark,
-    glassBorder: ColorPrimitives.glassBorderDark,
-    glassHighlight: ColorPrimitives.glassHighlightDark,
+    subtleFill: ColorPrimitives.subtleFillDark,
+    hairline: ColorPrimitives.hairlineDark,
+    pressedInk: ColorPrimitives.pressedInkDark,
   );
 
   // ── ThemeExtension (lerp during transitions) ──────
@@ -88,9 +90,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     Color? accentForeground,
     Color? progressStart,
     Color? progressEnd,
-    Color? glassFill,
-    Color? glassBorder,
-    Color? glassHighlight,
+    Color? subtleFill,
+    Color? hairline,
+    Color? pressedInk,
   }) => AppColors(
     bgPrimary: bgPrimary ?? this.bgPrimary,
     bgSecondary: bgSecondary ?? this.bgSecondary,
@@ -105,9 +107,9 @@ final class AppColors extends ThemeExtension<AppColors> {
     accentForeground: accentForeground ?? this.accentForeground,
     progressStart: progressStart ?? this.progressStart,
     progressEnd: progressEnd ?? this.progressEnd,
-    glassFill: glassFill ?? this.glassFill,
-    glassBorder: glassBorder ?? this.glassBorder,
-    glassHighlight: glassHighlight ?? this.glassHighlight,
+    subtleFill: subtleFill ?? this.subtleFill,
+    hairline: hairline ?? this.hairline,
+    pressedInk: pressedInk ?? this.pressedInk,
   );
 
   @override
@@ -131,9 +133,9 @@ final class AppColors extends ThemeExtension<AppColors> {
       )!,
       progressStart: Color.lerp(progressStart, other.progressStart, t)!,
       progressEnd: Color.lerp(progressEnd, other.progressEnd, t)!,
-      glassFill: Color.lerp(glassFill, other.glassFill, t)!,
-      glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
-      glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,
+      subtleFill: Color.lerp(subtleFill, other.subtleFill, t)!,
+      hairline: Color.lerp(hairline, other.hairline, t)!,
+      pressedInk: Color.lerp(pressedInk, other.pressedInk, t)!,
     );
   }
 }

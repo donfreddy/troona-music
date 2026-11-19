@@ -581,7 +581,7 @@ class _UndoBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.bgElevated,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: colors.glassBorder, width: 0.5),
+        border: Border.all(color: colors.hairline, width: 0.5),
       ),
       child: Padding(
         padding: const EdgeInsets.only(left: AppSpacing.lg),

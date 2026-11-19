@@ -340,8 +340,8 @@ class _TrackTile extends StatelessWidget {
               ),
             );
           },
-          highlightColor: colors.glassHighlight,
-          splashColor: colors.glassHighlight,
+          highlightColor: colors.pressedInk,
+          splashColor: colors.pressedInk,
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,
