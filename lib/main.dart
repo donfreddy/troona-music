@@ -8,6 +8,9 @@ import 'package:troona/boot_failure_app.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/glass_tier.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/app_theme_builder.dart';
 import 'package:troona/core/utils/crash_log.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
@@ -71,15 +74,19 @@ class TroonaApp extends StatelessWidget {
         BlocProvider.value(value: getIt<LikesCubit>()),
         BlocProvider.value(value: getIt<SleepTimerCubit>()),
       ],
-      child: MaterialApp.router(
-        onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        routerConfig: appRouter,
-        themeMode: ThemeMode.dark,
-        theme: AppTheme.dark,
-        darkTheme: AppTheme.dark,
-        debugShowCheckedModeBanner: false,
+      child: AppThemeBuilder(
+        settings: getIt<SettingsCubit>(),
+        detected: GlassTier.detected,
+        builder: (context, theme) => MaterialApp.router(
+          onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: appRouter,
+          themeMode: ThemeMode.dark,
+          theme: theme,
+          darkTheme: theme,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }

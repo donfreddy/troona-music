@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/blur_budget.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
+import 'package:troona/core/theme/components/glass_settings.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart'
     as troona_settings;
 
@@ -99,31 +100,15 @@ typedef GlassQuality = troona_settings.GlassQuality;
 /// Android with under 3 GB of RAM gets [GlassQuality.off]; under 6 GB, or
 /// below Android 10, [GlassQuality.low]; otherwise [GlassQuality.high].
 /// "Remove animations" gets [GlassQuality.off]. The user's glass quality
-/// setting overrides it ([overrideQuality]).
+/// setting overrides it. The app resolves both into the theme's
+/// [GlassSettings], which every accessor reads.
 abstract final class GlassTheme {
-  /// Quality override set by [overrideQuality] (from user settings).
-  static GlassQuality? _override;
-
-  /// Tier detected at startup by [GlassTier.detect].
-  static GlassQuality _detectedTier = GlassQuality.high;
-
-  /// Called once from [configureDependencies] with the hardware-detected tier.
-  static void setDetectedTier(GlassQuality tier) => _detectedTier = tier;
-
-  /// Overrides the auto-detected quality for all surfaces.
-  ///
-  /// Pass `null` to re-enable auto-detection (i.e. user chose [GlassQuality.auto]).
-  /// Typically called from [SettingsCubit.setGlassQuality].
-  static void overrideQuality(GlassQuality? quality) => _override = quality;
-
-  /// Resolves the effective [GlassQuality] for [ctx].
-  ///
-  /// Priority: explicit [q] argument > [_override] > [_detectedTier].
-  /// [GlassQuality.auto] is never returned; it always falls through to detection.
+  /// The quality [ctx] draws with: [q] when given (not auto), else the
+  /// theme's [GlassSettings], else high (a theme without it, in tests).
   static GlassQuality _resolveQuality(BuildContext ctx, [GlassQuality? q]) {
     if (q != null && q != GlassQuality.auto) return q;
-    if (_override != null && _override != GlassQuality.auto) return _override!;
-    return _detectedTier;
+    return Theme.of(ctx).extension<GlassSettings>()?.quality ??
+        GlassQuality.high;
   }
 
   /// Resolves the effective [GlassQuality] for [ctx].

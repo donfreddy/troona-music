@@ -35,36 +35,37 @@ void main() {
     lift = ValueNotifier(0);
   });
 
-  Future<void> pumpRing(WidgetTester tester, {bool reduceMotion = false}) =>
-      tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            // Mimics the full player's drag-to-dismiss wrapper.
-            body: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragEnd: (_) => dismissDrags++,
-              child: Center(
-                child: ProgressRing(
-                  diameter: _diameter,
-                  holeDiameter: _hole,
-                  progress: progress,
-                  onSeek: seeks.add,
-                  lift: lift,
-                ),
-              ),
+  Future<void> pumpRing(
+    WidgetTester tester, {
+    bool reduceMotion = false,
+    GlassQuality glass = GlassQuality.high,
+  }) => tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.withGlass(glass),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        // Mimics the full player's drag-to-dismiss wrapper.
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onVerticalDragEnd: (_) => dismissDrags++,
+          child: Center(
+            child: ProgressRing(
+              diameter: _diameter,
+              holeDiameter: _hole,
+              progress: progress,
+              onSeek: seeks.add,
+              lift: lift,
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   /// Global position on the touch band at [angle] (Flutter convention).
   Offset onBand(WidgetTester tester, double angle) {
@@ -358,9 +359,7 @@ void main() {
 
   testWidgets('with the glass off the band widens without the blurred '
       'light', (tester) async {
-    GlassTheme.overrideQuality(GlassQuality.off);
-    addTearDown(() => GlassTheme.overrideQuality(null));
-    await pumpRing(tester);
+    await pumpRing(tester, glass: GlassQuality.off);
     final gesture = await tester.startGesture(onBand(tester, math.pi));
     await tester.pump();
     await tester.pump(ProgressRing.pressDuration);

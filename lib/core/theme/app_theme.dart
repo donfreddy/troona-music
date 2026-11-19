@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:troona/core/theme/components/glass_settings.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_typography.dart';
@@ -19,10 +21,14 @@ abstract final class AppTheme {
     systemNavigationBarContrastEnforced: true,
   );
 
-  /// The app's only theme (`ThemeMode.dark`).
-  static ThemeData get dark => _build();
+  /// The app's only theme (`ThemeMode.dark`), on high-tier glass.
+  static ThemeData get dark => withGlass(GlassQuality.high);
 
-  static ThemeData _build() {
+  /// The app's theme drawing its glass at [quality] ([GlassSettings]),
+  /// never [GlassQuality.auto].
+  static ThemeData withGlass(GlassQuality quality) => _build(quality);
+
+  static ThemeData _build(GlassQuality quality) {
     const brightness = Brightness.dark;
     const colors = AppColors.dark;
     final base = ThemeData.dark();
@@ -79,7 +85,7 @@ abstract final class AppTheme {
       ),
 
       // Extensions custom
-      extensions: [colors],
+      extensions: [colors, GlassSettings(quality)],
     );
   }
 }

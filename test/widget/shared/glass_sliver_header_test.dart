@@ -15,7 +15,6 @@ import '../../helpers/roboto.dart';
 
 void main() {
   setUpAll(loadRoboto);
-  tearDown(() => GlassTheme.overrideQuality(null));
 
   const statusBar = 24.0;
   const longTitle = 'Bibliothèque musicale partagée';
@@ -32,7 +31,6 @@ void main() {
     GlassQuality quality = GlassQuality.high,
     int rows = 40,
   }) async {
-    GlassTheme.overrideQuality(quality);
     tester.view
       ..devicePixelRatio = 3
       ..physicalSize = const Size(360, 640) * 3
@@ -44,7 +42,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
-        theme: robotoTheme(AppTheme.dark),
+        theme: robotoTheme(AppTheme.withGlass(quality)),
         home: Scaffold(
           body: NotificationListener<ScrollStartNotification>(
             onNotification: (n) {

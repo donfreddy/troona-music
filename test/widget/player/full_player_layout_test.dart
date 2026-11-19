@@ -4,7 +4,6 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
@@ -260,8 +259,6 @@ void main() {
       'the dock and from a flick up) and the speed menu are opaque', (
     tester,
   ) async {
-    GlassTheme.setDetectedTier(GlassQuality.high);
-    addTearDown(() => GlassTheme.setDetectedTier(GlassQuality.high));
     await pumpPage(tester, screen: const Size(412, 915), textScale: 1);
     // Relative: the page's own blurs are its business, not this test's.
     final pageBlurs = find.byType(BackdropFilter).evaluate().length;
