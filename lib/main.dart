@@ -85,6 +85,8 @@ class TroonaApp extends StatelessWidget {
           themeMode: ThemeMode.dark,
           theme: theme,
           darkTheme: theme,
+          // A tier is not blended: no 200 ms of rebuilds to switch it.
+          themeAnimationDuration: Duration.zero,
           debugShowCheckedModeBanner: false,
         ),
       ),

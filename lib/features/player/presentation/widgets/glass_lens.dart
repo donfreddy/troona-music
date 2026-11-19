@@ -54,7 +54,14 @@ class GlassLens extends StatelessWidget {
               clipper: clipper,
               child: sigma == 0
                   ? fill
-                  : BackdropFilter(filter: GlassFilter.of(sigma), child: fill),
+                  : BackdropFilter(
+                      filter: GlassFilter.of(
+                        sigma,
+                        saturation: glass.saturation,
+                        exposure: glass.exposure,
+                      ),
+                      child: fill,
+                    ),
             ),
             CustomPaint(painter: _LensRimPainter(holeFraction)),
           ],

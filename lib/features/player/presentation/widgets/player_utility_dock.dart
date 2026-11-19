@@ -82,7 +82,11 @@ class PlayerUtilityDock extends StatelessWidget {
           ? edged
           : RepaintBoundary(
               child: BackdropFilter(
-                filter: GlassFilter.of(sigma, saturation: glass.saturation),
+                filter: GlassFilter.of(
+                  sigma,
+                  saturation: glass.saturation,
+                  exposure: glass.exposure,
+                ),
                 child: edged,
               ),
             ),

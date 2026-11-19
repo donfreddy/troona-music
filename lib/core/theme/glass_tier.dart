@@ -7,7 +7,8 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 /// Detects the appropriate [GlassQuality] tier at startup using hardware signals.
 ///
 /// Call [detect] once from [configureDependencies] before the first frame.
-/// The result is stored in [detected] and consumed by [GlassTheme].
+/// The result is stored in [detected], which the "auto" glass setting draws
+/// with (`AppThemeBuilder`).
 abstract final class GlassTier {
   static GlassQuality _detected = GlassQuality.high;
 
@@ -34,7 +35,10 @@ abstract final class GlassTier {
       final ramMb = info.physicalRamSize;
       final sdkInt = info.version.sdkInt;
 
-      if (ramMb < 3072) {
+      if (ramMb <= 0) {
+        // Unknown: the balanced tier, as when nothing can be read.
+        _detected = GlassQuality.low;
+      } else if (ramMb < 3072) {
         _detected = GlassQuality.off;
       } else if (ramMb < 6144 || sdkInt < 29) {
         _detected = GlassQuality.low;

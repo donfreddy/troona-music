@@ -8,7 +8,7 @@ import 'package:troona/shared/widgets/glass_edge.dart';
 ///
 /// Flat by default: cards sit in scrolling content, and blur is kept for
 /// chrome (bars, headers, sheets), as on iOS. Pass a [config] with a blur to
-/// opt in (e.g. [GlassTheme.miniPlayer] for the mini-player surface).
+/// opt in.
 ///
 /// **Rendering contract**:
 /// - [BackdropFilter] is only created when [GlassConfig.blurSigma] > 0.

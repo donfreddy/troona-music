@@ -35,8 +35,9 @@ final class GlassConfig {
   final EdgeInsets padding;
 
   /// Saturation boost behind the glass ([GlassFilter]). Surfaces that carry
-  /// text (bars, header, sheets) use 1, so covers and icons behind them do
-  /// not show as stains; decorative glass over artwork keeps the boost.
+  /// text (bars, header, sheets) take a mild 1.25 under their tint, so
+  /// covers and icons behind them do not show as stains; decorative glass
+  /// over artwork (the lens, the dock) keeps the full boost.
   final double saturation;
 
   /// Brightness of what the glass lets through ([GlassFilter.of]): 1 for
@@ -115,8 +116,11 @@ abstract final class GlassTheme {
   /// theme's [GlassSettings], else high (a theme without it, in tests).
   static GlassQuality _resolveQuality(BuildContext ctx, [GlassQuality? q]) {
     if (q != null && q != GlassQuality.auto) return q;
-    return Theme.of(ctx).extension<GlassSettings>()?.quality ??
-        GlassQuality.high;
+    final themed = Theme.of(ctx).extension<GlassSettings>()?.quality;
+    // Never auto past here: every surface agrees on one tier.
+    return themed == null || themed == GlassQuality.auto
+        ? GlassQuality.high
+        : themed;
   }
 
   /// Resolves the effective [GlassQuality] for [ctx].
