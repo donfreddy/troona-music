@@ -31,6 +31,19 @@ abstract interface class PlaylistRepository {
     String playlistId,
     String trackId,
   );
+
+  /// Adds [trackIds] in one write, all or none, in their order, leaving out
+  /// the ones the playlist holds. The ids added.
+  Future<Either<Failure, List<String>>> addTracksToPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  );
+
+  /// Removes [trackIds] in one write (an Undo of [addTracksToPlaylist]).
+  Future<Either<Failure, Unit>> removeTracksFromPlaylist(
+    String playlistId,
+    List<String> trackIds,
+  );
   Future<Either<Failure, Unit>> reorderTracks(
     String playlistId,
     int oldIndex,

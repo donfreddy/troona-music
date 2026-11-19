@@ -3145,6 +3145,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
   String get whatsNew170PhotosBody;
+
+  /// No description provided for @playlistAddedSongsTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} songs added to {name}'**
+  String playlistAddedSongsTo(int count, String name);
+
+  /// What a screen reader reads for the selection bar's count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song selected} other{{count} songs selected}}'**
+  String selectionSelected(int count);
+
+  /// The word after the rolling count in the selection bar (the number is drawn apart).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{selected} other{selected}}'**
+  String selectionSuffix(int count);
+
+  /// No description provided for @selectionSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get selectionSelectAll;
+
+  /// No description provided for @selectionDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get selectionDeselectAll;
+
+  /// No description provided for @selectionEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End selection'**
+  String get selectionEnd;
 }
 
 class _AppLocalizationsDelegate
