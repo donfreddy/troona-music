@@ -4,8 +4,13 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page or Recently added starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
+
 ### Changed
 
+- In a playlist, a long press on a song picks it: the handle at the end of the row moves it.
 - Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.
 - The tab bar casts a shadow, and floating glass shares one edge.
 - Now Playing's ring is drawn in light grey to white, which reads over every cover's colours.

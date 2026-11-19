@@ -24,6 +24,8 @@ import 'package:troona/features/player/presentation/widgets/play_shuffle_buttons
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 import 'package:troona/features/library/presentation/widgets/track_row_artwork.dart';
+import 'package:troona/features/library/presentation/widgets/selection/selection_mark.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
@@ -49,38 +51,46 @@ class PlaylistDetailPage extends StatelessWidget {
             colorB: palette.backgroundColorB,
             tone: DynamicBackgroundTone.immersive,
             child: BlocBuilder<PlaylistDetailBloc, PlaylistDetailState>(
-              builder: (context, state) => switch (state) {
-                PlaylistDetailLoaded(:final data) => CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    _PlaylistHeader(
-                      playlist: data.playlist,
-                      name: _nameOf(context, data.playlist),
-                      tracks: data.tracks,
+              // A long press on a song picks songs of the playlist. Above
+              // the states: a reload keeps the songs picked.
+              builder: (context, state) => TrackSelectionScope(
+                tracks: switch (state) {
+                  PlaylistDetailLoaded(:final data) => data.tracks,
+                  _ => const [],
+                },
+                child: switch (state) {
+                  PlaylistDetailLoaded(:final data) => CustomScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
                     ),
-                    _TrackList(
-                      playlistId: id,
-                      tracks: data.tracks,
-                      isLikes: id == Playlist.likesId,
-                      origin: _originOf(context, data.playlist),
-                    ),
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: context.bottomBarInset(tabs: false),
+                    slivers: [
+                      _PlaylistHeader(
+                        playlist: data.playlist,
+                        name: _nameOf(context, data.playlist),
+                        tracks: data.tracks,
                       ),
-                    ),
-                  ],
-                ),
-                PlaylistDetailError() => ErrorView(
-                  body: context.l10n.playlistOpenError,
-                  onRetry: () => context.read<PlaylistDetailBloc>().add(
-                    PlaylistDetailRequested(id),
+                      _TrackList(
+                        playlistId: id,
+                        tracks: data.tracks,
+                        isLikes: id == Playlist.likesId,
+                        origin: _originOf(context, data.playlist),
+                      ),
+                      SliverToBoxAdapter(
+                        child: SizedBox(
+                          height: context.bottomBarInset(tabs: false),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                _ => const Center(child: CircularProgressIndicator()),
-              },
+                  PlaylistDetailError() => ErrorView(
+                    body: context.l10n.playlistOpenError,
+                    onRetry: () => context.read<PlaylistDetailBloc>().add(
+                      PlaylistDetailRequested(id),
+                    ),
+                  ),
+                  _ => const Center(child: CircularProgressIndicator()),
+                },
+              ),
             ),
           ),
         ),
@@ -324,89 +334,125 @@ class _TrackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final (isActive, _) = TrackRowArtwork.statusOf(context, track.id);
+    final (picking, selected) = TrackSelectionScope.statusOf(context, track.id);
 
-    return ReorderableDelayedDragStartListener(
-      index: index,
+    // A long press picks songs, as in every list of songs: the handle alone
+    // moves a row.
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      color: selected
+          ? colors.accent.withValues(alpha: .12)
+          : colors.accent.withValues(alpha: 0),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            context.read<PlayerBloc>().add(
-              PlayTrackRequested(
-                track,
-                contextQueue: tracks,
-                contextIndex: index,
-                origin: origin,
+        child: Semantics(
+          selected: picking ? selected : null,
+          child: InkWell(
+            onLongPress: () => TrackSelectionScope.longPress(context, track),
+            // The pick ticks on its own: no system buzz on top.
+            enableFeedback: false,
+            onTap: () {
+              if (TrackSelectionScope.tap(context, track)) return;
+              context.read<PlayerBloc>().add(
+                PlayTrackRequested(
+                  track,
+                  contextQueue: tracks,
+                  contextIndex: index,
+                  origin: origin,
+                ),
+              );
+            },
+            highlightColor: colors.pressedInk,
+            splashColor: colors.pressedInk,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.xs,
               ),
-            );
-          },
-          highlightColor: colors.pressedInk,
-          splashColor: colors.pressedInk,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.xs,
-            ),
-            child: Row(
-              children: [
-                TrackRowArtwork(track: track),
-
-                const SizedBox(width: AppSpacing.md),
-
-                // Info track
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                children: [
+                  Stack(
                     children: [
-                      Text(
-                        track.title,
-                        style: TextStyle(
-                          color: isActive ? colors.accent : Colors.white,
-                          fontSize: 15,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : FontWeight.w600,
-                          letterSpacing: -0.2,
+                      TrackRowArtwork(track: track),
+                      Positioned.fill(
+                        child: SelectionMark(
+                          picking: picking,
+                          selected: selected,
+                          radius: TrackRowArtwork.radius,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        context.artistName(track.artist),
-                        style: TextStyle(
-                          color: colors.labelSecondary,
-                          fontSize: 13,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                ),
 
-                // Options (remove) button
-                AppIconButton(
-                  icon: AppIcons.more,
-                  tooltip: context.l10n.detailMore,
-                  size: 18,
-                  color: context.colors.labelSecondary,
-                  onPressed: () => _showTrackOptions(context),
-                ),
+                  const SizedBox(width: AppSpacing.md),
 
-                // Drag handle
-                ReorderableDragStartListener(
-                  index: index,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Icon(
-                      AppIcons.dragHandle,
-                      size: 20,
-                      color: Colors.white24,
+                  // Info track
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          track.title,
+                          style: TextStyle(
+                            color: isActive ? colors.accent : Colors.white,
+                            fontSize: 15,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            letterSpacing: -0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.artistName(track.artist),
+                          style: TextStyle(
+                            color: colors.labelSecondary,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+
+                  // Options (remove) and the handle, gone while picking:
+                  // their room is kept, so nothing moves.
+                  IgnorePointer(
+                    ignoring: picking,
+                    child: AnimatedOpacity(
+                      opacity: picking ? 0 : 1,
+                      duration: const Duration(milliseconds: 200),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AppIconButton(
+                            icon: AppIcons.more,
+                            tooltip: context.l10n.detailMore,
+                            size: 18,
+                            color: context.colors.labelSecondary,
+                            onPressed: () => _showTrackOptions(context),
+                          ),
+                          ReorderableDragStartListener(
+                            index: index,
+                            enabled: !picking,
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: Icon(
+                                AppIcons.dragHandle,
+                                size: 20,
+                                color: Colors.white24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

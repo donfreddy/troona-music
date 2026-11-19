@@ -16,6 +16,8 @@ import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/library/presentation/bloc/selection/track_selection_cubit.dart';
+import 'package:troona/features/library/presentation/widgets/selection/selection_actions.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -174,6 +176,8 @@ class _AppShellState extends State<AppShell> {
     // player does not jump down (tabs hidden) under the finger as it morphs.
     if (newLocation == FullPlayerPage.routeName) return;
     if (newLocation != _currentLocation) {
+      // Songs picked belong to the page they were picked in.
+      context.read<TrackSelectionCubit>().end();
       setState(() => _currentLocation = newLocation);
     }
   }
@@ -188,6 +192,7 @@ class _AppShellState extends State<AppShell> {
 
   void _onTabChanged(AppTab tab) {
     if (tab == AppTab.player) return;
+    context.read<TrackSelectionCubit>().end();
 
     final index = switch (tab) {
       AppTab.home => 0,
@@ -320,11 +325,23 @@ class _AppShellState extends State<AppShell> {
                     right: 0,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(12, 0, 12, safeBottom + 12),
-                      child: AppBottomNavBar(
-                        currentTab: currentTab,
-                        onTabChanged: _onTabChanged,
-                        showTabs: isRootPage,
-                      ),
+                      // Songs picked put their actions in the bar.
+                      child:
+                          BlocSelector<
+                            TrackSelectionCubit,
+                            TrackSelection,
+                            bool
+                          >(
+                            selector: (selection) => selection.active,
+                            builder: (context, picking) => AppBottomNavBar(
+                              currentTab: currentTab,
+                              onTabChanged: _onTabChanged,
+                              showTabs: isRootPage,
+                              actions: picking
+                                  ? const SelectionActions()
+                                  : null,
+                            ),
+                          ),
                     ),
                   ),
                 ],

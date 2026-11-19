@@ -49,6 +49,7 @@ import 'package:troona/features/library/domain/use_cases/get_artists_use_case.da
 import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/library/presentation/bloc/selection/track_selection_cubit.dart';
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
@@ -414,6 +415,10 @@ Future<void> configureDependencies() async {
 
   // Singleton: the timer keeps running when Now Playing closes.
   getIt.registerSingleton<SleepTimerCubit>(SleepTimerCubit(port: getIt()));
+
+  // Singleton: the shell's bar shows the actions of the songs picked in a
+  // page below it.
+  getIt.registerSingleton<TrackSelectionCubit>(TrackSelectionCubit());
 
   // PlayerBloc is registered as a singleton because it owns 7 stream
   // subscriptions to AudioServicePort. A factory would re-subscribe on every

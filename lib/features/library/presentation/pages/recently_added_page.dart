@@ -8,6 +8,7 @@ import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/recently_added.dart';
 import 'package:troona/features/library/presentation/widgets/library_snapshot_builder.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/library/presentation/widgets/track_list_tile.dart';
 import 'package:troona/features/library/presentation/widgets/track_shimmer.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -32,68 +33,72 @@ class RecentlyAddedPage extends StatelessWidget {
           final tracks = loaded == null
               ? const <Track>[]
               : RecentlyAdded.of(loaded.allTracks, limit: RecentlyAdded.limit);
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              GlassSliverHeader.largeTitle(
-                leading: const AppBackButton(),
-                title: l10n.recentlyAddedTitle,
+          // A long press on a song picks songs in this list.
+          return TrackSelectionScope(
+            tracks: tracks,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
-              // The first scan has stored nothing yet, as the Library
-              // shows it.
-              if (loading)
-                SliverList.builder(
-                  itemCount: 20,
-                  itemBuilder: (_, _) => const TrackShimmer(),
-                )
-              else if (tracks.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: EmptyState(
-                    icon: AppIcons.recent,
-                    title: l10n.recentlyAddedEmptyTitle,
-                    body: l10n.recentlyAddedEmptyBody,
-                  ),
-                )
-              else ...[
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      0,
-                      AppSpacing.lg,
-                      AppSpacing.sm,
-                    ),
-                    child: MetaLine([l10n.songCount(tracks.length)]),
-                  ),
+              slivers: [
+                GlassSliverHeader.largeTitle(
+                  leading: const AppBackButton(),
+                  title: l10n.recentlyAddedTitle,
                 ),
-                SliverList.separated(
-                  itemCount: tracks.length,
-                  separatorBuilder: (_, _) => Divider(
-                    height: 0.5,
-                    indent: 72,
-                    color: context.colors.separator.withValues(alpha: 0.4),
+                // The first scan has stored nothing yet, as the Library
+                // shows it.
+                if (loading)
+                  SliverList.builder(
+                    itemCount: 20,
+                    itemBuilder: (_, _) => const TrackShimmer(),
+                  )
+                else if (tracks.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: EmptyState(
+                      icon: AppIcons.recent,
+                      title: l10n.recentlyAddedEmptyTitle,
+                      body: l10n.recentlyAddedEmptyBody,
+                    ),
+                  )
+                else ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.sm,
+                      ),
+                      child: MetaLine([l10n.songCount(tracks.length)]),
+                    ),
                   ),
-                  itemBuilder: (context, i) => TrackListTile(
-                    key: ValueKey('recent-${tracks[i].id}'),
-                    track: tracks[i],
-                    // The list plays on in the order shown.
-                    onTap: () => context.read<PlayerBloc>().add(
-                      PlayTrackRequested(
-                        tracks[i],
-                        contextQueue: tracks,
-                        contextIndex: i,
+                  SliverList.separated(
+                    itemCount: tracks.length,
+                    separatorBuilder: (_, _) => Divider(
+                      height: 0.5,
+                      indent: 72,
+                      color: context.colors.separator.withValues(alpha: 0.4),
+                    ),
+                    itemBuilder: (context, i) => TrackListTile(
+                      key: ValueKey('recent-${tracks[i].id}'),
+                      track: tracks[i],
+                      // The list plays on in the order shown.
+                      onTap: () => context.read<PlayerBloc>().add(
+                        PlayTrackRequested(
+                          tracks[i],
+                          contextQueue: tracks,
+                          contextIndex: i,
+                        ),
                       ),
                     ),
                   ),
+                ],
+                SliverToBoxAdapter(
+                  child: SizedBox(height: context.bottomBarInset()),
                 ),
               ],
-              SliverToBoxAdapter(
-                child: SizedBox(height: context.bottomBarInset()),
-              ),
-            ],
+            ),
           );
         },
       ),

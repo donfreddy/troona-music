@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 /// [HapticFeedback] directly. One vocabulary across the app:
 ///
 /// - [selectionClick]: a choice among options (a segment, a sort), a
-///   swipe that becomes armed, and each new letter under the finger on the
-///   Library's index.
+///   swipe that becomes armed, each new letter under the finger on the
+///   Library's index, and each song picked or let go (Select all too).
 /// - [lightImpact]: a small step (skip, open a menu, refresh, a like: a
-///   long press on the mini player, Now Playing's heart).
+///   long press on the mini player, Now Playing's heart; a long press that
+///   starts picking songs).
 /// - [mediumImpact]: playback starts or stops (Play, Shuffle, play/pause,
 ///   the album's record).
 /// - Nothing while scrolling or dragging.

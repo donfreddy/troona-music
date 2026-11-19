@@ -28,6 +28,7 @@ import 'package:troona/features/library/presentation/widgets/album_actions.dart'
 import 'package:troona/features/library/presentation/widgets/album_artist_links.dart';
 import 'package:troona/features/library/presentation/widgets/album_cover_hero.dart';
 import 'package:troona/features/library/presentation/widgets/album_track_list_tile.dart';
+import 'package:troona/features/library/presentation/widgets/selection/track_selection_scope.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
@@ -113,23 +114,27 @@ class AlbumDetailPage extends StatelessWidget {
                     getIt<AlbumMetadataCubit>()..loadAlbumMetadata(album),
                 child: Builder(
                   builder: (contentCtx) {
-                    return _AlbumPull(
-                      child: CustomScrollView(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        slivers: [
-                          _AlbumHeader(
-                            album: album,
-                            tracks: data?.albumTracks ?? const [],
+                    // A long press on a song picks songs of the album.
+                    return TrackSelectionScope(
+                      tracks: data?.albumTracks ?? const [],
+                      child: _AlbumPull(
+                        child: CustomScrollView(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
                           ),
-                          if (data != null) ..._content(contentCtx, data),
-                          SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: contentCtx.bottomBarInset(tabs: false),
+                          slivers: [
+                            _AlbumHeader(
+                              album: album,
+                              tracks: data?.albumTracks ?? const [],
                             ),
-                          ),
-                        ],
+                            if (data != null) ..._content(contentCtx, data),
+                            SliverPadding(
+                              padding: EdgeInsets.only(
+                                bottom: contentCtx.bottomBarInset(tabs: false),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
