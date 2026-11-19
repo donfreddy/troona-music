@@ -122,20 +122,12 @@ abstract final class CoverPalette {
     return colours;
   }
 
-  /// The accent and the two glow colours made from a cover's swatches.
+  /// The two glow colours made from a cover's swatches.
   @visibleForTesting
   static TrackPaletteState fromSwatches(CoverSwatches swatches) {
     final primary =
         swatches.vibrant ?? swatches.dominant ?? const Color(0xFF1A0533);
     final secondary = swatches.darkVibrant ?? swatches.muted ?? primary;
-
-    Color accent(Color c) {
-      final hsl = HSLColor.fromColor(c);
-      return hsl
-          .withSaturation((hsl.saturation * 1.2).clamp(0.5, 0.9))
-          .withLightness(0.6)
-          .toColor();
-    }
 
     Color glow(Color c, {required bool top}) {
       final hsl = HSLColor.fromColor(c);
@@ -146,8 +138,6 @@ abstract final class CoverPalette {
     }
 
     return TrackPaletteState(
-      primary: accent(primary),
-      secondary: accent(secondary),
       backgroundColorA: glow(primary, top: true),
       backgroundColorB: glow(secondary, top: false),
     );
