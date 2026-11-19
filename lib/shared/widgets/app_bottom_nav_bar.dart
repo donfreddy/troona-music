@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
@@ -23,6 +24,7 @@ import 'package:troona/features/player/presentation/widgets/now_playing_hero.dar
 import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
+import 'package:troona/shared/widgets/edge_fade.dart';
 import 'package:troona/shared/widgets/glass_edge.dart';
 import 'package:troona/shared/widgets/like_burst.dart';
 import 'package:troona/shared/widgets/marquee.dart';
@@ -126,6 +128,12 @@ class _AppBottomNavBarState extends State<AppBottomNavBar> {
       currentTrack.id,
       isPlaying,
       hasNext,
+      // The mini player's carousel shows them and swipes to them; what
+      // Next does depends on the repeat mode.
+      s.queue.currentIndex,
+      s.queue.repeatMode,
+      _neighbourOf(s, -1)?.id,
+      _neighbourOf(s, 1)?.id,
     ),
     PlayerLoading(:final track) => (PlayerLoading, track.id),
     _ => s.runtimeType,
@@ -327,12 +335,61 @@ class _MiniPlayerRow extends StatefulWidget {
   State<_MiniPlayerRow> createState() => _MiniPlayerRowState();
 }
 
-class _MiniPlayerRowState extends State<_MiniPlayerRow> {
+class _MiniPlayerRowState extends State<_MiniPlayerRow>
+    with TickerProviderStateMixin {
   /// Bumped by each like from here, with what it did.
   final _burst = LikeBurstController();
 
-  /// Songs queued by hand lately, for [_QueuedAck]. Held here, above the
-  /// row's per-song key, so skipping right after Play next keeps the count.
+  // ── Song carousel ─────────────────────────────────────────────────────────
+
+  /// How far the titles are moved, in pixels: negative toward the next
+  /// song. The song playing sits at it, its neighbours one [_span] away.
+  late final _slide = AnimationController.unbounded(vsync: this);
+
+  /// The last change of song, 0 to 1: the old cover fades out over the new
+  /// one (and the old text, for a change that does not slide).
+  late final _fade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+    value: 1,
+  )..addStatusListener(_onFadeStatus);
+
+  /// Width of the text area, from its last layout: the distance between
+  /// two songs' titles.
+  double _span = 0;
+
+  /// Whether the finger is past the threshold.
+  bool _armed = false;
+
+  /// The drag under way, if any: where the titles were when it began (they
+  /// may still be settling from the last change) and how far the finger
+  /// went since. Its way and threshold read the finger, never the titles.
+  bool _dragLive = false;
+  double _dragOrigin = 0;
+  double _dragDelta = 0;
+
+  /// The song a swipe (or Next) asked for: its queue index, id and
+  /// direction (1 for the next song), until the player gets there or
+  /// [_giveUp] fires.
+  int? _awaitIndex;
+  String? _awaitTrackId;
+  int _awaitStep = 0;
+  Timer? _giveUp;
+
+  /// The song before the last change, while [_fade] runs.
+  Track? _from;
+
+  /// Whether the last change fades the text instead of sliding it.
+  bool _fadeText = false;
+
+  static const _threshold = 72.0;
+  static const _travel = Duration(milliseconds: 300);
+
+  /// How long a swipe waits for the player before putting the song back.
+  static const _patience = Duration(milliseconds: 700);
+
+  /// Songs queued by hand lately, for [_QueuedAck]. Held here, so skipping
+  /// right after Play next keeps the count.
   final _queued = ValueNotifier<_Queued>((count: 0, shown: false, serial: 0));
   late final StreamSubscription<PlayerNotice> _notices;
   Timer? _queuedHide;
@@ -358,8 +415,178 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     });
   }
 
+  bool get _reduceMotion =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  void _onFadeStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed && _from != null) {
+      setState(() => _from = null);
+    }
+  }
+
+  @override
+  void didUpdateWidget(_MiniPlayerRow old) {
+    super.didUpdateWidget(old);
+    final before = old.state;
+    final now = widget.state;
+    // The song asked for, where it was asked for: a queue edit meanwhile
+    // that puts another song there, or this one elsewhere, is not it.
+    final awaited =
+        _awaitIndex != null &&
+        now.queue.currentIndex == _awaitIndex &&
+        now.currentTrack.id == _awaitTrackId &&
+        now.queue.currentTrack?.id == now.currentTrack.id;
+    if (!awaited && before.currentTrack.id == now.currentTrack.id) return;
+
+    // Only a change asked for here slides, the way it was asked; one from
+    // elsewhere (a song ending, Now Playing, the queue) fades.
+    final step = awaited ? _awaitStep : 0;
+    _giveUp?.cancel();
+    _awaitIndex = null;
+    _awaitTrackId = null;
+    // A song changed under the finger: that drag was about the old one.
+    _dragLive = false;
+    _armed = false;
+    _from = before.currentTrack;
+    _fade.forward(from: 0);
+    _slide.stop();
+    if (step == 0 || _span <= 0 || _reduceMotion) {
+      _fadeText = true;
+      _slide.value = 0;
+      return;
+    }
+    // The new song's title was a neighbour, [step] spans along: it carries
+    // on from there to the middle, and the old one leaves the other way.
+    _fadeText = false;
+    _slide.value = (_slide.value + step * _span).clamp(-_span, _span);
+    _settle();
+  }
+
+  /// Back to rest, over a time that follows the distance left.
+  void _settle() {
+    if (_span <= 0 || _reduceMotion) {
+      _slide.value = 0;
+      return;
+    }
+    final left = (_slide.value.abs() / _span).clamp(0.0, 1.0);
+    _slide.animateTo(
+      0,
+      duration: _travel * math.max(left, .4),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  /// Waits for [target], [step] along, asked for by a swipe or Next.
+  void _await(int target, int step) {
+    _awaitIndex = target;
+    _awaitTrackId = widget.state.queue.playbackTracks[target].id;
+    _awaitStep = step;
+    _giveUp?.cancel();
+  }
+
+  void _clearAwait() {
+    _awaitIndex = null;
+    _awaitTrackId = null;
+  }
+
+  void _onDragStart(DragStartDetails details) {
+    // A swipe already sent: the next one waits for its song, and a drag
+    // begun meanwhile stays dead, even once that swipe gives up.
+    _dragLive = _awaitIndex == null && _span > 0;
+    if (!_dragLive) return;
+    _slide.stop();
+    _dragOrigin = _slide.value;
+    _dragDelta = 0;
+    _armed = false;
+  }
+
+  /// The way the finger went: 1 toward the next song, -1 the previous.
+  int get _dragStep => _dragDelta < 0 ? 1 : (_dragDelta > 0 ? -1 : 0);
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (!_dragLive) return;
+    _dragDelta += details.primaryDelta ?? 0;
+    final step = _dragStep;
+    final target = step == 0 ? null : _neighbourIndex(widget.state, step);
+    // Without a song that way, the finger meets resistance.
+    final moved = step != 0 && target == null ? _dragDelta * .2 : _dragDelta;
+    final armed = target != null && _dragDelta.abs() >= _threshold;
+    if (armed != _armed) AppHaptics.selectionClick();
+    _armed = armed;
+    _slide.value = (_dragOrigin + moved).clamp(-_span, _span);
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (!_dragLive) return;
+    _dragLive = false;
+    final velocity = details.primaryVelocity ?? 0;
+    final step = _dragStep;
+    final target = step == 0 ? null : _neighbourIndex(widget.state, step);
+    final flung =
+        velocity.abs() >= SwipeActions.flingVelocity &&
+        velocity.sign == _dragDelta.sign;
+    final armed = _armed;
+    _armed = false;
+    if (target == null || !(armed || flung)) {
+      _settle();
+      return;
+    }
+    if (!armed) AppHaptics.selectionClick();
+    // By index, as the Now Playing covers do: under repeat one, Next
+    // would replay the song.
+    context.read<PlayerBloc>().add(QueueIndexRequested(target));
+    _await(target, step);
+    if (_reduceMotion) {
+      // Nothing slides: the songs fade once the player gets there.
+      _slide.value = 0;
+      _giveUp = Timer(_patience, _clearAwait);
+      return;
+    }
+    // The neighbour comes to the middle while the player gets there.
+    final end = -step * _span;
+    final left = ((end - _slide.value).abs() / _span).clamp(0.0, 1.0);
+    _slide
+        .animateTo(
+          end,
+          duration: _travel * math.max(left, .4),
+          curve: Curves.easeOutCubic,
+        )
+        .whenCompleteOrCancel(() {
+          if (!mounted || _awaitIndex != target) return;
+          // Still the old song: give the player a moment, then put it back.
+          _giveUp?.cancel();
+          _giveUp = Timer(_patience, () {
+            if (!mounted || _awaitIndex != target) return;
+            _clearAwait();
+            _settle();
+          });
+        });
+  }
+
+  /// Next, from the button: the engine's own next (under repeat one, the
+  /// song again), and the titles slide once it gets there. Not while a
+  /// swipe waits for its song, or during a drag: both would move on, in
+  /// either order.
+  void _onNextPressed() {
+    if (_awaitIndex != null || _dragLive) return;
+    context.read<PlayerBloc>().add(const SkipNextRequested());
+    final target = _neighbourIndex(widget.state, 1);
+    // Waits only for the song the engine goes to: under repeat one it
+    // replays this one, and nothing would come.
+    final queue = widget.state.queue;
+    if (target == null ||
+        queue.nextTrack?.id != queue.playbackTracks[target].id) {
+      return;
+    }
+    _await(target, 1);
+    _giveUp = Timer(_patience, _clearAwait);
+  }
+
   @override
   void dispose() {
+    _giveUp?.cancel();
+    _slide.dispose();
+    _fade.dispose();
     _queuedHide?.cancel();
     _notices.cancel();
     _queued.dispose();
@@ -389,7 +616,6 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     final state = widget.state;
     final radius = widget.radius;
     final showTabs = widget.showTabs;
-    final colors = context.colors;
     final tint = GlassTheme.miniPlayerTint(context);
 
     final likeLabel = _likeLabelOf(context);
@@ -399,7 +625,11 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
         CustomSemanticsAction(label: likeLabel): () => _toggleLike(context),
       },
       child: Dismissible(
-        key: ValueKey(state.currentTrack.id),
+        // One key for the row's life: a song change keeps everything below
+        // (the cover shows the old image until the new one is decoded, a
+        // drag goes on). Once dismissed, the player goes idle and the row
+        // leaves.
+        key: const ValueKey('miniPlayerDismissible'),
         direction: DismissDirection.down,
         onDismissed: (_) {
           context.read<PlayerBloc>().add(const PlayerDismissed());
@@ -455,22 +685,17 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                         // A swipe on the song changes it: left for the next,
                         // right for the previous (not back to its start, as
                         // the button does past 3 s), like the Now Playing
-                        // covers.
+                        // covers. Only the titles move: the neighbour's
+                        // shows as the finger goes, and the cover stays,
+                        // taking the new song's.
                         Expanded(
-                          child: SwipeActions(
-                            fadeChild: true,
-                            onSwipeLeft: state.hasNext
-                                ? () => context.read<PlayerBloc>().add(
-                                    const SkipNextRequested(),
-                                  )
-                                : null,
-                            onSwipeRight: state.hasPrevious
-                                ? () => context.read<PlayerBloc>().add(
-                                    QueueIndexRequested(
-                                      state.queue.currentIndex - 1,
-                                    ),
-                                  )
-                                : null,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onHorizontalDragStart: _onDragStart,
+                            onHorizontalDragUpdate: _onDragUpdate,
+                            onHorizontalDragEnd: _onDragEnd,
+                            onHorizontalDragCancel: () =>
+                                _onDragEnd(DragEndDetails()),
                             child: Row(
                               children: [
                                 // ── Artwork thumbnail ────────────────────────
@@ -484,68 +709,39 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                                         borderRadius: BorderRadius.circular(
                                           NowPlayingHero.miniArtworkRadius,
                                         ),
-                                        child:
-                                            state.currentTrack.artworkPath !=
-                                                null
-                                            ? Hero(
-                                                tag: NowPlayingHero.artworkTag,
-                                                createRectTween:
-                                                    NowPlayingHero.flightTween,
-                                                flightShuttleBuilder:
-                                                    NowPlayingHero
-                                                        .artworkShuttle,
-                                                // Full-size decode on purpose: this image
-                                                // is also the morph shuttle's content.
-                                                child: Image.file(
-                                                  File(
-                                                    state
-                                                        .currentTrack
-                                                        .artworkPath!,
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            _MiniArtwork(
+                                              path: state
+                                                  .currentTrack
+                                                  .artworkPath,
+                                              hero: true,
+                                            ),
+                                            // The old cover, fading out over
+                                            // the new one (outside the hero:
+                                            // it never flies).
+                                            if (_from case final from?)
+                                              IgnorePointer(
+                                                child: FadeTransition(
+                                                  opacity: ReverseAnimation(
+                                                    _fade,
                                                   ),
-                                                  fit: BoxFit.cover,
-                                                  gaplessPlayback: true,
-                                                  errorBuilder: (_, _, _) =>
-                                                      const ArtworkPlaceholder(),
+                                                  child: _MiniArtwork(
+                                                    path: from.artworkPath,
+                                                  ),
                                                 ),
-                                              )
-                                            : const ArtworkPlaceholder(),
+                                              ),
+                                          ],
+                                        ),
                                       ),
                                       LikeBurst(controller: _burst),
                                     ],
                                   ),
                                 ),
 
-                                const SizedBox(width: 12),
-
-                                // ── Track title and artist ─────────────────────────────
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Marquee(
-                                        text: state.currentTrack.title,
-                                        style: TextStyle(
-                                          color: colors.labelPrimary,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        context.artistName(
-                                          state.currentTrack.artist,
-                                        ),
-                                        style: TextStyle(
-                                          color: colors.labelSecondary,
-                                          fontSize: 11,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                // ── Track title and artist ─────────────────────
+                                Expanded(child: _carousel(state)),
                               ],
                             ),
                           ),
@@ -574,13 +770,7 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
                           icon: AppIcons.skipNext,
                           tooltip: context.l10n.playerNext,
                           color: context.colors.labelPrimary,
-                          onPressed: state.hasNext
-                              ? () {
-                                  context.read<PlayerBloc>().add(
-                                    const SkipNextRequested(),
-                                  );
-                                }
-                              : null,
+                          onPressed: state.hasNext ? _onNextPressed : null,
                         ),
                       ],
                     ),
@@ -594,12 +784,176 @@ class _MiniPlayerRowState extends State<_MiniPlayerRow> {
     );
   }
 
+  /// Width of the edge fades while titles move: the leading one covers the
+  /// gap after the cover, the trailing one matches [Marquee]'s.
+  static const _leadFade = 12.0;
+  static const _trailFade = 16.0;
+
+  /// The lines of the song playing and, while they move, its neighbours',
+  /// each fading with its distance from the middle. While they move, both
+  /// edges fade: a title never meets a hard cut. At rest nothing crosses
+  /// them, and the lines show as they always did (a long title fades on its
+  /// own, an artist ends on an ellipsis).
+  Widget _carousel(PlayerActive state) {
+    final previous = _neighbourOf(state, -1);
+    final next = _neighbourOf(state, 1);
+    return RepaintBoundary(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final span = _span = constraints.maxWidth;
+          if (span <= 0) return const SizedBox.shrink();
+          return AnimatedBuilder(
+            animation: Listenable.merge([_slide, _fade]),
+            builder: (context, _) {
+              final dx = _slide.value;
+              final from = _fadeText ? _from : null;
+              final fadeIn = from == null ? 1.0 : _fade.value;
+              // Keyed by role: a neighbour coming or going keeps the song
+              // playing's lines (and their marquee) in place.
+              Widget? slot(
+                String role,
+                Track? track,
+                double at, {
+                double opacity = 1,
+              }) {
+                if (track == null) return null;
+                final current = role == 'current';
+                final shown = opacity * (1 - at.abs() / span).clamp(0.0, 1.0);
+                // The song playing stays built, faded out or not: its lines
+                // keep their state, and screen readers read them.
+                if (shown <= 0 && !current) return null;
+                Widget lines = _SongLines(track: track);
+                if (!current) lines = ExcludeSemantics(child: lines);
+                return Positioned.fill(
+                  key: ValueKey(role),
+                  child: Transform.translate(
+                    offset: Offset(at, 0),
+                    child: Opacity(
+                      opacity: shown,
+                      alwaysIncludeSemantics: current,
+                      child: lines,
+                    ),
+                  ),
+                );
+              }
+
+              return EdgeFade(
+                active: dx != 0,
+                start: _leadFade,
+                end: _trailFade,
+                child: ClipRect(
+                  child: Stack(
+                    children: [
+                      ?slot('from', from, 0, opacity: 1 - fadeIn),
+                      ?slot('previous', previous, dx - span),
+                      ?slot('current', state.currentTrack, dx, opacity: fadeIn),
+                      ?slot('next', next, dx + span),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   /// What a long press does, for screen readers: like, or take it back.
   String _likeLabelOf(BuildContext context) {
     final likes = context.watch<LikesCubit?>();
     final liked =
         likes?.state.isTrackLiked(widget.state.currentTrack.id) ?? false;
     return liked ? context.l10n.likesRemove : context.l10n.trackLike;
+  }
+}
+
+/// The queue index a swipe on the mini player goes to: the song after
+/// ([step] 1) or before (-1) in playback order, wrapping round only under
+/// repeat all. Not [Queue.nextTrack]: under repeat one that is the song
+/// itself, and a swipe changes song, as the Now Playing covers do.
+int? _neighbourIndex(PlayerActive state, int step) {
+  final queue = state.queue;
+  // While a new song loads, the queue may still be the old one.
+  if (queue.currentTrack?.id != state.currentTrack.id) return null;
+  final index = queue.currentIndex + step;
+  if (index >= 0 && index < queue.length) return index;
+  if (queue.repeatMode != RepeatMode.all || queue.length < 2) return null;
+  return index < 0 ? queue.length - 1 : 0;
+}
+
+Track? _neighbourOf(PlayerActive state, int step) =>
+    switch (_neighbourIndex(state, step)) {
+      final index? => state.queue.playbackTracks[index],
+      null => null,
+    };
+
+/// A song's title and artist, as the mini player shows them. Each slot of
+/// the carousel draws one, so a neighbour coming in already looks as it
+/// will once it plays (a long title fades out, it is not ellipsized).
+class _SongLines extends StatelessWidget {
+  final Track track;
+  const _SongLines({required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(
+        start: _MiniPlayerRowState._leadFade,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Marquee(
+            text: track.title,
+            style: TextStyle(
+              color: colors.labelPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            context.artistName(track.artist),
+            style: TextStyle(color: colors.labelSecondary, fontSize: 11),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The mini player's cover, decoded at full size on purpose: the hero's
+/// image is also the Now Playing morph's shuttle, and the old cover fading
+/// out after a change reads the image already cached.
+class _MiniArtwork extends StatelessWidget {
+  final String? path;
+
+  /// Whether this is the cover that flies into Now Playing.
+  final bool hero;
+
+  const _MiniArtwork({required this.path, this.hero = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final path = this.path;
+    if (path == null) return const ArtworkPlaceholder();
+    final image = Image.file(
+      File(path),
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      errorBuilder: (_, _, _) => const ArtworkPlaceholder(),
+    );
+    if (!hero) return image;
+    return Hero(
+      tag: NowPlayingHero.artworkTag,
+      createRectTween: NowPlayingHero.flightTween,
+      flightShuttleBuilder: NowPlayingHero.artworkShuttle,
+      child: image,
+    );
   }
 }
 

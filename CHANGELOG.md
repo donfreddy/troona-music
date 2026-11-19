@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - The tab bar casts a shadow, and floating glass shares one edge.
 - Now Playing's ring is drawn in light grey to white, which reads over every cover's colours.
 - Small grey text is easier to read.
+- The mini player: swiping moves the titles only, with the next or previous song's coming in as you go, and the cover fades to the new song's instead of sliding.
 
 ### Fixed
 
