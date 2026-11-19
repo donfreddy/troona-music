@@ -189,9 +189,10 @@ void main() {
     expect(blur.filter.toString(), contains('blur(30.0, 30.0'));
   });
 
-  group('between two collapsed headers', () {
+  group('pages crossing', () {
     final navigator = GlobalKey<NavigatorState>();
     late ScrollController first;
+    late ScrollController second;
 
     Widget page(String title, ScrollController controller) => Scaffold(
       body: CustomScrollView(
@@ -206,85 +207,140 @@ void main() {
       ),
     );
 
-    /// The blurs drawing, and the title of the page each belongs to.
+    /// The blurs drawing, by the page each belongs to. A page covered by
+    /// another is offstage: not painted, so not counted.
     List<String> blurring(WidgetTester tester) => [
-      for (final element
-          in find.byType(BackdropFilter, skipOffstage: false).evaluate())
+      for (final element in find.byType(BackdropFilter).evaluate())
         if ((element.widget as BackdropFilter).enabled)
-          (element
+          element
                       .findAncestorWidgetOfExactType<CustomScrollView>()!
                       .controller ==
                   first
               ? 'A'
-              : 'B'),
+              : 'B',
     ];
 
-    Future<List<List<String>>> pushThenPop(
+    Future<List<List<String>>> record(WidgetTester tester) async {
+      final frames = <List<String>>[];
+      await tester.pump();
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 40));
+        frames.add(blurring(tester));
+      }
+      return frames;
+    }
+
+    /// Pumps A, scrolled to [aScroll], and pushes B over it, recording
+    /// the blurs of each frame of the push.
+    Future<List<List<String>>> openB(
       WidgetTester tester,
-      GlassQuality quality,
-    ) async {
+      GlassQuality quality, {
+      double aScroll = 400,
+    }) async {
       tester.view
         ..devicePixelRatio = 3
         ..physicalSize = const Size(360, 640) * 3;
       addTearDown(tester.view.reset);
       first = ScrollController();
-      final second = ScrollController();
+      second = ScrollController();
       addTearDown(first.dispose);
       addTearDown(second.dispose);
       await tester.pumpWidget(
         MaterialApp(
           navigatorKey: navigator,
+          // The app's theme: Cupertino transitions, with the back swipe.
           theme: robotoTheme(AppTheme.withGlass(quality)),
           home: page('A', first),
         ),
       );
-      first.jumpTo(400);
+      first.jumpTo(aScroll);
       await tester.pumpAndSettle();
-      expect(blurring(tester), ['A']);
-
-      final frames = <List<String>>[];
       unawaited(
         navigator.currentState!.push(
           MaterialPageRoute<void>(builder: (_) => page('B', second)),
         ),
       );
-      await tester.pump();
-      for (var i = 0; i < 10; i++) {
-        await tester.pump(const Duration(milliseconds: 40));
-        frames.add(blurring(tester));
-      }
+      final frames = await record(tester);
       await tester.pumpAndSettle();
       second.jumpTo(400);
       await tester.pump();
-      expect(blurring(tester), contains('B'));
-
-      navigator.currentState!.pop();
-      await tester.pump();
-      for (var i = 0; i < 10; i++) {
-        await tester.pump(const Duration(milliseconds: 40));
-        frames.add(blurring(tester));
-      }
-      await tester.pumpAndSettle();
-      expect(blurring(tester), ['A'], reason: 'back where it was');
+      expect(blurring(tester), ['B']);
       return frames;
     }
 
-    testWidgets('balanced glass: one blur at most during a push and a pop, '
-        'the page that stays keeping its own', (tester) async {
-      final frames = await pushThenPop(tester, GlassQuality.low);
-      for (final blurs in frames) {
-        expect(blurs.length, lessThanOrEqualTo(1), reason: '$blurs');
-      }
-      // Popping, the page coming back blurs from the start.
-      expect(frames.last, ['A']);
-      expect(frames[10], ['A']);
+    testWidgets('a push leaves the page below as it was: the page pushed '
+        'opens expanded, so it never blurs as well', (tester) async {
+      final frames = await openB(tester, GlassQuality.low);
+      expect(frames, everyElement(['A']));
+    });
+
+    testWidgets('balanced glass: popping back to a collapsed page, one blur, '
+        'the one of the page coming back, from the start', (tester) async {
+      await openB(tester, GlassQuality.low);
+      navigator.currentState!.pop();
+      final frames = await record(tester);
+      expect(frames, everyElement(['A']));
+      await tester.pumpAndSettle();
+      expect(blurring(tester), ['A']);
     });
 
     testWidgets('full glass is left as it was: both blur while they cross', (
       tester,
     ) async {
-      final frames = await pushThenPop(tester, GlassQuality.high);
-      expect(frames.any((blurs) => blurs.length == 2), isTrue);
+      await openB(tester, GlassQuality.high);
+      navigator.currentState!.pop();
+      final frames = await record(tester);
+      expect(frames, contains(unorderedEquals(['A', 'B'])));
+    });
+
+    testWidgets('popping back to a page at its top, the page leaving keeps '
+        'its glass: nothing else blurs', (tester) async {
+      await openB(tester, GlassQuality.low, aScroll: 0);
+      navigator.currentState!.pop();
+      final frames = await record(tester);
+      expect(frames.first, ['B']);
+      for (final blurs in frames) {
+        expect(blurs, anyOf(isEmpty, ['B']), reason: '$blurs');
+      }
+    });
+
+    Future<TestGesture> swipe(WidgetTester tester) async {
+      final gesture = await tester.startGesture(const Offset(4, 320));
+      for (var i = 0; i < 6; i++) {
+        await gesture.moveBy(const Offset(30, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+        // The first step starts the gesture before the page below is on
+        // screen: a frame with no blur, never two.
+        expect(
+          blurring(tester),
+          i == 0 ? anyOf(isEmpty, ['A']) : ['A'],
+          reason: 'drag $i',
+        );
+      }
+      return gesture;
+    }
+
+    testWidgets('balanced glass: a back swipe hands the blur to the page '
+        'below as it starts, and keeps it there when it goes through', (
+      tester,
+    ) async {
+      await openB(tester, GlassQuality.low);
+      final gesture = await swipe(tester);
+      await gesture.moveBy(const Offset(150, 0));
+      await gesture.up();
+      final frames = await record(tester);
+      expect(frames, everyElement(['A']));
+      await tester.pumpAndSettle();
+      expect(blurring(tester), ['A']);
+    });
+
+    testWidgets('balanced glass: a back swipe called off hands the blur '
+        'back to the page on top', (tester) async {
+      await openB(tester, GlassQuality.low);
+      final gesture = await swipe(tester);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(blurring(tester), ['B']);
     });
   });
 
