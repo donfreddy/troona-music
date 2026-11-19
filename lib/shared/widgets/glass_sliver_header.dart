@@ -339,6 +339,8 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
     final background = header.background;
     final expanded = header.expanded;
     final pinnedBottom = header.pinnedBottom;
+    // A bar given for the navigation row (songs being picked).
+    final navBar = GlassNavOverride.barOf(context);
 
     // Keyed: a background that comes later (a photo once loaded) must not
     // shift the other layers and rebuild their state.
@@ -393,7 +395,7 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             height: navHeight,
             // A bar given in its place fades in over it.
             child: _NavSwitch(
-              bar: GlassNavOverride.barOf(context),
+              bar: navBar,
               child: _NavRow(
                 leading: header.leading,
                 title: header.title,
@@ -412,11 +414,25 @@ class _GlassHeaderDelegate extends SliverPersistentHeaderDelegate {
             height: header.pinnedBottomHeight,
             child: MediaQuery.withClampedTextScaling(
               maxScaleFactor: AppLayout.maxTextScale,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: pinnedBottom,
+              // With no navigation row (Search), a bar given in its place
+              // takes this one's, as tall as a field.
+              child: CrossFadeSwap(
+                alt: switch (navBar) {
+                  final bar? when navHeight == 0 => Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: SizedBox(height: 56, child: bar),
+                    ),
+                  ),
+                  _ => null,
+                },
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: pinnedBottom,
+                  ),
                 ),
               ),
             ),
@@ -809,7 +825,8 @@ class _Fade extends StatelessWidget {
 }
 
 /// Puts [bar] in place of the navigation row of the [GlassSliverHeader]s
-/// below it while not null (a list picking songs shows its count and
+/// below it (of the pinned bottom, for a header with no navigation row)
+/// while not null (a list picking songs shows its count and
 /// actions there). Kept in the tree with a null [bar] otherwise, so turning
 /// it on or off rebuilds the headers without remounting the page.
 class GlassNavOverride extends InheritedWidget {

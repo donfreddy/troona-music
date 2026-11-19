@@ -75,6 +75,7 @@ void main() {
     GlassQuality glass = GlassQuality.high,
     bool showTabs = true,
     ValueListenable<Widget?>? actions,
+    ValueListenable<bool>? tabs,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -122,12 +123,15 @@ void main() {
             body: Align(
               alignment: Alignment.bottomCenter,
               child: ValueListenableBuilder(
-                valueListenable: actions ?? ValueNotifier(null),
-                builder: (_, actions, _) => AppBottomNavBar(
-                  currentTab: tab,
-                  onTabChanged: (_) {},
-                  showTabs: showTabs,
-                  actions: actions,
+                valueListenable: tabs ?? ValueNotifier(showTabs),
+                builder: (_, showTabs, _) => ValueListenableBuilder(
+                  valueListenable: actions ?? ValueNotifier(null),
+                  builder: (_, actions, _) => AppBottomNavBar(
+                    currentTab: tab,
+                    onTabChanged: (_) {},
+                    showTabs: showTabs,
+                    actions: actions,
+                  ),
                 ),
               ),
             ),
@@ -1193,10 +1197,77 @@ void main() {
       expect(find.text('actions'), findsOneWidget);
       expect(barSize(tester).height, AppSpacing.miniPlayerHeight);
 
+      // It slides off before it goes, rather than vanishing.
+      final rest = tester.getTopLeft(find.text('actions')).dy;
       actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 110));
+      expect(find.text('actions'), findsOneWidget);
+      expect(tester.getTopLeft(find.text('actions')).dy, greaterThan(rest));
       await tester.pumpAndSettle();
       expect(find.text('actions'), findsNothing);
       expect(barSize(tester).height, 0);
+
+      // Back before it is gone: it comes back in place.
+      actions.value = row;
+      await tester.pumpAndSettle();
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      actions.value = row;
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('actions')).dy, rest);
+    });
+
+    testWidgets('the tabs coming back while it slides off show at once', (
+      tester,
+    ) async {
+      final actions = ValueNotifier<Widget?>(row);
+      final tabs = ValueNotifier(false);
+      await pump(tester, AppTab.home, tabs: tabs, actions: actions);
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+
+      // Popped back to a tab before the row was gone.
+      tabs.value = true;
+      await tester.pump();
+      expect(
+        covered(tester, find.byKey(const ValueKey('tabDot')).first),
+        isFalse,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+    });
+
+    testWidgets('a song starting while it slides off leaves the mini player '
+        'alone', (tester) async {
+      final actions = ValueNotifier<Widget?>(row);
+      final bloc = await pump(
+        tester,
+        AppTab.home,
+        showTabs: false,
+        actions: actions,
+      );
+      actions.value = null;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 80));
+      port.queue = Queue.fromTracks(song);
+      port.duration = const Duration(minutes: 3);
+      bloc.add(QueueSetRequested(song));
+      await tester.pump();
+      port.status.add(PlaybackStatus.playing);
+      await tester.pumpAndSettle();
+      expect(find.text('actions'), findsNothing);
+      expect(find.text('Title a'), findsWidgets);
+      expect(barSize(tester).height, AppSpacing.miniPlayerHeight);
+      // At rest in the bar, not slid off with the actions.
+      expect(
+        tester
+            .getRect(find.byType(AppBottomNavBar))
+            .contains(tester.getCenter(find.text('Title a').first)),
+        isTrue,
+      );
     });
   });
 }

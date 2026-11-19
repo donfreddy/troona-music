@@ -110,6 +110,65 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
     duration: const Duration(milliseconds: 220),
   );
 
+  /// The actions the bar shows: [AppBottomNavBar.actions], kept while a
+  /// bar holding nothing else slides off once they go.
+  Widget? _actions;
+  bool _actionsLeaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _actions = widget.actions;
+  }
+
+  @override
+  void didUpdateWidget(AppBottomNavBar old) {
+    super.didUpdateWidget(old);
+    final actions = widget.actions;
+    if (actions == null && _actionsLeaving && widget.showTabs) {
+      // The tabs came back (a pop) while the bar slid off: they show at
+      // once, never covered by actions on their way out.
+      _actionsLeaving = false;
+      _actions = null;
+      _drop
+        ..stop()
+        ..value = 0;
+      return;
+    }
+    if (actions != null) {
+      if (_actionsLeaving) {
+        // Back before it was gone.
+        _actionsLeaving = false;
+        _drop
+          ..stop()
+          ..value = 0;
+      }
+      _actions = actions;
+    } else if (_actions != null && !_actionsLeaving) {
+      // Alone with nothing else to show (a pushed page, nothing playing),
+      // the bar would vanish at once: it slides off, as the mini player
+      // does, then goes.
+      final alone =
+          !widget.showTabs &&
+          (_lastActiveState == null || !widget.showMiniPlayer);
+      if (!alone) {
+        _actions = null;
+        return;
+      }
+      _actionsLeaving = true;
+      // Also when cut short (a song starting resets the drop): the
+      // actions must not stay.
+      _drop.animateTo(1, curve: Curves.easeInCubic).whenCompleteOrCancel(() {
+        if (!mounted || !_actionsLeaving) return;
+        setState(() {
+          _actionsLeaving = false;
+          _actions = null;
+          _drop.value = 0;
+        });
+      });
+    }
+  }
+
   @override
   void dispose() {
     _drop.dispose();
@@ -135,7 +194,7 @@ class _AppBottomNavBarState extends State<AppBottomNavBar>
               showMiniPlayer: widget.showMiniPlayer,
               showTabs: widget.showTabs,
               miniSlot: widget.miniSlot,
-              actions: widget.actions,
+              actions: _actions,
             );
           },
         ),
