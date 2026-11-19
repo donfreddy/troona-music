@@ -6,7 +6,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
-- Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page or Recently added starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
+- Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page, Recently added or Search starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
 
 ### Changed
 
