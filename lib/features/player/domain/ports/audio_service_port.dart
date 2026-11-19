@@ -104,10 +104,7 @@ abstract interface class AudioServicePort {
 
   /// Inserts [tracks] at playback [index], in their order, or appends them
   /// when [index] is null: one edit, all or none.
-  Future<Either<Failure, Unit>> addAllToQueue(
-    List<Track> tracks, {
-    int? index,
-  });
+  Future<Either<Failure, Unit>> addAllToQueue(List<Track> tracks, {int? index});
 
   /// Removes the track at [index] from the queue.
   Future<Either<Failure, Unit>> removeFromQueue(int index);

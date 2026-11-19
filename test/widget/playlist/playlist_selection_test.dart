@@ -62,9 +62,8 @@ final class _NoLikes extends Fake implements LibraryRepository {
       right(const Playlist(id: 'likes', name: 'Likes', trackIds: []));
 
   @override
-  Future<Either<Failure, List<Track>>> getTracksByIds(
-    List<String> ids,
-  ) async => right(const []);
+  Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids) async =>
+      right(const []);
 }
 
 void main() {
