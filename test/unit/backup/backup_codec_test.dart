@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
+import 'package:troona/features/library/data/models/smart_rules_json.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 final _backup = Backup(
@@ -20,6 +22,15 @@ final _backup = Backup(
   playlists: const [
     BackupPlaylist(name: 'Liked', isLikes: true, tracks: ['1']),
     BackupPlaylist(name: 'Road trip', isLikes: false, tracks: []),
+    BackupPlaylist(
+      name: 'Forgotten',
+      isLikes: false,
+      tracks: [],
+      rules: SmartRules(
+        rules: [LastPlayed(LastPlayedKind.olderThan, days: 90)],
+        sort: SmartSort.random,
+      ),
+    ),
   ],
   plays: [BackupPlay(track: '1', at: DateTime.utc(2026, 10, 29, 18))],
   days: const [BackupDay(day: 20390, plays: 3, listenedMs: 600000)],
@@ -44,6 +55,20 @@ Matcher _rejected = throwsA(isA<BackupFormatException>());
 void main() {
   test('a backup reads back as it was written', () {
     expect(BackupCodec.decode(BackupCodec.encode(_backup)), _backup);
+  });
+
+  test('a playlist of songs carries no rules key', () {
+    final playlists = _json()['playlists'] as List;
+    expect((playlists[1] as Map).containsKey('rules'), isFalse);
+  });
+
+  test('smart rules that cannot be read still restore a smart playlist '
+      'that keeps nothing, and the rest of the file', () {
+    final json = _json();
+    ((json['playlists'] as List)[2] as Map)['rules'] = 'broken';
+    final read = BackupCodec.decode(_bytes(json));
+    expect(read.playlists[2].rules, SmartRulesJson.unreadable);
+    expect(read.plays, hasLength(1));
   });
 
   test('a backup made before the hours were counted has none', () {

@@ -35,6 +35,12 @@ class PlaylistCover extends StatelessWidget {
         ),
         child: Icon(AppIcons.like, color: colors.accent, size: size * .3),
       ),
+      // Its songs change with its rules: no mosaic to keep up to date.
+      Playlist(isSmart: true) => ArtworkPlaceholder(
+        icon: AppIcons.smartPlaylist,
+        width: size,
+        height: size,
+      ),
       Playlist(:final artworkPath?) when artworkPath.isNotEmpty => ArtworkImage(
         artworkPath,
         width: size,

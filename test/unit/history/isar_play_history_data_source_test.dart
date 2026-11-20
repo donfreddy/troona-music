@@ -169,6 +169,20 @@ void main() {
       expect(source.playCounts({}), isEmpty);
     }, skip: skip);
 
+    test('track stats: plays per day and the last day, per track', () async {
+      await play('a', 0);
+      await play('a', 1);
+      await play('a', 60 * 24 + 1); // the next day
+      await play('b', 5);
+
+      final stats = source.trackStats();
+      expect(stats.total('a'), 3);
+      expect(stats.playsBetween('a', day, day), 2);
+      expect(stats.lastDay('a'), day + 1);
+      expect(stats.lastDay('b'), day);
+      expect(stats.lastDay('never'), isNull);
+    }, skip: skip);
+
     test('a track first played on an earlier day is no discovery', () async {
       await play('a', 0);
       await play('a', 24 * 60);

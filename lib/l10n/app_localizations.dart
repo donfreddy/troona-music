@@ -1256,6 +1256,12 @@ abstract class AppLocalizations {
   /// **'New playlist'**
   String get playlistNew;
 
+  /// Name a new playlist starts with, selected so typing replaces it.
+  ///
+  /// In en, this message translates to:
+  /// **'My playlist #{number}'**
+  String playlistDefaultName(int number);
+
   /// No description provided for @playlistEdit.
   ///
   /// In en, this message translates to:
@@ -3199,6 +3205,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'deselect'**
   String get selectionHintUnpick;
+
+  /// No description provided for @playlistsCreatePlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist'**
+  String get playlistsCreatePlaylist;
+
+  /// No description provided for @playlistsCreateSmart.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart playlist'**
+  String get playlistsCreateSmart;
+
+  /// Subtitle of a smart playlist's card and row, in place of its song count.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart playlist'**
+  String get smartPlaylistKind;
+
+  /// No description provided for @smartPlaylistNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New smart playlist'**
+  String get smartPlaylistNew;
+
+  /// No description provided for @smartPlaylistEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rules'**
+  String get smartPlaylistEdit;
+
+  /// Badge on a smart playlist, whose songs are chosen by rules.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get smartBadge;
+
+  /// No description provided for @smartStartFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from'**
+  String get smartStartFrom;
+
+  /// No description provided for @smartTemplateTopMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played this month'**
+  String get smartTemplateTopMonth;
+
+  /// No description provided for @smartTemplateNeverPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never played'**
+  String get smartTemplateNeverPlayed;
+
+  /// No description provided for @smartTemplateForgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgotten'**
+  String get smartTemplateForgotten;
+
+  /// No description provided for @smartTemplateRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently added'**
+  String get smartTemplateRecent;
+
+  /// No description provided for @smartTemplateLossless.
+  ///
+  /// In en, this message translates to:
+  /// **'Lossless'**
+  String get smartTemplateLossless;
+
+  /// No description provided for @smartKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep songs that match'**
+  String get smartKeep;
+
+  /// No description provided for @smartMatchAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All rules'**
+  String get smartMatchAll;
+
+  /// No description provided for @smartMatchAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any rule'**
+  String get smartMatchAny;
+
+  /// No description provided for @smartRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get smartRules;
+
+  /// No description provided for @smartNoRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No rules: every song is kept.'**
+  String get smartNoRules;
+
+  /// No description provided for @smartAddRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a rule'**
+  String get smartAddRule;
+
+  /// No description provided for @smartRemoveRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this rule'**
+  String get smartRemoveRule;
+
+  /// No description provided for @smartSortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get smartSortBy;
+
+  /// No description provided for @smartLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit'**
+  String get smartLimit;
+
+  /// No description provided for @smartNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'No limit'**
+  String get smartNoLimit;
+
+  /// No description provided for @smartLimitSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 song} other{{count} songs}}'**
+  String smartLimitSongs(int count);
+
+  /// No description provided for @smartMatchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No songs match} =1{1 song matches} other{{count} songs match}}'**
+  String smartMatchCount(int count);
+
+  /// No description provided for @smartEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No songs match yet'**
+  String get smartEmptyTitle;
+
+  /// No description provided for @smartEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'What you play and add may change that, or you can loosen the rules.'**
+  String get smartEmptyBody;
+
+  /// No description provided for @smartSaveAsPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as a playlist'**
+  String get smartSaveAsPlaylist;
+
+  /// No description provided for @smartSavedAsPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as {name}'**
+  String smartSavedAsPlaylist(String name);
+
+  /// No description provided for @smartFootnote.
+  ///
+  /// In en, this message translates to:
+  /// **'The songs are worked out again each time you open it.'**
+  String get smartFootnote;
+
+  /// No description provided for @smartRulePlays.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays'**
+  String get smartRulePlays;
+
+  /// No description provided for @smartRuleLastPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last played'**
+  String get smartRuleLastPlayed;
+
+  /// No description provided for @smartRuleAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added'**
+  String get smartRuleAdded;
+
+  /// No description provided for @smartRuleLiked.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get smartRuleLiked;
+
+  /// No description provided for @smartRuleArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get smartRuleArtist;
+
+  /// No description provided for @smartRuleAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get smartRuleAlbum;
+
+  /// No description provided for @smartRuleGenre.
+  ///
+  /// In en, this message translates to:
+  /// **'Genre'**
+  String get smartRuleGenre;
+
+  /// No description provided for @smartRuleYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get smartRuleYear;
+
+  /// No description provided for @smartRuleDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get smartRuleDuration;
+
+  /// No description provided for @smartRuleLossless.
+  ///
+  /// In en, this message translates to:
+  /// **'Lossless'**
+  String get smartRuleLossless;
+
+  /// No description provided for @smartPlaysAtLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Played at least once} other{Played at least {count} times}} in {days} days'**
+  String smartPlaysAtLeast(int count, int days);
+
+  /// No description provided for @smartPlaysNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not played in {days} days'**
+  String smartPlaysNone(int days);
+
+  /// No description provided for @smartLastPlayedOlder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last played over {days} days ago'**
+  String smartLastPlayedOlder(int days);
+
+  /// No description provided for @smartLastPlayedWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'Played in the last {days} days'**
+  String smartLastPlayedWithin(int days);
+
+  /// No description provided for @smartNeverPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Never played'**
+  String get smartNeverPlayed;
+
+  /// No description provided for @smartAddedWithin.
+  ///
+  /// In en, this message translates to:
+  /// **'Added in the last {days} days'**
+  String smartAddedWithin(int days);
+
+  /// No description provided for @smartLikedYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked'**
+  String get smartLikedYes;
+
+  /// No description provided for @smartLikedNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not liked'**
+  String get smartLikedNo;
+
+  /// No description provided for @smartTextContains.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} contains \"{text}\"'**
+  String smartTextContains(String field, String text);
+
+  /// No description provided for @smartTextNotContains.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} doesn\'t contain \"{text}\"'**
+  String smartTextNotContains(String field, String text);
+
+  /// No description provided for @smartYearRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From {from} to {to}'**
+  String smartYearRange(String from, String to);
+
+  /// No description provided for @smartYearFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} or later'**
+  String smartYearFrom(String year);
+
+  /// No description provided for @smartYearTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{year} or earlier'**
+  String smartYearTo(String year);
+
+  /// No description provided for @smartDurationUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'Under {minutes} min'**
+  String smartDurationUnder(int minutes);
+
+  /// No description provided for @smartDurationOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over {minutes} min'**
+  String smartDurationOver(int minutes);
+
+  /// No description provided for @smartDurationBetween.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} to {max} min'**
+  String smartDurationBetween(int min, int max);
+
+  /// No description provided for @smartLosslessYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Lossless'**
+  String get smartLosslessYes;
+
+  /// No description provided for @smartLosslessNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Not lossless'**
+  String get smartLosslessNo;
+
+  /// No description provided for @smartContains.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains'**
+  String get smartContains;
+
+  /// No description provided for @smartNotContains.
+  ///
+  /// In en, this message translates to:
+  /// **'Doesn\'t contain'**
+  String get smartNotContains;
+
+  /// No description provided for @smartTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Text to look for'**
+  String get smartTextHint;
+
+  /// No description provided for @smartDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day} other{{days} days}}'**
+  String smartDays(int days);
+
+  /// No description provided for @smartOverLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Over the last'**
+  String get smartOverLast;
+
+  /// No description provided for @smartSortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get smartSortTitle;
+
+  /// No description provided for @smartSortArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get smartSortArtist;
+
+  /// No description provided for @smartSortAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get smartSortAlbum;
+
+  /// No description provided for @smartSortYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year, newest first'**
+  String get smartSortYear;
+
+  /// No description provided for @smartSortAddedNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added, newest first'**
+  String get smartSortAddedNewest;
+
+  /// No description provided for @smartSortAddedOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Date added, oldest first'**
+  String get smartSortAddedOldest;
+
+  /// No description provided for @smartSortMostPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played'**
+  String get smartSortMostPlayed;
+
+  /// No description provided for @smartSortMostPlayedMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Most played, last 30 days'**
+  String get smartSortMostPlayedMonth;
+
+  /// No description provided for @smartSortLeastPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Least played'**
+  String get smartSortLeastPlayed;
+
+  /// No description provided for @smartSortLastPlayedRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Played most recently'**
+  String get smartSortLastPlayedRecent;
+
+  /// No description provided for @smartSortLastPlayedOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Played longest ago'**
+  String get smartSortLastPlayedOldest;
+
+  /// No description provided for @smartSortRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get smartSortRandom;
 }
 
 class _AppLocalizationsDelegate

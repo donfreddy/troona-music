@@ -6,10 +6,12 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
+- Smart playlists: songs picked by rules (plays over a period, last played, date added, liked, artist, album, genre, year, duration, lossless), matching all or any of them, sorted and capped as you choose. Start from a template (Most played this month, Never played, Forgotten, Recently added, Lossless) or from nothing; the editor counts the songs as the rules change. They are worked out again each time you open one and after each song you play, and Save as a playlist keeps today's songs as a playlist of your own. Backups carry their rules.
 - Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page, Recently added or Search starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
 
 ### Changed
 
+- A new playlist starts named "My playlist #N", ready to save or rename. Its form covers the tabs and the mini player, and shows no empty cover.
 - In a playlist, a long press on a song picks it: the handle at the end of the row moves it.
 - The centre of the tab bar is an orb in the colours of the song playing, and a button: it opens Now Playing, or starts music when nothing is loaded (the last session, else the whole library shuffled). On Now Playing it closes the page. Its colours swirl to each new song's and it pulses on play and pause; at rest it does not move.
 - Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.

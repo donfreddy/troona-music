@@ -68,7 +68,9 @@ class _AddToPlaylistViewState extends State<_AddToPlaylistView> {
     _playlistsFuture = getIt<PlaylistRepository>().getPlaylists().then((res) {
       return res.fold(
         (_) => <Playlist>[],
-        (list) => list.where((p) => p.id != Playlist.likesId).toList(),
+        // A smart playlist's songs come from its rules: none can be added.
+        (list) =>
+            list.where((p) => p.id != Playlist.likesId && !p.isSmart).toList(),
       );
     });
   }

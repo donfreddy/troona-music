@@ -1,6 +1,7 @@
 import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
+import 'package:troona/features/history/domain/entities/track_stats.dart';
 import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 
@@ -170,6 +171,15 @@ final class IsarPlayHistoryDataSource {
       counts[t.trackId] = (counts[t.trackId] ?? 0) + t.plays;
     }
     return counts;
+  }
+
+  /// Every row of the daily totals per song, as [TrackStats].
+  TrackStats trackStats() {
+    final days = <String, List<(int, int)>>{};
+    for (final t in _isar.trackDayModels.where().findAll()) {
+      (days[t.trackId] ??= []).add((t.day, t.plays));
+    }
+    return TrackStats(days);
   }
 
   Map<String, int> topTrackIds({int days = 7, int limit = 5}) {
