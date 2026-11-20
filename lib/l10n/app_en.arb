@@ -991,5 +991,219 @@
   "selectionHintUnpick": "deselect",
   "@selectionHintUnpick": {
     "description": "Screen reader hint for a tap on a picked song row while picking songs: it lets the song go. Read after 'double tap to'."
-  }
+  },
+  "playlistsCreatePlaylist": "Playlist",
+  "playlistsCreateSmart": "Smart playlist",
+  "smartPlaylistKind": "Smart playlist",
+  "@smartPlaylistKind": {
+    "description": "Subtitle of a smart playlist's card and row, in place of its song count."
+  },
+  "smartPlaylistNew": "New smart playlist",
+  "smartPlaylistEdit": "Edit rules",
+  "smartBadge": "Auto",
+  "@smartBadge": {
+    "description": "Badge on a smart playlist, whose songs are chosen by rules."
+  },
+  "smartStartFrom": "Start from",
+  "smartTemplateTopMonth": "Most played this month",
+  "smartTemplateNeverPlayed": "Never played",
+  "smartTemplateForgotten": "Forgotten",
+  "smartTemplateRecent": "Recently added",
+  "smartTemplateLossless": "Lossless",
+  "smartKeep": "Keep songs that match",
+  "smartMatchAll": "All rules",
+  "smartMatchAny": "Any rule",
+  "smartRules": "Rules",
+  "smartNoRules": "No rules: every song is kept.",
+  "smartAddRule": "Add a rule",
+  "smartRemoveRule": "Remove this rule",
+  "smartSortBy": "Sort by",
+  "smartLimit": "Limit",
+  "smartNoLimit": "No limit",
+  "smartLimitSongs": "{count, plural, =1{1 song} other{{count} songs}}",
+  "@smartLimitSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "smartMatchCount": "{count, plural, =0{No songs match} =1{1 song matches} other{{count} songs match}}",
+  "@smartMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "smartEmptyTitle": "No songs match yet",
+  "smartEmptyBody": "What you play and add may change that, or you can loosen the rules.",
+  "smartSaveAsPlaylist": "Save as a playlist",
+  "smartSavedAsPlaylist": "Saved as {name}",
+  "@smartSavedAsPlaylist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "smartFootnote": "The songs are worked out again each time you open it.",
+  "smartRulePlays": "Plays",
+  "smartRuleLastPlayed": "Last played",
+  "smartRuleAdded": "Date added",
+  "smartRuleLiked": "Liked",
+  "smartRuleArtist": "Artist",
+  "smartRuleAlbum": "Album",
+  "smartRuleGenre": "Genre",
+  "smartRuleYear": "Year",
+  "smartRuleDuration": "Duration",
+  "smartRuleLossless": "Lossless",
+  "smartPlaysAtLeast": "{count, plural, =1{Played at least once} other{Played at least {count} times}} in {days} days",
+  "@smartPlaysAtLeast": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartPlaysNone": "Not played in {days} days",
+  "@smartPlaysNone": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartLastPlayedOlder": "Last played over {days} days ago",
+  "@smartLastPlayedOlder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartLastPlayedWithin": "Played in the last {days} days",
+  "@smartLastPlayedWithin": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartNeverPlayed": "Never played",
+  "smartAddedWithin": "Added in the last {days} days",
+  "@smartAddedWithin": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartLikedYes": "Liked",
+  "smartLikedNo": "Not liked",
+  "smartTextContains": "{field} contains \"{text}\"",
+  "@smartTextContains": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "smartTextNotContains": "{field} doesn't contain \"{text}\"",
+  "@smartTextNotContains": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "smartYearRange": "From {from} to {to}",
+  "@smartYearRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "smartYearFrom": "{year} or later",
+  "@smartYearFrom": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "smartYearTo": "{year} or earlier",
+  "@smartYearTo": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "smartDurationUnder": "Under {minutes} min",
+  "@smartDurationUnder": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "smartDurationOver": "Over {minutes} min",
+  "@smartDurationOver": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "smartDurationBetween": "{min} to {max} min",
+  "@smartDurationBetween": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "smartLosslessYes": "Lossless",
+  "smartLosslessNo": "Not lossless",
+  "smartContains": "Contains",
+  "smartNotContains": "Doesn't contain",
+  "smartTextHint": "Text to look for",
+  "smartDays": "{days, plural, =1{1 day} other{{days} days}}",
+  "@smartDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "smartOverLast": "Over the last",
+  "smartSortTitle": "Title",
+  "smartSortArtist": "Artist",
+  "smartSortAlbum": "Album",
+  "smartSortYear": "Year, newest first",
+  "smartSortAddedNewest": "Date added, newest first",
+  "smartSortAddedOldest": "Date added, oldest first",
+  "smartSortMostPlayed": "Most played",
+  "smartSortMostPlayedMonth": "Most played, last 30 days",
+  "smartSortLeastPlayed": "Least played",
+  "smartSortLastPlayedRecent": "Played most recently",
+  "smartSortLastPlayedOldest": "Played longest ago",
+  "smartSortRandom": "Random"
 }

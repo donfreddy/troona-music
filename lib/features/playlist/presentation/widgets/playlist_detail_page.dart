@@ -12,7 +12,12 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playlist_detail_bloc.dart';
+import 'package:troona/features/playlist/presentation/pages/smart_playlist_editor_page.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_cover.dart';
+import 'package:troona/features/library/presentation/widgets/track_actions/show_track_actions.dart';
+import 'package:troona/shared/widgets/app_dialog.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
@@ -30,6 +35,9 @@ import 'package:troona/features/player/domain/entities/queue_origin.dart';
 
 /// A playlist, laid out like an album: the cover over the palette glow, a
 /// header that collapses into the glass bar, then the reorderable tracks.
+/// A smart playlist's songs come from its rules: they cannot be moved or
+/// removed, and its menu edits the rules or copies the songs into a
+/// playlist.
 class PlaylistDetailPage extends StatelessWidget {
   final String id;
   const PlaylistDetailPage({super.key, required this.id});
@@ -37,10 +45,12 @@ class PlaylistDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<LikesCubit, LikesState>(
+      // Likes, and a smart playlist (its rules may ask for liked songs),
+      // follow a song liked or unliked.
       listenWhen: (prev, curr) =>
-          id == Playlist.likesId && prev.likedTrackIds != curr.likedTrackIds,
+          (id == Playlist.likesId || _showsSmart(context)) &&
+          prev.likedTrackIds != curr.likedTrackIds,
       listener: (context, _) {
-        // Automatically sync Likes playlist when a track is liked/unliked
         context.read<PlaylistDetailBloc>().add(PlaylistDetailRequested(id));
       },
       child: Scaffold(
@@ -70,9 +80,8 @@ class PlaylistDetailPage extends StatelessWidget {
                         tracks: data.tracks,
                       ),
                       _TrackList(
-                        playlistId: id,
+                        playlist: data.playlist,
                         tracks: data.tracks,
-                        isLikes: id == Playlist.likesId,
                         origin: _originOf(context, data.playlist),
                       ),
                       SliverToBoxAdapter(
@@ -128,7 +137,14 @@ class _PlaylistHeader extends StatelessWidget {
     return GlassSliverHeader(
       leading: const AppBackButton(),
       title: name,
-      actions: const [],
+      actions: [
+        if (playlist.isSmart)
+          GlassIconButton(
+            icon: AppIcons.moreVertical,
+            tooltip: context.l10n.detailMore,
+            onTap: () => _showSmartActions(context, playlist, tracks),
+          ),
+      ],
       expandedHeight: _expandedExtra + _actionsBarHeight,
       expandedTextHeight: _expandedText,
       expanded: Column(
@@ -191,13 +207,22 @@ class _PlaylistHeader extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   _staggered(
-                    AppBadge(
-                      tracks.isEmpty
-                          ? context.l10n.songCount(0)
-                          : context.l10n.detailCountsSummary(
-                              context.l10n.songCount(tracks.length),
-                              duration.toHumanReadable(context.l10n),
-                            ),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (playlist.isSmart)
+                          AppBadge.accent(context.l10n.smartBadge),
+                        AppBadge(
+                          tracks.isEmpty
+                              ? context.l10n.songCount(0)
+                              : context.l10n.detailCountsSummary(
+                                  context.l10n.songCount(tracks.length),
+                                  duration.toHumanReadable(context.l10n),
+                                ),
+                        ),
+                      ],
                     ),
                     2,
                   ),
@@ -234,20 +259,48 @@ class _PlaylistHeader extends StatelessWidget {
 }
 
 class _TrackList extends StatelessWidget {
-  final String playlistId;
+  final Playlist playlist;
   final List<Track> tracks;
-  final bool isLikes;
   final QueueOrigin origin;
 
   const _TrackList({
-    required this.playlistId,
+    required this.playlist,
     required this.tracks,
-    required this.isLikes,
     required this.origin,
   });
 
   @override
   Widget build(BuildContext context) {
+    final playlistId = playlist.id;
+    final isLikes = playlistId == Playlist.likesId;
+    if (tracks.isEmpty && playlist.isSmart) {
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: EmptyState(
+          icon: AppIcons.smartPlaylist,
+          title: context.l10n.smartEmptyTitle,
+          body: context.l10n.smartEmptyBody,
+          actionLabel: context.l10n.smartPlaylistEdit,
+          onAction: () => _editRules(context, playlist),
+        ),
+      );
+    }
+    if (playlist.isSmart) {
+      // Its rules set the songs and their order: no handle, no reorder.
+      return SliverList.builder(
+        itemCount: tracks.length,
+        itemBuilder: (context, index) => _TrackTile(
+          key: ValueKey(tracks[index].id),
+          track: tracks[index],
+          tracks: tracks,
+          playlistId: playlistId,
+          index: index,
+          isLikes: false,
+          smart: true,
+          origin: origin,
+        ),
+      );
+    }
     if (tracks.isEmpty) {
       return SliverFillRemaining(
         hasScrollBody: false,
@@ -292,6 +345,10 @@ class _TrackTile extends StatelessWidget {
   final String playlistId;
   final int index;
   final bool isLikes;
+
+  /// A song a smart playlist's rules keep: the song's own menu, since it
+  /// cannot be removed, and no handle.
+  final bool smart;
   final QueueOrigin origin;
 
   const _TrackTile({
@@ -301,10 +358,15 @@ class _TrackTile extends StatelessWidget {
     required this.playlistId,
     required this.index,
     required this.isLikes,
+    this.smart = false,
     required this.origin,
   });
 
   void _showTrackOptions(BuildContext context) {
+    if (smart) {
+      showTrackActions(context, track);
+      return;
+    }
     showActionSheet(
       context,
       title: track.title,
@@ -442,17 +504,18 @@ class _TrackTile extends StatelessWidget {
                             color: context.colors.labelSecondary,
                             onPressed: () => _showTrackOptions(context),
                           ),
-                          ReorderableDragStartListener(
-                            index: index,
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4),
-                              child: Icon(
-                                AppIcons.dragHandle,
-                                size: 20,
-                                color: Colors.white24,
+                          if (!smart)
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4),
+                                child: Icon(
+                                  AppIcons.dragHandle,
+                                  size: 20,
+                                  color: Colors.white24,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -467,6 +530,13 @@ class _TrackTile extends StatelessWidget {
   }
 }
 
+/// Whether the page shows a smart playlist.
+bool _showsSmart(BuildContext context) =>
+    switch (context.read<PlaylistDetailBloc>().state) {
+      PlaylistDetailLoaded(:final data) => data.playlist.isSmart,
+      _ => false,
+    };
+
 /// The playlist's name as its page shows it: Liked songs in the app's
 /// language.
 String _nameOf(BuildContext context, Playlist playlist) =>
@@ -479,3 +549,67 @@ QueueOrigin _originOf(BuildContext context, Playlist playlist) => QueueOrigin(
   id: playlist.id,
   name: _nameOf(context, playlist),
 );
+
+/// A smart playlist's menu: edit its rules, or copy its songs into a
+/// playlist (only once it has some).
+void _showSmartActions(
+  BuildContext context,
+  Playlist playlist,
+  List<Track> tracks,
+) {
+  final l10n = context.l10n;
+  showActionSheet(
+    context,
+    title: playlist.name,
+    actions: [
+      SheetAction(
+        label: l10n.smartPlaylistEdit,
+        icon: AppIcons.smartRule,
+        onPressed: () => _editRules(context, playlist),
+      ),
+      if (tracks.isNotEmpty)
+        SheetAction(
+          label: l10n.smartSaveAsPlaylist,
+          icon: AppIcons.addToPlaylist,
+          onPressed: () => _saveAsPlaylist(context, playlist),
+        ),
+    ],
+  );
+}
+
+/// Opens the rules' editor, then reads the songs again once saved.
+Future<void> _editRules(BuildContext context, Playlist playlist) async {
+  final bloc = context.read<PlaylistDetailBloc>();
+  final saved = await openSmartPlaylistEditor(context, playlist);
+  if (saved != null && !bloc.isClosed) {
+    bloc.add(PlaylistDetailRequested(playlist.id));
+  }
+}
+
+/// Asks a name, then copies the songs shown, in their order, into a new
+/// playlist of songs: a snapshot that no longer follows the rules.
+Future<void> _saveAsPlaylist(BuildContext context, Playlist playlist) async {
+  final l10n = context.l10n;
+  final bloc = context.read<PlaylistDetailBloc>();
+  final name = await showTextInputDialog(
+    context,
+    title: l10n.smartSaveAsPlaylist,
+    placeholder: l10n.playlistNameHint,
+    confirmLabel: l10n.actionSave,
+    initialValue: playlist.name,
+  );
+  if (name == null || name.trim().isEmpty || bloc.isClosed) return;
+  bloc.add(
+    PlaylistSaveAsRequested(
+      name,
+      onSaved: (saved) {
+        if (context.mounted) {
+          AppToast.show(context, l10n.smartSavedAsPlaylist(saved.name));
+        }
+      },
+      onFailed: () {
+        if (context.mounted) AppToast.show(context, l10n.errorGeneric);
+      },
+    ),
+  );
+}

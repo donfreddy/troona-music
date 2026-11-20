@@ -1932,4 +1932,286 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get selectionHintUnpick => 'désélectionner';
+
+  @override
+  String get playlistsCreatePlaylist => 'Playlist';
+
+  @override
+  String get playlistsCreateSmart => 'Playlist intelligente';
+
+  @override
+  String get smartPlaylistKind => 'Playlist intelligente';
+
+  @override
+  String get smartPlaylistNew => 'Nouvelle playlist intelligente';
+
+  @override
+  String get smartPlaylistEdit => 'Modifier les règles';
+
+  @override
+  String get smartBadge => 'Auto';
+
+  @override
+  String get smartStartFrom => 'Partir de';
+
+  @override
+  String get smartTemplateTopMonth => 'Les plus écoutés du mois';
+
+  @override
+  String get smartTemplateNeverPlayed => 'Jamais écoutés';
+
+  @override
+  String get smartTemplateForgotten => 'Oubliés';
+
+  @override
+  String get smartTemplateRecent => 'Ajouts récents';
+
+  @override
+  String get smartTemplateLossless => 'Sans perte';
+
+  @override
+  String get smartKeep => 'Garder les titres qui respectent';
+
+  @override
+  String get smartMatchAll => 'Toutes les règles';
+
+  @override
+  String get smartMatchAny => 'Au moins une règle';
+
+  @override
+  String get smartRules => 'Règles';
+
+  @override
+  String get smartNoRules => 'Aucune règle : tous les titres sont gardés.';
+
+  @override
+  String get smartAddRule => 'Ajouter une règle';
+
+  @override
+  String get smartRemoveRule => 'Retirer cette règle';
+
+  @override
+  String get smartSortBy => 'Trier par';
+
+  @override
+  String get smartLimit => 'Limite';
+
+  @override
+  String get smartNoLimit => 'Sans limite';
+
+  @override
+  String smartLimitSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count titres',
+      one: '1 titre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String smartMatchCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count titres correspondent',
+      one: '1 titre correspond',
+      zero: 'Aucun titre ne correspond',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get smartEmptyTitle => 'Aucun titre ne correspond pour l\'instant';
+
+  @override
+  String get smartEmptyBody =>
+      'Vos écoutes et vos ajouts peuvent changer cela, ou vous pouvez assouplir les règles.';
+
+  @override
+  String get smartSaveAsPlaylist => 'Enregistrer comme playlist';
+
+  @override
+  String smartSavedAsPlaylist(String name) {
+    return 'Enregistrée sous $name';
+  }
+
+  @override
+  String get smartFootnote => 'Les titres sont recalculés à chaque ouverture.';
+
+  @override
+  String get smartRulePlays => 'Écoutes';
+
+  @override
+  String get smartRuleLastPlayed => 'Dernière écoute';
+
+  @override
+  String get smartRuleAdded => 'Date d\'ajout';
+
+  @override
+  String get smartRuleLiked => 'Aimés';
+
+  @override
+  String get smartRuleArtist => 'Artiste';
+
+  @override
+  String get smartRuleAlbum => 'Album';
+
+  @override
+  String get smartRuleGenre => 'Genre';
+
+  @override
+  String get smartRuleYear => 'Année';
+
+  @override
+  String get smartRuleDuration => 'Durée';
+
+  @override
+  String get smartRuleLossless => 'Sans perte';
+
+  @override
+  String smartPlaysAtLeast(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Écouté au moins $count fois',
+      one: 'Écouté au moins une fois',
+    );
+    return '$_temp0 en $days jours';
+  }
+
+  @override
+  String smartPlaysNone(int days) {
+    return 'Pas écouté depuis $days jours';
+  }
+
+  @override
+  String smartLastPlayedOlder(int days) {
+    return 'Dernière écoute il y a plus de $days jours';
+  }
+
+  @override
+  String smartLastPlayedWithin(int days) {
+    return 'Écouté ces $days derniers jours';
+  }
+
+  @override
+  String get smartNeverPlayed => 'Jamais écouté';
+
+  @override
+  String smartAddedWithin(int days) {
+    return 'Ajouté ces $days derniers jours';
+  }
+
+  @override
+  String get smartLikedYes => 'Aimé';
+
+  @override
+  String get smartLikedNo => 'Pas aimé';
+
+  @override
+  String smartTextContains(String field, String text) {
+    return '$field contient « $text »';
+  }
+
+  @override
+  String smartTextNotContains(String field, String text) {
+    return '$field ne contient pas « $text »';
+  }
+
+  @override
+  String smartYearRange(String from, String to) {
+    return 'De $from à $to';
+  }
+
+  @override
+  String smartYearFrom(String year) {
+    return '$year ou après';
+  }
+
+  @override
+  String smartYearTo(String year) {
+    return '$year ou avant';
+  }
+
+  @override
+  String smartDurationUnder(int minutes) {
+    return 'Moins de $minutes min';
+  }
+
+  @override
+  String smartDurationOver(int minutes) {
+    return 'Plus de $minutes min';
+  }
+
+  @override
+  String smartDurationBetween(int min, int max) {
+    return 'De $min à $max min';
+  }
+
+  @override
+  String get smartLosslessYes => 'Sans perte';
+
+  @override
+  String get smartLosslessNo => 'Avec perte';
+
+  @override
+  String get smartContains => 'Contient';
+
+  @override
+  String get smartNotContains => 'Ne contient pas';
+
+  @override
+  String get smartTextHint => 'Texte à chercher';
+
+  @override
+  String smartDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days jours',
+      one: '1 jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get smartOverLast => 'Sur les derniers';
+
+  @override
+  String get smartSortTitle => 'Titre';
+
+  @override
+  String get smartSortArtist => 'Artiste';
+
+  @override
+  String get smartSortAlbum => 'Album';
+
+  @override
+  String get smartSortYear => 'Année, la plus récente d\'abord';
+
+  @override
+  String get smartSortAddedNewest => 'Date d\'ajout, la plus récente d\'abord';
+
+  @override
+  String get smartSortAddedOldest => 'Date d\'ajout, la plus ancienne d\'abord';
+
+  @override
+  String get smartSortMostPlayed => 'Les plus écoutés';
+
+  @override
+  String get smartSortMostPlayedMonth => 'Les plus écoutés sur 30 jours';
+
+  @override
+  String get smartSortLeastPlayed => 'Les moins écoutés';
+
+  @override
+  String get smartSortLastPlayedRecent => 'Écoutés le plus récemment';
+
+  @override
+  String get smartSortLastPlayedOldest => 'Écoutés il y a le plus longtemps';
+
+  @override
+  String get smartSortRandom => 'Aléatoire';
 }
