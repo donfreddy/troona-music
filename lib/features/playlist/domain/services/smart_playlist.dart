@@ -34,6 +34,24 @@ abstract final class SmartPlaylist {
         : kept.sublist(0, math.max(limit, 0));
   }
 
+  /// How many songs [evaluate] returns, without sorting them: the editor
+  /// counts at each change.
+  static int count(
+    SmartRules rules,
+    List<Track> library, {
+    required TrackStats stats,
+    required Set<String> liked,
+    required int today,
+  }) {
+    final context = _Context(stats, liked, today);
+    final kept = library.where((t) => _keeps(rules, t, context)).length;
+    final limit = rules.limit;
+    return limit == null ? kept : math.min(kept, math.max(limit, 0));
+  }
+
+  /// Plays counted by [SmartSort.mostPlayedMonth].
+  static const monthDays = 30;
+
   static bool _keeps(SmartRules rules, Track track, _Context context) {
     if (rules.rules.isEmpty) return true;
     return rules.matchAll
@@ -75,7 +93,7 @@ abstract final class SmartPlaylist {
           SmartTextField.album => track.album,
           SmartTextField.genre => track.genre ?? '',
         };
-        final found = sortKey(value).contains(sortKey(text));
+        final found = foldedKey(value).contains(foldedKey(text));
         return found == contains;
       }(),
       YearBetween(:final from, :final to) => switch (track.year) {
@@ -98,18 +116,33 @@ abstract final class SmartPlaylist {
     _Context context,
     int seed,
   ) {
+    // Each text's key worked out once, not at every comparison.
+    final keys = <String, String>{};
+    String key(String text) => keys[text] ??= sortKey(text);
+    int byTitle(Track a, Track b) {
+      final title = key(a.title).compareTo(key(b.title));
+      return title != 0 ? title : a.id.compareTo(b.id);
+    }
+
     if (sort == SmartSort.random) {
-      // Sorted first, so the shuffle does not depend on the library's order.
-      tracks
-        ..sort(_byTitle)
-        ..shuffle(math.Random(seed));
+      // Each song draws its place from the seed and its id alone: a song
+      // coming or going leaves the others in the same order.
+      final draws = {for (final t in tracks) t.id: _draw(seed, t.id)};
+      tracks.sort((a, b) {
+        final draw = draws[a.id]!.compareTo(draws[b.id]!);
+        return draw != 0 ? draw : byTitle(a, b);
+      });
       return;
     }
     final stats = context.stats;
+    final today = context.today;
+    final month = <String, int>{};
+    int monthPlays(Track t) =>
+        month[t.id] ??= stats.playsBetween(t.id, today - monthDays + 1, today);
     int byKey(Track a, Track b) => switch (sort) {
       SmartSort.title => 0,
-      SmartSort.artist => sortKey(a.artist).compareTo(sortKey(b.artist)),
-      SmartSort.album => sortKey(a.album).compareTo(sortKey(b.album)),
+      SmartSort.artist => key(a.artist).compareTo(key(b.artist)),
+      SmartSort.album => key(a.album).compareTo(key(b.album)),
       SmartSort.year => _nullsLast(a.year, b.year, (x, y) => y - x),
       SmartSort.addedNewest => _nullsLast(
         a.dateAdded,
@@ -122,6 +155,7 @@ abstract final class SmartPlaylist {
         (x, y) => x.compareTo(y),
       ),
       SmartSort.mostPlayed => stats.total(b.id) - stats.total(a.id),
+      SmartSort.mostPlayedMonth => monthPlays(b) - monthPlays(a),
       SmartSort.leastPlayed => stats.total(a.id) - stats.total(b.id),
       SmartSort.lastPlayedRecent => _nullsLast(
         stats.lastDay(a.id),
@@ -136,16 +170,29 @@ abstract final class SmartPlaylist {
       ),
       SmartSort.random => 0,
     };
+    // Ties break by title, then id: always the same way.
     tracks.sort((a, b) {
-      final key = byKey(a, b);
-      return key != 0 ? key : _byTitle(a, b);
+      final order = byKey(a, b);
+      return order != 0 ? order : byTitle(a, b);
     });
   }
 
-  /// Title, then id: ties always break the same way.
-  static int _byTitle(Track a, Track b) {
-    final title = sortKey(a.title).compareTo(sortKey(b.title));
-    return title != 0 ? title : a.id.compareTo(b.id);
+  /// A song's random place: FNV-1a over [seed] and [id], 32 bits.
+  static int _draw(int seed, String id) {
+    var hash = 0x811c9dc5;
+    void mix(int byte) {
+      hash ^= byte & 0xff;
+      hash = (hash * 0x01000193) & 0xffffffff;
+    }
+
+    for (var i = 0; i < 4; i++) {
+      mix(seed >> (8 * i));
+    }
+    for (final unit in id.codeUnits) {
+      mix(unit);
+      mix(unit >> 8);
+    }
+    return hash;
   }
 
   static int _nullsLast<T>(T? a, T? b, int Function(T, T) compare) =>

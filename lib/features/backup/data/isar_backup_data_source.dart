@@ -162,6 +162,9 @@ final class IsarBackupDataSource {
             ..trackIds = []);
       if (playlist.isLikes) likes = model;
       if (playlist.rules case final rules? when !playlist.isLikes) {
+        // Rules the backup holds but this version cannot read never replace
+        // a smart playlist that works.
+        if (rules == SmartRulesJson.unreadable && target != null) continue;
         // The backup's rules: a smart playlist holds no songs.
         model
           ..rulesJson = SmartRulesJson.encodeString(rules)

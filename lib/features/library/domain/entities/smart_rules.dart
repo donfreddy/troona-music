@@ -49,6 +49,9 @@ enum SmartSort {
   addedNewest,
   addedOldest,
   mostPlayed,
+
+  /// Most plays over the last 30 days, today included.
+  mostPlayedMonth,
   leastPlayed,
   lastPlayedRecent,
   lastPlayedOldest,

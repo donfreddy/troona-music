@@ -83,6 +83,7 @@ class PlaylistBloc extends Bloc<PlaylistEvent, PlaylistState> {
           name: event.name,
           trackIds: playlist.trackIds,
           artworkPath: playlist.artworkPath,
+          rules: playlist.rules,
         ),
       ),
     );

@@ -172,6 +172,28 @@ void main() {
       );
     });
 
+    test('text: a leading "The" is matched, letters beyond Latin-1 fold', () {
+      final songs = [
+        _track('a', artist: 'The Beatles'),
+        _track('b', artist: 'Beatles tribute'),
+        _track('c', artist: 'Łukasz Šafář'),
+      ];
+      expect(keep(const TextMatches(SmartTextField.artist, 'the'), songs), [
+        'a',
+      ]);
+      expect(
+        keep(
+          const TextMatches(SmartTextField.artist, 'The', contains: false),
+          songs,
+        ),
+        ['b', 'c'],
+      );
+      expect(
+        keep(const TextMatches(SmartTextField.artist, 'lukasz safar'), songs),
+        ['c'],
+      );
+    });
+
     test('year: both ends included, open ends, no year does not pass', () {
       final songs = [
         _track('a', year: 1999),
@@ -292,6 +314,30 @@ void main() {
       expect(sorted(SmartSort.leastPlayed), ['d', 'c', 'a', 'b']);
     });
 
+    test('most played over 30 days: older plays do not count', () {
+      // b's 9 plays are 50 days old: none in the month, a tie with d.
+      expect(sorted(SmartSort.mostPlayedMonth), ['a', 'c', 'b', 'd']);
+    });
+
+    test(
+      'most played over 30 days: the 30th day back counts, not the 31st',
+      () {
+        final songs = [_track('x'), _track('y')];
+        final edge = TrackStats({
+          'x': [(today - 29, 1)],
+          'y': [(today - 30, 5)],
+        });
+        expect(
+          run(
+            const SmartRules(sort: SmartSort.mostPlayedMonth),
+            songs,
+            stats: edge,
+          ),
+          ['x', 'y'],
+        );
+      },
+    );
+
     test('last played: never played is the oldest, and last when recent', () {
       expect(sorted(SmartSort.lastPlayedRecent), ['c', 'a', 'b', 'd']);
       expect(sorted(SmartSort.lastPlayedOldest), ['d', 'b', 'a', 'c']);
@@ -307,6 +353,41 @@ void main() {
       );
       expect(reversed, first);
       expect(first.toSet(), {'a', 'b', 'c', 'd'});
+    });
+
+    test('random: a song coming or going leaves the others in order', () {
+      final many = [for (var i = 0; i < 40; i++) _track('s$i')];
+      List<String> order(List<Track> songs) =>
+          run(const SmartRules(sort: SmartSort.random), songs, seed: 42);
+      final full = order(many);
+      final fewer = order(many.where((t) => t.id != full[7]).toList());
+      expect(fewer, [...full]..removeAt(7));
+      // Another seed, another order.
+      expect(
+        run(const SmartRules(sort: SmartSort.random), many, seed: 43),
+        isNot(full),
+      );
+    });
+
+    test('count matches the songs evaluate returns, limit included', () {
+      for (final rules in [
+        const SmartRules(),
+        const SmartRules(limit: 2),
+        const SmartRules(limit: 0),
+        const SmartRules(rules: [LastPlayed(LastPlayedKind.never)]),
+      ]) {
+        expect(
+          SmartPlaylist.count(
+            rules,
+            library,
+            stats: stats,
+            liked: const {},
+            today: today,
+          ),
+          run(rules, library, stats: stats).length,
+          reason: '$rules',
+        );
+      }
     });
 
     test('a limit cuts after sorting; one larger than the list keeps all', () {

@@ -19,7 +19,7 @@ void main() {
     sort: SmartSort.lastPlayedOldest,
     limit: 50,
     rules: [
-      PlaysInPeriod(days: 30, atLeast: false, count: 2),
+      PlaysInPeriod(days: 30, atLeast: false, count: 0),
       LastPlayed(LastPlayedKind.olderThan, days: 90),
       LastPlayed(LastPlayedKind.never),
       AddedWithin(30),
@@ -49,16 +49,18 @@ void main() {
       expect(SmartRulesJson.decodeString(jsonEncode(json)), rules);
     });
 
-    test('a rule out of bounds is left out', () {
+    test('any rule: a rule out of bounds is left out, the others kept', () {
       final json =
           jsonDecode(
                 SmartRulesJson.encodeString(
-                  const SmartRules(rules: [Liked(true)]),
+                  const SmartRules(matchAll: false, rules: [Liked(true)]),
                 ),
               )
               as Map<String, Object?>;
       (json['rules']! as List).addAll([
         {'type': 'plays', 'days': 0, 'atLeast': true, 'count': 1},
+        // "At most" holds only for none: the editor makes no other.
+        {'type': 'plays', 'days': 30, 'atLeast': false, 'count': 3},
         {'type': 'added', 'days': -3},
         {'type': 'text', 'field': 'artist', 'text': '  ', 'contains': true},
         {'type': 'year'},
@@ -67,6 +69,55 @@ void main() {
       expect(SmartRulesJson.decodeString(jsonEncode(json))!.rules, const [
         Liked(true),
       ]);
+    });
+
+    test('all rules: a rule left out keeps nothing, not more songs', () {
+      final json =
+          jsonDecode(
+                SmartRulesJson.encodeString(
+                  const SmartRules(rules: [Liked(true)]),
+                ),
+              )
+              as Map<String, Object?>;
+      (json['rules']! as List).add({'type': 'mood', 'mood': 'happy'});
+      expect(
+        SmartRulesJson.decodeString(jsonEncode(json)),
+        SmartRulesJson.unreadable,
+      );
+    });
+
+    test('any rule: every rule left out keeps nothing, not every song', () {
+      final json = {
+        'v': 1,
+        'all': false,
+        'sort': 'title',
+        'rules': [
+          {'type': 'mood', 'mood': 'happy'},
+          {'type': 'added', 'days': -3},
+        ],
+      };
+      expect(
+        SmartRulesJson.decodeString(jsonEncode(json)),
+        SmartRulesJson.unreadable,
+      );
+    });
+
+    test('no rules at all stays every song: that was asked for', () {
+      const rules = SmartRules(matchAll: false);
+      expect(
+        SmartRulesJson.decodeString(SmartRulesJson.encodeString(rules)),
+        rules,
+      );
+    });
+
+    test('"not played in" makes the round trip', () {
+      const rules = SmartRules(
+        rules: [PlaysInPeriod(days: 30, atLeast: false, count: 0)],
+      );
+      expect(
+        SmartRulesJson.decodeString(SmartRulesJson.encodeString(rules)),
+        rules,
+      );
     });
 
     test('an unknown sort falls back to the title', () {

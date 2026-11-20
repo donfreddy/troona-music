@@ -329,6 +329,38 @@ void main() {
       expect(all.last.trackIds, isEmpty);
     });
 
+    test('rules a backup holds but cannot be read never replace a smart '
+        'playlist that works; with none here, they come as they are', () async {
+      const working = SmartRules(rules: [Liked(true)]);
+      store(
+        playlists: [
+          playlist('s', 'Auto', [])
+            ..rulesJson = SmartRulesJson.encodeString(working),
+        ],
+      );
+      const saved = [
+        BackupPlaylist(
+          name: 'Auto',
+          isLikes: false,
+          tracks: [],
+          rules: SmartRulesJson.unreadable,
+        ),
+        BackupPlaylist(
+          name: 'Other',
+          isLikes: false,
+          tracks: [],
+          rules: SmartRulesJson.unreadable,
+        ),
+      ];
+
+      await source.restore(backup(playlists: saved), const {});
+
+      final all = isar.playlistModels.where().sortById().findAll();
+      expect(all.map((p) => p.name), ['Auto', 'Other']);
+      expect(all.first.toEntity().rules, working);
+      expect(all.last.toEntity().rules, SmartRulesJson.unreadable);
+    });
+
     test('a smart playlist is read into the backup with its rules', () {
       const rules = SmartRules(rules: [Liked(true)]);
       store(

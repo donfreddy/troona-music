@@ -41,3 +41,15 @@ final class PlaylistReorderTracksRequested extends PlaylistDetailEvent {
   @override
   List<Object?> get props => [playlistId, oldIndex, newIndex];
 }
+
+/// Copies the smart playlist shown into a playlist of songs named [name],
+/// its songs in the order shown. [onSaved] runs once it is written,
+/// [onFailed] when nothing could be.
+final class PlaylistSaveAsRequested extends PlaylistDetailEvent {
+  final String name;
+  final void Function(Playlist saved)? onSaved;
+  final void Function()? onFailed;
+  const PlaylistSaveAsRequested(this.name, {this.onSaved, this.onFailed});
+  @override
+  List<Object?> get props => [name];
+}

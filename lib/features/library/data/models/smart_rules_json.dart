@@ -5,9 +5,12 @@ import 'package:troona/features/library/domain/entities/smart_rules.dart';
 /// [SmartRules] as stored with a playlist and in backups.
 ///
 /// Read leniently: a rule of a kind this version does not know (from a
-/// newer one), or out of bounds, is left out and the others kept. Rules
-/// that cannot be read at all keep nothing ([unreadable]): an empty list
-/// the user can edit, never the whole library.
+/// newer one), or out of bounds, is left out and the others kept, as long
+/// as that only narrows the songs (any rule). Under all rules, a rule left
+/// out would let in songs it kept out, and with every rule left out every
+/// song would pass: such rules, and rules that cannot be read at all, keep
+/// nothing ([unreadable]): an empty list the user can edit, never the
+/// whole library.
 abstract final class SmartRulesJson {
   static const _version = 1;
 
@@ -46,11 +49,14 @@ abstract final class SmartRulesJson {
         (limit is! int || limit < 0 || limit > SmartRules.maxLimit)) {
       return null;
     }
+    final stored = rules.take(SmartRules.maxRules).toList();
+    final read = [for (final r in stored) ?_decodeRule(r)];
+    if (read.length < stored.length && (all || read.isEmpty)) return null;
     return SmartRules(
       matchAll: all,
       sort: sort,
       limit: limit as int?,
-      rules: [for (final r in rules.take(SmartRules.maxRules)) ?_decodeRule(r)],
+      rules: read,
     );
   }
 
@@ -95,11 +101,10 @@ abstract final class SmartRulesJson {
     };
     return switch (json['type']) {
       'plays' => switch ((days('days'), json['atLeast'], days('count'))) {
-        (final d?, final bool atLeast, final c?) when d > 0 => PlaysInPeriod(
-          days: d,
-          atLeast: atLeast,
-          count: c,
-        ),
+        // At most: none only, the one the editor offers and names.
+        (final d?, final bool atLeast, final c?)
+            when d > 0 && (atLeast || c == 0) =>
+          PlaysInPeriod(days: d, atLeast: atLeast, count: c),
         _ => null,
       },
       'lastPlayed' => switch ((
