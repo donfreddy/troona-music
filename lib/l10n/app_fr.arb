@@ -193,6 +193,7 @@
   "playlistsEmptyTitle": "Créez votre première playlist",
   "playlistsEmptyBody": "Rassemblez des morceaux pour une humeur, un moment ou un road trip.",
   "playlistNew": "Nouvelle playlist",
+  "playlistDefaultName": "Ma playlist n° {number}",
   "playlistEdit": "Modifier la playlist",
   "playlistNameHint": "Nom de la playlist",
   "playlistAddCover": "Ajouter une image",

@@ -713,6 +713,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistNew => 'New playlist';
 
   @override
+  String playlistDefaultName(int number) {
+    return 'My playlist #$number';
+  }
+
+  @override
   String get playlistEdit => 'Edit playlist';
 
   @override

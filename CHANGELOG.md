@@ -11,6 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Changed
 
+- A new playlist starts named "My playlist #N", ready to save or rename. Its form covers the tabs and the mini player, and shows no empty cover.
 - In a playlist, a long press on a song picks it: the handle at the end of the row moves it.
 - Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.
 - The tab bar casts a shadow, and floating glass shares one edge.

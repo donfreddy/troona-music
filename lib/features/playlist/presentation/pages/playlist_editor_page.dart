@@ -1,43 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
-import 'package:troona/core/extensions/context_ext.dart';
-import 'package:troona/shared/widgets/artwork_image.dart';
-import 'package:troona/shared/widgets/glass_icon_button.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/shared/widgets/glass_icon_button.dart';
 
+/// Names a new playlist, or renames [playlist]: the same form as the smart
+/// playlist editor, its name field alone. No cover: a playlist's is the
+/// mosaic of its songs.
 class PlaylistEditorPage extends StatefulWidget {
   final Playlist? playlist;
 
-  const PlaylistEditorPage({super.key, this.playlist});
+  /// The name a new playlist starts with, selected so typing replaces it
+  /// and Save keeps it as it is.
+  final String? initialName;
+
+  const PlaylistEditorPage({super.key, this.playlist, this.initialName});
+
+  /// Most characters in a name, as for any playlist.
+  static const maxName = 80;
 
   @override
   State<PlaylistEditorPage> createState() => _PlaylistEditorPageState();
 }
 
 class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
-  late final TextEditingController _titleController;
+  late final TextEditingController _name;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.playlist?.name);
+    final text = widget.playlist?.name ?? widget.initialName ?? '';
+    _name = TextEditingController(text: text)
+      ..selection = TextSelection(baseOffset: 0, extentOffset: text.length);
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _name.dispose();
     super.dispose();
   }
 
-  void _onSave() {
-    final name = _titleController.text.trim();
+  void _save() {
+    final name = _name.text.trim();
     if (name.isEmpty) return;
-
     final playlist = widget.playlist;
     if (playlist == null) {
       context.read<PlaylistBloc>().add(PlaylistCreateRequested(title: name));
@@ -46,11 +56,12 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         PlaylistRenameRequested(playlist.id, name),
       );
     }
-    context.pop();
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -59,63 +70,53 @@ class _PlaylistEditorPageState extends State<PlaylistEditorPage> {
         leading: Center(
           child: GlassIconButton(
             icon: AppIcons.close,
-            tooltip: context.l10n.actionClose,
-            onTap: () => context.pop(),
+            tooltip: l10n.actionClose,
+            onTap: () => Navigator.of(context).pop(),
           ),
         ),
         title: Text(
-          widget.playlist == null
-              ? context.l10n.playlistNew
-              : context.l10n.playlistEdit,
+          widget.playlist == null ? l10n.playlistNew : l10n.playlistEdit,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          AppButton.primary(
-            context.l10n.actionSave,
-            size: AppButtonSize.small,
-            onPressed: _onSave,
+          // Follows the field: no Save without a name.
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _name,
+            builder: (_, value, _) => AppButton.primary(
+              l10n.actionSave,
+              size: AppButtonSize.small,
+              onPressed: value.text.trim().isEmpty ? null : _save,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          children: [
-            const SizedBox(height: AppSpacing.xl),
-            const _PlaylistCoverPlaceholder(),
-            const SizedBox(height: AppSpacing.xl2),
-            TextField(
-              controller: _titleController,
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          0,
+          AppSpacing.md,
+          0,
+          AppSpacing.xl + MediaQuery.paddingOf(context).bottom,
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: TextField(
+              controller: _name,
               autofocus: widget.playlist == null,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _save(),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              maxLength: 80,
+              maxLength: PlaylistEditorPage.maxName,
               decoration: InputDecoration(
-                hintText: context.l10n.playlistNameHint,
+                hintText: l10n.playlistNameHint,
                 border: InputBorder.none,
                 counterText: '',
               ),
             ),
-            const Divider(color: Colors.white12),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Custom covers are not supported yet: the cover is the playlist's mosaic.
-class _PlaylistCoverPlaceholder extends StatelessWidget {
-  const _PlaylistCoverPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-      child: const ArtworkPlaceholder(
-        icon: AppIcons.playlist,
-        width: 180,
-        height: 180,
+          ),
+          Divider(color: context.colors.hairline, height: 1),
+        ],
       ),
     );
   }

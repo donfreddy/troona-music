@@ -10,6 +10,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_editor_page.dart';
+import 'package:troona/features/playlist/presentation/utils/default_playlist_name.dart';
 import 'package:troona/features/playlist/presentation/pages/smart_playlist_editor_page.dart';
 import 'package:troona/features/playlist/presentation/widgets/likes_hero_card.dart';
 import 'package:troona/features/playlist/presentation/widgets/playlist_card.dart';
@@ -178,14 +179,27 @@ class _PlaylistsBody extends StatelessWidget {
   }
 }
 
-/// Creates a playlist, or renames [playlist].
+/// Creates a playlist, named "My playlist #N" until renamed, or renames
+/// [playlist]. On the root navigator, as the smart playlist editor: the
+/// shell's floating bar would cover a form pushed in the tab.
 void _openEditor(BuildContext context, [Playlist? playlist]) {
-  Navigator.of(context).push(
+  final bloc = context.read<PlaylistBloc>();
+  final listed = switch (bloc.state) {
+    PlaylistLoaded(:final playlists) => playlists,
+    _ => const <Playlist>[],
+  };
+  final l10n = context.l10n;
+  Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute(
       fullscreenDialog: true,
       builder: (ctx) => BlocProvider.value(
-        value: context.read<PlaylistBloc>(),
-        child: PlaylistEditorPage(playlist: playlist),
+        value: bloc,
+        child: PlaylistEditorPage(
+          playlist: playlist,
+          initialName: playlist == null
+              ? defaultPlaylistName(listed, l10n.playlistDefaultName)
+              : null,
+        ),
       ),
     ),
   );

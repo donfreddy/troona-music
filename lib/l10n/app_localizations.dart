@@ -1256,6 +1256,12 @@ abstract class AppLocalizations {
   /// **'New playlist'**
   String get playlistNew;
 
+  /// Name a new playlist starts with, selected so typing replaces it.
+  ///
+  /// In en, this message translates to:
+  /// **'My playlist #{number}'**
+  String playlistDefaultName(int number);
+
   /// No description provided for @playlistEdit.
   ///
   /// In en, this message translates to:

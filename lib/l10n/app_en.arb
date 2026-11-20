@@ -369,6 +369,15 @@
   "playlistsEmptyTitle": "Make your first playlist",
   "playlistsEmptyBody": "Group songs for a mood, a moment or a road trip.",
   "playlistNew": "New playlist",
+  "playlistDefaultName": "My playlist #{number}",
+  "@playlistDefaultName": {
+    "description": "Name a new playlist starts with, selected so typing replaces it.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "playlistEdit": "Edit playlist",
   "playlistNameHint": "Playlist name",
   "playlistAddCover": "Add a cover",

@@ -58,6 +58,9 @@ final class MemoryPlaylists implements PlaylistRepository {
   int _next = 0;
 
   @override
+  Stream<void> watchPlaylists() => const Stream.empty();
+
+  @override
   Future<Either<Failure, List<Playlist>>> getPlaylists() async =>
       right(stored.values.toList());
 
