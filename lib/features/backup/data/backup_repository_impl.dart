@@ -9,6 +9,8 @@ import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/data/isar_backup_data_source.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
+import 'package:troona/features/equalizer/domain/repositories/equalizer_repository.dart';
 import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 
@@ -16,6 +18,9 @@ final class BackupRepositoryImpl implements BackupRepository {
   final IsarBackupDataSource _source;
   final SettingsRepository _settings;
   final MonthlyReplayLog _replayLog;
+
+  /// Its setting and profiles go into exports; none without it.
+  final EqualizerRepository? _equalizer;
 
   /// Holds the export being shared; emptied once it is (see
   /// [clearExports]), since it carries the listening history.
@@ -27,10 +32,12 @@ final class BackupRepositoryImpl implements BackupRepository {
     required SettingsRepository settings,
     required MonthlyReplayLog replayLog,
     required Directory exportDir,
+    EqualizerRepository? equalizer,
     DateTime Function()? now,
   }) : _source = source,
        _settings = settings,
        _replayLog = replayLog,
+       _equalizer = equalizer,
        _exportDir = exportDir,
        _now = now ?? DateTime.now;
 
@@ -40,11 +47,19 @@ final class BackupRepositoryImpl implements BackupRepository {
       final settings = await _settings.loadSettings();
       return await settings.fold((f) async => left(f), (settings) async {
         final now = _now();
-        final backup = _source.read(
-          createdAt: now,
-          settings: settings,
-          replayMonth: _replayLog.lastMonth,
-        );
+        final backup = _source
+            .read(
+              createdAt: now,
+              settings: settings,
+              replayMonth: _replayLog.lastMonth,
+            )
+            .withEqualizer(switch (_equalizer) {
+              final eq? => EqualizerSnapshot(
+                settings: eq.loadSettings(),
+                profiles: eq.loadProfiles(),
+              ),
+              null => null,
+            });
         if (await _exportDir.exists()) {
           await _exportDir.delete(recursive: true);
         }

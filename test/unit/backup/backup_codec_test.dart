@@ -3,6 +3,10 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
+import 'package:troona/features/equalizer/domain/entities/eq_curve.dart';
+import 'package:troona/features/equalizer/domain/entities/eq_profile.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_settings.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 final _backup = Backup(
@@ -41,9 +45,54 @@ List<int> _bytes(Map<String, dynamic> json) => utf8.encode(jsonEncode(json));
 
 Matcher _rejected = throwsA(isA<BackupFormatException>());
 
+final _equalizer = EqualizerSnapshot(
+  settings: EqualizerSettings(
+    enabled: true,
+    presetId: null,
+    curve: EqCurve(const [EqPoint(60, 4), EqPoint(14000, -2.5)]),
+    boostDb: 2,
+  ),
+  profiles: [
+    EqProfile(
+      id: 'k3f9',
+      name: 'Headphones',
+      curve: EqCurve(const [EqPoint(230, 3)]),
+    ),
+  ],
+);
+
 void main() {
   test('a backup reads back as it was written', () {
     expect(BackupCodec.decode(BackupCodec.encode(_backup)), _backup);
+  });
+
+  group('the equalizer', () {
+    final withEq = _backup.withEqualizer(_equalizer);
+
+    test('reads back as it was written', () {
+      expect(BackupCodec.decode(BackupCodec.encode(withEq)), withEq);
+    });
+
+    test('a backup made before it has none', () {
+      expect(_json().containsKey('equalizer'), isFalse);
+      expect(BackupCodec.decode(BackupCodec.encode(_backup)).equalizer, isNull);
+    });
+
+    test('out of bounds, it is left out and the rest restores', () {
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(withEq)))
+              as Map<String, dynamic>;
+      json['equalizer']['settings']['boost_db'] = 99;
+      final read = BackupCodec.decode(_bytes(json));
+      expect(read.equalizer, isNull);
+      expect(read.playlists, _backup.playlists);
+      expect(read.settings, _backup.settings);
+    });
+
+    test('not an object, it is left out', () {
+      final json = _json()..['equalizer'] = 'loud';
+      expect(BackupCodec.decode(_bytes(json)).equalizer, isNull);
+    });
   });
 
   test('a backup made before the hours were counted has none', () {
