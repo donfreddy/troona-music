@@ -7,6 +7,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Added
 
 - Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page, Recently added or Search starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
+- An equalizer, on Android: from Now Playing or Settings, draw the curve across your phone's bands with a finger, or start from a preset (Bass boost, Vocal, Rock and more). Save a curve under a name, hold the ear to hear the song without it, and add up to 6 dB with Volume +. Avoid clipping lowers the level by as much as the bands boost. Backups carry it.
 
 ### Changed
 
