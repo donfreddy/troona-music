@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/library/data/models/smart_rules_json.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -56,12 +58,14 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
     required String title,
     String? description,
     String? artworkPath,
+    SmartRules? rules,
   }) async {
     try {
       final playlist = await _cache.createPlaylist(
         title: title,
         description: description,
         artworkPath: artworkPath,
+        rulesJson: rules == null ? null : SmartRulesJson.encodeString(rules),
       );
       return right(playlist.toEntity());
     } catch (e, st) {
@@ -81,7 +85,11 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
         ..playlistId = playlist.id
         ..name = playlist.name
         ..artworkPath = playlist.artworkPath
-        ..trackIds = playlist.trackIds;
+        ..trackIds = playlist.trackIds
+        ..rulesJson = switch (playlist.rules) {
+          final rules? => SmartRulesJson.encodeString(rules),
+          null => null,
+        };
 
       await _cache.updatePlaylist(model);
       return right(unit);
@@ -166,6 +174,9 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
       final playlist = await _cache.getPlaylistById(playlistId);
       if (playlist == null) {
         return left(const DatabaseFailure('Playlist not found'));
+      }
+      if (playlist.rulesJson != null) {
+        return left(const DatabaseFailure('A smart playlist has no order'));
       }
 
       final tracks = List<String>.from(playlist.trackIds);

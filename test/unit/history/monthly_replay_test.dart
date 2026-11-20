@@ -9,6 +9,7 @@ import 'package:troona/features/history/domain/repositories/monthly_replay_log.d
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
 import 'package:troona/features/history/domain/use_cases/create_monthly_replay_use_case.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
@@ -66,6 +67,7 @@ final class _Playlists implements PlaylistRepository {
     required String title,
     String? description,
     String? artworkPath,
+    SmartRules? rules,
   }) async {
     final p = Playlist(id: 'p${saved.length + 1}', name: title);
     saved[p.id] = p;

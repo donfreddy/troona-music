@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
 abstract interface class PlaylistRepository {
@@ -13,10 +14,13 @@ abstract interface class PlaylistRepository {
   Stream<void> watchPlaylists();
 
   // Writes (CRUD)
+  /// With [rules], a smart playlist: its songs come from them, and it
+  /// takes no song added, removed or moved.
   Future<Either<Failure, Playlist>> createPlaylist({
     required String title,
     String? description,
     String? artworkPath,
+    SmartRules? rules,
   });
 
   Future<Either<Failure, Unit>> updatePlaylist(Playlist playlist);

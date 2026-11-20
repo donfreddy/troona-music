@@ -99,18 +99,20 @@ class IsarLibraryDataSource {
         .findFirst();
   }
 
-  /// Creates a new playlist.
+  /// Creates a new playlist; with [rulesJson], a smart one.
   Future<PlaylistModel> createPlaylist({
     required String title,
     String? description,
     String? artworkPath,
+    String? rulesJson,
   }) async {
     final playlist = PlaylistModel()
       ..playlistId = DateTime.now().millisecondsSinceEpoch.toString()
       ..name = title
       // ..description = description
       ..artworkPath = artworkPath
-      ..trackIds = [];
+      ..trackIds = []
+      ..rulesJson = rulesJson;
 
     _isar.write((isar) {
       playlist.id = isar.playlistModels.autoIncrement();
@@ -132,6 +134,9 @@ class IsarLibraryDataSource {
         }
         existing.artworkPath = playlist.artworkPath;
         existing.trackIds = playlist.trackIds;
+        if (playlist.playlistId != likesPlaylistId) {
+          existing.rulesJson = playlist.rulesJson;
+        }
         isar.playlistModels.put(existing);
       } else {
         if (playlist.id == 0) {
@@ -163,7 +168,10 @@ class IsarLibraryDataSource {
           .where()
           .playlistIdEqualTo(playlistId)
           .findFirst();
-      if (playlist != null && !playlist.trackIds.contains(trackId)) {
+      // A smart playlist's songs come from its rules: none are added.
+      if (playlist != null &&
+          playlist.rulesJson == null &&
+          !playlist.trackIds.contains(trackId)) {
         playlist.trackIds.add(trackId);
         isar.playlistModels.put(playlist);
       }
@@ -182,7 +190,9 @@ class IsarLibraryDataSource {
           .where()
           .playlistIdEqualTo(playlistId)
           .findFirst();
-      if (playlist == null) return const <String>[];
+      if (playlist == null || playlist.rulesJson != null) {
+        return const <String>[];
+      }
       final held = {...playlist.trackIds};
       final added = [
         for (final id in trackIds)

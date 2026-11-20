@@ -24,6 +24,7 @@ final PlaylistModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'name', type: IsarType.string),
       IsarPropertySchema(name: 'artworkPath', type: IsarType.string),
       IsarPropertySchema(name: 'trackIds', type: IsarType.stringList),
+      IsarPropertySchema(name: 'rulesJson', type: IsarType.string),
     ],
     indexes: [
       IsarIndexSchema(
@@ -62,6 +63,14 @@ int serializePlaylistModel(IsarWriter writer, PlaylistModel object) {
     }
     IsarCore.endList(writer, listWriter);
   }
+  {
+    final value = object.rulesJson;
+    if (value == null) {
+      IsarCore.writeNull(writer, 5);
+    } else {
+      IsarCore.writeString(writer, 5, value);
+    }
+  }
   return object.id;
 }
 
@@ -88,6 +97,7 @@ PlaylistModel deserializePlaylistModel(IsarReader reader) {
       }
     }
   }
+  object.rulesJson = IsarCore.readString(reader, 5);
   return object;
 }
 
@@ -119,6 +129,8 @@ dynamic deserializePlaylistModelProp(IsarReader reader, int property) {
           }
         }
       }
+    case 5:
+      return IsarCore.readString(reader, 5);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -130,6 +142,7 @@ sealed class _PlaylistModelUpdate {
     String? playlistId,
     String? name,
     String? artworkPath,
+    String? rulesJson,
   });
 }
 
@@ -144,6 +157,7 @@ class _PlaylistModelUpdateImpl implements _PlaylistModelUpdate {
     Object? playlistId = ignore,
     Object? name = ignore,
     Object? artworkPath = ignore,
+    Object? rulesJson = ignore,
   }) {
     return collection.updateProperties(
           [id],
@@ -151,6 +165,7 @@ class _PlaylistModelUpdateImpl implements _PlaylistModelUpdate {
             if (playlistId != ignore) 1: playlistId as String?,
             if (name != ignore) 2: name as String?,
             if (artworkPath != ignore) 3: artworkPath as String?,
+            if (rulesJson != ignore) 5: rulesJson as String?,
           },
         ) >
         0;
@@ -163,6 +178,7 @@ sealed class _PlaylistModelUpdateAll {
     String? playlistId,
     String? name,
     String? artworkPath,
+    String? rulesJson,
   });
 }
 
@@ -177,11 +193,13 @@ class _PlaylistModelUpdateAllImpl implements _PlaylistModelUpdateAll {
     Object? playlistId = ignore,
     Object? name = ignore,
     Object? artworkPath = ignore,
+    Object? rulesJson = ignore,
   }) {
     return collection.updateProperties(id, {
       if (playlistId != ignore) 1: playlistId as String?,
       if (name != ignore) 2: name as String?,
       if (artworkPath != ignore) 3: artworkPath as String?,
+      if (rulesJson != ignore) 5: rulesJson as String?,
     });
   }
 }
@@ -193,7 +211,12 @@ extension PlaylistModelUpdate on IsarCollection<int, PlaylistModel> {
 }
 
 sealed class _PlaylistModelQueryUpdate {
-  int call({String? playlistId, String? name, String? artworkPath});
+  int call({
+    String? playlistId,
+    String? name,
+    String? artworkPath,
+    String? rulesJson,
+  });
 }
 
 class _PlaylistModelQueryUpdateImpl implements _PlaylistModelQueryUpdate {
@@ -207,11 +230,13 @@ class _PlaylistModelQueryUpdateImpl implements _PlaylistModelQueryUpdate {
     Object? playlistId = ignore,
     Object? name = ignore,
     Object? artworkPath = ignore,
+    Object? rulesJson = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (playlistId != ignore) 1: playlistId as String?,
       if (name != ignore) 2: name as String?,
       if (artworkPath != ignore) 3: artworkPath as String?,
+      if (rulesJson != ignore) 5: rulesJson as String?,
     });
   }
 }
@@ -236,6 +261,7 @@ class _PlaylistModelQueryBuilderUpdateImpl
     Object? playlistId = ignore,
     Object? name = ignore,
     Object? artworkPath = ignore,
+    Object? rulesJson = ignore,
   }) {
     final q = query.build();
     try {
@@ -243,6 +269,7 @@ class _PlaylistModelQueryBuilderUpdateImpl
         if (playlistId != ignore) 1: playlistId as String?,
         if (name != ignore) 2: name as String?,
         if (artworkPath != ignore) 3: artworkPath as String?,
+        if (rulesJson != ignore) 5: rulesJson as String?,
       });
     } finally {
       q.close();
@@ -926,6 +953,161 @@ extension PlaylistModelQueryFilter
       );
     });
   }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 5, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonGreaterThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonGreaterThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonLessThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 5, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonLessThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonBetween(String? lower, String? upper, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 5,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 5,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(property: 5, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterFilterCondition>
+  rulesJsonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(property: 5, value: ''),
+      );
+    });
+  }
 }
 
 extension PlaylistModelQueryObject
@@ -990,6 +1172,22 @@ extension PlaylistModelQuerySortBy
       return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterSortBy> sortByRulesJson({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterSortBy> sortByRulesJsonDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension PlaylistModelQuerySortThenBy
@@ -1051,6 +1249,22 @@ extension PlaylistModelQuerySortThenBy
       return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterSortBy> thenByRulesJson({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterSortBy> thenByRulesJsonDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(5, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension PlaylistModelQueryWhereDistinct
@@ -1081,6 +1295,13 @@ extension PlaylistModelQueryWhereDistinct
   distinctByTrackIds() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(4);
+    });
+  }
+
+  QueryBuilder<PlaylistModel, PlaylistModel, QAfterDistinct>
+  distinctByRulesJson({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(5, caseSensitive: caseSensitive);
     });
   }
 }
@@ -1114,6 +1335,12 @@ extension PlaylistModelQueryProperty1
   QueryBuilder<PlaylistModel, List<String>, QAfterProperty> trackIdsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<PlaylistModel, String?, QAfterProperty> rulesJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 }
@@ -1152,6 +1379,13 @@ extension PlaylistModelQueryProperty2<R>
       return query.addProperty(4);
     });
   }
+
+  QueryBuilder<PlaylistModel, (R, String?), QAfterProperty>
+  rulesJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
 }
 
 extension PlaylistModelQueryProperty3<R1, R2>
@@ -1186,6 +1420,13 @@ extension PlaylistModelQueryProperty3<R1, R2>
   trackIdsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<PlaylistModel, (R1, R2, String?), QOperations>
+  rulesJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 }
