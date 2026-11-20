@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// A song as a backup describes it: enough to find it again on another
@@ -24,20 +25,23 @@ final class BackupTrack extends Equatable {
   List<Object?> get props => [title, artist, album, durationMs, fileName, size];
 }
 
-/// Songs are named by their key in [Backup.tracks].
+/// Songs are named by their key in [Backup.tracks]. A smart playlist has
+/// [rules] and no songs.
 final class BackupPlaylist extends Equatable {
   final String name;
   final bool isLikes;
   final List<String> tracks;
+  final SmartRules? rules;
 
   const BackupPlaylist({
     required this.name,
     required this.isLikes,
     required this.tracks,
+    this.rules,
   });
 
   @override
-  List<Object?> get props => [name, isLikes, tracks];
+  List<Object?> get props => [name, isLikes, tracks, rules];
 }
 
 final class BackupPlay extends Equatable {

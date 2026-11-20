@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:isar_plus/isar_plus.dart';
+import 'package:troona/features/library/data/models/smart_rules_json.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
@@ -68,6 +69,7 @@ final class IsarBackupDataSource {
               for (final id in p.trackIds)
                 if (tracks.containsKey(id)) id,
             ],
+            rules: SmartRulesJson.decodeString(p.rulesJson),
           ),
       ],
       plays: [
@@ -119,16 +121,20 @@ final class IsarBackupDataSource {
   ) {
     final playlists = isar.playlistModels;
     final stored = playlists.where().sortById().findAll();
+    // Smart playlists and playlists of songs are matched apart: a name
+    // shared by one of each never merges them.
     final byName = <String, List<PlaylistModel>>{};
+    final smartByName = <String, List<PlaylistModel>>{};
     PlaylistModel? likes;
     for (final p in stored) {
       if (p.playlistId == Playlist.likesId) {
         likes = p;
       } else {
-        (byName[p.name] ??= []).add(p);
+        ((p.rulesJson == null ? byName : smartByName)[p.name] ??= []).add(p);
       }
     }
     final seen = <String, int>{};
+    final seenSmart = <String, int>{};
     final stamp = DateTime.now().microsecondsSinceEpoch;
     var created = 0;
     for (final playlist in saved) {
@@ -136,8 +142,12 @@ final class IsarBackupDataSource {
       if (playlist.isLikes) {
         target = likes;
       } else {
-        final rank = seen[playlist.name] = (seen[playlist.name] ?? -1) + 1;
-        target = byName[playlist.name]?.elementAtOrNull(rank);
+        final smart = playlist.rules != null;
+        final ranks = smart ? seenSmart : seen;
+        final rank = ranks[playlist.name] = (ranks[playlist.name] ?? -1) + 1;
+        target = (smart ? smartByName : byName)[playlist.name]?.elementAtOrNull(
+          rank,
+        );
       }
       final model =
           target ??
@@ -151,6 +161,14 @@ final class IsarBackupDataSource {
                 : playlist.name
             ..trackIds = []);
       if (playlist.isLikes) likes = model;
+      if (playlist.rules case final rules? when !playlist.isLikes) {
+        // The backup's rules: a smart playlist holds no songs.
+        model
+          ..rulesJson = SmartRulesJson.encodeString(rules)
+          ..trackIds = [];
+        playlists.put(model);
+        continue;
+      }
       final trackIds = [...model.trackIds];
       final present = trackIds.toSet();
       for (final key in playlist.tracks) {

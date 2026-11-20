@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/features/library/data/models/smart_rules_json.dart';
+import 'package:troona/features/library/domain/entities/smart_rules.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/data/backup_repository_impl.dart';
@@ -302,6 +304,45 @@ void main() {
         ['1'],
         ['2'],
       ]);
+    });
+
+    test('a smart playlist comes back with its rules, once, and never '
+        'merges with a playlist of songs of its name', () async {
+      const rules = SmartRules(rules: [Liked(true)], limit: 25);
+      store(
+        playlists: [
+          playlist('p', 'Mix', ['x']),
+        ],
+      );
+      const saved = [
+        BackupPlaylist(name: 'Mix', isLikes: false, tracks: [], rules: rules),
+      ];
+
+      await source.restore(backup(playlists: saved), const {});
+      await source.restore(backup(playlists: saved), const {});
+
+      final all = isar.playlistModels.where().sortById().findAll();
+      expect(all, hasLength(2));
+      expect(all.first.trackIds, ['x']);
+      expect(all.first.rulesJson, isNull);
+      expect(all.last.toEntity().rules, rules);
+      expect(all.last.trackIds, isEmpty);
+    });
+
+    test('a smart playlist is read into the backup with its rules', () {
+      const rules = SmartRules(rules: [Liked(true)]);
+      store(
+        playlists: [
+          playlist('s', 'Auto', [])
+            ..rulesJson = SmartRulesJson.encodeString(rules),
+        ],
+      );
+      final read = source.read(
+        createdAt: t0,
+        settings: const AppSettings(),
+        replayMonth: null,
+      );
+      expect(read.playlists.single.rules, rules);
     });
 
     test('same names pair by rank with what was here, twice over', () async {
