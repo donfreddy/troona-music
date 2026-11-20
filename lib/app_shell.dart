@@ -22,6 +22,9 @@ import 'package:troona/features/library/presentation/widgets/selection/selection
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/utils/orb_action.dart';
+import 'package:troona/features/player/presentation/utils/open_full_player.dart';
+import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
@@ -189,8 +192,29 @@ class _AppShellState extends State<AppShell> {
     super.dispose();
   }
 
+  /// The orb at the centre of the bar: Now Playing while a song is loaded,
+  /// music otherwise ([OrbAction]).
+  void _onOrbTapped() {
+    final player = context.read<PlayerBloc>();
+    final action = OrbAction.of(
+      player.state,
+      hasSession: getIt<PlaybackSessionStore>().load() != null,
+    );
+    switch (action) {
+      case OrbAction.openNowPlaying:
+        openFullPlayer(context);
+      case OrbAction.resumeSession:
+        player.add(const RestorePlaybackSessionRequested(play: true));
+      case OrbAction.shuffleLibrary:
+        shuffleWholeLibrary(context);
+    }
+  }
+
   void _onTabChanged(AppTab tab) {
-    if (tab == AppTab.player) return;
+    if (tab == AppTab.player) {
+      _onOrbTapped();
+      return;
+    }
 
     final index = switch (tab) {
       AppTab.home => 0,
