@@ -6,6 +6,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
+- Smart playlists: songs picked by rules (plays over a period, last played, date added, liked, artist, album, genre, year, duration, lossless), matching all or any of them, sorted and capped as you choose. Start from a template (Most played this month, Never played, Forgotten, Recently added, Lossless) or from nothing; the editor counts the songs as the rules change. They are worked out again each time you open one and after each song you play, and Save as a playlist keeps today's songs as a playlist of your own. Backups carry their rules.
 - Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page, Recently added or Search starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
 
 ### Changed
