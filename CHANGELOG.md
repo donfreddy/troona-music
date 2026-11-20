@@ -11,6 +11,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 ### Changed
 
 - In a playlist, a long press on a song picks it: the handle at the end of the row moves it.
+- The centre of the tab bar is an orb in the colours of the song playing, and a button: it opens Now Playing, or starts music when nothing is loaded (the last session, else the whole library shuffled). On Now Playing it closes the page. Its colours swirl to each new song's and it pulses on play and pause; at rest it does not move.
 - Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.
 - The tab bar casts a shadow, and floating glass shares one edge.
 - Now Playing's ring is drawn in light grey to white, which reads over every cover's colours.

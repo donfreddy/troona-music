@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/shared/widgets/glass_edge.dart';
@@ -24,7 +25,9 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/features/player/presentation/widgets/playing_orb.dart';
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
@@ -66,6 +69,9 @@ void main() {
   late FakeAudioPort port;
   late _Likes likes;
 
+  /// The tabs asked for by taps on the bar, since the last pump.
+  late List<AppTab> asked;
+
   Future<PlayerBloc> pump(
     WidgetTester tester,
     AppTab tab, {
@@ -80,6 +86,8 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     port = FakeAudioPort();
+    asked = [];
+    final palette = TrackPaletteCubit();
     final bloc = buildTestPlayerBloc(port, PlaybackSessionStore(prefs));
     if (queue != null) {
       port
@@ -101,6 +109,7 @@ void main() {
       await tester.pumpWidget(const SizedBox());
       unawaited(bloc.close());
       unawaited(likesCubit.close());
+      unawaited(palette.close());
       unawaited(port.close());
     });
     await tester.pumpWidget(
@@ -108,6 +117,7 @@ void main() {
         providers: [
           BlocProvider.value(value: bloc),
           BlocProvider.value(value: likesCubit),
+          BlocProvider.value(value: palette),
         ],
         child: MaterialApp(
           theme: AppTheme.withGlass(glass),
@@ -128,7 +138,7 @@ void main() {
                   valueListenable: actions ?? ValueNotifier(null),
                   builder: (_, actions, _) => AppBottomNavBar(
                     currentTab: tab,
-                    onTabChanged: (_) {},
+                    onTabChanged: asked.add,
                     showTabs: showTabs,
                     actions: actions,
                   ),
@@ -205,6 +215,54 @@ void main() {
           .whereType<OuterShadowPainter>();
       expect(shadows, isNotEmpty, reason: glass.name);
     }
+  });
+
+  final orb = find.byKey(const ValueKey('centerOrb'));
+
+  testWidgets('the orb at the centre is a button: a tap asks for the player, '
+      'like a tab', (tester) async {
+    await pump(tester, AppTab.home);
+    await tester.tap(orb);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(asked, [AppTab.player]);
+  });
+
+  testWidgets('the orb says what a tap does: play with nothing loaded, the '
+      'song playing with one', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, AppTab.home);
+    expect(tester.getSemantics(orb).label, 'Play');
+    await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 180000)],
+    );
+    expect(tester.getSemantics(orb).label, 'Now playing');
+    handle.dispose();
+  });
+
+  testWidgets('the orb is as large as a touch target', (tester) async {
+    await pump(tester, AppTab.home);
+    final size = tester.getSize(orb);
+    expect(size.width, greaterThanOrEqualTo(44));
+    expect(size.height, greaterThanOrEqualTo(44));
+  });
+
+  testWidgets('the orb takes the accent with nothing loaded, the colours '
+      'of the song once one is', (tester) async {
+    await pump(tester, AppTab.home);
+    PlayingOrb shown() => tester.widget<PlayingOrb>(find.byType(PlayingOrb));
+    final resting = (shown().top, shown().edge);
+    expect(resting.$1, AppColors.dark.accent);
+    expect(shown().live, isFalse);
+
+    await pump(
+      tester,
+      AppTab.home,
+      queue: [testTrack('a', durationMs: 180000)],
+    );
+    expect((shown().top, shown().edge), isNot(resting));
+    expect(shown().live, isTrue);
   });
 
   testWidgets('a dot shows under the selected tab only, and follows it', (

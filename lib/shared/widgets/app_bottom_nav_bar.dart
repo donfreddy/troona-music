@@ -21,7 +21,8 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
-import 'package:troona/features/player/presentation/widgets/rotating_artwork.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
+import 'package:troona/features/player/presentation/widgets/playing_orb.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/cross_fade_swap.dart';
@@ -332,9 +333,11 @@ class _NavBarBody extends StatelessWidget {
                         final (appTab, icon) = tab;
                         if (appTab == AppTab.player) {
                           return Expanded(
-                            child: _CenterArtworkSlot(
-                              track: playerState?.currentTrack,
+                            child: _CenterOrb(
+                              loaded: playerState != null,
                               isPlaying: playerState?.isPlaying ?? false,
+                              selected: currentTab == AppTab.player,
+                              onTap: () => onTabChanged(AppTab.player),
                             ),
                           );
                         }
@@ -1465,42 +1468,69 @@ class _FillPainter extends CustomPainter {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Centre slot that renders the rotating artwork disc and opens the full player.
-class _CenterArtworkSlot extends StatelessWidget {
-  final Track? track;
+/// The orb at the centre of the tabs: the song playing, as a small sphere
+/// in its colours ([PlayingOrb]), and a button. The host decides what a
+/// tap does, as for a tab ([AppTab.player]): the shell opens Now Playing,
+/// or starts music when nothing is loaded; Now Playing closes itself.
+class _CenterOrb extends StatefulWidget {
+  /// Whether a song is loaded (playing or paused).
+  final bool loaded;
   final bool isPlaying;
 
-  const _CenterArtworkSlot({required this.track, required this.isPlaying});
+  /// On Now Playing, where the orb stands for the page shown.
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CenterOrb({
+    required this.loaded,
+    required this.isPlaying,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  State<_CenterOrb> createState() => _CenterOrbState();
+}
+
+class _CenterOrbState extends State<_CenterOrb> {
+  bool _pressed = false;
+
+  void _press(bool pressed) => setState(() => _pressed = pressed);
 
   @override
   Widget build(BuildContext context) {
-    // final accentColor = context.colors.accent;
+    final l10n = context.l10n;
+    // Its song's colours once one is loaded; the accent until then.
+    final palette = context.select<TrackPaletteCubit, (Color, Color)>(
+      (cubit) => (cubit.state.backgroundColorA, cubit.state.backgroundColorB),
+    );
+    final (top, edge) = widget.loaded
+        ? PlayingOrb.colorsFor(palette.$1, palette.$2)
+        : PlayingOrb.resting(context.colors.accent);
 
-    return SizedBox.expand(
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          // Accent glow ring behind the artwork when playing.
-          // if (isPlaying)
-          //   Positioned(
-          //     top: -8,
-          //     child: AnimatedContainer(
-          //       duration: const Duration(milliseconds: 400),
-          //       width: 66,
-          //       height: 66,
-          //       decoration: BoxDecoration(
-          //         shape: BoxShape.circle,
-          //         boxShadow: [BoxShadow(color: accentColor.withValues(alpha: .40), blurRadius: 24, spreadRadius: 4)],
-          //       ),
-          //     ),
-          //   ),
-
-          // Static disc: spinning a placeholder kept a ticker alive for
-          // nothing. The reference design uses a static orb here.
-          Positioned(
-            child: RotatingArtwork(track: null, isPlaying: false, size: 56),
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      label: widget.loaded ? l10n.homeNowPlaying : l10n.actionPlay,
+      onTap: widget.onTap,
+      excludeSemantics: true,
+      child: GestureDetector(
+        key: const ValueKey('centerOrb'),
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        onTapDown: (_) => _press(true),
+        onTapUp: (_) => _press(false),
+        onTapCancel: () => _press(false),
+        child: SizedBox.expand(
+          child: Center(
+            child: AnimatedScale(
+              scale: _pressed ? 0.92 : 1,
+              duration: const Duration(milliseconds: 80),
+              curve: Curves.easeInOut,
+              child: PlayingOrb(top: top, edge: edge, live: widget.isPlaying),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
