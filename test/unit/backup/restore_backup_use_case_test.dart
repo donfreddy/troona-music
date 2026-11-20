@@ -4,6 +4,8 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_settings.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -78,6 +80,21 @@ void main() {
     expect(value.missing.single.fileName, 'gone.mp3');
     expect(value.settings.fetchOnlineMetadata, isTrue);
   });
+
+  test(
+    'the equalizer of the backup comes back for the caller to apply',
+    () async {
+      const eq = EqualizerSnapshot(
+        settings: EqualizerSettings(enabled: true),
+        profiles: [],
+      );
+      final report = await RestoreBackupUseCase(
+        _Backups(right(_backup.withEqualizer(eq))),
+        _Library(),
+      )('/f');
+      expect(report.getOrElse(() => throw StateError('failed')).equalizer, eq);
+    },
+  );
 
   test('an unreadable file restores nothing', () async {
     final backups = _Backups(left(const BackupFormatFailure()));

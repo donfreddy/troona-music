@@ -4,6 +4,7 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/backup/domain/track_matcher.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
@@ -20,15 +21,20 @@ final class RestoreReport extends Equatable {
   /// running services that the repository does not reach.
   final AppSettings settings;
 
+  /// The equalizer saved with the backup, for the caller to apply as well;
+  /// null when it has none.
+  final EqualizerSnapshot? equalizer;
+
   const RestoreReport({
     required this.found,
     required this.total,
     required this.missing,
     required this.settings,
+    this.equalizer,
   });
 
   @override
-  List<Object?> get props => [found, total, missing, settings];
+  List<Object?> get props => [found, total, missing, settings, equalizer];
 }
 
 /// Merges a backup file into this phone, finding its songs in the library
@@ -64,6 +70,7 @@ final class RestoreBackupUseCase {
             total: backup.tracks.length,
             missing: missing,
             settings: backup.settings,
+            equalizer: backup.equalizer,
           ),
         );
       });

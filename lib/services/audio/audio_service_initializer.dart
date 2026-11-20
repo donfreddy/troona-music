@@ -1,8 +1,13 @@
+import 'dart:io' show Platform;
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:troona/features/equalizer/data/adapters/equalizer_probe.dart';
+import 'package:troona/features/equalizer/data/adapters/just_audio_equalizer.dart';
+import 'package:troona/features/equalizer/data/adapters/unsupported_equalizer.dart';
+import 'package:troona/features/equalizer/domain/ports/equalizer_port.dart';
 import 'package:troona/features/player/data/adapters/audio_handler_impl.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/data/adapters/media_like_button.dart';
@@ -28,14 +33,29 @@ final class AudioServiceInitializer {
 
   /// Initialises `audio_service`, registers the [AudioHandlerImpl] with the
   /// OS media controls, and returns the underlying [JustAudioAdapter] as the
-  /// app's [AudioServicePort]. The media controls draw [likeButton] and
-  /// offer [lastSession] back while nothing is loaded.
-  static Future<AudioServicePort> init(
+  /// app's [AudioServicePort], with the [EqualizerPort] attached to it. The
+  /// media controls draw [likeButton] and offer [lastSession] back while
+  /// nothing is loaded.
+  ///
+  /// The equalizer's effects go into the player when it is built: on
+  /// Android, unless [probe] found that they broke playback on this phone.
+  static Future<({AudioServicePort audio, EqualizerPort equalizer})> init(
     AppSettings settings, {
     required MediaLikeButton likeButton,
     required Future<ResumableSession> lastSession,
+    required EqualizerProbe probe,
   }) async {
-    final adapter = JustAudioAdapter();
+    final effects = Platform.isAndroid && !await probe.broken()
+        ? JustAudioEqualizer(probe: probe)
+        : null;
+    final adapter = JustAudioAdapter(
+      audioPipeline: effects?.pipeline,
+      beforeLoad: effects?.beforeLoad,
+    );
+    effects?.bind(
+      sessionIds: adapter.androidAudioSessionIdStream,
+      trim: adapter.setTrim,
+    );
 
     await AudioService.init(
       builder: () => AudioHandlerImpl(
@@ -57,7 +77,10 @@ final class AudioServiceInitializer {
       ),
     );
 
-    return adapter;
+    return (
+      audio: adapter as AudioServicePort,
+      equalizer: effects ?? const UnsupportedEqualizer(),
+    );
   }
 
   /// Shown by Android in the app's notification settings, outside any widget

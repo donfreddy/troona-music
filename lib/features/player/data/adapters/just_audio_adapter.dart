@@ -46,10 +46,21 @@ class JustAudioAdapter implements AudioServicePort {
   /// Fade-out before a track change: shorter, so a skip still feels instant.
   static const switchFadeDuration = Duration(milliseconds: 120);
 
-  /// The user's volume; the player gets it times the fade's gain.
+  /// The user's volume; the player gets it times the fade's gain and the
+  /// equalizer's [_trim].
   double _volume = 1;
 
-  late final _fade = GainRamp((gain) => _player.setVolume(_volume * gain));
+  /// The equalizer's anti-clip attenuation, a factor of the volume. Like the
+  /// fade, it never shows on the volume stream or in the saved session.
+  double _trim = 1;
+
+  late final _fade = GainRamp(
+    (gain) => _player.setVolume(_volume * _trim * gain),
+  );
+
+  /// Runs before each load, so the equalizer's probe is written before the
+  /// platform makes the effects.
+  final Future<void>? Function()? _beforeLoad;
 
   /// Whether playback should run. False as soon as a pause starts fading,
   /// so the status says "paused" at the tap, not once the fade is over.
@@ -69,12 +80,40 @@ class JustAudioAdapter implements AudioServicePort {
   /// BehaviorSubject for volume; seeded with the player's initial volume.
   final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
-  /// [player] is for tests; the app uses the default.
-  JustAudioAdapter({AudioPlayer? player})
-    : _player =
-          player ??
-          AudioPlayer(handleInterruptions: false, maxSkipsOnError: 3) {
+  /// [player] is for tests; the app uses the default, with the effects of
+  /// [audioPipeline] (the equalizer), and calls [beforeLoad] before each load (awaited when it returns a future).
+  JustAudioAdapter({
+    AudioPlayer? player,
+    AudioPipeline? audioPipeline,
+    Future<void>? Function()? beforeLoad,
+  }) : _player =
+           player ??
+           AudioPlayer(
+             handleInterruptions: false,
+             maxSkipsOnError: 3,
+             audioPipeline: audioPipeline,
+           ),
+       _beforeLoad = beforeLoad {
     _initStreams();
+  }
+
+  /// The player's Android audio sessions: the effects are made again for
+  /// each new one.
+  Stream<int?> get androidAudioSessionIdStream =>
+      _player.androidAudioSessionIdStream;
+
+  /// Scales the volume by [factor] (at most 1) for the equalizer's
+  /// anti-clip attenuation.
+  void setTrim(double factor) {
+    _trim = factor.clamp(0.0, 1.0);
+    unawaited(
+      _player.setVolume(_volume * _trim * _fade.gain).catchError((
+        Object e,
+        StackTrace st,
+      ) {
+        ErrorHandler.handle(e, st);
+      }),
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -361,7 +400,7 @@ class JustAudioAdapter implements AudioServicePort {
       // here must not roll the queue back.
       await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
       _volume = nextVolume;
-      await _player.setVolume(nextVolume * _fade.gain);
+      await _player.setVolume(nextVolume * _trim * _fade.gain);
       await _player.setSpeed(nextSpeed);
       _volumeSubject.add(nextVolume);
       if (play) await _play();
@@ -442,6 +481,10 @@ class JustAudioAdapter implements AudioServicePort {
     Future<void> Function() load, {
     bool play = false,
   }) async {
+    // Awaited only while the hook has something to wait for (the first
+    // load of a launch): the extra turn would let a queue edit asked for in
+    // the same turn land on the old queue.
+    if (_beforeLoad?.call() case final pending?) await pending;
     if (play && _audible) await _fade.to(0, switchFadeDuration);
     final generation = ++_loadGeneration;
     final previous = _currentQueue;
@@ -627,7 +670,7 @@ class JustAudioAdapter implements AudioServicePort {
   Future<Either<Failure, Unit>> setVolume(double volume) async {
     try {
       _volume = volume;
-      await _player.setVolume(volume * _fade.gain);
+      await _player.setVolume(volume * _trim * _fade.gain);
       _volumeSubject.add(volume);
       return right(unit);
     } catch (e, st) {
