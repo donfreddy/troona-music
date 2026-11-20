@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
+import 'package:troona/features/history/domain/entities/track_stats.dart';
 
 abstract interface class PlayHistoryRepository {
   /// Records [event] and counts it in its day's totals.
@@ -24,6 +25,9 @@ abstract interface class PlayHistoryRepository {
 
   /// All-time plays of each of [trackIds]; a track never played is absent.
   Future<Either<Failure, Map<String, int>>> playCounts(Set<String> trackIds);
+
+  /// Every song's plays, day by day, from the daily totals: one read.
+  Future<Either<Failure, TrackStats>> trackStats();
 
   /// Map of {trackId: playCount} for the last [days], sorted by count desc.
   Future<Either<Failure, Map<String, int>>> topTrackIds({

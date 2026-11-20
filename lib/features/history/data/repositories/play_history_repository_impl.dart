@@ -3,6 +3,7 @@ import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
+import 'package:troona/features/history/domain/entities/track_stats.dart';
 import 'package:troona/features/history/domain/entities/listening_stats.dart';
 import 'package:troona/features/history/domain/entities/play_event.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
@@ -67,6 +68,15 @@ final class PlayHistoryRepositoryImpl implements PlayHistoryRepository {
   ) async {
     try {
       return right(_source.playCounts(trackIds));
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, TrackStats>> trackStats() async {
+    try {
+      return right(_source.trackStats());
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
