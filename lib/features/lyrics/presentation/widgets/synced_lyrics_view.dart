@@ -190,8 +190,10 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
                 blendMode: BlendMode.dstIn,
                 child: SingleChildScrollView(
                   controller: _scroll,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl2,
+                  // Room at the end for the options button above the lines.
+                  padding: const EdgeInsetsDirectional.only(
+                    start: AppSpacing.xl2,
+                    end: AppSpacing.xl2 + 28,
                   ),
                   child: ValueListenableBuilder<int>(
                     valueListenable: widget.activeLine,

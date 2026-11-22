@@ -60,9 +60,28 @@ abstract final class LrcParser {
   }
 
   /// [bytes] as text: UTF-8 (with or without a byte order mark), UTF-16
-  /// when its mark says so, else Latin-1. Null past [maxBytes].
+  /// when its mark says so, else Latin-1. Null past [maxBytes], or when it
+  /// is not text (a picture, a song): Latin-1 reads any bytes.
   static String? decode(List<int> bytes) {
     if (bytes.length > maxBytes) return null;
+    final text = _decode(bytes);
+    return looksLikeText(text) ? text : null;
+  }
+
+  /// No NUL, and hardly any control character: binary files read as
+  /// Latin-1 are full of both, text has none but line ends and tabs.
+  static bool looksLikeText(String text) {
+    var control = 0;
+    for (final unit in text.codeUnits) {
+      if (unit == 0) return false;
+      final c0 = unit < 0x20 && unit != 0x09 && unit != 0x0A && unit != 0x0D;
+      final c1 = unit >= 0x80 && unit < 0xA0;
+      if (c0 || c1 || unit == 0xFFFD) control++;
+    }
+    return control * 100 <= text.length;
+  }
+
+  static String _decode(List<int> bytes) {
     if (bytes.length >= 2) {
       if (bytes[0] == 0xFF && bytes[1] == 0xFE) {
         return _utf16(bytes, 2, little: true);

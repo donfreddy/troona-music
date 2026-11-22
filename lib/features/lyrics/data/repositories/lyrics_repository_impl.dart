@@ -15,7 +15,8 @@ import 'package:troona/features/settings/domain/repositories/settings_repository
 
 /// Imported lyrics first, then the ones found online, kept for good when
 /// synced. Plain lyrics found online, and what was found nowhere, are
-/// asked for again after [recheckAfter]: a database grows.
+/// asked for again after [recheckAfter] (a database grows), or after
+/// [retryPartial] when a source could not be reached.
 ///
 /// The online sources are asked in order, the first with lyrics winning,
 /// and only while the user's switch is on; one look per song at a time.
@@ -37,13 +38,26 @@ final class LyricsRepositoryImpl implements LyricsRepository {
 
   static const recheckAfter = Duration(days: 30);
 
+  /// Plain lyrics and misses from a look on which a source could not be
+  /// reached are asked again after this.
+  static const retryPartial = Duration(days: 1);
+
   final _looking = <String, Future<LyricsLookup>>{};
+
+  /// Bumped per song by an import or a delete: a look started before
+  /// answers what they left, and writes nothing.
+  final _generation = <String, int>{};
+
+  bool _fresh(TrackLyricsModel row) =>
+      _now().difference(row.checkedAt) <
+      (row.partial ? retryPartial : recheckAfter);
 
   @override
   Future<LyricsLookup> lyricsFor(
     Track track, {
     bool searchAgain = false,
   }) async {
+    final online = await _onlineEnabled();
     try {
       final row = _store.get(track.id);
       final offset = Duration(milliseconds: row?.offsetMs ?? 0);
@@ -53,20 +67,17 @@ final class LyricsRepositoryImpl implements LyricsRepository {
       }
       final stored = row == null ? null : _parse(row, LyricsSource.online);
       if (!searchAgain && row != null) {
-        final fresh = _now().difference(row.checkedAt) < recheckAfter;
-        if (stored is SyncedLyrics || (stored != null && fresh)) {
+        if (stored is SyncedLyrics || (stored != null && _fresh(row))) {
           return LyricsFound(stored!, offset: offset);
         }
       }
-      final online = await _onlineEnabled();
       if (!online) {
         return stored != null
             ? LyricsFound(stored, offset: offset)
             : const LyricsMissing(onlineEnabled: false);
       }
-      if (!searchAgain && row != null && stored == null) {
-        final fresh = _now().difference(row.checkedAt) < recheckAfter;
-        if (fresh) return const LyricsMissing(onlineEnabled: true);
+      if (!searchAgain && row != null && stored == null && _fresh(row)) {
+        return const LyricsMissing(onlineEnabled: true);
       }
       // A block: `remove` returns this very future, which `whenComplete`
       // would wait for, forever.
@@ -75,18 +86,28 @@ final class LyricsRepositoryImpl implements LyricsRepository {
       }));
     } catch (e, st) {
       appLogger.w('Lyrics lookup failed', error: e, stackTrace: st);
-      return const LyricsMissing(onlineEnabled: false, unreachable: true);
+      return LyricsMissing(onlineEnabled: online, unreachable: true);
     }
   }
 
   Future<LyricsLookup> _ask(Track track, Lyrics? stored) async {
+    final id = track.id;
+    final generation = _generation[id] ?? 0;
     final query = LyricsQuery.of(track);
+    var answered = 0;
     var unreachable = false;
+    var switchedOff = false;
     Lyrics? found;
     String? raw;
     for (final remote in _remotes) {
+      // Turned off while an earlier source was asked: no further request.
+      if (!await _onlineEnabled()) {
+        switchedOff = true;
+        break;
+      }
       try {
         raw = await remote.find(query);
+        answered++;
       } on LyricsUnreachable catch (e) {
         appLogger.d('$e');
         unreachable = true;
@@ -97,24 +118,34 @@ final class LyricsRepositoryImpl implements LyricsRepository {
           : LrcParser.parse(raw, source: LyricsSource.online);
       if (found != null) break;
     }
-    final at = _now();
-    // An answer missing a source is not remembered: the one that could not
-    // be reached may have better (synced) lyrics.
-    if (found != null) {
-      if (!unreachable) await _store.putOnline(track.id, raw, at);
-    } else if (!unreachable) {
-      if (stored != null) {
-        await _store.touch(track.id, at);
+    final superseded = (_generation[id] ?? 0) != generation;
+    // Nothing remembered when no source answered (no network): the next
+    // look asks again. A look that missed a source is asked again sooner,
+    // unless it found synced lyrics, which nothing improves.
+    if (!superseded && !switchedOff && answered > 0) {
+      final at = _now();
+      final partial = unreachable && found is! SyncedLyrics;
+      if (found != null) {
+        await _store.putOnline(id, raw, at, partial: partial);
+      } else if (stored != null) {
+        await _store.touch(id, at, partial: partial);
       } else {
-        await _store.putOnline(track.id, null, at);
+        await _store.putOnline(id, null, at, partial: partial);
       }
     }
-    final row = _store.get(track.id);
+    final row = _store.get(id);
     final offset = Duration(milliseconds: row?.offsetMs ?? 0);
     // Lyrics imported while the sources were asked win.
     if (row?.source == LyricsSource.imported.name) {
       final imported = _parse(row!, LyricsSource.imported);
       if (imported != null) return LyricsFound(imported, offset: offset);
+    }
+    // Deleted meanwhile: what the delete left, not the answer.
+    if (superseded) {
+      final kept = row == null ? null : _parse(row, LyricsSource.online);
+      return kept != null
+          ? LyricsFound(kept, offset: offset)
+          : const LyricsMissing(onlineEnabled: true);
     }
     final lyrics = found ?? stored;
     if (lyrics != null) return LyricsFound(lyrics, offset: offset);
@@ -122,13 +153,17 @@ final class LyricsRepositoryImpl implements LyricsRepository {
   }
 
   @override
-  Future<Either<Failure, Lyrics>> import(Track track, List<int> bytes) async {
+  Future<Either<Failure, Lyrics>> import(
+    String trackId,
+    List<int> bytes,
+  ) async {
     try {
       final text = LrcParser.decode(bytes);
-      if (text == null) return left(const LyricsFormatFailure('Too big.'));
+      if (text == null) return left(const LyricsFormatFailure());
       final lyrics = LrcParser.parse(text, source: LyricsSource.imported);
       if (lyrics == null) return left(const LyricsFormatFailure());
-      await _store.putImported(track.id, text, _now());
+      _generation[trackId] = (_generation[trackId] ?? 0) + 1;
+      await _store.putImported(trackId, text, _now());
       return right(lyrics);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -155,6 +190,7 @@ final class LyricsRepositoryImpl implements LyricsRepository {
   @override
   Future<Either<Failure, Unit>> delete(String trackId) async {
     try {
+      _generation[trackId] = (_generation[trackId] ?? 0) + 1;
       await _store.forget(trackId, _now());
       return right(unit);
     } catch (e, st) {
@@ -164,6 +200,9 @@ final class LyricsRepositoryImpl implements LyricsRepository {
 
   @override
   Future<void> clearOnline() => _store.clearOnline();
+
+  @override
+  Future<int> onlineSizeBytes() async => _store.onlineBytes();
 
   /// Unreadable settings count as off: the app stays offline unless the
   /// user said otherwise.

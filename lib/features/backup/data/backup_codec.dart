@@ -5,6 +5,7 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/equalizer/data/equalizer_json.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
+import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
 import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/lyrics/domain/services/lrc_parser.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -258,7 +259,9 @@ abstract final class BackupCodec {
             when tracks.contains(track) &&
                 text.trim().isNotEmpty &&
                 text.length <= LrcParser.maxBytes &&
-                offsetMs.abs() <= maxOffset)
+                offsetMs.abs() <= maxOffset &&
+                LrcParser.looksLikeText(text) &&
+                LrcParser.parse(text, source: LyricsSource.imported) != null)
           BackupLyrics(track: track, text: text, offsetMs: offsetMs),
     ];
   }

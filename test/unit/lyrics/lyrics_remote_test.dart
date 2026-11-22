@@ -166,8 +166,19 @@ void main() {
       );
     });
 
-    test('an unknown artist takes only lyrics of the right length', () {
-      final query = _query(artist: '', seconds: 300);
+    test('another artist is never taken, even at the right length and '
+        'with timings', () {
+      expect(
+        LrclibRemoteDataSource.pick([
+          _hit(artist: 'Someone Else', synced: '[00:01.00]Cover'),
+        ], _query()),
+        isNull,
+      );
+    });
+
+    test('an unknown artist takes nothing: a title alone finds any '
+        'song', () {
+      final query = _query(artist: '');
       expect(LrclibRemoteDataSource.pick([_hit()], query), isNull);
     });
 
@@ -228,6 +239,30 @@ void main() {
       server.answer = (_) => _json(_hit(instrumental: true));
       expect(await lrclib.find(_query()), isNull);
       expect(server.requests, hasLength(1));
+    });
+
+    test('an unknown artist is not asked about', () async {
+      server.answer = (_) => _json(_hit());
+      expect(await lrclib.find(_query(artist: '')), isNull);
+      expect(server.requests, isEmpty);
+    });
+
+    test('the exact song unreachable: the search is still asked, and '
+        'its answer taken', () async {
+      server.answer = (o) =>
+          o.uri.path == '/api/search' ? _json([_hit()]) : _json({}, 503);
+      expect(await lrclib.find(_query()), '[00:01.00]Synced');
+      expect(server.requests, hasLength(2));
+    });
+
+    test('the exact song unreachable and nothing in the search: '
+        'unreachable, not a miss', () async {
+      server.answer = (o) =>
+          o.uri.path == '/api/search' ? _json(<Object>[]) : _json({}, 503);
+      await expectLater(
+        lrclib.find(_query()),
+        throwsA(isA<LyricsUnreachable>()),
+      );
     });
 
     test('a song of unknown length goes straight to the search', () async {

@@ -17,11 +17,14 @@ import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:troona/shared/widgets/app_dialog.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 
-/// Picks a lyrics file and keeps it for the song playing. Any file is
-/// offered: `.lrc` has no type Android knows, and a filter would hide it.
-/// The file is checked once read.
+/// Picks a lyrics file and keeps it for the song shown now: another may
+/// play by the time a file is picked. Any file is offered: `.lrc` has no
+/// type Android knows, and a filter would hide it. The file is checked
+/// once read.
 Future<void> importLyrics(BuildContext context, LyricsCubit cubit) async {
   final l10n = context.l10n;
+  final trackId = cubit.state.trackId;
+  if (trackId == null) return;
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   final FilePickerResult? picked;
   try {
@@ -36,7 +39,7 @@ Future<void> importLyrics(BuildContext context, LyricsCubit cubit) async {
   try {
     final file = File(path);
     if (await file.length() <= LrcParser.maxBytes) {
-      ok = await cubit.import(await file.readAsBytes());
+      ok = await cubit.import(trackId, await file.readAsBytes());
     }
   } catch (e) {
     appLogger.w('Lyrics file unreadable: $e');
@@ -67,6 +70,9 @@ Future<void> enableLyricsSearch(BuildContext context, LyricsCubit cubit) async {
 void showLyricsOptions(BuildContext context, LyricsCubit cubit) {
   final l10n = context.l10n;
   final state = cubit.state;
+  // Every action is for the song shown now, whatever plays once it runs.
+  final trackId = state.trackId;
+  if (trackId == null) return;
   final shown = state is LyricsShown ? state : null;
   final synced = shown?.lyrics is SyncedLyrics;
   final online = switch (state) {
@@ -101,20 +107,19 @@ void showLyricsOptions(BuildContext context, LyricsCubit cubit) {
       if (synced) ...[
         SheetAction(
           label: l10n.lyricsEarlier,
-          icon: AppIcons.lyricsTiming,
-          onPressed: () => _nudge(context, cubit, 1),
+          icon: AppIcons.lyricsEarlier,
+          onPressed: () => _nudge(context, cubit, trackId, 1),
         ),
         SheetAction(
           label: l10n.lyricsLater,
-          icon: AppIcons.lyricsTiming,
-          onPressed: () => _nudge(context, cubit, -1),
+          icon: AppIcons.lyricsLater,
+          onPressed: () => _nudge(context, cubit, trackId, -1),
         ),
         if (shown!.offset != Duration.zero)
           SheetAction(
             label: l10n.lyricsOffsetReset,
             icon: AppIcons.reset,
-            onPressed: () =>
-                cubit.nudgeOffset(-shown.offset.inMilliseconds ~/ 100),
+            onPressed: () => cubit.resetOffset(trackId),
           ),
       ],
       if (shown != null)
@@ -122,7 +127,7 @@ void showLyricsOptions(BuildContext context, LyricsCubit cubit) {
           label: l10n.lyricsRemove,
           icon: AppIcons.lyricsRemove,
           destructive: true,
-          onPressed: () => _remove(context, cubit),
+          onPressed: () => _remove(context, cubit, trackId),
         ),
     ],
   );
@@ -130,12 +135,23 @@ void showLyricsOptions(BuildContext context, LyricsCubit cubit) {
 
 /// One step, then the menu again with the new value: a timing is set by
 /// several steps in a row.
-void _nudge(BuildContext context, LyricsCubit cubit, int steps) {
-  cubit.nudgeOffset(steps);
-  if (context.mounted) showLyricsOptions(context, cubit);
+void _nudge(
+  BuildContext context,
+  LyricsCubit cubit,
+  String trackId,
+  int steps,
+) {
+  cubit.nudgeOffset(trackId, steps);
+  if (context.mounted && cubit.state.trackId == trackId) {
+    showLyricsOptions(context, cubit);
+  }
 }
 
-Future<void> _remove(BuildContext context, LyricsCubit cubit) async {
+Future<void> _remove(
+  BuildContext context,
+  LyricsCubit cubit,
+  String trackId,
+) async {
   final l10n = context.l10n;
   final confirmed = await showConfirmDialog(
     context,
@@ -144,7 +160,7 @@ Future<void> _remove(BuildContext context, LyricsCubit cubit) async {
     confirmLabel: l10n.lyricsRemove,
     destructive: true,
   );
-  if (confirmed) await cubit.delete();
+  if (confirmed) await cubit.delete(trackId);
 }
 
 /// "+0.3", "-1.2", "0.0", with the locale's decimal mark.

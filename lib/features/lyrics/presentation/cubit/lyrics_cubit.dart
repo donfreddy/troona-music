@@ -126,27 +126,39 @@ class LyricsCubit extends Cubit<LyricsState> {
   /// Asks the online sources again, whatever was remembered.
   Future<void> searchOnline() => _load(searchAgain: true);
 
-  /// Keeps the file [bytes] as the song's lyrics; false when it holds none
-  /// or could not be kept.
-  Future<bool> import(List<int> bytes) async {
-    final track = _track;
-    if (track == null) return false;
-    final result = await _repo.import(track, bytes);
+  /// Keeps the file [bytes] as the lyrics of [trackId], the song shown
+  /// when the import was asked for (another may play once a file is
+  /// picked); false when it holds none or could not be kept.
+  Future<bool> import(String trackId, List<int> bytes) async {
+    final result = await _repo.import(trackId, bytes);
     return result.fold((_) => false, (lyrics) {
-      if (isClosed || track.id != _track?.id) return true;
+      if (isClosed || trackId != _track?.id) return true;
       _request++;
-      emit(LyricsShown(track.id, lyrics));
+      emit(LyricsShown(trackId, lyrics));
       _follow();
       return true;
     });
   }
 
-  /// Moves the lines [steps] of [offsetStep] earlier (negative: later).
-  void nudgeOffset(int steps) {
+  /// Moves the lines of [trackId] [steps] of [offsetStep] earlier
+  /// (negative: later); nothing once another song is shown.
+  void nudgeOffset(String trackId, int steps) {
     final current = state;
-    if (current is! LyricsShown || current.lyrics is! SyncedLyrics) return;
+    if (current is! LyricsShown) return;
+    _setOffset(trackId, current.offset + offsetStep * steps);
+  }
+
+  /// Back to the lyrics' own timing.
+  void resetOffset(String trackId) => _setOffset(trackId, Duration.zero);
+
+  void _setOffset(String trackId, Duration next) {
+    final current = state;
+    if (current is! LyricsShown ||
+        current.trackId != trackId ||
+        current.lyrics is! SyncedLyrics) {
+      return;
+    }
     const max = LyricsRepository.maxOffset;
-    final next = current.offset + offsetStep * steps;
     final clamped = next > max ? max : (next < -max ? -max : next);
     if (clamped == current.offset) return;
     emit(current.withOffset(clamped));
@@ -161,11 +173,9 @@ class LyricsCubit extends Cubit<LyricsState> {
     );
   }
 
-  /// Forgets the song's lyrics; online ones come back only when searched
-  /// for again.
-  Future<void> delete() async {
-    final trackId = state.trackId;
-    if (trackId == null) return;
+  /// Forgets the lyrics of [trackId], the song shown when it was asked
+  /// for; online ones come back only when searched for again.
+  Future<void> delete(String trackId) async {
     await _repo.delete(trackId);
     if (isClosed || trackId != _track?.id) return;
     await _load();

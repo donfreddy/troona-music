@@ -24,4 +24,8 @@ class TrackLyricsModel {
   /// When the sources were last asked, to ask again later for what was
   /// not found.
   late DateTime checkedAt;
+
+  /// Some source could not be reached on that look: it is asked again
+  /// sooner.
+  bool partial = false;
 }

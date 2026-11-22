@@ -13,9 +13,10 @@ abstract interface class LyricsRepository {
   /// remembered for a while; [searchAgain] asks anyway. Never throws.
   Future<LyricsLookup> lyricsFor(Track track, {bool searchAgain = false});
 
-  /// Keeps the lyrics file [bytes] for [track], over any it had, and
-  /// returns them. [LyricsFormatFailure] when the file holds none.
-  Future<Either<Failure, Lyrics>> import(Track track, List<int> bytes);
+  /// Keeps the lyrics file [bytes] for the song [trackId], over any it
+  /// had, and returns them. [LyricsFormatFailure] when the file holds none
+  /// (or is not text).
+  Future<Either<Failure, Lyrics>> import(String trackId, List<int> bytes);
 
   /// The user's correction for this song's lyrics, within [maxOffset].
   Future<Either<Failure, Unit>> setOffset(String trackId, Duration offset);
@@ -27,4 +28,7 @@ abstract interface class LyricsRepository {
   /// Forgets every lyrics found online, and what was not found; the
   /// imported ones stay.
   Future<void> clearOnline();
+
+  /// About how much room the lyrics found online take, in bytes.
+  Future<int> onlineSizeBytes();
 }

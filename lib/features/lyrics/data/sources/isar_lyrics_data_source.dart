@@ -34,28 +34,43 @@ final class IsarLyricsDataSource {
       );
 
   /// What the online sources answered: [raw], or null when they had
-  /// nothing. Lyrics imported meanwhile are kept: the answer is dropped.
-  /// The correction stays, a search again often bringing the same lyrics.
-  Future<void> putOnline(String trackId, String? raw, DateTime at) async =>
-      _isar.write((isar) {
-        final rows = isar.trackLyricsModels;
-        final old = rows.get(trackId);
-        if (old?.source == _imported) return;
-        rows.put(
-          TrackLyricsModel()
-            ..id = trackId
-            ..raw = raw
-            ..source = raw == null ? null : _online
-            ..offsetMs = old?.offsetMs ?? 0
-            ..checkedAt = at,
-        );
-      });
-
-  /// Marks a look done at [at] on the song's row, its lyrics kept.
-  Future<void> touch(String trackId, DateTime at) async => _isar.write((isar) {
+  /// nothing; [partial] when one of them could not be reached. Lyrics
+  /// imported meanwhile are kept: the answer is dropped. The correction
+  /// stays, a search again often bringing the same lyrics.
+  Future<void> putOnline(
+    String trackId,
+    String? raw,
+    DateTime at, {
+    bool partial = false,
+  }) async => _isar.write((isar) {
     final rows = isar.trackLyricsModels;
     final old = rows.get(trackId);
-    if (old != null) rows.put(old..checkedAt = at);
+    if (old?.source == _imported) return;
+    rows.put(
+      TrackLyricsModel()
+        ..id = trackId
+        ..raw = raw
+        ..source = raw == null ? null : _online
+        ..offsetMs = old?.offsetMs ?? 0
+        ..checkedAt = at
+        ..partial = partial,
+    );
+  });
+
+  /// Marks a look done at [at] on the song's row, its lyrics kept.
+  Future<void> touch(
+    String trackId,
+    DateTime at, {
+    bool partial = false,
+  }) async => _isar.write((isar) {
+    final rows = isar.trackLyricsModels;
+    final old = rows.get(trackId);
+    if (old == null || old.source == _imported) return;
+    rows.put(
+      old
+        ..checkedAt = at
+        ..partial = partial,
+    );
   });
 
   /// Sets the song's correction; false when it has no lyrics to correct.
@@ -85,6 +100,15 @@ final class IsarLyricsDataSource {
     ];
     rows.deleteAll(ids);
   });
+
+  /// About how much room the lyrics found online take, in bytes.
+  int onlineBytes() {
+    var bytes = 0;
+    for (final row in _isar.trackLyricsModels.where().findAll()) {
+      if (row.source != _imported) bytes += (row.raw?.length ?? 0) + 64;
+    }
+    return bytes;
+  }
 
   /// Every imported lyrics, for a backup.
   List<TrackLyricsModel> imported() =>

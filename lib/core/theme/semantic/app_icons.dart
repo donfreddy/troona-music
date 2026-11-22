@@ -43,7 +43,8 @@ abstract final class AppIcons {
   static const IconData lyrics = LucideIcons300.micVocal;
   static const IconData lyricsImport = LucideIcons300.fileUp;
   static const IconData lyricsSearch = LucideIcons300.searchCheck;
-  static const IconData lyricsTiming = LucideIcons300.timer;
+  static const IconData lyricsEarlier = LucideIcons300.chevronsLeft;
+  static const IconData lyricsLater = LucideIcons300.chevronsRight;
   static const IconData lyricsRemove = LucideIcons300.trash2;
   static const IconData lyricsOptions = LucideIcons300.ellipsis;
 

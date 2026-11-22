@@ -54,6 +54,9 @@ final class MaintenanceRepositoryImpl implements MaintenanceRepository {
     try {
       online = await _metadata.getMetadataCacheSizeBytes();
     } catch (_) {}
+    try {
+      online += await _lyrics.onlineSizeBytes();
+    } catch (_) {}
     return CacheSizes(coverBytes: covers, onlineInfoBytes: online);
   }
 

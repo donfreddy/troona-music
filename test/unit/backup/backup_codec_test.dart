@@ -160,6 +160,9 @@ void main() {
         {'track': '1', 'text': '  ', 'offsetMs': 0},
         {'track': '1', 'text': 'Too far', 'offsetMs': 60000},
         {'track': '1', 'text': 42, 'offsetMs': 0},
+        // Tags alone: no lyrics to show, never stored.
+        {'track': '1', 'text': '[ar:Someone]', 'offsetMs': 0},
+        {'track': '1', 'text': 'Bin\u0000ary\u0001\u0002\u0003', 'offsetMs': 0},
         'not an object',
       ]);
       final read = BackupCodec.decode(_bytes(j));

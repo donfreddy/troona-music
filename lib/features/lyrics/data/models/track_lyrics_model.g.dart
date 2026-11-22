@@ -26,6 +26,7 @@ final TrackLyricsModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'source', type: IsarType.string),
       IsarPropertySchema(name: 'offsetMs', type: IsarType.long),
       IsarPropertySchema(name: 'checkedAt', type: IsarType.dateTime),
+      IsarPropertySchema(name: 'partial', type: IsarType.bool),
     ],
     indexes: [],
   ),
@@ -62,6 +63,7 @@ int serializeTrackLyricsModel(IsarWriter writer, TrackLyricsModel object) {
     5,
     object.checkedAt.toUtc().microsecondsSinceEpoch,
   );
+  IsarCore.writeBool(writer, 6, value: object.partial);
   return Isar.fastHash(object.id);
 }
 
@@ -86,6 +88,7 @@ TrackLyricsModel deserializeTrackLyricsModel(IsarReader reader) {
       ).toLocal();
     }
   }
+  object.partial = IsarCore.readBool(reader, 6);
   return object;
 }
 
@@ -112,6 +115,8 @@ dynamic deserializeTrackLyricsModelProp(IsarReader reader, int property) {
           ).toLocal();
         }
       }
+    case 6:
+      return IsarCore.readBool(reader, 6);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -124,6 +129,7 @@ sealed class _TrackLyricsModelUpdate {
     String? source,
     int? offsetMs,
     DateTime? checkedAt,
+    bool? partial,
   });
 }
 
@@ -139,6 +145,7 @@ class _TrackLyricsModelUpdateImpl implements _TrackLyricsModelUpdate {
     Object? source = ignore,
     Object? offsetMs = ignore,
     Object? checkedAt = ignore,
+    Object? partial = ignore,
   }) {
     return collection.updateProperties(
           [id],
@@ -147,6 +154,7 @@ class _TrackLyricsModelUpdateImpl implements _TrackLyricsModelUpdate {
             if (source != ignore) 3: source as String?,
             if (offsetMs != ignore) 4: offsetMs as int?,
             if (checkedAt != ignore) 5: checkedAt as DateTime?,
+            if (partial != ignore) 6: partial as bool?,
           },
         ) >
         0;
@@ -160,6 +168,7 @@ sealed class _TrackLyricsModelUpdateAll {
     String? source,
     int? offsetMs,
     DateTime? checkedAt,
+    bool? partial,
   });
 }
 
@@ -175,12 +184,14 @@ class _TrackLyricsModelUpdateAllImpl implements _TrackLyricsModelUpdateAll {
     Object? source = ignore,
     Object? offsetMs = ignore,
     Object? checkedAt = ignore,
+    Object? partial = ignore,
   }) {
     return collection.updateProperties(id, {
       if (raw != ignore) 2: raw as String?,
       if (source != ignore) 3: source as String?,
       if (offsetMs != ignore) 4: offsetMs as int?,
       if (checkedAt != ignore) 5: checkedAt as DateTime?,
+      if (partial != ignore) 6: partial as bool?,
     });
   }
 }
@@ -193,7 +204,13 @@ extension TrackLyricsModelUpdate on IsarCollection<String, TrackLyricsModel> {
 }
 
 sealed class _TrackLyricsModelQueryUpdate {
-  int call({String? raw, String? source, int? offsetMs, DateTime? checkedAt});
+  int call({
+    String? raw,
+    String? source,
+    int? offsetMs,
+    DateTime? checkedAt,
+    bool? partial,
+  });
 }
 
 class _TrackLyricsModelQueryUpdateImpl implements _TrackLyricsModelQueryUpdate {
@@ -208,12 +225,14 @@ class _TrackLyricsModelQueryUpdateImpl implements _TrackLyricsModelQueryUpdate {
     Object? source = ignore,
     Object? offsetMs = ignore,
     Object? checkedAt = ignore,
+    Object? partial = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (raw != ignore) 2: raw as String?,
       if (source != ignore) 3: source as String?,
       if (offsetMs != ignore) 4: offsetMs as int?,
       if (checkedAt != ignore) 5: checkedAt as DateTime?,
+      if (partial != ignore) 6: partial as bool?,
     });
   }
 }
@@ -239,6 +258,7 @@ class _TrackLyricsModelQueryBuilderUpdateImpl
     Object? source = ignore,
     Object? offsetMs = ignore,
     Object? checkedAt = ignore,
+    Object? partial = ignore,
   }) {
     final q = query.build();
     try {
@@ -247,6 +267,7 @@ class _TrackLyricsModelQueryBuilderUpdateImpl
         if (source != ignore) 3: source as String?,
         if (offsetMs != ignore) 4: offsetMs as int?,
         if (checkedAt != ignore) 5: checkedAt as DateTime?,
+        if (partial != ignore) 6: partial as bool?,
       });
     } finally {
       q.close();
@@ -819,6 +840,15 @@ extension TrackLyricsModelQueryFilter
       );
     });
   }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterFilterCondition>
+  partialEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 6, value: value),
+      );
+    });
+  }
 }
 
 extension TrackLyricsModelQueryObject
@@ -900,6 +930,20 @@ extension TrackLyricsModelQuerySortBy
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterSortBy>
+  sortByPartial() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterSortBy>
+  sortByPartialDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
 }
 
 extension TrackLyricsModelQuerySortThenBy
@@ -978,6 +1022,20 @@ extension TrackLyricsModelQuerySortThenBy
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterSortBy>
+  thenByPartial() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6);
+    });
+  }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterSortBy>
+  thenByPartialDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(6, sort: Sort.desc);
+    });
+  }
 }
 
 extension TrackLyricsModelQueryWhereDistinct
@@ -1007,6 +1065,13 @@ extension TrackLyricsModelQueryWhereDistinct
   distinctByCheckedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(5);
+    });
+  }
+
+  QueryBuilder<TrackLyricsModel, TrackLyricsModel, QAfterDistinct>
+  distinctByPartial() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(6);
     });
   }
 }
@@ -1040,6 +1105,12 @@ extension TrackLyricsModelQueryProperty1
   QueryBuilder<TrackLyricsModel, DateTime, QAfterProperty> checkedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<TrackLyricsModel, bool, QAfterProperty> partialProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
     });
   }
 }
@@ -1077,6 +1148,12 @@ extension TrackLyricsModelQueryProperty2<R>
       return query.addProperty(5);
     });
   }
+
+  QueryBuilder<TrackLyricsModel, (R, bool), QAfterProperty> partialProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
+    });
+  }
 }
 
 extension TrackLyricsModelQueryProperty3<R1, R2>
@@ -1111,6 +1188,13 @@ extension TrackLyricsModelQueryProperty3<R1, R2>
   checkedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<TrackLyricsModel, (R1, R2, bool), QOperations>
+  partialProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
     });
   }
 }

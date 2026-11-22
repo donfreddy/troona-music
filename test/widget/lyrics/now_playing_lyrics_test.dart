@@ -50,6 +50,7 @@ final class _NoLikes implements LibraryRepository {
 /// Every song has the same synced lyrics.
 final class _Lyrics implements LyricsRepository {
   final asked = <String>[];
+  final deleted = <String>[];
   LyricsLookup answer = LyricsFound(
     LrcParser.parse(
       '[00:01.00]First line\n[00:04.00]Second line',
@@ -64,6 +65,12 @@ final class _Lyrics implements LyricsRepository {
   }) async {
     asked.add(track.id);
     return answer;
+  }
+
+  @override
+  Future<Either<Failure, Unit>> delete(String trackId) async {
+    deleted.add(trackId);
+    return right(unit);
   }
 
   @override
@@ -103,11 +110,16 @@ void main() {
 
   /// A shell with the mini player's two heroes, under a pushed Now
   /// Playing: closing it would morph the ring into the row.
-  Future<NavigatorState> pumpOpen(WidgetTester tester) async {
+  Future<NavigatorState> pumpOpen(
+    WidgetTester tester, {
+    double textScale = 1,
+  }) async {
     tester.view
       ..devicePixelRatio = 3
       ..physicalSize = const Size(360, 640) * 3;
+    tester.platformDispatcher.textScaleFactorTestValue = textScale;
     addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     SharedPreferences.setMockInitialValues({});
     final store = PlaybackSessionStore(await SharedPreferences.getInstance());
@@ -295,5 +307,66 @@ void main() {
     await settle(tester);
     expect(find.text('Not synced'), findsOneWidget);
     expect(find.text('Words only'), findsOneWidget);
+  });
+
+  for (final scale in [1.3, 2.0]) {
+    for (final (what, answer) in <(String, LyricsLookup)>[
+      (
+        'synced',
+        LyricsFound(
+          LrcParser.parse(
+            [
+              for (var i = 0; i < 30; i++)
+                '[00:${(i * 3).toString().padLeft(2, '0')}.00]A line of '
+                    'lyrics long enough to wrap twice on a small phone $i',
+            ].join('\n'),
+            source: LyricsSource.online,
+          )!,
+        ),
+      ),
+      (
+        'plain',
+        LyricsFound(
+          PlainLyrics(
+            List.filled(30, 'Words only, a long line that wraps').join('\n'),
+            source: LyricsSource.online,
+          ),
+        ),
+      ),
+      ('none', const LyricsMissing(onlineEnabled: false)),
+    ]) {
+      testWidgets('360 x 640, text x$scale, $what: nothing overflows', (
+        tester,
+      ) async {
+        await pumpOpen(tester, textScale: scale);
+        lyrics.answer = answer;
+        await tester.tap(find.byTooltip('Show lyrics'));
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+        expect(find.byType(PlayerProgressBar), findsOneWidget);
+      });
+    }
+  }
+
+  testWidgets('Remove confirmed once another song plays removes the song '
+      'the menu was opened for', (tester) async {
+    await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    await tester.tap(find.byTooltip('Lyrics options'));
+    await settle(tester);
+    await tester.tap(find.text('Remove lyrics'));
+    await settle(tester);
+    expect(find.text('Remove these lyrics?'), findsOneWidget);
+
+    // The song ends while the dialog asks.
+    port
+      ..queue = Queue.fromTracks(tracks, startIndex: 2)
+      ..track.add(tracks[2]);
+    await settle(tester);
+    expect(lyrics.asked, ['b', 'c'], reason: 'the song changed');
+    await tester.tap(find.text('Remove lyrics').last);
+    await settle(tester);
+    expect(lyrics.deleted, ['b']);
   });
 }

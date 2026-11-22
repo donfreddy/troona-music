@@ -120,7 +120,7 @@ void main() {
 
     test('imported lyrics still show', () async {
       settings.value = const AppSettings();
-      await repo.import(track, utf8.encode(_synced));
+      await repo.import(track.id, utf8.encode(_synced));
       final found = await repo.lyricsFor(track) as LyricsFound;
       expect(found.lyrics.source, LyricsSource.imported);
     });
@@ -227,15 +227,87 @@ void main() {
       expect(await repo.lyricsFor(track), isA<LyricsFound>());
     });
 
-    test('plain lyrics while LRCLIB is unreachable are shown, not kept: '
-        'its synced ones may come next time', () async {
+    test('plain lyrics while LRCLIB is unreachable are kept for a day '
+        'only: its synced ones may come next time', () async {
       lrclib.answer = const LyricsUnreachable('timeout');
       ovh.answer = _plain;
       expect(
         (await repo.lyricsFor(track) as LyricsFound).lyrics,
         isA<PlainLyrics>(),
       );
+      now = now.add(const Duration(hours: 20));
+      await repo.lyricsFor(track);
+      expect(lrclib.asked, hasLength(1));
+
+      now = now.add(const Duration(hours: 5));
+      lrclib.answer = _synced;
+      final found = await repo.lyricsFor(track) as LyricsFound;
+      expect(found.lyrics, isA<SyncedLyrics>());
+      expect(lrclib.asked, hasLength(2));
+    });
+
+    test('a miss while lyrics.ovh is unreachable is remembered for a '
+        'day, not 30', () async {
+      ovh.answer = const LyricsUnreachable('503');
+      expect(
+        await repo.lyricsFor(track),
+        const LyricsMissing(onlineEnabled: true, unreachable: true),
+      );
+      now = now.add(const Duration(hours: 20));
+      await repo.lyricsFor(track);
+      expect(lrclib.asked, hasLength(1), reason: 'not asked on each look');
+
+      now = now.add(const Duration(hours: 5));
+      await repo.lyricsFor(track);
+      expect(lrclib.asked, hasLength(2));
+    });
+
+    test('synced lyrics found while a source is unreachable are kept for '
+        'good', () async {
+      lrclib.answer = _synced;
+      ovh.answer = const LyricsUnreachable('503');
+      await repo.lyricsFor(track);
+      now = now.add(const Duration(days: 400));
+      await repo.lyricsFor(track);
+      expect(lrclib.asked, hasLength(1));
+    });
+
+    test('turned off while LRCLIB is asked: lyrics.ovh is not, and '
+        'nothing is written', () async {
+      lrclib.gate = Completer();
+      ovh.answer = _plain;
+      final looking = repo.lyricsFor(track);
+      await Future<void>.delayed(Duration.zero);
+      settings.value = const AppSettings();
+      lrclib.gate!.complete();
+      await looking;
+      expect(ovh.asked, isEmpty);
       expect(store.get(track.id), isNull);
+    });
+
+    test('a delete during a look wins: the answer is neither shown nor '
+        'kept', () async {
+      lrclib.gate = Completer();
+      lrclib.answer = _synced;
+      final looking = repo.lyricsFor(track);
+      await Future<void>.delayed(Duration.zero);
+      await repo.delete(track.id);
+      lrclib.gate!.complete();
+      expect(await looking, const LyricsMissing(onlineEnabled: true));
+      expect(store.get(track.id)!.raw, isNull);
+      expect(await repo.lyricsFor(track), isA<LyricsMissing>());
+    });
+
+    test('online lyrics count in the size of the online info, imported '
+        'ones do not', () async {
+      await repo.import(track.id, utf8.encode(_synced));
+      expect(await repo.onlineSizeBytes(), 0);
+      lrclib.answer = _synced;
+      await repo.lyricsFor(testTrack('b', durationMs: 200000));
+      expect(
+        await repo.onlineSizeBytes(),
+        greaterThanOrEqualTo(_synced.length),
+      );
     });
 
     test('a text that holds no lyrics is a miss, the next source is '
@@ -262,7 +334,10 @@ void main() {
     test('wins over lyrics found online', () async {
       lrclib.answer = _synced;
       await repo.lyricsFor(track);
-      final imported = await repo.import(track, utf8.encode('[00:02.00]Mine'));
+      final imported = await repo.import(
+        track.id,
+        utf8.encode('[00:02.00]Mine'),
+      );
       expect(imported.isRight(), isTrue);
       final found = await repo.lyricsFor(track) as LyricsFound;
       expect(found.lyrics.source, LyricsSource.imported);
@@ -275,7 +350,7 @@ void main() {
       lrclib.answer = _synced;
       final looking = repo.lyricsFor(track);
       await Future<void>.delayed(Duration.zero);
-      await repo.import(track, utf8.encode('[00:02.00]Mine'));
+      await repo.import(track.id, utf8.encode('[00:02.00]Mine'));
       lrclib.gate!.complete();
 
       final found = await looking as LyricsFound;
@@ -285,16 +360,30 @@ void main() {
 
     test('a file with no lyrics is refused, and keeps what was '
         'there', () async {
-      await repo.import(track, utf8.encode(_plain));
-      final result = await repo.import(track, utf8.encode('[ar:Someone]'));
+      await repo.import(track.id, utf8.encode(_plain));
+      final result = await repo.import(track.id, utf8.encode('[ar:Someone]'));
       expect(result, left(const LyricsFormatFailure()));
       final found = await repo.lyricsFor(track) as LyricsFound;
       expect(found.lyrics, isA<PlainLyrics>());
     });
 
+    test('a binary file is refused, even one with timestamps in '
+        'it', () async {
+      final bytes = [
+        0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, //
+        ...utf8.encode('[00:01.00]Hidden'),
+        for (var i = 0; i < 200; i++) i % 32,
+      ];
+      expect(
+        await repo.import(track.id, bytes),
+        left(const LyricsFormatFailure()),
+      );
+      expect(store.get(track.id), isNull);
+    });
+
     test('a file too big is refused', () async {
       final result = await repo.import(
-        track,
+        track.id,
         List.filled(512 * 1024 + 1, 0x61),
       );
       expect(result.isLeft(), isTrue);
@@ -302,9 +391,9 @@ void main() {
     });
 
     test('a new file starts its correction from zero', () async {
-      await repo.import(track, utf8.encode(_synced));
+      await repo.import(track.id, utf8.encode(_synced));
       await repo.setOffset(track.id, const Duration(milliseconds: 300));
-      await repo.import(track, utf8.encode(_synced));
+      await repo.import(track.id, utf8.encode(_synced));
       expect(
         (await repo.lyricsFor(track) as LyricsFound).offset,
         Duration.zero,
@@ -331,7 +420,7 @@ void main() {
     });
 
     test('is clamped to 10 s either way', () async {
-      await repo.import(track, utf8.encode(_synced));
+      await repo.import(track.id, utf8.encode(_synced));
       await repo.setOffset(track.id, const Duration(seconds: 30));
       expect(
         (await repo.lyricsFor(track) as LyricsFound).offset,
@@ -366,7 +455,7 @@ void main() {
 
     test('removes imported lyrics too', () async {
       settings.value = const AppSettings();
-      await repo.import(track, utf8.encode(_synced));
+      await repo.import(track.id, utf8.encode(_synced));
       await repo.delete(track.id);
       expect(
         await repo.lyricsFor(track),
@@ -378,7 +467,7 @@ void main() {
   test('clearing the online info keeps the imported lyrics', () async {
     final other = testTrack('b', durationMs: 200000);
     final missing = testTrack('c', durationMs: 200000);
-    await repo.import(track, utf8.encode(_synced));
+    await repo.import(track.id, utf8.encode(_synced));
     lrclib.answer = _synced;
     await repo.lyricsFor(other);
     lrclib.answer = null;

@@ -26,7 +26,9 @@ class LyricsView extends StatelessWidget {
     return BlocBuilder<LyricsCubit, LyricsState>(
       builder: (context, state) {
         final body = switch (state) {
-          LyricsIdle() || LyricsLoading() => const _LyricsLoading(),
+          // Nothing playing: nothing to wait for.
+          LyricsIdle() => const SizedBox.expand(),
+          LyricsLoading() => const _LyricsLoading(),
           LyricsShown(lyrics: final SyncedLyrics lyrics) => SyncedLyricsView(
             lyrics: lyrics,
             activeLine: cubit.activeLine,

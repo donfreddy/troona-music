@@ -12,10 +12,10 @@ import 'package:troona/features/lyrics/domain/services/lrc_parser.dart';
 /// First the exact song (title, artist, album, length); LRCLIB answers it
 /// only when the album matches too, which a folder name standing in for an
 /// album never does. Then a search by title and artist, taking the song of
-/// the same name whose length is within [tolerance]: its timings fit. With
-/// none that long, the words of a song of the same name and artist, never
-/// its timings (another cut, a radio edit). Better no lyrics than another
-/// song's.
+/// the same name and artist whose length is within [tolerance]: its
+/// timings fit. With none that long, its words, never its timings (another
+/// cut, a radio edit). A song of unknown artist is not looked up: a title
+/// alone finds other people's songs. Better no lyrics than another song's.
 final class LrclibRemoteDataSource implements LyricsRemoteSource {
   final Dio _dio;
 
@@ -32,39 +32,49 @@ final class LrclibRemoteDataSource implements LyricsRemoteSource {
 
   @override
   Future<String?> find(LyricsQuery query) async {
-    if (query.title.isEmpty) return null;
-    if (query.artist.isNotEmpty &&
-        query.album.isNotEmpty &&
-        query.duration > Duration.zero) {
-      final exact = await _call('/get', {
-        'track_name': query.title,
-        'artist_name': query.artist,
-        'album_name': query.album,
-        'duration': query.duration.inSeconds,
-      });
-      if (exact is Map) {
-        if (exact['instrumental'] == true) return null;
-        final text =
-            _text(exact['syncedLyrics']) ?? _text(exact['plainLyrics']);
-        if (text != null) return text;
+    if (query.title.isEmpty || query.leadArtist.isEmpty) return null;
+    LyricsUnreachable? failed;
+    if (query.album.isNotEmpty && query.duration > Duration.zero) {
+      try {
+        final exact = await _call('/get', {
+          'track_name': query.title,
+          'artist_name': query.artist,
+          'album_name': query.album,
+          'duration': query.duration.inSeconds,
+        });
+        if (exact is Map) {
+          if (exact['instrumental'] == true) return null;
+          final text =
+              _text(exact['syncedLyrics']) ?? _text(exact['plainLyrics']);
+          if (text != null) return text;
+        }
+      } on LyricsUnreachable catch (e) {
+        // The search may still answer.
+        failed = e;
       }
     }
     final found = await _call('/search', {
       'track_name': query.plainTitle,
-      if (query.leadArtist.isNotEmpty) 'artist_name': query.leadArtist,
+      'artist_name': query.leadArtist,
     });
-    return found is List ? pick(found, query) : null;
+    final picked = found is List ? pick(found, query) : null;
+    // A miss is not one when the exact song could not be asked.
+    if (picked == null && failed != null) throw failed;
+    return picked;
   }
 
   /// The lyrics among LRCLIB's search [results] that fit [query], as above.
   @visibleForTesting
   static String? pick(List<Object?> results, LyricsQuery query) {
+    if (query.leadArtist.isEmpty) return null;
     final same = [
       for (final r in results)
         if (r is Map &&
             r['instrumental'] != true &&
             r['trackName'] is String &&
-            _sameName(r['trackName'] as String, query.title))
+            r['artistName'] is String &&
+            _sameName(r['trackName'] as String, query.title) &&
+            _sameArtist(r['artistName'] as String, query.leadArtist))
           r,
     ];
     if (query.duration > Duration.zero) {
@@ -87,12 +97,7 @@ final class LrclibRemoteDataSource implements LyricsRemoteSource {
         if (_text(r['plainLyrics']) case final plain?) return plain;
       }
     }
-    if (query.leadArtist.isEmpty) return null;
     for (final r in same) {
-      final artist = r['artistName'];
-      if (artist is! String || !_sameArtist(artist, query.leadArtist)) {
-        continue;
-      }
       if (_text(r['plainLyrics']) case final plain?) return plain;
     }
     return null;

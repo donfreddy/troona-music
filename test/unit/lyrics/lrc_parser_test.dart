@@ -133,6 +133,24 @@ void main() {
       expect(LrcParser.decode(latin1.encode('Déjà vu')), 'Déjà vu');
     });
 
+    test('a binary file is refused: a NUL, or control characters past '
+        '1 %', () {
+      expect(LrcParser.decode([...utf8.encode('[00:01.00]A'), 0]), isNull);
+      // A JPEG's start, then timestamps a picture may happen to hold.
+      expect(
+        LrcParser.decode([
+          0xFF, 0xD8, 0xFF, 0xE0, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x01, //
+          ...utf8.encode('[00:01.00]Hidden'),
+        ]),
+        isNull,
+      );
+      // One stray control character in a long text is still text.
+      expect(
+        LrcParser.decode([...utf8.encode('[00:01.00]${'a' * 200}'), 0x07]),
+        isNotNull,
+      );
+    });
+
     test('a file too big is refused', () {
       expect(
         LrcParser.decode(List.filled(LrcParser.maxBytes + 1, 0x41)),
