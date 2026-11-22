@@ -37,9 +37,6 @@ final class LyricsRepositoryImpl implements LyricsRepository {
 
   static const recheckAfter = Duration(days: 30);
 
-  /// The largest correction kept, either way.
-  static const maxOffset = Duration(seconds: 10);
-
   final _looking = <String, Future<LyricsLookup>>{};
 
   @override
@@ -145,8 +142,8 @@ final class LyricsRepositoryImpl implements LyricsRepository {
   ) async {
     try {
       final ms = offset.inMilliseconds.clamp(
-        -maxOffset.inMilliseconds,
-        maxOffset.inMilliseconds,
+        -LyricsRepository.maxOffset.inMilliseconds,
+        LyricsRepository.maxOffset.inMilliseconds,
       );
       final set = await _store.setOffset(trackId, ms);
       return set ? right(unit) : left(const CacheFailure('No lyrics.'));

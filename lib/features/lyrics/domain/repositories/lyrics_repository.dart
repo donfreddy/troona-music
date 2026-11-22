@@ -6,6 +6,9 @@ import 'package:troona/features/lyrics/domain/entities/lyrics_lookup.dart';
 
 /// A song's lyrics: imported by the user first, then found online (opt-in).
 abstract interface class LyricsRepository {
+  /// The largest correction kept, either way.
+  static const maxOffset = Duration(seconds: 10);
+
   /// The lyrics to show for [track]. What was not found online is
   /// remembered for a while; [searchAgain] asks anyway. Never throws.
   Future<LyricsLookup> lyricsFor(Track track, {bool searchAgain = false});
@@ -14,7 +17,7 @@ abstract interface class LyricsRepository {
   /// returns them. [LyricsFormatFailure] when the file holds none.
   Future<Either<Failure, Lyrics>> import(Track track, List<int> bytes);
 
-  /// The user's correction for this song's lyrics.
+  /// The user's correction for this song's lyrics, within [maxOffset].
   Future<Either<Failure, Unit>> setOffset(String trackId, Duration offset);
 
   /// Forgets the song's lyrics, and remembers that it has none: lyrics

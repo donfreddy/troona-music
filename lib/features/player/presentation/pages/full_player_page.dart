@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
@@ -15,12 +16,17 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
+import 'package:troona/features/lyrics/presentation/cubit/lyrics_cubit.dart';
+import 'package:troona/features/lyrics/presentation/widgets/keep_screen_on.dart';
+import 'package:troona/features/lyrics/presentation/widgets/lyrics_view.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/player/presentation/widgets/player_progress_bar.dart';
 import 'package:troona/features/player/presentation/widgets/player_utility_dock.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/progress_ring.dart';
@@ -85,6 +91,23 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
   /// The heart's answer to a like, from its button or the menu.
   final _likeBurst = LikeBurstController();
+
+  /// Whether the lyrics stand in for the stage. The stage stays mounted
+  /// below them, unseen, its heroes off: the page then closes in a fade,
+  /// with nothing to fly into the mini player.
+  bool _lyricsShown = false;
+
+  /// Made the first time the lyrics are shown, for this page only.
+  LyricsCubit? _lyrics;
+
+  void _toggleLyrics() {
+    final lyrics = _lyrics ??= LyricsCubit.of(
+      getIt<LyricsRepository>(),
+      context.read<PlayerBloc>(),
+    );
+    setState(() => _lyricsShown = !_lyricsShown);
+    lyrics.setVisible(_lyricsShown);
+  }
 
   /// Index the user swiped to, used to disambiguate duplicate tracks while
   /// the requested track loads.
@@ -320,6 +343,72 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   Widget _fadeChrome(Widget child, {bool glass = false}) =>
       _fade(glass ? _chrome : _chromeOrDrag, child);
 
+  /// The stage in the room [height] leaves it, with the lyrics over it
+  /// when shown. One structure either way, so the carousel below keeps its
+  /// state.
+  Widget _stageArea(
+    (List<Track>, int)? stage,
+    Track? track,
+    double height,
+    TextScaler textScaler,
+  ) {
+    final lyrics = _lyrics;
+    final shown = _lyricsShown && lyrics != null;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: shown ? height : 0,
+        maxHeight: height,
+      ),
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          // Opacity 0 paints nothing: no blur of the lens below.
+          Opacity(
+            opacity: shown ? 0 : 1,
+            child: IgnorePointer(
+              ignoring: shown,
+              child: ExcludeSemantics(
+                excluding: shown,
+                child: _stageOf(stage, track),
+              ),
+            ),
+          ),
+          if (shown)
+            Positioned.fill(
+              child: _fadeChrome(
+                BlocProvider.value(
+                  value: lyrics,
+                  // Content, not chrome: it follows the phone's font
+                  // size past the page's cap.
+                  child: MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: textScaler),
+                    child: Column(
+                      children: [
+                        const Expanded(child: LyricsView()),
+                        MediaQuery.withClampedTextScaling(
+                          maxScaleFactor: AppLayout.maxTextScale,
+                          child: const PlayerProgressBar(),
+                        ),
+                        BlocSelector<PlayerBloc, PlayerState, bool>(
+                          selector: (s) => s is PlayerActive && s.isPlaying,
+                          builder: (_, playing) => KeepScreenOn(
+                            active: playing,
+                            child: const SizedBox.shrink(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   /// The carousel, or a gap while the queue is not known yet.
   Widget _stageOf((List<Track>, int)? stage, Track? track) {
     if (stage case (final queue, final index)) {
@@ -328,7 +417,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         currentIndex: index,
         onPageChanged: _onCarouselPageChanged,
         onFocusChanged: _onSwipeFocusChanged,
-        enableHeroes: _heroes,
+        enableHeroes: _heroes && !_lyricsShown,
         lensOpacity: _stage,
         lensLift: _ringLift,
         neighbourOpacity: _dragFade,
@@ -358,6 +447,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   @override
   void dispose() {
     _likeBurst.dispose();
+    unawaited(_lyrics?.close());
     _publishCover(null, replacing: _cover);
     _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
     _chrome?.dispose();
@@ -436,6 +526,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   @override
   Widget build(BuildContext context) {
     final safeBottom = MediaQuery.of(context).padding.bottom;
+    // The phone's own, before the page caps it for its chrome.
+    final textScaler = MediaQuery.textScalerOf(context);
     // Bottom inset + nav bar (tabs only) + its 0.5 px glass border.
     final navBarReserve = safeBottom + 12 + AppSpacing.navBarHeight + 1;
 
@@ -548,14 +640,14 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   child: LayoutBuilder(
                                     builder: (context, box) => Column(
                                       children: [
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            maxHeight: math.max(
-                                              0,
-                                              box.maxHeight - _kControlsBlock,
-                                            ),
+                                        _stageArea(
+                                          stage,
+                                          track,
+                                          math.max(
+                                            0,
+                                            box.maxHeight - _kControlsBlock,
                                           ),
-                                          child: _stageOf(stage, track),
+                                          textScaler,
                                         ),
                                         // Secondary controls (Glass Utility
                                         // Dock) and primary playback controls
@@ -565,7 +657,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                                 MainAxisAlignment.spaceEvenly,
                                             children: [
                                               _fadeChrome(
-                                                const PlayerUtilityDock(),
+                                                PlayerUtilityDock(
+                                                  lyricsShown: _lyricsShown,
+                                                  onLyricsTap: _toggleLyrics,
+                                                ),
                                                 glass: true,
                                               ),
                                               _fadeChrome(
