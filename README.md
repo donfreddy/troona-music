@@ -74,6 +74,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Shuffle (Fisher–Yates) and repeat (off / one / all)
 - Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
 - Likes, persisted across sessions as a real playlist
+- Synced lyrics in Now Playing: the line sung lit and followed, a tap on a line seeks there, a per-song timing correction, plain lyrics when that is all there is, the screen kept on while they play. Import a `.lrc` file, or turn on the lyrics search (below)
 
 ### 📚 Library
 - 4-phase device scan: query, diff, persist, artwork extraction (4 concurrent workers, de-duplicated)
@@ -93,6 +94,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 ### 🌐 Online extras, opt-in and off by default
 - Artist and album bios via Last.fm
 - Artist and album photos via Deezer
+- Song lyrics via LRCLIB (synced), then lyrics.ovh (plain), asked only when you open a song's lyrics
 - Each source has its own switch; turning photos off deletes what was downloaded; "Clear online info" wipes both caches
 - Update check: asks GitHub once a day for the latest release and shows a card on Home; "Check for updates now" works with the switch off. Troona never downloads or installs anything: "View" opens the release page
 
@@ -106,19 +108,19 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Clear cached covers / clear cached online info, each showing the size reclaimed
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
 - Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
-- Backup and restore: playlists (smart ones with their rules), likes, listening history and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
+- Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`
 
-> **On lyrics and cast:** early builds shipped demo versions of both, with no lyrics backend or cast protocol behind them, and a demo equalizer with no DSP. They were removed deliberately ahead of v1 rather than kept half-working. The equalizer came back as a real one, on Android's audio effects; lyrics and cast remain a post-v1 discussion, not a promise.
+> **On lyrics and cast:** early builds shipped demo versions of both, with no lyrics backend or cast protocol behind them, and a demo equalizer with no DSP. They were removed deliberately ahead of v1 rather than kept half-working. The equalizer came back as a real one, on Android's audio effects, and lyrics came back with real sources (your own `.lrc` files, LRCLIB and lyrics.ovh); cast remains a post-v1 discussion, not a promise.
 
 ## Roadmap
 
 - [ ] Google Play release
 - [ ] iOS release (the project has an iOS target, but no iOS build has been released)
 - [ ] Localization beyond English and French
-- [ ] Revisit synced lyrics, scoped properly this time
+- [ ] Lyrics read from the audio files' own tags
 
 Tracked in [Issues](https://github.com/donfreddy/troona-music/issues); released changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 

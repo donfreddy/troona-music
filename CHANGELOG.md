@@ -4,6 +4,12 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Synced lyrics in Now Playing: the Lyrics button in the dock shows them in place of the covers, the line being sung lit and kept in view, with a seek bar. Tap a line to go there; scroll freely and they follow again after a few seconds, or at once with Back to the current line. Plain lyrics show when they have no timings. The screen stays on while lyrics play.
+- Import a `.lrc` file for a song, and set its timing a tenth of a second at a time when it runs early or late.
+- Lyrics search, off by default: when a song has no lyrics, its title, artist, album and length go to LRCLIB, then lyrics.ovh, only when you open its lyrics. Turn it on from the lyrics screen or in Settings, Online extras. Clear downloaded info deletes the lyrics found online and keeps the ones you imported. Backups carry imported lyrics.
+
 ## [1.8.0] - 2026-11-22
 
 ### Added

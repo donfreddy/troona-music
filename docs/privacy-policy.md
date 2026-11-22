@@ -1,6 +1,6 @@
 # Troona privacy policy
 
-Last updated: November 19, 2026
+Last updated: November 22, 2026
 
 Troona plays the music stored on your phone. It has no account, no ads and no analytics.
 
@@ -15,6 +15,13 @@ There are two separate switches. Bios sends artist and album names to Last.fm. P
 - Last.fm privacy policy: https://www.last.fm/legal/privacy
 - Deezer privacy policy: https://www.deezer.com/legal/personal-datas
 
+## Lyrics search (off by default)
+
+When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB, then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; "Clear downloaded info" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.
+
+- LRCLIB: https://lrclib.net
+- lyrics.ovh: https://lyrics.ovh
+
 ## Update check (off by default)
 
 When on, Troona asks GitHub once a day for the number of its latest version. "Check for updates now" asks once, only when you tap it. GitHub sees your IP address, as with any web request; no data about you or your music is sent. Troona never downloads or installs an update itself: "View" opens the release page in your browser.
@@ -27,7 +34,7 @@ Errors are written to a log on this device. It can contain file names. Nothing i
 
 ## Backups
 
-Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
+Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
 
 ## Deleting your data
 
