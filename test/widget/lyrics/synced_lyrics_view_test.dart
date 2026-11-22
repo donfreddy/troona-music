@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/lyrics/presentation/widgets/synced_lyrics_view.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
@@ -22,6 +23,7 @@ void main() {
   setUpAll(loadRoboto);
 
   late ValueNotifier<int> active;
+  late ValueNotifier<PlaybackProgress> position;
   late List<Duration> seeks;
 
   Future<void> pump(
@@ -29,6 +31,8 @@ void main() {
     double scale = 1,
     bool still = false,
     SyncedLyrics? lyrics,
+    Duration at = Duration.zero,
+    bool settle = true,
   }) async {
     tester.view
       ..devicePixelRatio = 3
@@ -38,6 +42,14 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     active = ValueNotifier(-1);
     addTearDown(active.dispose);
+    position = ValueNotifier(
+      PlaybackProgress(
+        position: at,
+        buffered: Duration.zero,
+        duration: const Duration(minutes: 3),
+      ),
+    );
+    addTearDown(position.dispose);
     seeks = [];
     await tester.pumpWidget(
       MaterialApp(
@@ -57,6 +69,7 @@ void main() {
               child: SyncedLyricsView(
                 lyrics: lyrics ?? _lyrics,
                 activeLine: active,
+                position: position,
                 seekTargetOf: (line) =>
                     line.at - const Duration(milliseconds: 200),
                 onSeek: seeks.add,
@@ -66,7 +79,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) await tester.pumpAndSettle();
   }
 
   double scrollOffset(WidgetTester tester) =>
@@ -141,6 +154,116 @@ void main() {
     expect(find.bySemanticsLabel('Instrumental'), findsOneWidget);
   });
 
+  /// How lit the three dots of the first passage with no singing are.
+  List<double> dots(WidgetTester tester) {
+    final painter = tester
+        .widget<CustomPaint>(
+          find
+              .descendant(
+                of: find.bySemanticsLabel('Instrumental').first,
+                matching: find.byType(CustomPaint),
+              )
+              .first,
+        )
+        .painter!;
+    // The painter exposes nothing: read what it draws.
+    final canvas = _DotsCanvas();
+    painter.paint(canvas, const Size(46, 10));
+    return canvas.alphas;
+  }
+
+  testWidgets('the dots of an intro fill one after the other as it goes, '
+      'the last as the singing comes', (tester) async {
+    const intro = SyncedLyrics([
+      LyricLine(Duration(seconds: 12), 'Late start'),
+    ], source: LyricsSource.online);
+    // The first line is sought 200 ms early in this test: 11.8 s of intro.
+    await pump(tester, lyrics: intro);
+    expect(dots(tester), [0.3, 0.3, 0.3], reason: 'at the very start');
+
+    position.value = const PlaybackProgress(
+      position: Duration(milliseconds: 5900),
+      buffered: Duration.zero,
+      duration: Duration(minutes: 3),
+    );
+    await tester.pump();
+    final half = dots(tester);
+    expect(half[0], 1, reason: 'the first third is over');
+    expect(half[1], closeTo(0.65, 0.01), reason: 'half of the second');
+    expect(half[2], 0.3);
+
+    position.value = const PlaybackProgress(
+      position: Duration(milliseconds: 11800),
+      buffered: Duration.zero,
+      duration: Duration(minutes: 3),
+    );
+    await tester.pump();
+    expect(dots(tester), [1.0, 1.0, 1.0]);
+  });
+
+  testWidgets('dots not being played are dim, whatever the position', (
+    tester,
+  ) async {
+    await pump(tester, at: const Duration(seconds: 100));
+    active.value = 0;
+    await tester.pumpAndSettle();
+    expect(dots(tester), [0.3, 0.3, 0.3]);
+  });
+
+  testWidgets('with less motion the dots are simply lit while played', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      still: true,
+      lyrics: const SyncedLyrics([
+        LyricLine(Duration(seconds: 12), 'Late start'),
+      ], source: LyricsSource.online),
+    );
+    expect(dots(tester), [1.0, 1.0, 1.0]);
+  });
+
+  /// How much of the lines shows, as painted in this frame.
+  double linesOpacity(WidgetTester tester) => tester
+      .widget<FadeTransition>(
+        find
+            .descendant(
+              of: find.byType(AnimatedOpacity).first,
+              matching: find.byType(FadeTransition),
+            )
+            .first,
+      )
+      .opacity
+      .value;
+
+  testWidgets('the lines show only once placed on the line sung', (
+    tester,
+  ) async {
+    await pump(tester, settle: false);
+    expect(linesOpacity(tester), 0, reason: 'the frame they are laid out in');
+    await tester.pumpAndSettle();
+    expect(linesOpacity(tester), 1);
+  });
+
+  testWidgets('other lyrics in the same place (an import over the ones '
+      'shown) are hidden at once, until placed', (tester) async {
+    await pump(tester);
+    active.value = 14;
+    await tester.pumpAndSettle();
+    expect(scrollOffset(tester), greaterThan(0));
+    await pump(
+      tester,
+      settle: false,
+      lyrics: const SyncedLyrics([
+        LyricLine(Duration(seconds: 1), 'Other words'),
+        LyricLine(Duration(seconds: 4), 'Other again'),
+      ], source: LyricsSource.imported),
+    );
+    expect(linesOpacity(tester), 0, reason: 'still at the old place');
+    await tester.pumpAndSettle();
+    expect(linesOpacity(tester), 1);
+  });
+
   testWidgets('a long intro starts with the dots', (tester) async {
     await pump(
       tester,
@@ -180,4 +303,16 @@ void main() {
       ),
     );
   });
+}
+
+/// Records the alpha of each circle drawn.
+class _DotsCanvas implements Canvas {
+  final alphas = <double>[];
+
+  @override
+  void drawCircle(Offset c, double radius, Paint paint) =>
+      alphas.add((paint.color.a * 100).round() / 100);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }

@@ -13,10 +13,10 @@ import 'package:troona/features/lyrics/presentation/widgets/lyrics_actions.dart'
 import 'package:troona/features/lyrics/presentation/widgets/synced_lyrics_view.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_button.dart';
-import 'package:troona/shared/widgets/app_icon_button.dart';
 
 /// The lyrics of the song playing, in place of Now Playing's stage: synced,
-/// plain, none, or on their way. Reads [LyricsCubit] and [PlayerBloc].
+/// plain, none, or on their way. Reads [LyricsCubit] and [PlayerBloc]. Their
+/// menu is in the song's own ([showLyricsOptions], from the page's top bar).
 class LyricsView extends StatelessWidget {
   const LyricsView({super.key});
 
@@ -32,6 +32,7 @@ class LyricsView extends StatelessWidget {
           LyricsShown(lyrics: final SyncedLyrics lyrics) => SyncedLyricsView(
             lyrics: lyrics,
             activeLine: cubit.activeLine,
+            position: context.read<PlayerBloc>().progress,
             seekTargetOf: cubit.seekTargetOf,
             onSeek: (at) => context.read<PlayerBloc>().add(SeekRequested(at)),
           ),
@@ -40,29 +41,12 @@ class LyricsView extends StatelessWidget {
           ),
           LyricsNone() => _LyricsEmpty(state),
         };
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: KeyedSubtree(
-                  key: ValueKey((state.runtimeType, state.trackId)),
-                  child: body,
-                ),
-              ),
-            ),
-            if (state is LyricsShown)
-              PositionedDirectional(
-                top: 0,
-                end: AppSpacing.sm,
-                child: AppIconButton(
-                  icon: AppIcons.lyricsOptions,
-                  tooltip: context.l10n.lyricsOptions,
-                  color: Colors.white70,
-                  onPressed: () => showLyricsOptions(context, cubit),
-                ),
-              ),
-          ],
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: KeyedSubtree(
+            key: ValueKey((state.runtimeType, state.trackId)),
+            child: body,
+          ),
         );
       },
     );
@@ -79,7 +63,7 @@ class _PlainLyricsView extends StatelessWidget {
     padding: const EdgeInsets.fromLTRB(
       AppSpacing.xl2,
       AppSpacing.md,
-      AppSpacing.xl2 + 44,
+      AppSpacing.xl2,
       AppSpacing.xl3,
     ),
     child: Column(

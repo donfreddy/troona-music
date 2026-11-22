@@ -8,6 +8,7 @@ import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics_lookup.dart';
 import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/lyrics/domain/services/active_line.dart';
+import 'package:troona/features/lyrics/domain/services/lyric_pauses.dart';
 import 'package:troona/features/lyrics/presentation/cubit/lyrics_state.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 
@@ -111,7 +112,7 @@ class LyricsCubit extends Cubit<LyricsState> {
     emit(switch (found) {
       LyricsFound(:final lyrics, :final offset) => LyricsShown(
         track.id,
-        lyrics,
+        _withPauses(lyrics),
         offset: offset,
       ),
       LyricsMissing(:final onlineEnabled, :final unreachable) => LyricsNone(
@@ -122,6 +123,16 @@ class LyricsCubit extends Cubit<LyricsState> {
     });
     _follow();
   }
+
+  /// Synced lyrics as shown: with a pause in each long stretch without a
+  /// line ([LyricPauses]). What is stored stays as found.
+  static Lyrics _withPauses(Lyrics lyrics) => lyrics is SyncedLyrics
+      ? SyncedLyrics(
+          LyricPauses.insert(lyrics.lines),
+          source: lyrics.source,
+          offset: lyrics.offset,
+        )
+      : lyrics;
 
   /// Asks the online sources again, whatever was remembered.
   Future<void> searchOnline() => _load(searchAgain: true);
@@ -134,7 +145,7 @@ class LyricsCubit extends Cubit<LyricsState> {
     return result.fold((_) => false, (lyrics) {
       if (isClosed || trackId != _track?.id) return true;
       _request++;
-      emit(LyricsShown(trackId, lyrics));
+      emit(LyricsShown(trackId, _withPauses(lyrics)));
       _follow();
       return true;
     });

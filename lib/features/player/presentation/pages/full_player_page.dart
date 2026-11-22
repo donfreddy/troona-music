@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/cupertino.dart';
+import 'package:troona/features/lyrics/presentation/cubit/lyrics_state.dart';
+import 'package:troona/features/lyrics/presentation/widgets/lyrics_actions.dart';
+import 'package:troona/shared/widgets/action_sheet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:troona/shared/widgets/like_burst.dart';
@@ -93,20 +97,70 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   final _likeBurst = LikeBurstController();
 
   /// Whether the lyrics stand in for the stage. The stage stays mounted
-  /// below them, unseen, its heroes off: the page then closes in a fade,
-  /// with nothing to fly into the mini player.
-  bool _lyricsShown = false;
+  /// below them, unseen, and keeps its heroes: the page still morphs into
+  /// the mini player, the cover coming out of the lyrics on its way
+  /// ([NowPlayingStage]). Kept from one opening to the next.
+  late bool _lyricsShown = getIt<PlaybackSessionStore>().wereLyricsShown;
 
   /// Made the first time the lyrics are shown, for this page only.
   LyricsCubit? _lyrics;
 
+  /// 0 the stage, 1 the lyrics: the two cross-fade, the lyrics take the
+  /// room down to the controls and the tab bar slides away.
+  late final AnimationController _lyricsMix = AnimationController(
+    vsync: this,
+    duration: lyricsSwitch,
+    value: _lyricsShown ? 1 : 0,
+  );
+
+  /// The stage goes first, then the lyrics come: never both at full
+  /// strength over each other.
+  late final CurvedAnimation _stageOut = CurvedAnimation(
+    parent: _lyricsMix,
+    curve: const Interval(0, 0.6, curve: Curves.easeIn),
+  );
+  late final Animation<double> _stageOpacity = ReverseAnimation(_stageOut);
+  late final CurvedAnimation _lyricsIn = CurvedAnimation(
+    parent: _lyricsMix,
+    curve: const Interval(0.4, 1, curve: Curves.easeOut),
+  );
+  late final Animation<Offset> _lyricsRise = Tween(
+    begin: const Offset(0, 0.03),
+    end: Offset.zero,
+  ).animate(_lyricsIn);
+
+  /// The room the lyrics take, and how far the tab bar is down.
+  late final CurvedAnimation _lyricsRoom = CurvedAnimation(
+    parent: _lyricsMix,
+    curve: Curves.easeInOutCubic,
+  );
+
+  /// How long the switch between the stage and the lyrics takes.
+  static const lyricsSwitch = Duration(milliseconds: 340);
+
+  LyricsCubit _lyricsCubit() => _lyrics ??= LyricsCubit.of(
+    getIt<LyricsRepository>(),
+    context.read<PlayerBloc>(),
+  );
+
   void _toggleLyrics() {
-    final lyrics = _lyrics ??= LyricsCubit.of(
-      getIt<LyricsRepository>(),
-      context.read<PlayerBloc>(),
-    );
+    final lyrics = _lyricsCubit();
     setState(() => _lyricsShown = !_lyricsShown);
     lyrics.setVisible(_lyricsShown);
+    unawaited(getIt<PlaybackSessionStore>().setLyricsShown(_lyricsShown));
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _lyricsMix.value = _lyricsShown ? 1 : 0;
+    } else if (_lyricsShown) {
+      _lyricsMix.forward();
+    } else {
+      _lyricsMix.reverse();
+    }
+  }
+
+  /// The lyrics stay mounted until they have faded out: rebuilt once the
+  /// switch is over, either way.
+  void _onLyricsMixStatus(AnimationStatus status) {
+    if (mounted && !status.isAnimating) setState(() {});
   }
 
   /// Index the user swiped to, used to disambiguate duplicate tracks while
@@ -205,6 +259,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
           if (!mounted) return;
           setState(() => _setDragOffset(_snapAnim.value));
         });
+
+    _lyricsMix.addStatusListener(_onLyricsMixStatus);
+    // Left on its lyrics: opened on them.
+    if (_lyricsShown) _lyricsCubit().setVisible(true);
 
     final playerState = context.read<PlayerBloc>().state;
     final initialTrack = _resolveTrack(playerState);
@@ -345,7 +403,9 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 
   /// The stage in the room [height] leaves it, with the lyrics over it
   /// when shown. One structure either way, so the carousel below keeps its
-  /// state.
+  /// state. The lyrics take the whole of [height]; the stage only its own,
+  /// so the controls below move down as the lyrics come ([_lyricsRoom]),
+  /// instead of jumping.
   Widget _stageArea(
     (List<Track>, int)? stage,
     Track? track,
@@ -354,51 +414,70 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   ) {
     final lyrics = _lyrics;
     final shown = _lyricsShown && lyrics != null;
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: shown ? height : 0,
-        maxHeight: height,
+    // Still there while they fade out.
+    final mounted = lyrics != null && (_lyricsShown || _lyricsMix.value > 0);
+    return AnimatedBuilder(
+      animation: _lyricsRoom,
+      builder: (context, child) => ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: height * _lyricsRoom.value,
+          maxHeight: height,
+        ),
+        child: child,
       ),
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
-          // Opacity 0 paints nothing: no blur of the lens below.
-          Opacity(
-            opacity: shown ? 0 : 1,
-            child: IgnorePointer(
-              ignoring: shown,
-              child: ExcludeSemantics(
-                excluding: shown,
-                child: _stageOf(stage, track),
+          // At opacity 0 nothing is painted: no blur of the lens below.
+          NowPlayingStage(
+            opacity: _stageOpacity,
+            child: FadeTransition(
+              opacity: _stageOpacity,
+              child: IgnorePointer(
+                ignoring: shown,
+                child: ExcludeSemantics(
+                  excluding: shown,
+                  child: _stageOf(stage, track),
+                ),
               ),
             ),
           ),
-          if (shown)
+          if (mounted)
             Positioned.fill(
-              child: _fadeChrome(
-                BlocProvider.value(
-                  value: lyrics,
-                  // Content, not chrome: it follows the phone's font
-                  // size past the page's cap.
-                  child: MediaQuery(
-                    data: MediaQuery.of(
-                      context,
-                    ).copyWith(textScaler: textScaler),
-                    child: Column(
-                      children: [
-                        const Expanded(child: LyricsView()),
-                        MediaQuery.withClampedTextScaling(
-                          maxScaleFactor: AppLayout.maxTextScale,
-                          child: const PlayerProgressBar(),
-                        ),
-                        BlocSelector<PlayerBloc, PlayerState, bool>(
-                          selector: (s) => s is PlayerActive && s.isPlaying,
-                          builder: (_, playing) => KeepScreenOn(
-                            active: playing,
-                            child: const SizedBox.shrink(),
+              child: IgnorePointer(
+                ignoring: !shown,
+                child: FadeTransition(
+                  opacity: _lyricsIn,
+                  child: SlideTransition(
+                    position: _lyricsRise,
+                    child: _fadeChrome(
+                      BlocProvider.value(
+                        value: lyrics,
+                        // Content, not chrome: it follows the phone's font
+                        // size past the page's cap.
+                        child: MediaQuery(
+                          data: MediaQuery.of(
+                            context,
+                          ).copyWith(textScaler: textScaler),
+                          child: Column(
+                            children: [
+                              const Expanded(child: LyricsView()),
+                              MediaQuery.withClampedTextScaling(
+                                maxScaleFactor: AppLayout.maxTextScale,
+                                child: const PlayerProgressBar(),
+                              ),
+                              BlocSelector<PlayerBloc, PlayerState, bool>(
+                                selector: (s) =>
+                                    s is PlayerActive && s.isPlaying,
+                                builder: (_, playing) => KeepScreenOn(
+                                  active: shown && playing,
+                                  child: const SizedBox.shrink(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -417,7 +496,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
         currentIndex: index,
         onPageChanged: _onCarouselPageChanged,
         onFocusChanged: _onSwipeFocusChanged,
-        enableHeroes: _heroes && !_lyricsShown,
+        enableHeroes: _heroes,
         lensOpacity: _stage,
         lensLift: _ringLift,
         neighbourOpacity: _dragFade,
@@ -440,6 +519,34 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   static Widget _fade(Animation<double>? opacity, Widget child) =>
       opacity == null ? child : FadeTransition(opacity: opacity, child: child);
 
+  /// The page's last stretch of its route animation: where the tab bar
+  /// goes down with the lyrics on the way in, and comes back first thing
+  /// on the way out, so the surface still lands in a bar.
+  static const _barGate = Interval(0.55, 1, curve: Curves.easeOut);
+
+  /// [child] (the tab bar) moved [distance] down, off the screen, while
+  /// the lyrics show: reading them, the tabs are of no use, and their room
+  /// goes to the lines.
+  Widget _lyricsAway({required double distance, required Widget child}) {
+    final route = _chrome?.parent;
+    return AnimatedBuilder(
+      animation: Listenable.merge([_lyricsRoom, ?route]),
+      child: child,
+      builder: (_, child) {
+        final gate = route == null ? 1.0 : _barGate.transform(route.value);
+        return Transform.translate(
+          offset: Offset(0, distance * _lyricsRoom.value * gate),
+          child: child,
+        );
+      },
+    );
+  }
+
+  /// Off the screen, the tab bar is not for a screen reader either: a tab
+  /// it cannot show would still take a tap, and leave the page.
+  Widget _unreadWithLyrics(Widget child) =>
+      ExcludeSemantics(excluding: _lyricsShown, child: child);
+
   /// How far the lens is lifted under a finger on the ring (the ring
   /// writes it, the stage scales the lens with it).
   final _ringLift = ValueNotifier<double>(0);
@@ -448,6 +555,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
   void dispose() {
     _likeBurst.dispose();
     unawaited(_lyrics?.close());
+    _stageOut.dispose();
+    _lyricsIn.dispose();
+    _lyricsRoom.dispose();
+    _lyricsMix.dispose();
     _publishCover(null, replacing: _cover);
     _chrome?.parent.removeStatusListener(_enableHeroesOnceShown);
     _chrome?.dispose();
@@ -600,7 +711,12 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                             child: Column(
                               children: [
                                 // Top bar: dismiss + options
-                                _fadeChrome(_TopBar(likeBurst: _likeBurst)),
+                                _fadeChrome(
+                                  _TopBar(
+                                    likeBurst: _likeBurst,
+                                    lyrics: _lyricsShown ? _lyrics : null,
+                                  ),
+                                ),
 
                                 const SizedBox(height: AppSpacing.lg),
 
@@ -674,8 +790,19 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                   ),
                                 ),
 
-                                // Room for the nav bar overlaid below.
-                                SizedBox(height: navBarReserve),
+                                // Room for the nav bar overlaid below; with
+                                // the lyrics the bar is away, and the
+                                // controls take its place.
+                                AnimatedBuilder(
+                                  animation: _lyricsRoom,
+                                  builder: (_, _) => SizedBox(
+                                    height: lerpDouble(
+                                      navBarReserve,
+                                      safeBottom + AppSpacing.lg,
+                                      _lyricsRoom.value,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -690,39 +817,53 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                           bottom: 0,
                           left: 0,
                           right: 0,
-                          child: _fade(
-                            _backdrop,
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(
-                                12,
-                                0,
-                                12,
-                                safeBottom + 12,
-                              ),
-                              child: AppBottomNavBar(
-                                currentTab: AppTab.player,
-                                showMiniPlayer: false,
-                                // Without the morph (opened at launch),
-                                // no surface leaves the bar: it stays
-                                // shut until the page can be dismissed.
-                                miniSlot: _heroes
-                                    ? _slot
-                                    : kAlwaysDismissedAnimation,
-                                onTabChanged: (tab) {
-                                  switch (tab) {
-                                    case AppTab.home:
-                                      _leaveFullPlayerTo(context, '/home');
-                                    case AppTab.library:
-                                      _leaveFullPlayerTo(context, '/library');
-                                    case AppTab.search:
-                                      _leaveFullPlayerTo(context, '/search');
-                                    case AppTab.playlists:
-                                      _leaveFullPlayerTo(context, '/playlists');
-                                    case AppTab.player:
-                                      // The orb closes the page it opened.
-                                      _dismissFullPlayer(context);
-                                  }
-                                },
+                          child: _lyricsAway(
+                            distance: navBarReserve + 8,
+                            child: _unreadWithLyrics(
+                              _fade(
+                                _backdrop,
+                                Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    12,
+                                    0,
+                                    12,
+                                    safeBottom + 12,
+                                  ),
+                                  child: AppBottomNavBar(
+                                    currentTab: AppTab.player,
+                                    showMiniPlayer: false,
+                                    // Without the morph (opened at launch),
+                                    // no surface leaves the bar: it stays
+                                    // shut until the page can be dismissed.
+                                    miniSlot: _heroes
+                                        ? _slot
+                                        : kAlwaysDismissedAnimation,
+                                    onTabChanged: (tab) {
+                                      switch (tab) {
+                                        case AppTab.home:
+                                          _leaveFullPlayerTo(context, '/home');
+                                        case AppTab.library:
+                                          _leaveFullPlayerTo(
+                                            context,
+                                            '/library',
+                                          );
+                                        case AppTab.search:
+                                          _leaveFullPlayerTo(
+                                            context,
+                                            '/search',
+                                          );
+                                        case AppTab.playlists:
+                                          _leaveFullPlayerTo(
+                                            context,
+                                            '/playlists',
+                                          );
+                                        case AppTab.player:
+                                          // The orb closes the page it opened.
+                                          _dismissFullPlayer(context);
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -745,7 +886,10 @@ class _FullPlayerPageState extends State<FullPlayerPage>
 class _TopBar extends StatelessWidget {
   final LikeBurstController likeBurst;
 
-  const _TopBar({required this.likeBurst});
+  /// The lyrics on screen, if any: the song's menu then leads with theirs.
+  final LyricsCubit? lyrics;
+
+  const _TopBar({required this.likeBurst, required this.lyrics});
 
   @override
   Widget build(BuildContext context) {
@@ -797,11 +941,22 @@ class _TopBar extends StatelessWidget {
     final state = context.read<PlayerBloc>().state;
     if (state is! PlayerActive) return;
 
+    final lyrics = this.lyrics;
     showTrackActions(
       context,
       state.currentTrack,
       origin: TrackActionOrigin.nowPlaying,
       onLikeToggled: (liked) => likeBurst.play(liked: liked),
+      // With lyrics on screen, their own menu comes first: import, search
+      // again, timing, remove.
+      first: [
+        if (lyrics != null && lyrics.state is LyricsShown)
+          SheetAction(
+            label: context.l10n.lyricsOptions,
+            icon: AppIcons.lyricsOptions,
+            onPressed: () => showLyricsOptions(context, lyrics),
+          ),
+      ],
     );
   }
 }

@@ -123,6 +123,23 @@ void main() {
     expect(cubit.state, LyricsShown('a', _synced));
   });
 
+  test('lyrics are shown with a pause where nobody sings for long; the '
+      'ones kept are as found', () async {
+    final found =
+        LrcParser.parse(
+              '[00:01.00]One\n[00:30.00]Two',
+              source: LyricsSource.online,
+            )!
+            as SyncedLyrics;
+    repo.answers['a'] = LyricsFound(found);
+    final cubit = build()..setVisible(true);
+    await settle();
+    final shown = (cubit.state as LyricsShown).lyrics as SyncedLyrics;
+    expect(shown.lines.map((l) => l.text), ['One', '', 'Two']);
+    expect(shown.lines[1].isPause, isTrue);
+    expect(found.lines, hasLength(2));
+  });
+
   test('a song changing during a read: the last song wins', () async {
     repo
       ..gates['a'] = Completer()

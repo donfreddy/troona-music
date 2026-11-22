@@ -26,7 +26,11 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
+import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:troona/features/player/presentation/widgets/player_controls.dart';
+import 'package:troona/features/lyrics/presentation/widgets/lyrics_view.dart';
 import 'package:troona/features/player/presentation/widgets/artwork_carousel.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/player_progress_bar.dart';
@@ -214,8 +218,17 @@ void main() {
   bool carouselHeroes(WidgetTester tester) =>
       tester.widget<ArtworkCarousel>(find.byType(ArtworkCarousel)).enableHeroes;
 
+  double opacityAbove(WidgetTester tester, Finder finder) => tester
+      .widgetList<FadeTransition>(
+        find.ancestor(of: finder, matching: find.byType(FadeTransition)),
+      )
+      .map((f) => f.opacity.value)
+      .reduce((a, b) => a * b);
+
   testWidgets('the dock shows the lyrics in place of the stage, with a '
-      'seek bar; the stage stays mounted, its heroes off', (tester) async {
+      'seek bar; the stage stays mounted, unseen, its heroes on', (
+    tester,
+  ) async {
     await pumpOpen(tester);
     expect(carouselHeroes(tester), isTrue);
     expect(lyrics.asked, isEmpty, reason: 'nothing read until shown');
@@ -225,14 +238,61 @@ void main() {
     expect(find.text('First line'), findsOneWidget);
     expect(find.byType(PlayerProgressBar), findsOneWidget);
     expect(find.byType(ArtworkCarousel), findsOneWidget);
-    expect(carouselHeroes(tester), isFalse);
+    expect(opacityAbove(tester, find.byType(ArtworkCarousel)), 0);
+    expect(carouselHeroes(tester), isTrue, reason: 'the page still morphs');
     expect(lyrics.asked, ['b']);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byTooltip('Hide lyrics'));
     await settle(tester);
     expect(find.text('First line'), findsNothing);
-    expect(carouselHeroes(tester), isTrue);
+    expect(opacityAbove(tester, find.byType(ArtworkCarousel)), 1);
+  });
+
+  testWidgets('the stage and the lyrics cross-fade: never a cut, never both '
+      'at full strength', (tester) async {
+    await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await tester.pump();
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      final stage = opacityAbove(tester, find.byType(ArtworkCarousel));
+      final words = find.byType(LyricsView).evaluate().isEmpty
+          ? 0.0
+          : opacityAbove(tester, find.byType(LyricsView));
+      expect(
+        stage < 1 || words == 0,
+        isTrue,
+        reason: 'step $i: the stage has begun to go before the words come',
+      );
+      expect(stage * words, lessThan(0.3), reason: 'step $i');
+    }
+    await settle(tester);
+    expect(opacityAbove(tester, find.byType(ArtworkCarousel)), 0);
+  });
+
+  testWidgets('the controls slide down as the lyrics take the room, and the '
+      'tab bar goes off the screen', (tester) async {
+    await pumpOpen(tester);
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    final before = tester.getTopLeft(find.byType(PlayerControls)).dy;
+    Rect bar() => tester.getRect(find.byType(AppBottomNavBar).last);
+    expect(bar().top, lessThan(screen.height));
+
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 170));
+    final midway = tester.getTopLeft(find.byType(PlayerControls)).dy;
+    await settle(tester);
+    final after = tester.getTopLeft(find.byType(PlayerControls)).dy;
+    expect(after, greaterThan(before), reason: 'the bar left them its room');
+    expect(midway, inExclusiveRange(before, after), reason: 'no jump');
+    expect(bar().top, greaterThanOrEqualTo(screen.height));
+
+    await tester.tap(find.byTooltip('Hide lyrics'));
+    await settle(tester);
+    expect(tester.getTopLeft(find.byType(PlayerControls)).dy, before);
+    expect(bar().top, lessThan(screen.height));
   });
 
   testWidgets('a tap on a line seeks there', (tester) async {
@@ -245,34 +305,104 @@ void main() {
     expect(port.seeks.last, const Duration(seconds: 4));
   });
 
-  testWidgets('closed with the lyrics open: a fade, no flight, no error; '
-      'reopened on the stage', (tester) async {
+  /// The surface shuttle of the flight into the mini player, if flying.
+  Finder shuttle() => find.byWidgetPredicate(
+    (w) =>
+        w is DecoratedBox &&
+        w.decoration is BoxDecoration &&
+        ((w.decoration as BoxDecoration).color?.toARGB32() ?? 0) & 0xFFFFFF ==
+            0x07090E,
+  );
+
+  double shuttleAlpha(WidgetTester tester) =>
+      ((tester.widget<DecoratedBox>(shuttle()).decoration as BoxDecoration)
+          .color!
+          .a);
+
+  testWidgets('closed from the stage, the surface leaves it whole', (
+    tester,
+  ) async {
+    final navigator = await pumpOpen(tester);
+    navigator.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(shuttleAlpha(tester), greaterThan(0.6));
+    await settle(tester);
+  });
+
+  testWidgets('closed from the lyrics, the surface comes out of them: unseen '
+      'as it leaves, then there', (tester) async {
     final navigator = await pumpOpen(tester);
     await tester.tap(find.byTooltip('Show lyrics'));
     await settle(tester);
+    navigator.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    final leaving = shuttleAlpha(tester);
+    expect(leaving, lessThan(0.2));
+    await tester.pump(_open * 0.6);
+    expect(shuttleAlpha(tester), greaterThan(0.6));
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('off the screen, the tab bar is not read out either', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpOpen(tester);
+    int tabs() => find.semantics.byLabel(RegExp('Library')).evaluate().length;
+    final shown = tabs();
+    printOnFailure('tabs read: $shown');
+    expect(shown, greaterThan(0));
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    expect(tabs(), 0);
+    await tester.tap(find.byTooltip('Hide lyrics'));
+    await settle(tester);
+    expect(tabs(), shown);
+    handle.dispose();
+  });
+
+  testWidgets('closed with the lyrics open: the page still morphs into the '
+      'mini player, and the tab bar is back for the landing', (tester) async {
+    final navigator = await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
 
     navigator.pop();
     await tester.pump();
     await tester.pump(_open * 0.5);
-    // No ring to morph from: nothing flies into the row.
+    expect(shuttle(), findsOneWidget, reason: 'the surface flies');
     expect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is DecoratedBox &&
-            w.decoration is BoxDecoration &&
-            ((w.decoration as BoxDecoration).color?.toARGB32() ?? 0) &
-                    0xFFFFFF ==
-                0x07090E,
-      ),
-      findsNothing,
+      tester.getRect(find.byType(AppBottomNavBar).last).top,
+      lessThan(screen.height),
+      reason: 'the bar came back up for the surface to land in',
     );
     await settle(tester);
     expect(find.byType(FullPlayerPage), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('left on its lyrics, Now Playing opens on them again; left on '
+      'the stage, on the stage', (tester) async {
+    final navigator = await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    navigator.pop();
+    await settle(tester);
 
     await push(tester, navigator);
+    expect(find.text('First line'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byTooltip('Hide lyrics'));
+    await settle(tester);
+    navigator.pop();
+    await settle(tester);
+    await push(tester, navigator);
     expect(find.text('First line'), findsNothing);
-    expect(carouselHeroes(tester), isTrue);
     navigator.pop();
     await settle(tester);
     expect(tester.takeException(), isNull);
@@ -353,7 +483,11 @@ void main() {
     await pumpOpen(tester);
     await tester.tap(find.byTooltip('Show lyrics'));
     await settle(tester);
-    await tester.tap(find.byTooltip('Lyrics options'));
+    // The lyrics menu is in the song's own.
+    expect(find.byTooltip('Lyrics options'), findsNothing);
+    await tester.tap(find.byIcon(AppIcons.moreVertical));
+    await settle(tester);
+    await tester.tap(find.text('Lyrics options'));
     await settle(tester);
     await tester.tap(find.text('Remove lyrics'));
     await settle(tester);

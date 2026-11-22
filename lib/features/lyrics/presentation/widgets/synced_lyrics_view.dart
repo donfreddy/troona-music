@@ -7,6 +7,7 @@ import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
+import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
 /// Synced lyrics, the line being sung lit and held at [anchor] of the
@@ -25,6 +26,10 @@ class SyncedLyricsView extends StatefulWidget {
   final SyncedLyrics lyrics;
   final ValueListenable<int> activeLine;
 
+  /// The playback position, for the dots of a passage with no singing:
+  /// they fill as it goes. Nothing else listens to it.
+  final ValueListenable<PlaybackProgress> position;
+
   /// Where to seek for a line: its time, corrected by the offsets.
   final Duration Function(LyricLine line) seekTargetOf;
   final ValueChanged<Duration> onSeek;
@@ -33,6 +38,7 @@ class SyncedLyricsView extends StatefulWidget {
     super.key,
     required this.lyrics,
     required this.activeLine,
+    required this.position,
     required this.seekTargetOf,
     required this.onSeek,
   });
@@ -61,6 +67,29 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
   Timer? _resume;
   double _height = 0;
 
+  /// Whether the list is where the line sung puts it. The first frame
+  /// lays the lines out from their top; shown then, the song's first words
+  /// would flash before the jump to the line sung.
+  bool _placed = false;
+
+  void _place() {
+    if (!mounted) return;
+    _scrollToLine(true);
+    if (!_placed) setState(() => _placed = true);
+  }
+
+  /// When the passage with no singing at [index] (-1: the intro) starts
+  /// and ends, in playback time.
+  (Duration, Duration) _pauseSpan(int index) {
+    final lines = widget.lyrics.lines;
+    final start = index < 0 ? Duration.zero : widget.seekTargetOf(lines[index]);
+    final next = index + 1;
+    final end = next < lines.length
+        ? widget.seekTargetOf(lines[next])
+        : start + SyncedLyricsView.introDots;
+    return (start, end);
+  }
+
   bool get _hasIntro {
     final lines = widget.lyrics.lines;
     return lines.isNotEmpty && lines.first.at >= SyncedLyricsView.introDots;
@@ -71,7 +100,7 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
     super.initState();
     _keys = _keysFor(widget.lyrics);
     widget.activeLine.addListener(_onLine);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToLine(true));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _place());
   }
 
   @override
@@ -85,7 +114,8 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
       _keys = _keysFor(widget.lyrics);
       _following = true;
       _resume?.cancel();
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToLine(true));
+      _placed = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _place());
     }
   }
 
@@ -188,40 +218,55 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
                   stops: [0, 0.1, 0.85, 1],
                 ).createShader(rect),
                 blendMode: BlendMode.dstIn,
-                child: SingleChildScrollView(
-                  controller: _scroll,
-                  // Room at the end for the options button above the lines.
-                  padding: const EdgeInsetsDirectional.only(
-                    start: AppSpacing.xl2,
-                    end: AppSpacing.xl2 + 28,
-                  ),
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: widget.activeLine,
-                    builder: (context, active, _) => Column(
-                      key: _column,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(height: _height * SyncedLyricsView.anchor),
-                        if (_hasIntro)
-                          _InstrumentalDots(key: _intro, active: active < 0),
-                        for (var i = 0; i < lines.length; i++)
-                          KeyedSubtree(
-                            key: _keys[i],
-                            child: lines[i].isPause
-                                ? _InstrumentalDots(active: active == i)
-                                : _LyricLineTile(
-                                    line: lines[i],
-                                    distance: active < 0
-                                        ? i + 1
-                                        : (i - active).abs(),
-                                    target: widget.seekTargetOf(lines[i]),
-                                    onTap: () => _tap(lines[i]),
-                                  ),
+                // Hidden at once (new lyrics still stand at the old
+                // place for a frame), shown in a fade.
+                child: AnimatedOpacity(
+                  opacity: _placed ? 1 : 0,
+                  duration: _placed && !MediaQuery.disableAnimationsOf(context)
+                      ? const Duration(milliseconds: 180)
+                      : Duration.zero,
+                  child: SingleChildScrollView(
+                    controller: _scroll,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl2,
+                    ),
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: widget.activeLine,
+                      builder: (context, active, _) => Column(
+                        key: _column,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: _height * SyncedLyricsView.anchor),
+                          if (_hasIntro)
+                            _InstrumentalDots(
+                              key: _intro,
+                              active: active < 0,
+                              position: widget.position,
+                              span: _pauseSpan(-1),
+                            ),
+                          for (var i = 0; i < lines.length; i++)
+                            KeyedSubtree(
+                              key: _keys[i],
+                              child: lines[i].isPause
+                                  ? _InstrumentalDots(
+                                      active: active == i,
+                                      position: widget.position,
+                                      span: _pauseSpan(i),
+                                    )
+                                  : _LyricLineTile(
+                                      line: lines[i],
+                                      distance: active < 0
+                                          ? i + 1
+                                          : (i - active).abs(),
+                                      target: widget.seekTargetOf(lines[i]),
+                                      onTap: () => _tap(lines[i]),
+                                    ),
+                            ),
+                          SizedBox(
+                            height: _height * (1 - SyncedLyricsView.anchor),
                           ),
-                        SizedBox(
-                          height: _height * (1 - SyncedLyricsView.anchor),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -316,39 +361,108 @@ class _LyricLineTile extends StatelessWidget {
   }
 }
 
-/// Three dots for a passage with no singing; lit while it plays.
+/// Three dots for a passage with no singing. While it plays they fill
+/// one after the other, the last as the singing comes back: one sees how
+/// long is left. Dim before and after. Painted from [position] alone, so
+/// its ticks rebuild nothing; with reduced motion they are simply lit.
 class _InstrumentalDots extends StatelessWidget {
   final bool active;
+  final ValueListenable<PlaybackProgress> position;
 
-  const _InstrumentalDots({super.key, required this.active});
+  /// When the passage starts and ends, in playback time.
+  final (Duration, Duration) span;
+
+  const _InstrumentalDots({
+    super.key,
+    required this.active,
+    required this.position,
+    required this.span,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final alpha = active ? 1.0 : 0.3;
     return Semantics(
       label: context.l10n.lyricsInstrumental,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18),
-        child: Row(
-          children: [
-            for (var i = 0; i < 3; i++)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 8),
-                child: AnimatedContainer(
-                  duration: MediaQuery.disableAnimationsOf(context)
-                      ? Duration.zero
-                      : const Duration(milliseconds: 300),
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: alpha),
-                  ),
-                ),
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: RepaintBoundary(
+            child: CustomPaint(
+              size: const Size(_DotsPainter.width, _DotsPainter.dot),
+              painter: _DotsPainter(
+                active: active,
+                position: position,
+                span: span,
+                still: MediaQuery.disableAnimationsOf(context),
+                rtl: Directionality.of(context) == TextDirection.rtl,
               ),
-          ],
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+class _DotsPainter extends CustomPainter {
+  final bool active;
+  final ValueListenable<PlaybackProgress> position;
+  final (Duration, Duration) span;
+  final bool still;
+  final bool rtl;
+
+  _DotsPainter({
+    required this.active,
+    required this.position,
+    required this.span,
+    required this.still,
+    required this.rtl,
+  }) : super(repaint: active && !still ? position : null);
+
+  static const double dot = 10;
+  static const double gap = 8;
+  static const double width = 3 * dot + 2 * gap;
+  static const double dim = 0.3;
+
+  /// How lit each of the three dots is (0 to 1) at [progress] of the
+  /// passage: one after the other, each over a third of it.
+  @visibleForTesting
+  static List<double> fill(double progress) => [
+    for (var i = 0; i < 3; i++) (progress * 3 - i).clamp(0.0, 1.0),
+  ];
+
+  double get _progress {
+    if (!active) return 0;
+    if (still) return 1;
+    final (start, end) = span;
+    final length = (end - start).inMicroseconds;
+    if (length <= 0) return 1;
+    return ((position.value.position - start).inMicroseconds / length).clamp(
+      0.0,
+      1.0,
+    );
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final lit = fill(_progress);
+    for (var i = 0; i < 3; i++) {
+      final slot = rtl ? 2 - i : i;
+      canvas.drawCircle(
+        Offset(slot * (dot + gap) + dot / 2, size.height / 2),
+        dot / 2,
+        Paint()
+          ..color = Colors.white.withValues(alpha: dim + (1 - dim) * lit[i]),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DotsPainter old) =>
+      old.active != active ||
+      old.span != span ||
+      old.still != still ||
+      old.rtl != rtl ||
+      old.position != position;
 }
