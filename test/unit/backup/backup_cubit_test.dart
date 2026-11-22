@@ -15,7 +15,25 @@ final class _Backups extends Fake implements BackupRepository {
   int reads = 0;
 
   @override
-  Future<Either<Failure, String>> exportToFile() async => right('/backup.json');
+  Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async =>
+      right(
+        Backup(
+          createdAt: DateTime(2026),
+          parts: parts,
+          tracks: const {},
+          playlists: const [],
+          plays: const [],
+          days: const [],
+          trackDays: const [],
+          firstPlays: const [],
+          replayMonth: null,
+          settings: null,
+        ),
+      );
+
+  @override
+  Future<Either<Failure, String>> exportToFile(Backup backup) async =>
+      right('/backup.json');
 
   @override
   Future<void> clearExports() async => clears++;
@@ -44,7 +62,7 @@ void main() {
   tearDown(() => cubit.close());
 
   test('the export is deleted once shared', () async {
-    final result = await cubit.export((_) async {});
+    final result = await cubit.export(const {BackupPart.history}, (_) async {});
 
     expect(result.isRight(), isTrue);
     expect(backups.clears, 1);
@@ -52,7 +70,9 @@ void main() {
   });
 
   test('the export is deleted when sharing fails', () async {
-    final result = await cubit.export((_) async => throw StateError('no'));
+    final result = await cubit.export(const {
+      BackupPart.history,
+    }, (_) async => throw StateError('no'));
 
     expect(result.isLeft(), isTrue);
     expect(backups.clears, 1);
@@ -60,10 +80,12 @@ void main() {
 
   test('a second task while one runs is refused', () async {
     final sharing = Completer<void>();
-    final first = cubit.export((_) => sharing.future);
+    final first = cubit.export(const {
+      BackupPart.history,
+    }, (_) => sharing.future);
     await pumpEventQueue();
 
-    final second = await cubit.restore('/other.json');
+    final second = await cubit.read('/other.json');
     sharing.complete();
 
     expect(second.isLeft(), isTrue);

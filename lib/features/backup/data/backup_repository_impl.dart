@@ -12,6 +12,7 @@ import 'package:troona/features/backup/domain/repositories/backup_repository.dar
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/equalizer/domain/repositories/equalizer_repository.dart';
 import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 
 final class BackupRepositoryImpl implements BackupRepository {
@@ -42,33 +43,51 @@ final class BackupRepositoryImpl implements BackupRepository {
        _now = now ?? DateTime.now;
 
   @override
-  Future<Either<Failure, String>> exportToFile() async {
+  Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async {
     try {
-      final settings = await _settings.loadSettings();
-      return await settings.fold((f) async => left(f), (settings) async {
-        final now = _now();
-        final backup = _source
-            .read(
-              createdAt: now,
-              settings: settings,
-              replayMonth: _replayLog.lastMonth,
-            )
-            .withEqualizer(switch (_equalizer) {
-              final eq? => EqualizerSnapshot(
-                settings: eq.loadSettings(),
-                profiles: eq.loadProfiles(),
-              ),
-              null => null,
-            });
-        if (await _exportDir.exists()) {
-          await _exportDir.delete(recursive: true);
-        }
-        await _exportDir.create(recursive: true);
-        final date = now.toIso8601String().substring(0, 10);
-        final file = File('${_exportDir.path}/troona-backup-$date.json');
-        await file.writeAsBytes(BackupCodec.encode(backup), flush: true);
-        return right(file.path);
-      });
+      AppSettings? settings;
+      if (parts.contains(BackupPart.settings)) {
+        final loaded = await _settings.loadSettings();
+        final failure = loaded.fold<Failure?>((f) => f, (s) {
+          settings = s;
+          return null;
+        });
+        if (failure != null) return left(failure);
+      }
+      final backup = _source.read(
+        createdAt: _now(),
+        settings: settings,
+        replayMonth: _replayLog.lastMonth,
+        parts: parts,
+      );
+      return right(
+        backup.withEqualizer(switch (_equalizer) {
+          final eq? when parts.contains(BackupPart.equalizer) =>
+            EqualizerSnapshot(
+              settings: eq.loadSettings(),
+              profiles: eq.loadProfiles(),
+            ),
+          _ => null,
+        }),
+      );
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> exportToFile(Backup backup) async {
+    try {
+      // Up to 20 MB of JSON: encoded away from the UI thread.
+      final bytes = await Isolate.run(() => BackupCodec.encode(backup));
+      if (await _exportDir.exists()) {
+        await _exportDir.delete(recursive: true);
+      }
+      await _exportDir.create(recursive: true);
+      final date = backup.createdAt.toIso8601String().substring(0, 10);
+      final file = File('${_exportDir.path}/troona-backup-$date.json');
+      await file.writeAsBytes(bytes, flush: true);
+      return right(file.path);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

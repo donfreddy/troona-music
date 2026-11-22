@@ -15,6 +15,8 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:dartz/dartz.dart' show left;
+import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
@@ -423,6 +425,7 @@ class _SettingsList extends StatelessWidget {
     // share_plus copies the file before the share sheet opens, so the
     // cubit deletes its own once this returns.
     final result = await context.read<BackupCubit>().export(
+      BackupPart.all,
       (path) => SharePlus.instance.share(
         ShareParams(
           files: [XFile(path, mimeType: 'application/json')],
@@ -451,13 +454,17 @@ class _SettingsList extends StatelessWidget {
     final picked = await FilePicker.pickFiles();
     final path = picked?.files.singleOrNull?.path;
     if (path == null) return;
-    final result = await backup.restore(path);
+    final read = await backup.read(path);
     // The picker's copy holds the listening history: not left behind.
     unawaited(FilePicker.clearTemporaryFiles());
+    final result = await read.fold(
+      (f) async => left<Failure, RestoreReport>(f),
+      (file) => backup.restore(file, BackupPart.all),
+    );
 
     final report = result.fold((_) => null, (report) => report);
     if (report != null) {
-      await settings.restore(report.settings);
+      if (report.settings case final saved?) await settings.restore(saved);
       if (report.equalizer case final eq?) {
         equalizer?.restore(eq.settings, eq.profiles);
       }
@@ -498,7 +505,8 @@ class _SettingsList extends StatelessWidget {
           if (missing.length > _missingShown)
             l10n.backupRestoreMore(missing.length - _missingShown),
         ].join('\n'),
-      if (report.settings.onlineExtrasEnabled) l10n.backupRestoreOnline,
+      if (report.settings?.onlineExtrasEnabled ?? false)
+        l10n.backupRestoreOnline,
     ].join('\n\n');
   }
 

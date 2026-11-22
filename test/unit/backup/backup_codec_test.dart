@@ -148,7 +148,7 @@ void main() {
 
     final read = BackupCodec.decode(BackupCodec.encode(backup));
 
-    expect(read.settings.glassQuality, GlassQuality.auto);
+    expect(read.settings?.glassQuality, GlassQuality.auto);
     expect(read.replayMonth, isNull);
   });
 
@@ -321,5 +321,78 @@ void main() {
     final read = BackupCodec.decode(BackupCodec.encode(long));
 
     expect(read.tracks['1']!.title, hasLength(BackupCodec.maxText));
+  });
+
+  group('parts', () {
+    test('a whole backup keeps version 1 and lists no contents', () {
+      final json = _json();
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+    });
+
+    test('a backup of some parts is version 2 and holds only those', () {
+      final likes = _backup.only({BackupPart.likes, BackupPart.equalizer});
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(likes)))
+              as Map<String, dynamic>;
+
+      expect(json['version'], 2);
+      // Listed though this backup has no equalizer, as a whole backup may
+      // lack one: a restore offers it only when there.
+      expect(json['contents'], ['likes', 'equalizer']);
+      expect(json.containsKey('history'), isFalse);
+      expect(json.containsKey('settings'), isFalse);
+      expect((json['playlists'] as List).single['likes'], isTrue);
+      expect(BackupCodec.decode(BackupCodec.encode(likes)), likes);
+    });
+
+    test('settings alone name no song', () {
+      final settings = _backup.only({BackupPart.settings});
+      final read = BackupCodec.decode(BackupCodec.encode(settings));
+
+      expect(read.parts, {BackupPart.settings});
+      expect(read.tracks, isEmpty);
+      expect(read.settings, _backup.settings);
+    });
+
+    test('a part this version does not know is skipped', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['likes', 'lyrics'];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.parts, {BackupPart.likes});
+      expect(read.playlists.single.isLikes, isTrue);
+    });
+
+    test('a section of a part not listed is not read', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['playlists'];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings, isNull);
+      expect(read.plays, isEmpty);
+      expect(read.replayMonth, isNull);
+      expect(read.playlists.map((p) => p.name), ['Road trip', 'Forgotten']);
+    });
+
+    test('a part listed without its section is refused', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['history']
+        ..remove('history');
+
+      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+    });
+
+    test('version 2 without a list of contents is refused', () {
+      final json = _json()..['version'] = 2;
+
+      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+    });
   });
 }

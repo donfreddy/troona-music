@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 
@@ -17,12 +18,13 @@ final class BackupCubit extends Cubit<bool> {
        _restore = restore,
        super(false);
 
-  /// Writes a backup and hands its file to [share]. The file is deleted
-  /// afterwards, shared or not: it carries the listening history.
+  /// Writes a backup of [parts] and hands its file to [share]. The file is
+  /// deleted afterwards, shared or not: it carries the listening history.
   Future<Either<Failure, Unit>> export(
+    Set<BackupPart> parts,
     Future<void> Function(String path) share,
   ) => _busy(() async {
-    final written = await _export();
+    final written = await _export(parts);
     try {
       return await written.fold((f) async => left(f), (path) async {
         await share(path);
@@ -35,8 +37,15 @@ final class BackupCubit extends Cubit<bool> {
     }
   });
 
-  Future<Either<Failure, RestoreReport>> restore(String path) =>
-      _busy(() => _restore(path));
+  /// Reads the backup file at [path], for the user to choose its parts.
+  Future<Either<Failure, Backup>> read(String path) =>
+      _busy(() => _restore.read(path));
+
+  /// Merges the [parts] of [backup] chosen into this phone.
+  Future<Either<Failure, RestoreReport>> restore(
+    Backup backup,
+    Set<BackupPart> parts,
+  ) => _busy(() => _restore(backup, parts));
 
   /// One task at a time, app-wide (the cubit is a singleton): a second
   /// export would delete the first one's file before it is shared.

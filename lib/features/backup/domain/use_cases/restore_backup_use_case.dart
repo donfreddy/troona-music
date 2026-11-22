@@ -10,7 +10,8 @@ import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// What a restore found.
 final class RestoreReport extends Equatable {
-  /// Songs of the backup found in the library, out of [total].
+  /// Songs of the parts restored found in the library, out of [total]:
+  /// zero of zero when those parts name no song (settings alone).
   final int found;
   final int total;
 
@@ -18,18 +19,19 @@ final class RestoreReport extends Equatable {
   final List<BackupTrack> missing;
 
   /// Saved with the backup, for the caller to apply: settings act on
-  /// running services that the repository does not reach.
-  final AppSettings settings;
+  /// running services that the repository does not reach. Null when they
+  /// were not chosen.
+  final AppSettings? settings;
 
   /// The equalizer saved with the backup, for the caller to apply as well;
-  /// null when it has none.
+  /// null when it has none or it was not chosen.
   final EqualizerSnapshot? equalizer;
 
   const RestoreReport({
     required this.found,
     required this.total,
     required this.missing,
-    required this.settings,
+    this.settings,
     this.equalizer,
   });
 
@@ -37,43 +39,47 @@ final class RestoreReport extends Equatable {
   List<Object?> get props => [found, total, missing, settings, equalizer];
 }
 
-/// Merges a backup file into this phone, finding its songs in the library
-/// with [TrackMatcher]. Importing the same file again after adding songs
-/// links the ones found since.
+/// Merges the parts of a backup the user chose into this phone, finding
+/// its songs in the library with [TrackMatcher]. Importing the same file
+/// again after adding songs links the ones found since.
 final class RestoreBackupUseCase {
   final BackupRepository _backups;
   final LibraryRepository _library;
 
   const RestoreBackupUseCase(this._backups, this._library);
 
-  Future<Either<Failure, RestoreReport>> call(String path) async {
-    final read = await _backups.readFile(path);
-    return read.fold((f) async => left(f), (backup) async {
-      final library = await _library.getTracks();
-      return library.fold((f) async => left(f), (tracks) async {
-        final matcher = TrackMatcher(tracks);
-        final ids = <String, String>{};
-        final missing = <BackupTrack>[];
-        for (final MapEntry(:key, value: saved) in backup.tracks.entries) {
-          final id = matcher.match(saved);
-          if (id == null) {
-            missing.add(saved);
-          } else {
-            ids[key] = id;
-          }
+  /// Reads the backup file at [path], for the user to choose its parts.
+  Future<Either<Failure, Backup>> read(String path) => _backups.readFile(path);
+
+  Future<Either<Failure, RestoreReport>> call(
+    Backup backup,
+    Set<BackupPart> parts,
+  ) async {
+    final chosen = backup.only(parts);
+    final library = await _library.getTracks();
+    return library.fold((f) async => left(f), (tracks) async {
+      final matcher = TrackMatcher(tracks);
+      final ids = <String, String>{};
+      final missing = <BackupTrack>[];
+      for (final MapEntry(:key, value: saved) in chosen.tracks.entries) {
+        final id = matcher.match(saved);
+        if (id == null) {
+          missing.add(saved);
+        } else {
+          ids[key] = id;
         }
-        missing.sort((a, b) => a.title.compareTo(b.title));
-        final restored = await _backups.restore(backup, ids);
-        return restored.map(
-          (_) => RestoreReport(
-            found: ids.length,
-            total: backup.tracks.length,
-            missing: missing,
-            settings: backup.settings,
-            equalizer: backup.equalizer,
-          ),
-        );
-      });
+      }
+      missing.sort((a, b) => a.title.compareTo(b.title));
+      final restored = await _backups.restore(chosen, ids);
+      return restored.map(
+        (_) => RestoreReport(
+          found: ids.length,
+          total: chosen.tracks.length,
+          missing: missing,
+          settings: chosen.settings,
+          equalizer: chosen.equalizer,
+        ),
+      );
     });
   }
 }

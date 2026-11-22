@@ -179,6 +179,71 @@ void main() {
 
       expect(read.playlists.single.tracks, ['1']);
     });
+
+    test('reads only the parts asked for, and the songs they name', () {
+      store(
+        tracks: [_track('1'), _track('2'), _track('3')],
+        playlists: [
+          playlist(Playlist.likesId, 'Liked', ['1']),
+          playlist('p', 'Mix', ['2']),
+        ],
+        plays: [play('3', t0)],
+      );
+
+      final likes = source.read(
+        createdAt: t0,
+        settings: const AppSettings(),
+        replayMonth: 5,
+        parts: {BackupPart.likes},
+      );
+
+      expect(likes.parts, {BackupPart.likes});
+      expect(likes.playlists.single.isLikes, isTrue);
+      expect(likes.tracks.keys, ['1']);
+      expect(likes.plays, isEmpty);
+      expect(likes.replayMonth, isNull);
+      expect(likes.settings, isNull);
+
+      final history = source.read(
+        createdAt: t0,
+        settings: const AppSettings(),
+        replayMonth: 5,
+        parts: {BackupPart.history, BackupPart.playlists},
+      );
+
+      expect(history.playlists.single.name, 'Mix');
+      expect(history.tracks.keys, unorderedEquals(['2', '3']));
+      expect(history.plays.single.track, '3');
+      expect(history.replayMonth, 5);
+    });
+  }, skip: skip);
+
+  group('restoring some parts', () {
+    test('a part left out keeps what this phone has', () async {
+      store(
+        playlists: [
+          playlist(Playlist.likesId, 'Liked', ['1']),
+        ],
+      );
+      final saved = backup(
+        playlists: const [
+          BackupPlaylist(name: 'Liked', isLikes: true, tracks: ['a']),
+          BackupPlaylist(name: 'Mix', isLikes: false, tracks: ['b']),
+        ],
+        plays: [BackupPlay(track: 'a', at: t0)],
+        days: const [BackupDay(day: 20385, plays: 4, listenedMs: 1000)],
+      );
+
+      await source.restore(saved.only({BackupPart.playlists}), {
+        'a': '1',
+        'b': '2',
+      });
+
+      expect(trackIdsOf('Liked'), ['1']);
+      expect(trackIdsOf('Mix'), ['2']);
+      expect(isar.playEventModels.count(), 0);
+      expect(isar.listeningDayModels.count(), 0);
+    });
   }, skip: skip);
 
   group('restoring', () {
@@ -634,12 +699,37 @@ void main() {
         ],
       );
 
-      final path = (await repo.exportToFile()).getOrElse(() => '');
+      final backup = (await repo.snapshot(
+        BackupPart.all,
+      )).getOrElse(() => throw StateError('no snapshot'));
+      final path = (await repo.exportToFile(backup)).getOrElse(() => '');
       final read = await repo.readFile(path);
       await repo.clearExports();
 
       expect(read.isRight(), isTrue);
       expect(File(path).existsSync(), isFalse);
+    });
+
+    test('a backup of some parts reads back with those parts only', () async {
+      store(
+        tracks: [_track('1')],
+        playlists: [
+          playlist(Playlist.likesId, 'Liked', ['1']),
+        ],
+      );
+
+      final backup = (await repo.snapshot({
+        BackupPart.likes,
+      })).getOrElse(() => throw StateError('no snapshot'));
+      final path = (await repo.exportToFile(backup)).getOrElse(() => '');
+      final read = (await repo.readFile(
+        path,
+      )).getOrElse(() => throw StateError('unreadable'));
+
+      expect(backup.settings, isNull);
+      expect(read.parts, {BackupPart.likes});
+      expect(read.playlists.single.tracks, ['1']);
+      expect(read.settings, isNull);
     });
   }, skip: skip);
 }

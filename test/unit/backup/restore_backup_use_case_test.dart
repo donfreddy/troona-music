@@ -27,7 +27,9 @@ final _backup = Backup(
     'k1': _saved('a'),
     'k2': _saved('zz', fileName: 'gone.mp3'),
   },
-  playlists: const [],
+  playlists: const [
+    BackupPlaylist(name: 'Liked', isLikes: true, tracks: ['k1', 'k2']),
+  ],
   plays: const [],
   days: const [],
   trackDays: const [],
@@ -40,6 +42,7 @@ final class _Backups implements BackupRepository {
   _Backups(this.file);
 
   final Either<Failure, Backup> file;
+  Backup? restored;
   Map<String, String>? restoredIds;
 
   @override
@@ -50,12 +53,18 @@ final class _Backups implements BackupRepository {
     Backup backup,
     Map<String, String> ids,
   ) async {
+    restored = backup;
     restoredIds = ids;
     return right(unit);
   }
 
   @override
-  Future<Either<Failure, String>> exportToFile() => throw UnimplementedError();
+  Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Either<Failure, String>> exportToFile(Backup backup) =>
+      throw UnimplementedError();
 
   @override
   Future<void> clearExports() async {}
@@ -67,18 +76,23 @@ final class _Library extends Fake implements LibraryRepository {
       right([testTrack('a', durationMs: 200000)]);
 }
 
+RestoreBackupUseCase _useCase(_Backups backups) =>
+    RestoreBackupUseCase(backups, _Library());
+
+RestoreReport _report(Either<Failure, RestoreReport> result) =>
+    result.getOrElse(() => throw StateError('failed'));
+
 void main() {
   test('restores the songs found and reports the others', () async {
     final backups = _Backups(right(_backup));
 
-    final report = await RestoreBackupUseCase(backups, _Library())('/f');
+    final report = _report(await _useCase(backups)(_backup, BackupPart.all));
 
     expect(backups.restoredIds, {'k1': 'a'});
-    final value = report.getOrElse(() => throw StateError('failed'));
-    expect(value.found, 1);
-    expect(value.total, 2);
-    expect(value.missing.single.fileName, 'gone.mp3');
-    expect(value.settings.fetchOnlineMetadata, isTrue);
+    expect(report.found, 1);
+    expect(report.total, 2);
+    expect(report.missing.single.fileName, 'gone.mp3');
+    expect(report.settings?.fetchOnlineMetadata, isTrue);
   });
 
   test(
@@ -88,20 +102,41 @@ void main() {
         settings: EqualizerSettings(enabled: true),
         profiles: [],
       );
-      final report = await RestoreBackupUseCase(
-        _Backups(right(_backup.withEqualizer(eq))),
-        _Library(),
-      )('/f');
-      expect(report.getOrElse(() => throw StateError('failed')).equalizer, eq);
+      final backup = _backup.withEqualizer(eq);
+      final report = _report(
+        await _useCase(_Backups(right(backup)))(backup, BackupPart.all),
+      );
+      expect(report.equalizer, eq);
     },
   );
 
-  test('an unreadable file restores nothing', () async {
+  test('parts left out are neither written nor handed back', () async {
+    const eq = EqualizerSnapshot(
+      settings: EqualizerSettings(enabled: true),
+      profiles: [],
+    );
+    final backup = _backup.withEqualizer(eq);
+    final backups = _Backups(right(backup));
+
+    final report = _report(
+      await _useCase(backups)(backup, {BackupPart.history}),
+    );
+
+    expect(report.settings, isNull);
+    expect(report.equalizer, isNull);
+    // The likes were left out: their songs are not looked for.
+    expect(report.total, 0);
+    expect(backups.restored?.playlists, isEmpty);
+    expect(backups.restored?.parts, {BackupPart.history});
+  });
+
+  test('a file that cannot be read is reported as such', () async {
     final backups = _Backups(left(const BackupFormatFailure()));
 
-    final report = await RestoreBackupUseCase(backups, _Library())('/f');
-
-    expect(report, left(const BackupFormatFailure()));
+    expect(
+      await _useCase(backups).read('/f'),
+      left(const BackupFormatFailure()),
+    );
     expect(backups.restoredIds, isNull);
   });
 }
