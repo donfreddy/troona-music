@@ -33,6 +33,17 @@ class _GatedQuery extends Fake implements OnAudioQuery {
 
 TrackModel _track(int id) => TrackModel()..deviceId = '$id';
 
+/// Waits for [ready]: the extractor touches the disk (a cached cover is
+/// looked for, a found one written), and `pumpEventQueue` turns the event
+/// loop a fixed number of times, which a slow runner's disk can outlast.
+Future<void> _until(bool Function() ready, String what) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (!ready()) {
+    if (DateTime.now().isAfter(deadline)) fail('Timed out waiting for $what');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
+
 void main() {
   late Directory dir;
   late _GatedQuery query;
@@ -52,19 +63,21 @@ void main() {
     extractor
         .extractArtworks([for (var i = 1; i <= 6; i++) _track(i)])
         .listen(results.add, onDone: done.complete);
+    await _until(() => query.gates.length == 4, 'four slots');
+    // Settled: no fifth query starts while the four wait.
     await pumpEventQueue();
-
     expect(query.gates.keys, [1, 2, 3, 4], reason: 'four slots');
-    query.gates[1]!.complete(Uint8List.fromList([1, 2, 3]));
-    await pumpEventQueue();
 
+    query.gates[1]!.complete(Uint8List.fromList([1, 2, 3]));
+    await _until(() => results.isNotEmpty, 'the first cover written');
     expect(results.map((r) => r.deviceId), ['1']);
-    expect(query.gates.keys, contains(5), reason: 'slot handed over');
+    await _until(() => query.gates.containsKey(5), 'the slot handed over');
+    expect(query.gates[2]!.isCompleted, isFalse, reason: 'still waiting');
 
     for (final id in [2, 3, 4, 5]) {
       query.gates[id]!.complete(null);
-      await pumpEventQueue();
     }
+    await _until(() => query.gates.containsKey(6), 'the last track');
     query.gates[6]!.completeError(StateError('decoder'));
     await done.future;
 
