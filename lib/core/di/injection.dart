@@ -74,12 +74,15 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
+import 'package:troona/features/player/data/adapters/platform_opened_file.dart';
 import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
+import 'package:troona/features/player/domain/ports/opened_file_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
+import 'package:troona/features/player/domain/use_cases/resolve_opened_file_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
@@ -345,6 +348,11 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
     ..registerLazySingleton<GetTracksByIdsUseCase>(
       () => GetTracksByIdsUseCase(getIt()),
+    )
+    // "Open with": the activity's channel, read once the shell is up.
+    ..registerLazySingleton<OpenedFilePort>(PlatformOpenedFile.new)
+    ..registerLazySingleton<ResolveOpenedFileUseCase>(
+      () => ResolveOpenedFileUseCase(getIt()),
     )
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
     ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))

@@ -435,6 +435,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de rechercher de la nouvelle musique. Votre bibliothèque est inchangée.';
 
   @override
+  String get openedFileNotInLibrary =>
+      'Ce fichier n\'est pas dans votre bibliothèque. Pour l\'instant, Troona n\'ouvre que les titres de votre musique.';
+
+  @override
   String get libraryLoadErrorTitle => 'Impossible d\'ouvrir votre bibliothèque';
 
   @override

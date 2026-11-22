@@ -27,6 +27,10 @@ import 'package:troona/features/player/presentation/utils/open_full_player.dart'
 import 'package:troona/features/home/presentation/widgets/quick_access_row.dart';
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
+import 'package:troona/features/player/domain/entities/opened_audio.dart';
+import 'package:troona/features/player/domain/ports/opened_file_port.dart';
+import 'package:troona/features/player/domain/use_cases/resolve_opened_file_use_case.dart';
+import 'package:troona/features/player/presentation/utils/opened_file_handler.dart';
 import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
@@ -69,6 +73,7 @@ class _AppShellState extends State<AppShell> {
   StreamSubscription<PlayerNotice>? _noticesSub;
   LibraryLoaded? _rescanBaseline;
   final _reselect = TabReselectController();
+  OpenedFileHandler? _opened;
 
   @override
   void initState() {
@@ -100,9 +105,47 @@ class _AppShellState extends State<AppShell> {
         );
       });
     });
+    // After the router is known (an earlier callback): Now Playing is
+    // pushed through it.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _opened = OpenedFileHandler(
+        port: getIt<OpenedFilePort>(),
+        resolve: getIt<ResolveOpenedFileUseCase>().call,
+        onOpened: _onFileOpened,
+      )..start();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());
     WidgetsBinding.instance.addPostFrameCallback((_) => _showWhatsNew());
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+  }
+
+  /// A file opened from another app ("Open with"): its song plays alone,
+  /// on Now Playing. The song the user touched, not its album: a file was
+  /// touched. A queue holding songs queued by hand gets the usual Undo.
+  void _onFileOpened(OpenedAudio opened) {
+    if (!mounted) return;
+    switch (opened) {
+      case OpenedLibraryTrack(:final track):
+        // The file wins over what a cold start would bring back: the last
+        // session, and Now Playing pushed for it.
+        _didRequestPlaybackRestore = true;
+        _didRestoreFullPlayerRoute = true;
+        context.read<PlayerBloc>().add(PlayTrackRequested(track));
+        final router = _router;
+        if (router != null &&
+            AppShell.locationOf(router) != FullPlayerPage.routeName) {
+          // No morph: the mini player may not be up yet.
+          unawaited(
+            router.push(
+              FullPlayerPage.routeName,
+              extra: FullPlayerPage.noMorph,
+            ),
+          );
+        }
+      case OpenedNotInLibrary():
+        AppToast.show(context, context.l10n.openedFileNotInLibrary);
+    }
   }
 
   /// "What's new", once after an update that ships notes.
@@ -187,6 +230,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _noticesSub?.cancel();
+    unawaited(_opened?.dispose());
     _router?.routerDelegate.removeListener(_onRouteChanged);
     _reselect.dispose();
     super.dispose();

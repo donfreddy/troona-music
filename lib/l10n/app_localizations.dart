@@ -770,6 +770,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t check for new music. Your library is as it was.'**
   String get libraryRescanFailed;
 
+  /// Toast when a file opened from another app (Open with) is not in the library.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t in your library. For now, Troona only opens songs from your music.'**
+  String get openedFileNotInLibrary;
+
   /// No description provided for @libraryLoadErrorTitle.
   ///
   /// In en, this message translates to:

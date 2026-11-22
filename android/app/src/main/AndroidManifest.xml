@@ -39,9 +39,29 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- An intent's address is not a page: without this, Flutter
+                 hands content://... to the router as a route to show. The
+                 app has no deep links. -->
+            <meta-data
+              android:name="flutter_deeplinking_enabled"
+              android:value="false"
+              />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- "Open with": local audio files only. No BROWSABLE, no http:
+                 Troona plays no streams and is offered for no web link. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="audio/*"/>
+                <data android:mimeType="application/ogg"/>
+                <data android:mimeType="application/x-ogg"/>
+                <data android:mimeType="application/flac"/>
+                <data android:mimeType="application/x-flac"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
