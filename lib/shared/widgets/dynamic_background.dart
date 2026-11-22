@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
+import 'package:troona/core/theme/semantic/palette_ink.dart';
 
 enum DynamicBackgroundTone { ambient, immersive }
 
@@ -60,98 +61,118 @@ class DynamicBackground extends StatefulWidget {
   /// of both glows in both tones (at most 12 % towards white, 92 % alpha).
   /// Where the glows overlap, each is well below its peak.
   @visibleForTesting
-  static Color peakOf(Color color) => Color.alphaBlend(
-    Color.lerp(color, Colors.white, .12)!.withValues(alpha: .92),
-    Colors.black,
-  );
+  static Color peakOf(Color color) => PaletteInk.glowPeakOf(color);
 
   @override
   State<DynamicBackground> createState() => _DynamicBackgroundState();
 }
 
-class _DynamicBackgroundState extends State<DynamicBackground>
-    with SingleTickerProviderStateMixin {
+/// The two glow colours as [DynamicBackground] paints them on each frame:
+/// fitted for text, and cross-faded to a new song's from wherever they
+/// are. What must follow the glow in step (the text over it) owns one,
+/// fed the same colours and the same [DynamicBackgroundTone].
+final class GlowCrossFade {
   static const _defaultColorA = ColorPrimitives.ambientTop;
   static const _defaultColorB = ColorPrimitives.ambientEdge;
 
-  late AnimationController _ctrl;
-  Color _fromA = _defaultColorA;
-  Color _fromB = _defaultColorB;
-  Color _toA = _defaultColorA;
-  Color _toB = _defaultColorB;
+  final AnimationController _ctrl;
+  Color _fromA;
+  Color _fromB;
+  Color _toA;
+  Color _toB;
 
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: DynamicBackground.transitionOf(widget.tone),
-    )..value = 1;
-    final a = DynamicBackground.fitForText(widget.colorA ?? _defaultColorA);
-    final b = DynamicBackground.fitForText(widget.colorB ?? _defaultColorB);
-    _fromA = a;
-    _fromB = b;
-    _toA = a;
-    _toB = b;
-  }
+  GlowCrossFade._(this._ctrl, Color a, Color b)
+    : _fromA = a,
+      _fromB = b,
+      _toA = a,
+      _toB = b;
 
-  Duration get _transition => DynamicBackground.transitionOf(
-    widget.tone,
-    GlassTheme.resolveQuality(context),
+  /// Shows [colorA] and [colorB] at once (null: the app's ambient glow).
+  factory GlowCrossFade({
+    required TickerProvider vsync,
+    required Color? colorA,
+    required Color? colorB,
+    required DynamicBackgroundTone tone,
+  }) => GlowCrossFade._(
+    AnimationController(
+      vsync: vsync,
+      duration: DynamicBackground.transitionOf(tone),
+    )..value = 1,
+    DynamicBackground.fitForText(colorA ?? _defaultColorA),
+    DynamicBackground.fitForText(colorB ?? _defaultColorB),
   );
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _ctrl.duration = _transition;
-  }
+  /// Ticks while the glow moves.
+  Animation<double> get animation => _ctrl;
 
-  @override
-  void didUpdateWidget(DynamicBackground old) {
-    super.didUpdateWidget(old);
-    _ctrl.duration = _transition;
-    final newA = widget.colorA ?? _defaultColorA;
-    final newB = widget.colorB ?? _defaultColorB;
-    final oldA = old.colorA ?? _defaultColorA;
-    final oldB = old.colorB ?? _defaultColorB;
-    if (newA != oldA || newB != oldB) {
-      _animateTo(
-        DynamicBackground.fitForText(newA),
-        DynamicBackground.fitForText(newB),
+  /// Follows the glass setting, read where the glow is shown.
+  void follow(BuildContext context, DynamicBackgroundTone tone) =>
+      _ctrl.duration = DynamicBackground.transitionOf(
+        tone,
+        GlassTheme.resolveQuality(context),
       );
-    }
+
+  /// The colours painted now.
+  (Color, Color) get colors {
+    final t = Curves.easeInOutCubic.transform(_ctrl.value);
+    return (Color.lerp(_fromA, _toA, t)!, Color.lerp(_fromB, _toB, t)!);
   }
 
-  void _animateTo(Color nextA, Color nextB) {
-    final t = Curves.easeInOutCubic.transform(_ctrl.value);
-    final currentA = Color.lerp(_fromA, _toA, t)!;
-    final currentB = Color.lerp(_fromB, _toB, t)!;
-    setState(() {
-      _fromA = currentA;
-      _fromB = currentB;
-      _toA = nextA;
-      _toB = nextB;
-    });
+  /// Moves to [colorA] and [colorB] from the colours painted now; nothing
+  /// when they are already the target.
+  void moveTo(Color? colorA, Color? colorB) {
+    final nextA = DynamicBackground.fitForText(colorA ?? _defaultColorA);
+    final nextB = DynamicBackground.fitForText(colorB ?? _defaultColorB);
+    if (nextA == _toA && nextB == _toB) return;
+    final (fromA, fromB) = colors;
+    _fromA = fromA;
+    _fromB = fromB;
+    _toA = nextA;
+    _toB = nextB;
     _ctrl
       ..reset()
       ..forward();
   }
 
+  void dispose() => _ctrl.dispose();
+}
+
+class _DynamicBackgroundState extends State<DynamicBackground>
+    with SingleTickerProviderStateMixin {
+  late final GlowCrossFade _glow = GlowCrossFade(
+    vsync: this,
+    colorA: widget.colorA,
+    colorB: widget.colorB,
+    tone: widget.tone,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _glow.follow(context, widget.tone);
+  }
+
+  @override
+  void didUpdateWidget(DynamicBackground old) {
+    super.didUpdateWidget(old);
+    _glow
+      ..follow(context, widget.tone)
+      ..moveTo(widget.colorA, widget.colorB);
+  }
+
   @override
   void dispose() {
-    _ctrl.dispose();
+    _glow.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: _ctrl,
+      animation: _glow.animation,
       builder: (_, child) {
         final immersive = widget.tone == DynamicBackgroundTone.immersive;
-        final t = Curves.easeInOutCubic.transform(_ctrl.value);
-        final colorA = Color.lerp(_fromA, _toA, t)!;
-        final colorB = Color.lerp(_fromB, _toB, t)!;
+        final (colorA, colorB) = _glow.colors;
         const leftCenter = Alignment(-1.1, -1.02);
         const rightCenter = Alignment(1.08, -0.98);
         const bridgeCenter = Alignment(0, -1.14);
