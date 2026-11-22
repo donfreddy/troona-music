@@ -16,6 +16,8 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
+import 'package:troona/features/lyrics/data/models/track_lyrics_model.dart';
+import 'package:troona/features/lyrics/data/sources/isar_lyrics_data_source.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
@@ -74,6 +76,7 @@ void main() {
       schemas: [
         ...IsarLibraryDataSource.schemas,
         ...IsarPlayHistoryDataSource.schemas,
+        ...IsarLyricsDataSource.schemas,
       ],
       directory: dir.path,
       inspector: false,
@@ -588,6 +591,73 @@ void main() {
       expect(isar.playEventModels.count(), 0);
       expect(isar.trackDayModels.count(), 0);
       expect(isar.trackFirstPlayModels.count(), 0);
+    });
+
+    group('imported lyrics', () {
+      TrackLyricsModel row(String id, String? raw, String? source) =>
+          TrackLyricsModel()
+            ..id = id
+            ..raw = raw
+            ..source = source
+            ..offsetMs = 200
+            ..checkedAt = t0;
+
+      test('are read with their song and timing; online ones are not', () {
+        store(tracks: [_track('1'), _track('2'), _track('3')]);
+        isar.write(
+          (isar) => isar.trackLyricsModels.putAll([
+            row('1', '[00:01.00]Mine', 'imported'),
+            row('2', '[00:01.00]Found', 'online'),
+            row('3', null, null),
+          ]),
+        );
+        final read = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+        );
+        expect(read.lyrics, const [
+          BackupLyrics(track: '1', text: '[00:01.00]Mine', offsetMs: 200),
+        ]);
+        expect(read.tracks.keys, ['1']);
+      });
+
+      test('come back over online lyrics and misses, never over lyrics '
+          'imported here', () async {
+        isar.write(
+          (isar) => isar.trackLyricsModels.putAll([
+            row('1', '[00:01.00]Found', 'online'),
+            row('2', null, null),
+            row('3', '[00:01.00]Here', 'imported'),
+          ]),
+        );
+        final saved = backup();
+        await source.restore(
+          Backup(
+            createdAt: saved.createdAt,
+            tracks: saved.tracks,
+            playlists: const [],
+            plays: const [],
+            days: const [],
+            trackDays: const [],
+            firstPlays: const [],
+            replayMonth: null,
+            settings: const AppSettings(),
+            lyrics: const [
+              BackupLyrics(track: 'a', text: 'A', offsetMs: -100),
+              BackupLyrics(track: 'b', text: 'B'),
+              BackupLyrics(track: 'c', text: 'C'),
+            ],
+          ),
+          {'a': '1', 'b': '2', 'c': '3'},
+        );
+        final rows = isar.trackLyricsModels;
+        expect(rows.get('1')!.raw, 'A');
+        expect(rows.get('1')!.source, 'imported');
+        expect(rows.get('1')!.offsetMs, -100);
+        expect(rows.get('2')!.raw, 'B');
+        expect(rows.get('3')!.raw, '[00:01.00]Here');
+      });
     });
   }, skip: skip);
 

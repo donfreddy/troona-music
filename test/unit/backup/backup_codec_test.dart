@@ -120,6 +120,59 @@ void main() {
     });
   });
 
+  group('imported lyrics', () {
+    final withLyrics = Backup(
+      createdAt: _backup.createdAt,
+      tracks: _backup.tracks,
+      playlists: _backup.playlists,
+      plays: _backup.plays,
+      days: _backup.days,
+      trackDays: _backup.trackDays,
+      firstPlays: _backup.firstPlays,
+      hours: _backup.hours,
+      replayMonth: _backup.replayMonth,
+      settings: _backup.settings,
+      lyrics: const [
+        BackupLyrics(track: '1', text: '[00:01.00]Mine', offsetMs: -300),
+      ],
+    );
+
+    Map<String, dynamic> json() =>
+        jsonDecode(utf8.decode(BackupCodec.encode(withLyrics)))
+            as Map<String, dynamic>;
+
+    test('read back as they were written', () {
+      expect(
+        BackupCodec.decode(BackupCodec.encode(withLyrics)).lyrics,
+        withLyrics.lyrics,
+      );
+    });
+
+    test('a backup made before them has none, and no key', () {
+      expect(_json().containsKey('lyrics'), isFalse);
+      expect(BackupCodec.decode(BackupCodec.encode(_backup)).lyrics, isEmpty);
+    });
+
+    test('an entry that cannot be read is left out, the rest restores', () {
+      final j = json();
+      (j['lyrics'] as List).addAll([
+        {'track': '9', 'text': 'Unknown song', 'offsetMs': 0},
+        {'track': '1', 'text': '  ', 'offsetMs': 0},
+        {'track': '1', 'text': 'Too far', 'offsetMs': 60000},
+        {'track': '1', 'text': 42, 'offsetMs': 0},
+        'not an object',
+      ]);
+      final read = BackupCodec.decode(_bytes(j));
+      expect(read.lyrics, withLyrics.lyrics);
+      expect(read.playlists, _backup.playlists);
+    });
+
+    test('not a list, they are left out', () {
+      final j = json()..['lyrics'] = 'la la la';
+      expect(BackupCodec.decode(_bytes(j)).lyrics, isEmpty);
+    });
+  });
+
   test('a backup made before the hours were counted has none', () {
     final json = _json();
     (json['history'] as Map).remove('hours');
