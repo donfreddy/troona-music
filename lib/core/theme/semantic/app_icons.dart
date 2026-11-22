@@ -56,6 +56,10 @@ abstract final class AppIcons {
   static const IconData liked = EvaIcons.heart;
   static const IconData addToPlaylist = LucideIcons300.listPlus;
   static const IconData removeFromList = LucideIcons300.listX;
+
+  /// A playlist whose songs come from rules.
+  static const IconData smartPlaylist = LucideIcons300.listFilter;
+  static const IconData smartRule = LucideIcons300.slidersHorizontal;
   static const IconData lossless = LucideIcons300.audioWaveform;
   static const IconData listen = LucideIcons300.headphones;
   static const IconData duration = LucideIcons300.clock;

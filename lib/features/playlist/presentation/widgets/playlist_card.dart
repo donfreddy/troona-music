@@ -53,7 +53,9 @@ class PlaylistCard extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          context.l10n.songCount(playlist.trackIds.length),
+          playlist.isSmart
+              ? context.l10n.smartPlaylistKind
+              : context.l10n.songCount(playlist.trackIds.length),
           style: TextStyle(
             color: colors.labelSecondary,
             fontSize: 12,

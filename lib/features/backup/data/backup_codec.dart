@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:troona/features/library/data/models/smart_rules_json.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/equalizer/data/equalizer_json.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
@@ -68,7 +69,13 @@ abstract final class BackupCodec {
       },
       'playlists': [
         for (final p in backup.playlists)
-          {'name': _clip(p.name), 'likes': p.isLikes, 'tracks': p.tracks},
+          {
+            'name': _clip(p.name),
+            'likes': p.isLikes,
+            'tracks': p.tracks,
+            if (p.rules case final rules?)
+              'rules': SmartRulesJson.encode(rules),
+          },
       ],
       'history': {
         'plays': [
@@ -153,6 +160,11 @@ abstract final class BackupCodec {
           name: _text(m['name'], 'playlist name'),
           isLikes: _bool(m['likes'], 'likes'),
           tracks: _list(m['tracks'], 'playlist tracks', ref),
+          // Lenient: rules that cannot be read still make a smart playlist,
+          // one that keeps nothing until edited.
+          rules: m.containsKey('rules')
+              ? SmartRulesJson.decode(m['rules']) ?? SmartRulesJson.unreadable
+              : null,
         );
       }),
       plays: [

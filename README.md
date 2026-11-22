@@ -80,6 +80,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Isar-backed index (Rust core); rescans touch only what changed, with a live progress toast
 - Tracks, albums and artists, each with a dedicated detail page
 - Playlists: create, rename, delete, reorder, add/remove tracks
+- Smart playlists: rules on plays, last played, date added, likes, artist, album, genre, year, duration and lossless files, with templates, a sort and a limit; worked out again on each open, savable as a regular playlist
 - Monthly "Replay" playlist, auto-built from last month's 25 most-played tracks, once a month
 - Global search across tracks, artists and albums
 
@@ -105,7 +106,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Clear cached covers / clear cached online info, each showing the size reclaimed
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
 - Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
-- Backup and restore: playlists, likes, listening history and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
+- Backup and restore: playlists (smart ones with their rules), likes, listening history and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`

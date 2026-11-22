@@ -58,6 +58,7 @@ import 'package:troona/features/library/presentation/bloc/selection/track_select
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
+import 'package:troona/features/playlist/domain/use_cases/smart_playlist_source.dart';
 import 'package:troona/features/playlist/data/repositories/playlist_repository_impl.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
@@ -266,6 +267,13 @@ Future<void> configureDependencies() async {
   );
   getIt.registerLazySingleton<PlaylistRepository>(
     () => PlaylistRepositoryImpl(cache: getIt()),
+  );
+  getIt.registerLazySingleton<SmartPlaylistSource>(
+    () => SmartPlaylistSource(
+      library: getIt(),
+      history: getIt(),
+      playlists: getIt(),
+    ),
   );
   getIt.registerLazySingleton<MonthlyReplayLog>(
     () => SharedPrefsMonthlyReplayLog(getIt()),
@@ -498,7 +506,11 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<PlaylistBloc>(() => PlaylistBloc(repo: getIt()));
 
   getIt.registerFactory<PlaylistDetailBloc>(
-    () => PlaylistDetailBloc(repo: getIt()),
+    () => PlaylistDetailBloc(
+      repo: getIt(),
+      smart: getIt(),
+      playsRecorded: getIt<PlayHistoryRepository>().changes,
+    ),
   );
 
   getIt.registerFactory<AlbumDetailBloc>(() => AlbumDetailBloc(repo: getIt()));
