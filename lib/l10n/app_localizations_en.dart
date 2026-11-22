@@ -1873,6 +1873,62 @@ class AppLocalizationsEn extends AppLocalizations {
       'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.';
 
   @override
+  String get whatsNew180SmartTitle => 'Smart playlists';
+
+  @override
+  String get whatsNew180SmartBody =>
+      'Playlists that fill themselves from rules: plays, last played, date added, likes, artist, genre, year and more. Start from a template with the + in Playlists.';
+
+  @override
+  String get whatsNew180SelectionTitle => 'Pick several songs';
+
+  @override
+  String get whatsNew180SelectionBody =>
+      'Long press a song to start picking, then tap others. Play them, queue them or add them to a playlist in one go.';
+
+  @override
+  String get whatsNew180EqualizerTitle => 'Equalizer';
+
+  @override
+  String get whatsNew180EqualizerBody =>
+      'On Android, from Now Playing or Settings > Playback: draw your curve with a finger or start from a preset, save it, and add up to 6 dB with Volume +.';
+
+  @override
+  String get whatsNew180OrbTitle => 'A button in the song\'s colours';
+
+  @override
+  String get whatsNew180OrbBody =>
+      'The centre of the tab bar glows in the colours of the song playing. Tap it to open Now Playing, or to start music when nothing is loaded.';
+
+  @override
+  String get whatsNew180GlassTitle => 'Glass effects for every phone';
+
+  @override
+  String get whatsNew180GlassBody =>
+      'Balanced keeps the blur in page headers only and No blur draws none, both with tinted surfaces: smoother scrolling on older phones. In Settings.';
+
+  @override
+  String get whatsNew180MiniPlayerTitle => 'A smoother mini player';
+
+  @override
+  String get whatsNew180MiniPlayerBody =>
+      'Swipe to the next or previous song and the titles follow your finger while the cover fades. Swipe down to close it.';
+
+  @override
+  String get whatsNew180ReadableTitle => 'Easier to read';
+
+  @override
+  String get whatsNew180ReadableBody =>
+      'Small grey text has more contrast, and Now Playing\'s ring reads over every cover.';
+
+  @override
+  String get whatsNew180GlassFixTitle => 'Glass settings apply at once';
+
+  @override
+  String get whatsNew180GlassFixBody =>
+      'Changing the glass effects now redraws every screen right away, not only the ones opened afterwards.';
+
+  @override
   String playlistAddedSongsTo(int count, String name) {
     return '$count songs added to $name';
   }

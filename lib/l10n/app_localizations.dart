@@ -3146,6 +3146,102 @@ abstract class AppLocalizations {
   /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
   String get whatsNew170PhotosBody;
 
+  /// No description provided for @whatsNew180SmartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart playlists'**
+  String get whatsNew180SmartTitle;
+
+  /// No description provided for @whatsNew180SmartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists that fill themselves from rules: plays, last played, date added, likes, artist, genre, year and more. Start from a template with the + in Playlists.'**
+  String get whatsNew180SmartBody;
+
+  /// No description provided for @whatsNew180SelectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick several songs'**
+  String get whatsNew180SelectionTitle;
+
+  /// No description provided for @whatsNew180SelectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press a song to start picking, then tap others. Play them, queue them or add them to a playlist in one go.'**
+  String get whatsNew180SelectionBody;
+
+  /// No description provided for @whatsNew180EqualizerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equalizer'**
+  String get whatsNew180EqualizerTitle;
+
+  /// No description provided for @whatsNew180EqualizerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On Android, from Now Playing or Settings > Playback: draw your curve with a finger or start from a preset, save it, and add up to 6 dB with Volume +.'**
+  String get whatsNew180EqualizerBody;
+
+  /// No description provided for @whatsNew180OrbTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A button in the song\'s colours'**
+  String get whatsNew180OrbTitle;
+
+  /// No description provided for @whatsNew180OrbBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The centre of the tab bar glows in the colours of the song playing. Tap it to open Now Playing, or to start music when nothing is loaded.'**
+  String get whatsNew180OrbBody;
+
+  /// No description provided for @whatsNew180GlassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass effects for every phone'**
+  String get whatsNew180GlassTitle;
+
+  /// No description provided for @whatsNew180GlassBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Balanced keeps the blur in page headers only and No blur draws none, both with tinted surfaces: smoother scrolling on older phones. In Settings.'**
+  String get whatsNew180GlassBody;
+
+  /// No description provided for @whatsNew180MiniPlayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A smoother mini player'**
+  String get whatsNew180MiniPlayerTitle;
+
+  /// No description provided for @whatsNew180MiniPlayerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to the next or previous song and the titles follow your finger while the cover fades. Swipe down to close it.'**
+  String get whatsNew180MiniPlayerBody;
+
+  /// No description provided for @whatsNew180ReadableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to read'**
+  String get whatsNew180ReadableTitle;
+
+  /// No description provided for @whatsNew180ReadableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Small grey text has more contrast, and Now Playing\'s ring reads over every cover.'**
+  String get whatsNew180ReadableBody;
+
+  /// No description provided for @whatsNew180GlassFixTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass settings apply at once'**
+  String get whatsNew180GlassFixTitle;
+
+  /// No description provided for @whatsNew180GlassFixBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing the glass effects now redraws every screen right away, not only the ones opened afterwards.'**
+  String get whatsNew180GlassFixBody;
+
   /// No description provided for @playlistAddedSongsTo.
   ///
   /// In en, this message translates to:
