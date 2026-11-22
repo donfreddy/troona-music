@@ -112,6 +112,11 @@ abstract final class BackupCodec {
           for (final l in backup.lyrics)
             {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
         ],
+      if (backup.lyricsOffsets.isNotEmpty)
+        'lyricsOffsets': [
+          for (final o in backup.lyricsOffsets)
+            {'track': o.track, 'offsetMs': o.offsetMs},
+        ],
     }),
   );
 
@@ -239,8 +244,37 @@ abstract final class BackupCodec {
       settings: _decodeSettings(_map(json['settings'], 'settings')),
       equalizer: _decodeEqualizer(json['equalizer']),
       lyrics: _decodeLyrics(json['lyrics'], tracks.keys.toSet()),
+      lyricsOffsets: _decodeLyricsOffsets(
+        json['lyricsOffsets'],
+        tracks.keys.toSet(),
+      ),
     );
   }
+
+  /// Optional, and read leniently, as [_decodeLyrics]: a correction of an
+  /// unknown song, of nothing or out of bounds is left out.
+  static List<BackupLyricsOffset> _decodeLyricsOffsets(
+    Object? json,
+    Set<String> tracks,
+  ) {
+    if (json is! List || json.length > _maxItems) return const [];
+    final maxOffset = LyricsRepository.maxOffset.inMilliseconds;
+    final seen = <String>{};
+    return [
+      for (final item in json)
+        if (item
+            case {'track': final String track, 'offsetMs': final int offsetMs}
+            when tracks.contains(track) &&
+                offsetMs != 0 &&
+                _within(offsetMs, maxOffset) &&
+                seen.add(track))
+          BackupLyricsOffset(track: track, offsetMs: offsetMs),
+    ];
+  }
+
+  /// Both bounds, never `abs()`: the lowest integer has no positive.
+  static bool _within(int value, int bound) =>
+      value >= -bound && value <= bound;
 
   /// Optional, and read leniently: lyrics that cannot be read are left
   /// out, the rest of the backup still restores. An older app ignores the
@@ -259,7 +293,7 @@ abstract final class BackupCodec {
             when tracks.contains(track) &&
                 text.trim().isNotEmpty &&
                 text.length <= LrcParser.maxBytes &&
-                offsetMs.abs() <= maxOffset &&
+                _within(offsetMs, maxOffset) &&
                 LrcParser.looksLikeText(text) &&
                 LrcParser.parse(text, source: LyricsSource.imported) != null)
           BackupLyrics(track: track, text: text, offsetMs: offsetMs),

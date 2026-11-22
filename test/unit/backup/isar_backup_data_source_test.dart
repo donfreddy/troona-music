@@ -619,7 +619,117 @@ void main() {
         expect(read.lyrics, const [
           BackupLyrics(track: '1', text: '[00:01.00]Mine', offsetMs: 200),
         ]);
-        expect(read.tracks.keys, ['1']);
+        // The online ones are found again; the correction set on them by
+        // hand is carried, alone. So is one still waiting for its lyrics
+        // (a row with no text): the next backup must not lose it.
+        expect(read.lyricsOffsets, const [
+          BackupLyricsOffset(track: '2', offsetMs: 200),
+          BackupLyricsOffset(track: '3', offsetMs: 200),
+        ]);
+        expect(read.tracks.keys, ['1', '2', '3']);
+      });
+
+      test('a correction restored on a phone that never looked the lyrics '
+          'up is still in its next backup', () async {
+        store(tracks: [_track('1')]);
+        final saved = backup();
+        await source.restore(
+          Backup(
+            createdAt: saved.createdAt,
+            tracks: saved.tracks,
+            playlists: const [],
+            plays: const [],
+            days: const [],
+            trackDays: const [],
+            firstPlays: const [],
+            replayMonth: null,
+            settings: const AppSettings(),
+            lyricsOffsets: const [
+              BackupLyricsOffset(track: 'a', offsetMs: 300),
+            ],
+          ),
+          {'a': '1'},
+        );
+        final again = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+        );
+        expect(again.lyricsOffsets, const [
+          BackupLyricsOffset(track: '1', offsetMs: 300),
+        ]);
+        expect(again.lyrics, isEmpty);
+      });
+
+      test('online lyrics never corrected carry nothing', () {
+        store(tracks: [_track('1')]);
+        isar.write(
+          (isar) => isar.trackLyricsModels.put(
+            row('1', '[00:01.00]Found', 'online')..offsetMs = 0,
+          ),
+        );
+        final read = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+        );
+        expect(read.lyricsOffsets, isEmpty);
+        expect(read.tracks, isEmpty);
+      });
+
+      test('a correction of online lyrics comes back for the lyrics found '
+          'here: kept for the first look, never over lyrics imported or '
+          'corrected on this phone', () async {
+        isar.write(
+          (isar) => isar.trackLyricsModels.putAll([
+            // Found here, not corrected: takes the correction.
+            row('1', '[00:01.00]Found', 'online')..offsetMs = 0,
+            // Corrected here: kept.
+            row('2', '[00:01.00]Found', 'online')..offsetMs = -500,
+            // Imported here: the correction was for other timings.
+            row('3', '[00:01.00]Here', 'imported')..offsetMs = 0,
+            // A miss remembered: takes it for the day lyrics are found,
+            // and is asked again when it was going to be.
+            row('4', null, null)..offsetMs = 0,
+          ]),
+        );
+        final saved = backup();
+        await source.restore(
+          Backup(
+            createdAt: saved.createdAt,
+            tracks: saved.tracks,
+            playlists: const [],
+            plays: const [],
+            days: const [],
+            trackDays: const [],
+            firstPlays: const [],
+            replayMonth: null,
+            settings: const AppSettings(),
+            lyricsOffsets: const [
+              BackupLyricsOffset(track: 'a', offsetMs: 300),
+              BackupLyricsOffset(track: 'b', offsetMs: 300),
+              BackupLyricsOffset(track: 'c', offsetMs: 300),
+              BackupLyricsOffset(track: 'd', offsetMs: 300),
+              BackupLyricsOffset(track: 'e', offsetMs: 300),
+              BackupLyricsOffset(track: 'gone', offsetMs: 300),
+            ],
+          ),
+          {'a': '1', 'b': '2', 'c': '3', 'd': '4', 'e': '5'},
+        );
+        final rows = isar.trackLyricsModels;
+        expect(rows.get('1')!.offsetMs, 300);
+        expect(rows.get('1')!.raw, '[00:01.00]Found');
+        expect(rows.get('2')!.offsetMs, -500);
+        expect(rows.get('3')!.offsetMs, 0);
+        expect(rows.get('4')!.offsetMs, 300);
+        expect(rows.get('4')!.raw, isNull);
+        expect(rows.get('4')!.checkedAt, t0);
+        // No lyrics yet: kept for the first look, which asks at once.
+        final waiting = rows.get('5')!;
+        expect(waiting.raw, isNull);
+        expect(waiting.source, isNull);
+        expect(waiting.offsetMs, 300);
+        expect(waiting.checkedAt.millisecondsSinceEpoch, 0);
       });
 
       test('come back over online lyrics and misses, never over lyrics '

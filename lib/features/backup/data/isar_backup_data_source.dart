@@ -43,9 +43,23 @@ final class IsarBackupDataSource {
         .where()
         .sourceEqualTo(_imported)
         .findAll();
+    // Lyrics found online are found again; a correction set on them by
+    // hand is not. One restored and still waiting for its lyrics (a row
+    // with no text) is carried on too, or the next backup would lose it.
+    final corrected = [
+      for (final l
+          in _isar.trackLyricsModels
+              .where()
+              .not()
+              .offsetMsEqualTo(0)
+              .sortById()
+              .findAll())
+        if (l.source != _imported) l,
+    ];
 
     final named = {
       for (final l in lyrics) l.id,
+      for (final l in corrected) l.id,
       for (final p in playlists) ...p.trackIds,
       for (final p in plays) p.trackId,
       for (final d in trackDays) d.trackId,
@@ -109,6 +123,11 @@ final class IsarBackupDataSource {
           if (tracks.containsKey(l.id) && l.raw != null)
             BackupLyrics(track: l.id, text: l.raw!, offsetMs: l.offsetMs),
       ],
+      lyricsOffsets: [
+        for (final l in corrected)
+          if (tracks.containsKey(l.id))
+            BackupLyricsOffset(track: l.id, offsetMs: l.offsetMs),
+      ],
     );
   }
 
@@ -123,7 +142,39 @@ final class IsarBackupDataSource {
         _restoreTotals(isar, backup, ids);
         _restoreHours(isar, backup.hours, added);
         _restoreLyrics(isar, backup.lyrics, ids);
+        _restoreLyricsOffsets(isar, backup.lyricsOffsets, ids);
       });
+
+  /// A correction of lyrics found online comes back for the lyrics this
+  /// phone finds: over online lyrics not corrected here, or kept for the
+  /// first look when the song has none yet. The row it leaves then holds
+  /// no lyrics and is as old as can be, so that look asks online at once
+  /// (and the answer keeps the correction, see `putOnline`). A miss
+  /// remembered here takes it and keeps its date: it is asked again when
+  /// it was going to be. Imported lyrics (other timings) and a correction
+  /// made here are left alone.
+  static void _restoreLyricsOffsets(
+    Isar isar,
+    List<BackupLyricsOffset> saved,
+    Map<String, String> ids,
+  ) {
+    final rows = isar.trackLyricsModels;
+    for (final o in saved) {
+      final id = ids[o.track];
+      if (id == null) continue;
+      final old = rows.get(id);
+      if (old == null) {
+        rows.put(
+          TrackLyricsModel()
+            ..id = id
+            ..offsetMs = o.offsetMs
+            ..checkedAt = DateTime.fromMillisecondsSinceEpoch(0),
+        );
+      } else if (old.source != _imported && old.offsetMs == 0) {
+        rows.put(old..offsetMs = o.offsetMs);
+      }
+    }
+  }
 
   /// Imported lyrics come back over lyrics found online and over the
   /// memory of none; lyrics imported on this phone stay.

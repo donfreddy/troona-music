@@ -6,6 +6,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/lyrics/data/models/track_lyrics_model.dart';
 import 'package:troona/features/lyrics/data/repositories/lyrics_repository_impl.dart';
 import 'package:troona/features/lyrics/data/sources/isar_lyrics_data_source.dart';
 import 'package:troona/features/lyrics/data/sources/lyrics_query.dart';
@@ -417,6 +418,43 @@ void main() {
       final found =
           await repo.lyricsFor(track, searchAgain: true) as LyricsFound;
       expect(found.offset, const Duration(milliseconds: 200));
+    });
+
+    group('restored before any lyrics were found (a row with no text)', () {
+      void waiting() => isar.write(
+        (isar) => isar.trackLyricsModels.put(
+          TrackLyricsModel()
+            ..id = track.id
+            ..offsetMs = 300
+            ..checkedAt = DateTime.fromMillisecondsSinceEpoch(0),
+        ),
+      );
+
+      test('the first look asks at once, and the lyrics take it', () async {
+        waiting();
+        lrclib.answer = _synced;
+        final found = await repo.lyricsFor(track) as LyricsFound;
+        expect(lrclib.asked, hasLength(1));
+        expect(found.offset, const Duration(milliseconds: 300));
+      });
+
+      test('nothing found: it waits on', () async {
+        waiting();
+        expect(await repo.lyricsFor(track), isA<LyricsMissing>());
+        expect(isar.trackLyricsModels.get(track.id)!.offsetMs, 300);
+      });
+
+      test('switch off: no source is asked, and it waits on', () async {
+        waiting();
+        settings.value = const AppSettings();
+        lrclib.answer = _synced;
+        expect(
+          await repo.lyricsFor(track),
+          const LyricsMissing(onlineEnabled: false),
+        );
+        expect(lrclib.asked, isEmpty);
+        expect(isar.trackLyricsModels.get(track.id)!.offsetMs, 300);
+      });
     });
 
     test('is clamped to 10 s either way', () async {
