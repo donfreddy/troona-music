@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/app_logger.dart';
-import 'package:troona/features/backup/data/backup_codec.dart';
+import 'package:troona/features/backup/data/backup_file_name.dart';
+import 'package:troona/features/backup/data/backup_files.dart';
 import 'package:troona/features/backup/data/isar_backup_data_source.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
@@ -78,15 +78,13 @@ final class BackupRepositoryImpl implements BackupRepository {
   @override
   Future<Either<Failure, String>> exportToFile(Backup backup) async {
     try {
-      // Up to 20 MB of JSON: encoded away from the UI thread.
-      final bytes = await Isolate.run(() => BackupCodec.encode(backup));
       if (await _exportDir.exists()) {
         await _exportDir.delete(recursive: true);
       }
       await _exportDir.create(recursive: true);
-      final date = backup.createdAt.toIso8601String().substring(0, 10);
-      final file = File('${_exportDir.path}/troona-backup-$date.json');
-      await file.writeAsBytes(bytes, flush: true);
+      final name = BackupFileName.of(backup.createdAt, auto: false);
+      final file = File('${_exportDir.path}/$name');
+      await BackupFiles.write(backup, file);
       return right(file.path);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -94,24 +92,8 @@ final class BackupRepositoryImpl implements BackupRepository {
   }
 
   @override
-  Future<Either<Failure, Backup>> readFile(String path) async {
-    try {
-      final file = File(path);
-      // Checked before reading: the file comes from anywhere.
-      if (await file.length() > BackupCodec.maxBytes) {
-        return left(const BackupFormatFailure('File too large'));
-      }
-      final bytes = await file.readAsBytes();
-      // Up to 20 MB of JSON: parsed away from the UI thread.
-      return right(await Isolate.run(() => BackupCodec.decode(bytes)));
-    } on BackupFormatException catch (e) {
-      return left(BackupFormatFailure(e.message));
-    } on BackupVersionException catch (e) {
-      return left(BackupTooNewFailure(e.version));
-    } catch (e, st) {
-      return left(ErrorHandler.handle(e, st));
-    }
-  }
+  Future<Either<Failure, Backup>> readFile(String path) =>
+      BackupFiles.read(path);
 
   @override
   Future<Either<Failure, Unit>> restore(

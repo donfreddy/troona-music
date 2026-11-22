@@ -64,6 +64,19 @@ class BackupTooNewFailure extends Failure {
     : super('Backup version $version is newer than this app.');
 }
 
+/// The backup folder can no longer be reached: the user withdrew the
+/// access, or the folder was removed. Choosing it again gives it back.
+class BackupFolderLostFailure extends Failure {
+  const BackupFolderLostFailure([
+    super.message = 'The backup folder can no longer be reached.',
+  ]);
+}
+
+/// Reading or writing the backup folder failed.
+class BackupFolderFailure extends Failure {
+  const BackupFolderFailure([super.message = 'Backup folder error.']);
+}
+
 // ── Updates ───────────────────────────────────────────────────────────────────
 
 /// GitHub could not be reached, or gave no release this app can read.
