@@ -43,9 +43,40 @@ final class PlatformOpenedFile implements OpenedFilePort {
     final size = map['size'];
     return OpenedFileRequest(
       uri: uri,
-      mediaStoreId: map['mediaStoreId'] as String?,
+      mediaStoreId: mediaStoreIdOf(uri),
       name: map['name'] as String?,
       size: size is int ? size : null,
     );
   }
+
+  static const _documentPrefixes = {
+    'com.android.providers.media.documents': 'audio:',
+    'com.android.providers.downloads.documents': 'msf:',
+  };
+
+  /// The MediaStore id [address] carries, the library's `Track.id`: a
+  /// MediaStore address of the external volumes (`.../audio/media/<id>`), or
+  /// a document of the media (`audio:<id>`) or downloads (`msf:<id>`, a
+  /// MediaStore file, whose id the audio table shares) providers. Null
+  /// otherwise: the internal volume (ringtones, system sounds) counts its
+  /// ids apart, and a downloads id of its own is not MediaStore's.
+  static String? mediaStoreIdOf(String address) {
+    final uri = Uri.tryParse(address);
+    if (uri == null || uri.scheme != 'content') return null;
+    final segments = uri.pathSegments;
+    if (uri.host == 'media') {
+      if (segments.isEmpty || segments.first == 'internal') return null;
+      final at = segments.indexOf('audio');
+      if (at < 0 || at + 2 >= segments.length) return null;
+      return segments[at + 1] == 'media' ? _digits(segments[at + 2]) : null;
+    }
+    final prefix = _documentPrefixes[uri.host];
+    final at = segments.lastIndexOf('document');
+    if (prefix == null || at < 0 || at + 1 >= segments.length) return null;
+    final id = segments[at + 1];
+    return id.startsWith(prefix) ? _digits(id.substring(prefix.length)) : null;
+  }
+
+  static String? _digits(String s) =>
+      s.isNotEmpty && s.codeUnits.every((c) => c >= 48 && c <= 57) ? s : null;
 }

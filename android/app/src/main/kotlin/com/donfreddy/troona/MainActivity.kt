@@ -35,7 +35,7 @@ class MainActivity : AudioServiceActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // Already running (singleTop).
+        // Already running (singleTask: one activity).
         opened?.offer(intent)
     }
 }

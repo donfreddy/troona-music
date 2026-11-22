@@ -24,7 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:screenOrientation="userPortrait"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
@@ -39,6 +39,11 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- singleTask: one activity, whoever starts it. A file opened
+                 from an app that starts activities in its own task (a chat
+                 app) would otherwise create a second one, which takes the
+                 one engine audio_service keeps and leaves the first frozen.
+                 A file opened while running arrives through onNewIntent. -->
             <!-- An intent's address is not a page: without this, Flutter
                  hands content://... to the router as a route to show. The
                  app has no deep links. -->

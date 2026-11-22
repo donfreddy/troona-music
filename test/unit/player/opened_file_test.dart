@@ -124,6 +124,21 @@ void main() {
       expect(library.reads, 0);
     });
 
+    test('a file: address: by its path, exactly', () async {
+      final atPath = _track('13', file: 'other.mp3', size: 1)
+        ..path = '/storage/emulated/0/Music/01 Intro.mp3';
+      library = _Library([intro, atPath]);
+      resolve = ResolveOpenedFileUseCase(library);
+      final opened = await resolve(
+        const OpenedFileRequest(
+          uri: 'file:///storage/emulated/0/Music/01%20Intro.mp3',
+          name: '01 Intro.mp3',
+          size: 4000,
+        ),
+      );
+      expect((opened as OpenedLibraryTrack).track, atPath);
+    });
+
     test('nothing that matches: not in the library', () async {
       expect(
         await resolve(
@@ -251,10 +266,8 @@ void main() {
         expect(call.method, 'take');
         return {
           'uri': 'content://media/external/audio/media/42',
-          'mediaStoreId': '42',
           'name': 'song.mp3',
           'size': 1234,
-          'type': 'audio/mpeg',
         };
       });
       expect(
@@ -275,6 +288,51 @@ void main() {
         (_) async => throw PlatformException(code: 'gone'),
       );
       expect(await PlatformOpenedFile().take(), isNull);
+    });
+
+    group('the MediaStore id an address carries', () {
+      for (final (address, id) in [
+        ('content://media/external/audio/media/42', '42'),
+        ('content://media/external_primary/audio/media/42', '42'),
+        // Ringtones and system sounds: ids counted apart.
+        ('content://media/internal/audio/media/42', null),
+        ('content://media/external/video/media/42', null),
+        ('content://media/external/audio/albums/42', null),
+        (
+          'content://com.android.providers.media.documents/document/audio%3A42',
+          '42',
+        ),
+        (
+          'content://com.android.providers.media.documents/document/video%3A42',
+          null,
+        ),
+        (
+          'content://com.android.providers.downloads.documents/document/msf%3A42',
+          '42',
+        ),
+        // The downloads' own ids and raw paths are not MediaStore's.
+        (
+          'content://com.android.providers.downloads.documents/document/42',
+          null,
+        ),
+        (
+          'content://com.android.providers.downloads.documents/document/'
+              'raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2Fa.mp3',
+          null,
+        ),
+        (
+          'content://com.android.externalstorage.documents/tree/primary%3AMusic'
+              '/document/primary%3AMusic%2Fa.mp3',
+          null,
+        ),
+        ('content://com.whatsapp.provider.media/item/42', null),
+        ('file:///storage/emulated/0/Music/a.mp3', null),
+        ('content://media/external/audio/media/abc', null),
+      ]) {
+        test(address, () {
+          expect(PlatformOpenedFile.mediaStoreIdOf(address), id);
+        });
+      }
     });
 
     test('a request with no address is none', () {

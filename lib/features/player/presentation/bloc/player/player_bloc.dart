@@ -474,7 +474,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       ids,
     )).fold((_) => null, (tracks) => tracks);
     // A song played during the read (a file opened from another app on a
-    // cold start) is the player's now: the session stays saved, unused.
+    // cold start) is the player's now: nothing of the session is loaded.
     if (state is! PlayerIdle) return;
     // A failed read is not a lost session: keep it for the next launch.
     if (cachedTracks == null) return;
