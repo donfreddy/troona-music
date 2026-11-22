@@ -30,6 +30,48 @@ final class Release {
 /// add its entry here (strings in the l10n sources): "What's new" then opens
 /// once after the update. A version without an entry updates silently.
 List<Release> releaseNotes(AppLocalizations l10n) => [
+  Release('1.8.0', date: DateTime(2026, 11, 22), [
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew180SmartTitle,
+      l10n.whatsNew180SmartBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew180SelectionTitle,
+      l10n.whatsNew180SelectionBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.added,
+      l10n.whatsNew180EqualizerTitle,
+      l10n.whatsNew180EqualizerBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew180OrbTitle,
+      l10n.whatsNew180OrbBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew180GlassTitle,
+      l10n.whatsNew180GlassBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew180MiniPlayerTitle,
+      l10n.whatsNew180MiniPlayerBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.improved,
+      l10n.whatsNew180ReadableTitle,
+      l10n.whatsNew180ReadableBody,
+    ),
+    ReleaseNote(
+      ReleaseNoteKind.fixed,
+      l10n.whatsNew180GlassFixTitle,
+      l10n.whatsNew180GlassFixBody,
+    ),
+  ]),
   Release('1.7.0', date: DateTime(2026, 11, 19), [
     ReleaseNote(
       ReleaseNoteKind.added,

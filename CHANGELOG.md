@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-11-22
+
 ### Added
 
 - Smart playlists: songs picked by rules (plays over a period, last played, date added, liked, artist, album, genre, year, duration, lossless), matching all or any of them, sorted and capped as you choose. Start from a template (Most played this month, Never played, Forgotten, Recently added, Lossless) or from nothing; the editor counts the songs as the rules change. They are worked out again each time you open one and after each song you play, and Save as a playlist keeps today's songs as a playlist of your own. Backups carry their rules.
@@ -236,7 +238,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only. Network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/donfreddy/troona-music/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/donfreddy/troona-music/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/donfreddy/troona-music/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/donfreddy/troona-music/compare/v1.4.0...v1.5.0

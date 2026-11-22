@@ -1889,6 +1889,64 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plus de silhouettes grises ni de photos d\'homonymes, et la recherche affiche les photos téléchargées.';
 
   @override
+  String get whatsNew180SmartTitle => 'Playlists intelligentes';
+
+  @override
+  String get whatsNew180SmartBody =>
+      'Des playlists qui se remplissent selon des règles : écoutes, dernière écoute, date d\'ajout, j\'aime, artiste, genre, année et plus. Partez d\'un modèle avec le + de l\'onglet Playlists.';
+
+  @override
+  String get whatsNew180SelectionTitle => 'Choisir plusieurs titres';
+
+  @override
+  String get whatsNew180SelectionBody =>
+      'Un appui long sur un titre lance la sélection, puis touchez-en d\'autres. Lisez-les, ajoutez-les à la file ou à une playlist d\'un coup.';
+
+  @override
+  String get whatsNew180EqualizerTitle => 'Égaliseur';
+
+  @override
+  String get whatsNew180EqualizerBody =>
+      'Sur Android, depuis l\'écran En lecture ou Réglages > Lecture : dessinez votre courbe du doigt ou partez d\'un préréglage, enregistrez-la, et gagnez jusqu\'à 6 dB avec Volume +.';
+
+  @override
+  String get whatsNew180OrbTitle => 'Un bouton aux couleurs du morceau';
+
+  @override
+  String get whatsNew180OrbBody =>
+      'Le centre de la barre d\'onglets prend les couleurs du morceau en cours. Touchez-le pour ouvrir l\'écran En lecture, ou lancer la musique quand rien n\'est chargé.';
+
+  @override
+  String get whatsNew180GlassTitle =>
+      'Des effets de verre pour chaque téléphone';
+
+  @override
+  String get whatsNew180GlassBody =>
+      'Équilibré ne garde le flou que dans les en-têtes et Sans flou n\'en dessine aucun, avec des surfaces teintées : un défilement plus fluide sur les téléphones anciens. Dans Réglages.';
+
+  @override
+  String get whatsNew180MiniPlayerTitle => 'Un mini lecteur plus fluide';
+
+  @override
+  String get whatsNew180MiniPlayerBody =>
+      'Glissez vers le morceau suivant ou précédent : les titres suivent le doigt et la pochette se fond. Glissez vers le bas pour le fermer.';
+
+  @override
+  String get whatsNew180ReadableTitle => 'Plus lisible';
+
+  @override
+  String get whatsNew180ReadableBody =>
+      'Les petits textes gris sont plus contrastés, et l\'anneau de l\'écran En lecture se lit sur toutes les pochettes.';
+
+  @override
+  String get whatsNew180GlassFixTitle =>
+      'Les effets de verre s\'appliquent tout de suite';
+
+  @override
+  String get whatsNew180GlassFixBody =>
+      'Changer les effets de verre redessine maintenant tous les écrans aussitôt, pas seulement ceux ouverts ensuite.';
+
+  @override
   String playlistAddedSongsTo(int count, String name) {
     return '$count morceaux ajoutés à $name';
   }
