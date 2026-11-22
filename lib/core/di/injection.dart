@@ -10,6 +10,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/database/app_database.dart';
 import 'package:troona/core/network/api_client.dart';
+import 'package:troona/features/lyrics/data/repositories/lyrics_repository_impl.dart';
+import 'package:troona/features/lyrics/data/sources/isar_lyrics_data_source.dart';
+import 'package:troona/features/lyrics/data/sources/lrclib_remote_data_source.dart';
+import 'package:troona/features/lyrics/data/sources/lyrics_ovh_remote_data_source.dart';
+import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/metadata/data/repositories/metadata_repository_impl.dart';
 import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
 import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
@@ -136,11 +141,13 @@ Future<void> configureDependencies() async {
   final isar = await AppDatabase.open([
     ...IsarLibraryDataSource.schemas,
     ...IsarPlayHistoryDataSource.schemas,
+    ...IsarLyricsDataSource.schemas,
   ]);
   final historySource = IsarPlayHistoryDataSource(isar);
   getIt
     ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
-    ..registerSingleton<IsarPlayHistoryDataSource>(historySource);
+    ..registerSingleton<IsarPlayHistoryDataSource>(historySource)
+    ..registerSingleton<IsarLyricsDataSource>(IsarLyricsDataSource(isar));
   // Before the recorder starts: it only runs while the daily totals are
   // empty, and the first play would make them non-empty.
   try {
@@ -313,10 +320,22 @@ Future<void> configureDependencies() async {
       artworkCacheDir: onlinePhotos,
     ),
   );
+  // LRCLIB first (synced lyrics), lyrics.ovh when it has none.
+  getIt.registerLazySingleton<LyricsRepository>(
+    () => LyricsRepositoryImpl(
+      store: getIt(),
+      remotes: [
+        LrclibRemoteDataSource(getIt<ApiClient>().dio),
+        LyricsOvhRemoteDataSource(getIt<ApiClient>().dio),
+      ],
+      settings: getIt(),
+    ),
+  );
   getIt.registerLazySingleton<MaintenanceRepository>(
     () => MaintenanceRepositoryImpl(
       library: getIt(),
       metadata: getIt(),
+      lyrics: getIt(),
       coverDir: artworkCache,
     ),
   );

@@ -19,6 +19,7 @@ void main() {
     expect(settings, const AppSettings());
     expect(settings.fetchOnlineMetadata, isFalse);
     expect(settings.fetchArtistArtwork, isFalse);
+    expect(settings.fetchLyrics, isFalse);
     expect(settings.checkForUpdates, isFalse);
     expect(settings.glassQuality, GlassQuality.auto);
   });
@@ -62,6 +63,7 @@ void main() {
       duckAudioOnNotification: false,
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
+      fetchLyrics: true,
       onlineExtrasOffered: true,
       checkForUpdates: true,
       hapticFeedbackEnabled: false,

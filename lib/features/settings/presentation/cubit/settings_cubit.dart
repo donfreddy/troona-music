@@ -91,6 +91,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _forgetPhotosIfOff();
   }
 
+  /// Lyrics are not part of Home's offer: it speaks of artists and albums.
+  Future<void> setFetchLyrics(bool value) =>
+      _update((s) => s.copyWith(fetchLyrics: value));
+
   /// Turns both online extras on or off at once (Home offer card).
   Future<void> setOnlineExtras(bool enabled) async {
     await _update(
@@ -134,13 +138,14 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   /// Applies settings from a backup. This phone keeps its own glass
   /// quality, which depends on the device, and everything that goes online
-  /// (Last.fm, Deezer, GitHub): only a choice made here turns it on.
+  /// (Last.fm, Deezer, LRCLIB, GitHub): only a choice made here turns it on.
   Future<void> restore(AppSettings saved) async {
     await _update(
       (s) => saved.copyWith(
         glassQuality: s.glassQuality,
         fetchOnlineMetadata: s.fetchOnlineMetadata,
         fetchArtistArtwork: s.fetchArtistArtwork,
+        fetchLyrics: s.fetchLyrics,
         onlineExtrasOffered: s.onlineExtrasOffered,
         checkForUpdates: s.checkForUpdates,
       ),

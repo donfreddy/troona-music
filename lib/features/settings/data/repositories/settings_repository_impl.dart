@@ -14,6 +14,7 @@ abstract final class _K {
   static const duckAudioOnNotification = 'duck_audio_on_notification';
   static const fetchOnlineMetadata = 'online_bios_enabled';
   static const fetchArtistArtwork = 'online_photos_enabled';
+  static const fetchLyrics = 'online_lyrics_enabled';
   static const onlineExtrasOffered = 'online_extras_offered';
   static const checkForUpdates = 'update_check_enabled';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
@@ -25,6 +26,7 @@ abstract final class _K {
     duckAudioOnNotification,
     fetchOnlineMetadata,
     fetchArtistArtwork,
+    fetchLyrics,
     onlineExtrasOffered,
     checkForUpdates,
     hapticFeedbackEnabled,
@@ -84,6 +86,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _K.fetchArtistArtwork,
             d.fetchArtistArtwork,
           ),
+          fetchLyrics: _bool(_K.fetchLyrics, d.fetchLyrics),
           onlineExtrasOffered: _bool(
             _K.onlineExtrasOffered,
             d.onlineExtrasOffered,
@@ -114,6 +117,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.duckAudioOnNotification, s.duckAudioOnNotification),
         _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
         _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
+        _prefs.setBool(_K.fetchLyrics, s.fetchLyrics),
         _prefs.setBool(_K.onlineExtrasOffered, s.onlineExtrasOffered),
         _prefs.setBool(_K.checkForUpdates, s.checkForUpdates),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
