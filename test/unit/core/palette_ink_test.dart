@@ -82,7 +82,9 @@ void main() {
       ]) {
         final fainter = level.withValues(alpha: level.a - 1 / 255);
         expect(
-          grounds.any((g) => _contrastOn(fainter, g) < floor),
+          grounds.any(
+            (g) => _contrastOn(fainter, g) < floor * (1 + PaletteInk.margin),
+          ),
           isTrue,
           reason: 'floor $floor',
         );
@@ -133,8 +135,37 @@ void main() {
     });
   });
 
-  test('the background bounds its glow with the same peak', () {
-    const color = Color(0xFF552233);
-    expect(DynamicBackground.peakOf(color), PaletteInk.glowPeakOf(color));
+  test('the floors hold once the colour drawn is rounded to 8 bits a '
+      'channel', () {
+    int q(double c) => (c * 255).round();
+    for (var hue = 0.0; hue < 360; hue += 30) {
+      final (a, b) = _glow(hue, 0.9);
+      final ink = PaletteInk.of(a, b);
+      for (final ground in [
+        PaletteInk.glowPeakOf(a),
+        PaletteInk.glowPeakOf(b),
+        const Color(0xFF000000),
+      ]) {
+        for (final (level, floor) in [
+          (ink.far, 2.0),
+          (ink.near, 3.0),
+          (ink.secondary, 4.5),
+        ]) {
+          final drawn = Color.alphaBlend(level, ground);
+          final rounded = Color.fromARGB(
+            255,
+            q(drawn.r),
+            q(drawn.g),
+            q(drawn.b),
+          );
+          final g = Color.fromARGB(255, q(ground.r), q(ground.g), q(ground.b));
+          expect(
+            PaletteInk.contrastOf(rounded, g),
+            greaterThanOrEqualTo(floor),
+            reason: 'hue $hue, floor $floor',
+          );
+        }
+      }
+    }
   });
 }

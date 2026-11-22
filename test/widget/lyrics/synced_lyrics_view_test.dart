@@ -362,6 +362,21 @@ void main() {
     expect(near.r, greaterThan(near.b));
   });
 
+  testWidgets('during the glow\'s change, every frame, the lines are in '
+      'the ink of that frame', (tester) async {
+    await pump(tester);
+    active.value = 5;
+    await tester.pumpAndSettle();
+    glow.value = _blue;
+    await tester.pump();
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 45));
+      final ink = PaletteInkScope.of(tester.element(find.text('Line 6')));
+      expect(colorOf(tester, 'Line 6'), ink.near, reason: 'frame $i');
+      expect(colorOf(tester, 'Line 9'), ink.far, reason: 'frame $i');
+    }
+  });
+
   testWidgets('a new song: the lines follow its glow', (tester) async {
     await pump(tester);
     active.value = 5;

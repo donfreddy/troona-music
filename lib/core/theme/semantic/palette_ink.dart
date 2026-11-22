@@ -47,6 +47,10 @@ final class PaletteInk {
   /// cover never gets a hue it does not have.
   static const greyBelow = 0.15;
 
+  /// Aimed above each floor, so the colour drawn, rounded to 8 bits a
+  /// channel, still reaches it.
+  static const margin = 0.02;
+
   static const tintSaturation = 0.35;
   static const tintLightness = 0.85;
 
@@ -84,13 +88,15 @@ final class PaletteInk {
         .toColor();
   }
 
-  /// The least alpha at which [ink] over [ground] reaches [floor], rounded
-  /// up to the next of the 255 steps a colour is drawn with; 1 when even
-  /// opaque it cannot.
+  /// The least alpha at which [ink] over [ground] reaches [floor] with
+  /// [margin] to spare, rounded up to the next of the 255 steps a colour is
+  /// drawn with; 1 when even opaque it cannot. The margin covers the
+  /// drawn colour's own rounding to 8 bits a channel.
   @visibleForTesting
   static double alphaFor(Color ink, Color ground, double floor) {
+    final target = floor * (1 + margin);
     if (contrastOf(Color.alphaBlend(ink.withValues(alpha: 1), ground), ground) <
-        floor) {
+        target) {
       return 1;
     }
     var low = 0.0;
@@ -98,7 +104,7 @@ final class PaletteInk {
     for (var i = 0; i < 20; i++) {
       final mid = (low + high) / 2;
       final blended = Color.alphaBlend(ink.withValues(alpha: mid), ground);
-      if (contrastOf(blended, ground) >= floor) {
+      if (contrastOf(blended, ground) >= target) {
         high = mid;
       } else {
         low = mid;
@@ -122,15 +128,6 @@ final class PaletteInk {
     final (hi, lo) = la > lb ? (la, lb) : (lb, la);
     return (hi + 0.05) / (lo + 0.05);
   }
-
-  /// Between two inks, for a glow moving from one song's to the next.
-  static PaletteInk lerp(PaletteInk a, PaletteInk b, double t) => PaletteInk._(
-    primary: Color.lerp(a.primary, b.primary, t)!,
-    body: Color.lerp(a.body, b.body, t)!,
-    secondary: Color.lerp(a.secondary, b.secondary, t)!,
-    near: Color.lerp(a.near, b.near, t)!,
-    far: Color.lerp(a.far, b.far, t)!,
-  );
 
   @override
   bool operator ==(Object other) =>

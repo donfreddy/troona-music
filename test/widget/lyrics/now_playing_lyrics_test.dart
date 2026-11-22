@@ -316,6 +316,17 @@ void main() {
       ),
       findsOneWidget,
     );
+    // The seek bar's times are small text over the glow: its tint too.
+    final time = find
+        .descendant(
+          of: find.byType(PlayerProgressBar),
+          matching: find.byType(Text),
+        )
+        .first;
+    expect(
+      tester.widget<Text>(time).style?.color,
+      PaletteInkScope.of(tester.element(time)).secondary,
+    );
   });
 
   testWidgets('a tap on a line seeks there', (tester) async {

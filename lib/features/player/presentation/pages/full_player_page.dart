@@ -460,37 +460,36 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                           data: MediaQuery.of(
                             context,
                           ).copyWith(textScaler: textScaler),
-                          child: Column(
-                            children: [
-                              // Tinted by the glow behind, in step with it.
-                              Expanded(
-                                child:
-                                    BlocBuilder<
-                                      TrackPaletteCubit,
-                                      TrackPaletteState
-                                    >(
-                                      builder: (_, palette) => PaletteInkScope(
-                                        colorA: palette.backgroundColorA,
-                                        colorB: palette.backgroundColorB,
-                                        tone: DynamicBackgroundTone.immersive,
-                                        child: const LyricsView(),
+                          // Tinted by the glow behind, in step with it.
+                          child:
+                              BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
+                                builder: (_, palette) => PaletteInkScope(
+                                  colorA: palette.backgroundColorA,
+                                  colorB: palette.backgroundColorB,
+                                  tone: DynamicBackgroundTone.immersive,
+                                  child: Column(
+                                    children: [
+                                      const Expanded(child: LyricsView()),
+                                      MediaQuery.withClampedTextScaling(
+                                        maxScaleFactor: AppLayout.maxTextScale,
+                                        child: const PlayerProgressBar(),
                                       ),
-                                    ),
-                              ),
-                              MediaQuery.withClampedTextScaling(
-                                maxScaleFactor: AppLayout.maxTextScale,
-                                child: const PlayerProgressBar(),
-                              ),
-                              BlocSelector<PlayerBloc, PlayerState, bool>(
-                                selector: (s) =>
-                                    s is PlayerActive && s.isPlaying,
-                                builder: (_, playing) => KeepScreenOn(
-                                  active: shown && playing,
-                                  child: const SizedBox.shrink(),
+                                      BlocSelector<
+                                        PlayerBloc,
+                                        PlayerState,
+                                        bool
+                                      >(
+                                        selector: (s) =>
+                                            s is PlayerActive && s.isPlaying,
+                                        builder: (_, playing) => KeepScreenOn(
+                                          active: shown && playing,
+                                          child: const SizedBox.shrink(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
                         ),
                       ),
                     ),

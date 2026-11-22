@@ -312,18 +312,25 @@ class _LyricLineTile extends StatelessWidget {
     required this.onTap,
   });
 
-  /// The line sung in white, the two around it at [PaletteInk.near], the
-  /// rest at [PaletteInk.far]: tints of the glow, faint as each may be.
-  static Color colorAt(int distance, PaletteInk ink) => switch (distance) {
-    0 => ink.primary,
-    1 || 2 => ink.near,
-    _ => ink.far,
+  /// How marked a line is: 1 for the line sung, 0.5 for the two around
+  /// it, 0 for the rest. Only this is animated: the colours come from the
+  /// ink of this frame, so they follow the glow in step ([colorOf]).
+  static double emphasisAt(int distance) => switch (distance) {
+    0 => 1,
+    1 || 2 => 0.5,
+    _ => 0,
   };
+
+  /// White at 1, [PaletteInk.near] at 0.5, [PaletteInk.far] at 0: tints
+  /// of the glow, faint as each may be.
+  static Color colorOf(double emphasis, PaletteInk ink) => emphasis >= 0.5
+      ? Color.lerp(ink.near, ink.primary, (emphasis - 0.5) * 2)!
+      : Color.lerp(ink.far, ink.near, emphasis * 2)!;
 
   @override
   Widget build(BuildContext context) {
     final still = MediaQuery.disableAnimationsOf(context);
-    final color = colorAt(distance, PaletteInkScope.of(context));
+    final ink = PaletteInkScope.of(context);
     final scale = distance == 0 || still ? 1.0 : 0.94;
     const duration = Duration(milliseconds: 300);
     return Semantics(
@@ -334,30 +341,31 @@ class _LyricLineTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 9),
-          child: TweenAnimationBuilder<Color?>(
-            tween: ColorTween(end: color),
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(end: emphasisAt(distance)),
             duration: still ? Duration.zero : duration,
             curve: Curves.easeOutCubic,
-            builder: (context, color, child) => TweenAnimationBuilder<double>(
-              tween: Tween(end: scale),
-              duration: duration,
-              curve: Curves.easeOutCubic,
-              builder: (context, scale, _) => Transform.scale(
-                scale: scale,
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  line.text,
-                  style: TextStyle(
-                    fontSize: SyncedLyricsView.fontSize,
-                    fontWeight: FontWeight.w700,
-                    height: 1.25,
-                    // Through the colour, never an Opacity: no layer per
-                    // line.
-                    color: color,
+            builder: (context, emphasis, child) =>
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: scale),
+                  duration: duration,
+                  curve: Curves.easeOutCubic,
+                  builder: (context, scale, _) => Transform.scale(
+                    scale: scale,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      line.text,
+                      style: TextStyle(
+                        fontSize: SyncedLyricsView.fontSize,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                        // Through the colour, never an Opacity: no layer per
+                        // line.
+                        color: colorOf(emphasis, ink),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
           ),
         ),
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
 /// A thin seek bar with the position and the length, for when the ring is
 /// not on screen (Now Playing showing lyrics). A drag moves the thumb and
@@ -23,6 +24,8 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<PlayerBloc>();
+    // Small text over the glow: its tint, never a fixed grey.
+    final ink = PaletteInkScope.of(context);
     return SizedBox(
       height: PlayerProgressBar.height,
       child: ValueListenableBuilder<PlaybackProgress>(
@@ -36,7 +39,7 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
           final label = TextStyle(
             fontSize: 12,
             fontFeatures: const [FontFeature.tabularFigures()],
-            color: Colors.white.withValues(alpha: 0.7),
+            color: ink.secondary,
           );
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -53,7 +56,7 @@ class _PlayerProgressBarState extends State<PlayerProgressBar> {
                       overlayRadius: 16,
                     ),
                     activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withValues(alpha: .3),
+                    inactiveTrackColor: ink.far,
                     thumbColor: Colors.white,
                     overlayColor: Colors.white.withValues(alpha: .15),
                     showValueIndicator: ShowValueIndicator.never,
