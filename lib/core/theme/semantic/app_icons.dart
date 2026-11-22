@@ -28,6 +28,17 @@ abstract final class AppIcons {
   static const IconData speed = LucideIcons300.gauge;
   static const IconData volumeLow = LucideIcons300.volume1;
 
+  /// The equalizer, a setting: never the bars of `MiniEqualizer`, which
+  /// mean "playing".
+  static const IconData equalizer = LucideIcons300.slidersVertical;
+
+  /// Held down to hear the music without the equalizer.
+  static const IconData equalizerCompare = LucideIcons300.ear;
+
+  /// A curve the user saved.
+  static const IconData equalizerProfile = LucideIcons300.bookmark;
+  static const IconData equalizerSaveProfile = LucideIcons300.bookmarkPlus;
+
   // ── Library ───────────────────────────────────────────────────────────────
   /// A song, and the placeholder of a song without a cover.
   static const IconData track = LucideIcons300.music;

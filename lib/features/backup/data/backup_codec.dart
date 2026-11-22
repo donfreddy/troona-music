@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:troona/features/library/data/models/smart_rules_json.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
+import 'package:troona/features/equalizer/data/equalizer_json.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
@@ -97,6 +99,11 @@ abstract final class BackupCodec {
         'replayMonth': backup.replayMonth,
       },
       'settings': _encodeSettings(backup.settings),
+      if (backup.equalizer case final eq?)
+        'equalizer': {
+          'settings': EqualizerJson.encodeSettings(eq.settings),
+          'profiles': EqualizerJson.encodeProfiles(eq.profiles),
+        },
     }),
   );
 
@@ -222,7 +229,19 @@ abstract final class BackupCodec {
         },
       },
       settings: _decodeSettings(_map(json['settings'], 'settings')),
+      equalizer: _decodeEqualizer(json['equalizer']),
     );
+  }
+
+  /// Optional, and checked on its own: an equalizer out of bounds is left
+  /// out, the rest of the backup still restores. An older app ignores the
+  /// key, so it needs no new [version].
+  static EqualizerSnapshot? _decodeEqualizer(Object? json) {
+    if (json is! Map<String, Object?>) return null;
+    final settings = EqualizerJson.decodeSettings(json['settings']);
+    final profiles = EqualizerJson.decodeProfiles(json['profiles']);
+    if (settings == null || profiles == null) return null;
+    return EqualizerSnapshot(settings: settings, profiles: profiles);
   }
 
   static Map<String, Object?> _encodeSettings(AppSettings s) => {

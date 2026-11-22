@@ -1995,6 +1995,25 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count songs',
       one: '1 song',
+  String get equalizerTitle => 'Equalizer';
+
+  @override
+  String get equalizerOff => 'Off';
+
+  @override
+  String get equalizerTurnOnHint => 'Turn the equalizer on to tune it.';
+
+  @override
+  String get equalizerNoBands =>
+      'Play a song to tune the equalizer: your phone tells its bands once one is loaded.';
+
+  @override
+  String equalizerBandCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bands on this phone.',
+      one: '1 band on this phone.',
     );
     return '$_temp0';
   }
@@ -2204,4 +2223,94 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get smartSortRandom => 'Random';
+  String get equalizerOtherEffects =>
+      'A system equalizer, such as Dolby, may change the sound too.';
+
+  @override
+  String get equalizerPresetFlat => 'Flat';
+
+  @override
+  String get equalizerPresetBassBoost => 'Bass boost';
+
+  @override
+  String get equalizerPresetAcoustic => 'Acoustic';
+
+  @override
+  String get equalizerPresetElectronic => 'Electronic';
+
+  @override
+  String get equalizerPresetVocal => 'Vocal';
+
+  @override
+  String get equalizerPresetRock => 'Rock';
+
+  @override
+  String get equalizerPresetHipHop => 'Hip-hop';
+
+  @override
+  String get equalizerPresetJazz => 'Jazz';
+
+  @override
+  String get equalizerPresetTrebleBoost => 'Treble boost';
+
+  @override
+  String get equalizerCustom => 'Custom';
+
+  @override
+  String get equalizerSaveProfile => 'Save';
+
+  @override
+  String get equalizerSaveProfileTitle => 'Save this curve';
+
+  @override
+  String get equalizerProfileName => 'Name';
+
+  @override
+  String get equalizerProfileRename => 'Rename';
+
+  @override
+  String get equalizerProfileUpdate => 'Replace with the current curve';
+
+  @override
+  String equalizerProfileDeleteTitle(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get equalizerProfileDeleteBody =>
+      'The curve stays as it is; only its name goes.';
+
+  @override
+  String get equalizerCompare => 'Hold to hear without the equalizer';
+
+  @override
+  String get equalizerComparing => 'Without the equalizer';
+
+  @override
+  String get equalizerBoost => 'Volume +';
+
+  @override
+  String get equalizerAntiClip => 'Avoid clipping';
+
+  @override
+  String get equalizerAntiClipSubtitle =>
+      'Lowers the level by as much as the bands boost.';
+
+  @override
+  String get equalizerReset => 'Reset the curve';
+
+  @override
+  String equalizerDecibels(String value) {
+    return '$value dB';
+  }
+
+  @override
+  String equalizerBandLabel(String frequency) {
+    return '$frequency hertz';
+  }
+
+  @override
+  String equalizerBandValue(String value) {
+    return '$value decibels';
+  }
 }

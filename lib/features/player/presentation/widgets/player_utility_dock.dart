@@ -6,6 +6,8 @@ import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
+import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
+import 'package:troona/features/equalizer/presentation/widgets/equalizer_sheet.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
 import 'package:troona/features/player/presentation/widgets/queue_sheet.dart';
@@ -14,7 +16,8 @@ import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 
 /// Secondary playback tools under the Now Playing controls: queue, sleep
-/// timer and playback speed, each with a 44 px touch target.
+/// timer, playback speed and, where the phone supports it, the equalizer,
+/// each with a 44 px touch target.
 class PlayerUtilityDock extends StatelessWidget {
   const PlayerUtilityDock({super.key});
 
@@ -68,6 +71,22 @@ class PlayerUtilityDock extends StatelessWidget {
               },
             ),
           ),
+          if (context.read<EqualizerCubit?>() case final equalizer?)
+            BlocSelector<EqualizerCubit, EqualizerState, (bool, bool)>(
+              bloc: equalizer,
+              selector: (s) => (s.supported, s.settings.enabled),
+              builder: (context, eq) => !eq.$1
+                  ? const SizedBox.shrink()
+                  : _DockItem(
+                      icon: AppIcons.equalizer,
+                      label: context.l10n.equalizerTitle,
+                      isActive: eq.$2,
+                      onTap: () {
+                        AppHaptics.selectionClick();
+                        showEqualizerSheet(context);
+                      },
+                    ),
+            ),
         ],
       ),
     );

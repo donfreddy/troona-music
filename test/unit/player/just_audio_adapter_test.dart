@@ -188,6 +188,80 @@ void main() {
     }
   }
 
+  group('the equalizer', () {
+    test('its trim scales the volume, never the volume shown', () async {
+      await setUpAdapter();
+      final shown = <double>[];
+      adapter.volumeStream.listen(shown.add);
+      await adapter.setVolume(0.8);
+      player.volumes.clear();
+
+      adapter.setTrim(0.5);
+      await pumpEventQueue();
+      expect(player.volumes.last, closeTo(0.4, 1e-9));
+      // Kept for later volume changes too.
+      await adapter.setVolume(0.6);
+      expect(player.volumes.last, closeTo(0.3, 1e-9));
+      await pumpEventQueue();
+      expect(shown.last, 0.6);
+      expect(shown, isNot(contains(closeTo(0.3, 1e-9))));
+    });
+
+    test('a trim above 1 cannot raise the volume', () async {
+      await setUpAdapter();
+      adapter.setTrim(3);
+      await pumpEventQueue();
+      expect(player.volumes.last, 1);
+    });
+
+    test('the probe runs before the platform loads, and loads keep their '
+        'order', () async {
+      player = _FakeAudioPlayer();
+      final events = <String>[];
+      final probe = Completer<void>();
+      adapter = JustAudioAdapter(
+        player: player,
+        beforeLoad: () {
+          events.add('probe');
+          return probe.future;
+        },
+      );
+      addTearDown(adapter.dispose);
+      player.onLoad = (_) => events.add('load');
+
+      final first = adapter.setQueue([a], startIndex: 0);
+      final second = adapter.setQueue([b], startIndex: 0);
+      await pumpEventQueue();
+      expect(events, ['probe', 'probe']);
+      expect(player.loads, isEmpty);
+
+      probe.complete();
+      await Future.wait([first, second]);
+      await pumpEventQueue();
+      expect(events, ['probe', 'probe', 'load', 'load']);
+      expect(player.loads, [
+        ['a'],
+        ['b'],
+      ]);
+      expect(adapter.currentQueue!.currentTrack, b);
+    });
+
+    test(
+      'a hook with nothing to wait for adds no turn before the load',
+      () async {
+        player = _FakeAudioPlayer();
+        adapter = JustAudioAdapter(player: player, beforeLoad: () => null);
+        addTearDown(adapter.dispose);
+        final done = adapter.setQueue([a], startIndex: 0);
+        // Synchronously up to the platform call, as without a hook.
+        expect(player.loads, [
+          ['a'],
+        ]);
+        await done;
+      },
+    );
+  });
+
   test('setQueue can turn shuffle on in the same load', () async {
     await setUpAdapter();
 

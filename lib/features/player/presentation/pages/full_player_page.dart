@@ -624,7 +624,8 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                     case AppTab.playlists:
                                       _leaveFullPlayerTo(context, '/playlists');
                                     case AppTab.player:
-                                      break;
+                                      // The orb closes the page it opened.
+                                      _dismissFullPlayer(context);
                                   }
                                 },
                               ),

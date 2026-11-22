@@ -17,6 +17,8 @@ import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
+import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
+import 'package:troona/features/equalizer/presentation/widgets/equalizer_sheet.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
@@ -110,6 +112,20 @@ class _SettingsList extends StatelessWidget {
         SettingsSection(
           title: l10n.settingsPlayback,
           children: [
+            // Supported or not is decided at start-up: a row that comes and
+            // goes would leave its divider behind.
+            if (context.read<EqualizerCubit?>() case final equalizer?
+                when equalizer.state.supported)
+              BlocBuilder<EqualizerCubit, EqualizerState>(
+                bloc: equalizer,
+                builder: (context, eq) => SettingsTile.navigation(
+                  icon: AppIcons.equalizer,
+                  iconColor: const Color(0xFF6366F1),
+                  title: l10n.equalizerTitle,
+                  value: eqSummary(l10n, eq),
+                  onTap: () => showEqualizerSheet(context),
+                ),
+              ),
             SettingsTile.switchTile(
               icon: AppIcons.volumeLow,
               iconColor: const Color(0xFF8B5CF6),
@@ -430,6 +446,7 @@ class _SettingsList extends StatelessWidget {
     final backup = context.read<BackupCubit>();
     final settings = context.read<SettingsCubit>();
     final likes = context.read<LikesCubit>();
+    final equalizer = context.read<EqualizerCubit?>();
 
     final picked = await FilePicker.pickFiles();
     final path = picked?.files.singleOrNull?.path;
@@ -441,6 +458,9 @@ class _SettingsList extends StatelessWidget {
     final report = result.fold((_) => null, (report) => report);
     if (report != null) {
       await settings.restore(report.settings);
+      if (report.equalizer case final eq?) {
+        equalizer?.restore(eq.settings, eq.profiles);
+      }
       unawaited(likes.loadAllLikes());
     }
     if (!context.mounted) return;
@@ -524,6 +544,8 @@ class _SettingsList extends StatelessWidget {
     );
     if (!confirmed || !context.mounted) return;
     final updates = context.read<UpdateCubit>();
+    // Off and flat; the saved profiles stay, as playlists do.
+    context.read<EqualizerCubit?>()?.resetAll();
     await context.read<SettingsCubit>().resetToDefaults();
     updates.clear();
   }

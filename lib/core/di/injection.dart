@@ -22,6 +22,11 @@ import 'package:troona/features/backup/domain/repositories/backup_repository.dar
 import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
+import 'package:troona/features/equalizer/data/adapters/equalizer_probe.dart';
+import 'package:troona/features/equalizer/data/repositories/prefs_equalizer_repository.dart';
+import 'package:troona/features/equalizer/domain/ports/equalizer_port.dart';
+import 'package:troona/features/equalizer/domain/repositories/equalizer_repository.dart';
+import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
 import 'package:troona/features/history/data/repositories/play_history_repository_impl.dart';
 import 'package:troona/features/history/data/sources/isar_play_history_data_source.dart';
 import 'package:troona/features/history/domain/repositories/play_history_repository.dart';
@@ -218,12 +223,15 @@ Future<void> configureDependencies() async {
   );
   // The handler is built before the player it resumes: it waits for it.
   final lastSession = Completer<ResumableSession>();
-  final audioPort = await AudioServiceInitializer.init(
+  final (audio: audioPort, :equalizer) = await AudioServiceInitializer.init(
     initialSettings,
     likeButton: likeButton,
     lastSession: lastSession.future,
+    probe: EqualizerProbe(sharedPrefs),
   );
-  getIt.registerSingleton<AudioServicePort>(audioPort);
+  getIt
+    ..registerSingleton<AudioServicePort>(audioPort)
+    ..registerSingleton<EqualizerPort>(equalizer);
 
   // Configure the OS audio session (focus, becoming noisy) before any track
   // loads to avoid focus races.
@@ -284,6 +292,7 @@ Future<void> configureDependencies() async {
       settings: getIt(),
       replayLog: getIt(),
       exportDir: Directory('${cacheBase.path}/troona_backup'),
+      equalizer: PrefsEqualizerRepository(sharedPrefs),
     ),
   );
   getIt.registerLazySingleton<SearchRepository>(
@@ -423,6 +432,16 @@ Future<void> configureDependencies() async {
 
   // Singleton: the timer keeps running when Now Playing closes.
   getIt.registerSingleton<SleepTimerCubit>(SleepTimerCubit(port: getIt()));
+
+  // Singleton, started here: the equalizer applies from the first song,
+  // and Now Playing and Settings show the same one.
+  getIt
+    ..registerSingleton<EqualizerRepository>(
+      PrefsEqualizerRepository(sharedPrefs),
+    )
+    ..registerSingleton<EqualizerCubit>(
+      EqualizerCubit(port: getIt(), repo: getIt())..start(),
+    );
 
   // Singleton: the shell's bar shows the actions of the songs picked in a
   // page below it.

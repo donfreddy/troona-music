@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:troona/features/library/domain/entities/smart_rules.dart';
+import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// A song as a backup describes it: enough to find it again on another
@@ -126,6 +127,10 @@ final class Backup extends Equatable {
   final int? replayMonth;
   final AppSettings settings;
 
+  /// Absent from backups made before the equalizer, or when it could not be
+  /// read: the rest restores without it.
+  final EqualizerSnapshot? equalizer;
+
   const Backup({
     required this.createdAt,
     required this.tracks,
@@ -137,7 +142,22 @@ final class Backup extends Equatable {
     this.hours = const [],
     required this.replayMonth,
     required this.settings,
+    this.equalizer,
   });
+
+  Backup withEqualizer(EqualizerSnapshot? equalizer) => Backup(
+    createdAt: createdAt,
+    tracks: tracks,
+    playlists: playlists,
+    plays: plays,
+    days: days,
+    trackDays: trackDays,
+    firstPlays: firstPlays,
+    hours: hours,
+    replayMonth: replayMonth,
+    settings: settings,
+    equalizer: equalizer,
+  );
 
   @override
   List<Object?> get props => [
@@ -151,5 +171,6 @@ final class Backup extends Equatable {
     hours,
     replayMonth,
     settings,
+    equalizer,
   ];
 }

@@ -70,6 +70,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Audio focus handling: ducks or pauses on notifications and calls, pauses instantly on headphone unplug, resumes after a call
 - Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
 - Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
+- Equalizer (Android): the phone's own bands drawn as one curve you shape with a finger, nine presets, your own named profiles, Volume +, a hold-to-compare button and an anti-clip trim; it survives backups
 - Shuffle (Fisher–Yates) and repeat (off / one / all)
 - Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
 - Likes, persisted across sessions as a real playlist
@@ -110,14 +111,14 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`
 
-> **On the equalizer, lyrics and cast:** early builds shipped demo versions of all three with no real DSP, lyrics backend or cast protocol behind them. They were removed deliberately ahead of v1 rather than kept half-working. A real implementation of any of them is a post-v1 discussion, not a promise.
+> **On lyrics and cast:** early builds shipped demo versions of both, with no lyrics backend or cast protocol behind them, and a demo equalizer with no DSP. They were removed deliberately ahead of v1 rather than kept half-working. The equalizer came back as a real one, on Android's audio effects; lyrics and cast remain a post-v1 discussion, not a promise.
 
 ## Roadmap
 
 - [ ] Google Play release
 - [ ] iOS release (the project has an iOS target, but no iOS build has been released)
 - [ ] Localization beyond English and French
-- [ ] Revisit a real equalizer and synced lyrics, scoped properly this time
+- [ ] Revisit synced lyrics, scoped properly this time
 
 Tracked in [Issues](https://github.com/donfreddy/troona-music/issues); released changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
