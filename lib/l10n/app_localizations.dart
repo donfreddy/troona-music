@@ -1256,12 +1256,6 @@ abstract class AppLocalizations {
   /// **'New playlist'**
   String get playlistNew;
 
-  /// Name a new playlist starts with, selected so typing replaces it.
-  ///
-  /// In en, this message translates to:
-  /// **'My playlist #{number}'**
-  String playlistDefaultName(int number);
-
   /// No description provided for @playlistEdit.
   ///
   /// In en, this message translates to:
@@ -3206,6 +3200,204 @@ abstract class AppLocalizations {
   /// **'deselect'**
   String get selectionHintUnpick;
 
+  /// No description provided for @equalizerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Equalizer'**
+  String get equalizerTitle;
+
+  /// No description provided for @equalizerOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get equalizerOff;
+
+  /// No description provided for @equalizerTurnOnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn the equalizer on to tune it.'**
+  String get equalizerTurnOnHint;
+
+  /// No description provided for @equalizerNoBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a song to tune the equalizer: your phone tells its bands once one is loaded.'**
+  String get equalizerNoBands;
+
+  /// No description provided for @equalizerBandCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 band on this phone.} other{{count} bands on this phone.}}'**
+  String equalizerBandCount(int count);
+
+  /// No description provided for @equalizerOtherEffects.
+  ///
+  /// In en, this message translates to:
+  /// **'A system equalizer, such as Dolby, may change the sound too.'**
+  String get equalizerOtherEffects;
+
+  /// No description provided for @equalizerPresetFlat.
+  ///
+  /// In en, this message translates to:
+  /// **'Flat'**
+  String get equalizerPresetFlat;
+
+  /// No description provided for @equalizerPresetBassBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Bass boost'**
+  String get equalizerPresetBassBoost;
+
+  /// No description provided for @equalizerPresetAcoustic.
+  ///
+  /// In en, this message translates to:
+  /// **'Acoustic'**
+  String get equalizerPresetAcoustic;
+
+  /// No description provided for @equalizerPresetElectronic.
+  ///
+  /// In en, this message translates to:
+  /// **'Electronic'**
+  String get equalizerPresetElectronic;
+
+  /// No description provided for @equalizerPresetVocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Vocal'**
+  String get equalizerPresetVocal;
+
+  /// No description provided for @equalizerPresetRock.
+  ///
+  /// In en, this message translates to:
+  /// **'Rock'**
+  String get equalizerPresetRock;
+
+  /// No description provided for @equalizerPresetHipHop.
+  ///
+  /// In en, this message translates to:
+  /// **'Hip-hop'**
+  String get equalizerPresetHipHop;
+
+  /// No description provided for @equalizerPresetJazz.
+  ///
+  /// In en, this message translates to:
+  /// **'Jazz'**
+  String get equalizerPresetJazz;
+
+  /// No description provided for @equalizerPresetTrebleBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Treble boost'**
+  String get equalizerPresetTrebleBoost;
+
+  /// No description provided for @equalizerCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get equalizerCustom;
+
+  /// No description provided for @equalizerSaveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get equalizerSaveProfile;
+
+  /// No description provided for @equalizerSaveProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this curve'**
+  String get equalizerSaveProfileTitle;
+
+  /// No description provided for @equalizerProfileName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get equalizerProfileName;
+
+  /// No description provided for @equalizerProfileRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get equalizerProfileRename;
+
+  /// No description provided for @equalizerProfileUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace with the current curve'**
+  String get equalizerProfileUpdate;
+
+  /// No description provided for @equalizerProfileDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String equalizerProfileDeleteTitle(String name);
+
+  /// No description provided for @equalizerProfileDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The curve stays as it is; only its name goes.'**
+  String get equalizerProfileDeleteBody;
+
+  /// No description provided for @equalizerCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to hear without the equalizer'**
+  String get equalizerCompare;
+
+  /// No description provided for @equalizerComparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the equalizer'**
+  String get equalizerComparing;
+
+  /// The loudness boost slider of the equalizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume +'**
+  String get equalizerBoost;
+
+  /// No description provided for @equalizerAntiClip.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid clipping'**
+  String get equalizerAntiClip;
+
+  /// No description provided for @equalizerAntiClipSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowers the level by as much as the bands boost.'**
+  String get equalizerAntiClipSubtitle;
+
+  /// No description provided for @equalizerReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the curve'**
+  String get equalizerReset;
+
+  /// A gain, signed: +4 dB, -2 dB, 0 dB.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} dB'**
+  String equalizerDecibels(String value);
+
+  /// Screen reader label of an equalizer band.
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency} hertz'**
+  String equalizerBandLabel(String frequency);
+
+  /// Screen reader value of an equalizer band, signed: +4 decibels.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} decibels'**
+  String equalizerBandValue(String value);
+
+  /// Name a new playlist starts with, selected so typing replaces it.
+  ///
+  /// In en, this message translates to:
+  /// **'My playlist #{number}'**
+  String playlistDefaultName(int number);
+
   /// No description provided for @playlistsCreatePlaylist.
   ///
   /// In en, this message translates to:
@@ -3649,197 +3841,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Random'**
   String get smartSortRandom;
-  /// No description provided for @equalizerTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Equalizer'**
-  String get equalizerTitle;
-
-  /// No description provided for @equalizerOff.
-  ///
-  /// In en, this message translates to:
-  /// **'Off'**
-  String get equalizerOff;
-
-  /// No description provided for @equalizerTurnOnHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Turn the equalizer on to tune it.'**
-  String get equalizerTurnOnHint;
-
-  /// No description provided for @equalizerNoBands.
-  ///
-  /// In en, this message translates to:
-  /// **'Play a song to tune the equalizer: your phone tells its bands once one is loaded.'**
-  String get equalizerNoBands;
-
-  /// No description provided for @equalizerBandCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 band on this phone.} other{{count} bands on this phone.}}'**
-  String equalizerBandCount(int count);
-
-  /// No description provided for @equalizerOtherEffects.
-  ///
-  /// In en, this message translates to:
-  /// **'A system equalizer, such as Dolby, may change the sound too.'**
-  String get equalizerOtherEffects;
-
-  /// No description provided for @equalizerPresetFlat.
-  ///
-  /// In en, this message translates to:
-  /// **'Flat'**
-  String get equalizerPresetFlat;
-
-  /// No description provided for @equalizerPresetBassBoost.
-  ///
-  /// In en, this message translates to:
-  /// **'Bass boost'**
-  String get equalizerPresetBassBoost;
-
-  /// No description provided for @equalizerPresetAcoustic.
-  ///
-  /// In en, this message translates to:
-  /// **'Acoustic'**
-  String get equalizerPresetAcoustic;
-
-  /// No description provided for @equalizerPresetElectronic.
-  ///
-  /// In en, this message translates to:
-  /// **'Electronic'**
-  String get equalizerPresetElectronic;
-
-  /// No description provided for @equalizerPresetVocal.
-  ///
-  /// In en, this message translates to:
-  /// **'Vocal'**
-  String get equalizerPresetVocal;
-
-  /// No description provided for @equalizerPresetRock.
-  ///
-  /// In en, this message translates to:
-  /// **'Rock'**
-  String get equalizerPresetRock;
-
-  /// No description provided for @equalizerPresetHipHop.
-  ///
-  /// In en, this message translates to:
-  /// **'Hip-hop'**
-  String get equalizerPresetHipHop;
-
-  /// No description provided for @equalizerPresetJazz.
-  ///
-  /// In en, this message translates to:
-  /// **'Jazz'**
-  String get equalizerPresetJazz;
-
-  /// No description provided for @equalizerPresetTrebleBoost.
-  ///
-  /// In en, this message translates to:
-  /// **'Treble boost'**
-  String get equalizerPresetTrebleBoost;
-
-  /// No description provided for @equalizerCustom.
-  ///
-  /// In en, this message translates to:
-  /// **'Custom'**
-  String get equalizerCustom;
-
-  /// No description provided for @equalizerSaveProfile.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get equalizerSaveProfile;
-
-  /// No description provided for @equalizerSaveProfileTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Save this curve'**
-  String get equalizerSaveProfileTitle;
-
-  /// No description provided for @equalizerProfileName.
-  ///
-  /// In en, this message translates to:
-  /// **'Name'**
-  String get equalizerProfileName;
-
-  /// No description provided for @equalizerProfileRename.
-  ///
-  /// In en, this message translates to:
-  /// **'Rename'**
-  String get equalizerProfileRename;
-
-  /// No description provided for @equalizerProfileUpdate.
-  ///
-  /// In en, this message translates to:
-  /// **'Replace with the current curve'**
-  String get equalizerProfileUpdate;
-
-  /// No description provided for @equalizerProfileDeleteTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete \"{name}\"?'**
-  String equalizerProfileDeleteTitle(String name);
-
-  /// No description provided for @equalizerProfileDeleteBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The curve stays as it is; only its name goes.'**
-  String get equalizerProfileDeleteBody;
-
-  /// No description provided for @equalizerCompare.
-  ///
-  /// In en, this message translates to:
-  /// **'Hold to hear without the equalizer'**
-  String get equalizerCompare;
-
-  /// No description provided for @equalizerComparing.
-  ///
-  /// In en, this message translates to:
-  /// **'Without the equalizer'**
-  String get equalizerComparing;
-
-  /// The loudness boost slider of the equalizer.
-  ///
-  /// In en, this message translates to:
-  /// **'Volume +'**
-  String get equalizerBoost;
-
-  /// No description provided for @equalizerAntiClip.
-  ///
-  /// In en, this message translates to:
-  /// **'Avoid clipping'**
-  String get equalizerAntiClip;
-
-  /// No description provided for @equalizerAntiClipSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Lowers the level by as much as the bands boost.'**
-  String get equalizerAntiClipSubtitle;
-
-  /// No description provided for @equalizerReset.
-  ///
-  /// In en, this message translates to:
-  /// **'Reset the curve'**
-  String get equalizerReset;
-
-  /// A gain, signed: +4 dB, -2 dB, 0 dB.
-  ///
-  /// In en, this message translates to:
-  /// **'{value} dB'**
-  String equalizerDecibels(String value);
-
-  /// Screen reader label of an equalizer band.
-  ///
-  /// In en, this message translates to:
-  /// **'{frequency} hertz'**
-  String equalizerBandLabel(String frequency);
-
-  /// Screen reader value of an equalizer band, signed: +4 decibels.
-  ///
-  /// In en, this message translates to:
-  /// **'{value} decibels'**
-  String equalizerBandValue(String value);
 }
 
 class _AppLocalizationsDelegate

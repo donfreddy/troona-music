@@ -89,6 +89,8 @@ void main() {
     final read = BackupCodec.decode(_bytes(json));
     expect(read.playlists[2].rules, SmartRulesJson.unreadable);
     expect(read.plays, hasLength(1));
+  });
+
   group('the equalizer', () {
     final withEq = _backup.withEqualizer(_equalizer);
 

@@ -369,15 +369,6 @@
   "playlistsEmptyTitle": "Make your first playlist",
   "playlistsEmptyBody": "Group songs for a mood, a moment or a road trip.",
   "playlistNew": "New playlist",
-  "playlistDefaultName": "My playlist #{number}",
-  "@playlistDefaultName": {
-    "description": "Name a new playlist starts with, selected so typing replaces it.",
-    "placeholders": {
-      "number": {
-        "type": "int"
-      }
-    }
-  },
   "playlistEdit": "Edit playlist",
   "playlistNameHint": "Playlist name",
   "playlistAddCover": "Add a cover",
@@ -1001,6 +992,88 @@
   "@selectionHintUnpick": {
     "description": "Screen reader hint for a tap on a picked song row while picking songs: it lets the song go. Read after 'double tap to'."
   },
+  "equalizerTitle": "Equalizer",
+  "equalizerOff": "Off",
+  "equalizerTurnOnHint": "Turn the equalizer on to tune it.",
+  "equalizerNoBands": "Play a song to tune the equalizer: your phone tells its bands once one is loaded.",
+  "equalizerBandCount": "{count, plural, =1{1 band on this phone.} other{{count} bands on this phone.}}",
+  "@equalizerBandCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equalizerOtherEffects": "A system equalizer, such as Dolby, may change the sound too.",
+  "equalizerPresetFlat": "Flat",
+  "equalizerPresetBassBoost": "Bass boost",
+  "equalizerPresetAcoustic": "Acoustic",
+  "equalizerPresetElectronic": "Electronic",
+  "equalizerPresetVocal": "Vocal",
+  "equalizerPresetRock": "Rock",
+  "equalizerPresetHipHop": "Hip-hop",
+  "equalizerPresetJazz": "Jazz",
+  "equalizerPresetTrebleBoost": "Treble boost",
+  "equalizerCustom": "Custom",
+  "equalizerSaveProfile": "Save",
+  "equalizerSaveProfileTitle": "Save this curve",
+  "equalizerProfileName": "Name",
+  "equalizerProfileRename": "Rename",
+  "equalizerProfileUpdate": "Replace with the current curve",
+  "equalizerProfileDeleteTitle": "Delete \"{name}\"?",
+  "@equalizerProfileDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equalizerProfileDeleteBody": "The curve stays as it is; only its name goes.",
+  "equalizerCompare": "Hold to hear without the equalizer",
+  "equalizerComparing": "Without the equalizer",
+  "equalizerBoost": "Volume +",
+  "@equalizerBoost": {
+    "description": "The loudness boost slider of the equalizer."
+  },
+  "equalizerAntiClip": "Avoid clipping",
+  "equalizerAntiClipSubtitle": "Lowers the level by as much as the bands boost.",
+  "equalizerReset": "Reset the curve",
+  "equalizerDecibels": "{value} dB",
+  "@equalizerDecibels": {
+    "description": "A gain, signed: +4 dB, -2 dB, 0 dB.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "equalizerBandLabel": "{frequency} hertz",
+  "@equalizerBandLabel": {
+    "description": "Screen reader label of an equalizer band.",
+    "placeholders": {
+      "frequency": {
+        "type": "String"
+      }
+    }
+  },
+  "equalizerBandValue": "{value} decibels",
+  "@equalizerBandValue": {
+    "description": "Screen reader value of an equalizer band, signed: +4 decibels.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistDefaultName": "My playlist #{number}",
+  "@playlistDefaultName": {
+    "description": "Name a new playlist starts with, selected so typing replaces it.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "playlistsCreatePlaylist": "Playlist",
   "playlistsCreateSmart": "Smart playlist",
   "smartPlaylistKind": "Smart playlist",
@@ -1031,12 +1104,6 @@
   "smartNoLimit": "No limit",
   "smartLimitSongs": "{count, plural, =1{1 song} other{{count} songs}}",
   "@smartLimitSongs": {
-  "equalizerTitle": "Equalizer",
-  "equalizerOff": "Off",
-  "equalizerTurnOnHint": "Turn the equalizer on to tune it.",
-  "equalizerNoBands": "Play a song to tune the equalizer: your phone tells its bands once one is loaded.",
-  "equalizerBandCount": "{count, plural, =1{1 band on this phone.} other{{count} bands on this phone.}}",
-  "@equalizerBandCount": {
     "placeholders": {
       "count": {
         "type": "int"
@@ -1056,24 +1123,6 @@
   "smartSaveAsPlaylist": "Save as a playlist",
   "smartSavedAsPlaylist": "Saved as {name}",
   "@smartSavedAsPlaylist": {
-  "equalizerOtherEffects": "A system equalizer, such as Dolby, may change the sound too.",
-  "equalizerPresetFlat": "Flat",
-  "equalizerPresetBassBoost": "Bass boost",
-  "equalizerPresetAcoustic": "Acoustic",
-  "equalizerPresetElectronic": "Electronic",
-  "equalizerPresetVocal": "Vocal",
-  "equalizerPresetRock": "Rock",
-  "equalizerPresetHipHop": "Hip-hop",
-  "equalizerPresetJazz": "Jazz",
-  "equalizerPresetTrebleBoost": "Treble boost",
-  "equalizerCustom": "Custom",
-  "equalizerSaveProfile": "Save",
-  "equalizerSaveProfileTitle": "Save this curve",
-  "equalizerProfileName": "Name",
-  "equalizerProfileRename": "Rename",
-  "equalizerProfileUpdate": "Replace with the current curve",
-  "equalizerProfileDeleteTitle": "Delete \"{name}\"?",
-  "@equalizerProfileDeleteTitle": {
     "placeholders": {
       "name": {
         "type": "String"
@@ -1144,21 +1193,6 @@
         "type": "String"
       },
       "text": {
-  "equalizerProfileDeleteBody": "The curve stays as it is; only its name goes.",
-  "equalizerCompare": "Hold to hear without the equalizer",
-  "equalizerComparing": "Without the equalizer",
-  "equalizerBoost": "Volume +",
-  "@equalizerBoost": {
-    "description": "The loudness boost slider of the equalizer."
-  },
-  "equalizerAntiClip": "Avoid clipping",
-  "equalizerAntiClipSubtitle": "Lowers the level by as much as the bands boost.",
-  "equalizerReset": "Reset the curve",
-  "equalizerDecibels": "{value} dB",
-  "@equalizerDecibels": {
-    "description": "A gain, signed: +4 dB, -2 dB, 0 dB.",
-    "placeholders": {
-      "value": {
         "type": "String"
       }
     }
@@ -1170,11 +1204,6 @@
         "type": "String"
       },
       "text": {
-  "equalizerBandLabel": "{frequency} hertz",
-  "@equalizerBandLabel": {
-    "description": "Screen reader label of an equalizer band.",
-    "placeholders": {
-      "frequency": {
         "type": "String"
       }
     }
@@ -1259,13 +1288,4 @@
   "smartSortLastPlayedRecent": "Played most recently",
   "smartSortLastPlayedOldest": "Played longest ago",
   "smartSortRandom": "Random"
-  "equalizerBandValue": "{value} decibels",
-  "@equalizerBandValue": {
-    "description": "Screen reader value of an equalizer band, signed: +4 decibels.",
-    "placeholders": {
-      "value": {
-        "type": "String"
-      }
-    }
-  }
 }
