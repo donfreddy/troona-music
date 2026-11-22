@@ -74,6 +74,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Shuffle (Fisher–Yates) and repeat (off / one / all)
 - Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
 - Likes, persisted across sessions as a real playlist
+- Open with (Android): an audio file touched in another app plays in Troona as the song of your library, found by its MediaStore id or its file name and size
 
 ### 📚 Library
 - 4-phase device scan: query, diff, persist, artwork extraction (4 concurrent workers, de-duplicated)

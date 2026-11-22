@@ -4,6 +4,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Open a song from another app: Troona is offered under Open with for an audio file (in a file manager, after a download), and plays it on Now Playing, the song of your library with its cover, plays and like. A file your library does not hold is not played yet: a message says so.
+
 ## [1.8.0] - 2026-11-22
 
 ### Added
