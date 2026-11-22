@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/core/theme/semantic/palette_ink.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
 /// Synced lyrics, the line being sung lit and held at [anchor] of the
 /// height.
@@ -310,16 +312,18 @@ class _LyricLineTile extends StatelessWidget {
     required this.onTap,
   });
 
-  static double alphaAt(int distance) => switch (distance) {
-    0 => 1,
-    1 || 2 => 0.45,
-    3 || 4 => 0.3,
-    _ => 0.2,
+  /// The line sung in white, the two around it at [PaletteInk.near], the
+  /// rest at [PaletteInk.far]: tints of the glow, faint as each may be.
+  static Color colorAt(int distance, PaletteInk ink) => switch (distance) {
+    0 => ink.primary,
+    1 || 2 => ink.near,
+    _ => ink.far,
   };
 
   @override
   Widget build(BuildContext context) {
     final still = MediaQuery.disableAnimationsOf(context);
+    final color = colorAt(distance, PaletteInkScope.of(context));
     final scale = distance == 0 || still ? 1.0 : 0.94;
     const duration = Duration(milliseconds: 300);
     return Semantics(
@@ -330,11 +334,11 @@ class _LyricLineTile extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 9),
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(end: alphaAt(distance)),
+          child: TweenAnimationBuilder<Color?>(
+            tween: ColorTween(end: color),
             duration: still ? Duration.zero : duration,
             curve: Curves.easeOutCubic,
-            builder: (context, alpha, child) => TweenAnimationBuilder<double>(
+            builder: (context, color, child) => TweenAnimationBuilder<double>(
               tween: Tween(end: scale),
               duration: duration,
               curve: Curves.easeOutCubic,
@@ -349,7 +353,7 @@ class _LyricLineTile extends StatelessWidget {
                     height: 1.25,
                     // Through the colour, never an Opacity: no layer per
                     // line.
-                    color: Colors.white.withValues(alpha: alpha),
+                    color: color,
                   ),
                 ),
               ),
@@ -381,6 +385,7 @@ class _InstrumentalDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ink = PaletteInkScope.of(context);
     return Semantics(
       label: context.l10n.lyricsInstrumental,
       child: Padding(
@@ -396,6 +401,8 @@ class _InstrumentalDots extends StatelessWidget {
                 span: span,
                 still: MediaQuery.disableAnimationsOf(context),
                 rtl: Directionality.of(context) == TextDirection.rtl,
+                unlit: ink.far,
+                lit: ink.primary,
               ),
             ),
           ),
@@ -411,6 +418,8 @@ class _DotsPainter extends CustomPainter {
   final (Duration, Duration) span;
   final bool still;
   final bool rtl;
+  final Color unlit;
+  final Color lit;
 
   _DotsPainter({
     required this.active,
@@ -418,12 +427,13 @@ class _DotsPainter extends CustomPainter {
     required this.span,
     required this.still,
     required this.rtl,
+    required this.unlit,
+    required this.lit,
   }) : super(repaint: active && !still ? position : null);
 
   static const double dot = 10;
   static const double gap = 8;
   static const double width = 3 * dot + 2 * gap;
-  static const double dim = 0.3;
 
   /// How lit each of the three dots is (0 to 1) at [progress] of the
   /// passage: one after the other, each over a third of it.
@@ -446,14 +456,13 @@ class _DotsPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final lit = fill(_progress);
+    final filled = fill(_progress);
     for (var i = 0; i < 3; i++) {
       final slot = rtl ? 2 - i : i;
       canvas.drawCircle(
         Offset(slot * (dot + gap) + dot / 2, size.height / 2),
         dot / 2,
-        Paint()
-          ..color = Colors.white.withValues(alpha: dim + (1 - dim) * lit[i]),
+        Paint()..color = Color.lerp(unlit, lit, filled[i])!,
       );
     }
   }
@@ -464,5 +473,7 @@ class _DotsPainter extends CustomPainter {
       old.span != span ||
       old.still != still ||
       old.rtl != rtl ||
+      old.unlit != unlit ||
+      old.lit != lit ||
       old.position != position;
 }

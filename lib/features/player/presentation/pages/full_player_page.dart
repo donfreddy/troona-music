@@ -40,6 +40,7 @@ import 'package:troona/features/library/presentation/widgets/track_actions/show_
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/app_icon_button.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 
 class FullPlayerPage extends StatefulWidget {
@@ -461,7 +462,21 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                           ).copyWith(textScaler: textScaler),
                           child: Column(
                             children: [
-                              const Expanded(child: LyricsView()),
+                              // Tinted by the glow behind, in step with it.
+                              Expanded(
+                                child:
+                                    BlocBuilder<
+                                      TrackPaletteCubit,
+                                      TrackPaletteState
+                                    >(
+                                      builder: (_, palette) => PaletteInkScope(
+                                        colorA: palette.backgroundColorA,
+                                        colorB: palette.backgroundColorB,
+                                        tone: DynamicBackgroundTone.immersive,
+                                        child: const LyricsView(),
+                                      ),
+                                    ),
+                              ),
                               MediaQuery.withClampedTextScaling(
                                 maxScaleFactor: AppLayout.maxTextScale,
                                 child: const PlayerProgressBar(),

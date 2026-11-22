@@ -35,6 +35,8 @@ import 'package:troona/features/player/presentation/widgets/artwork_carousel.dar
 import 'package:troona/features/player/presentation/widgets/now_playing_hero.dart';
 import 'package:troona/features/player/presentation/widgets/player_progress_bar.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
 import '../../helpers/fake_player.dart';
 
@@ -293,6 +295,27 @@ void main() {
     await settle(tester);
     expect(tester.getTopLeft(find.byType(PlayerControls)).dy, before);
     expect(bar().top, lessThan(screen.height));
+  });
+
+  testWidgets('the lyrics take their ink from the glow behind them: '
+      'the same palette, the same tone, so they move in step', (tester) async {
+    await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    final background = tester.widget<DynamicBackground>(
+      find.byType(DynamicBackground),
+    );
+    final scope = tester.widget<PaletteInkScope>(find.byType(PaletteInkScope));
+    expect(scope.colorA, background.colorA);
+    expect(scope.colorB, background.colorB);
+    expect(scope.tone, background.tone);
+    expect(
+      find.descendant(
+        of: find.byType(PaletteInkScope),
+        matching: find.text('First line'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a tap on a line seeks there', (tester) async {

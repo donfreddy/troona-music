@@ -13,6 +13,7 @@ import 'package:troona/features/lyrics/presentation/widgets/lyrics_actions.dart'
 import 'package:troona/features/lyrics/presentation/widgets/synced_lyrics_view.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/shared/widgets/app_button.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
 /// The lyrics of the song playing, in place of Now Playing's stage: synced,
 /// plain, none, or on their way. Reads [LyricsCubit] and [PlayerBloc]. Their
@@ -59,33 +60,36 @@ class _PlainLyricsView extends StatelessWidget {
   const _PlainLyricsView(this.lyrics);
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.fromLTRB(
-      AppSpacing.xl2,
-      AppSpacing.md,
-      AppSpacing.xl2,
-      AppSpacing.xl3,
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          context.l10n.lyricsNotSynced,
-          style: TextStyle(fontSize: 13, color: context.colors.labelSecondary),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          lyrics.text,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            height: 1.4,
-            color: Colors.white.withValues(alpha: 0.85),
+  Widget build(BuildContext context) {
+    final ink = PaletteInkScope.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xl2,
+        AppSpacing.md,
+        AppSpacing.xl2,
+        AppSpacing.xl3,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.l10n.lyricsNotSynced,
+            style: TextStyle(fontSize: 13, color: ink.secondary),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            lyrics.text,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+              color: ink.body,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LyricsEmpty extends StatelessWidget {
@@ -96,6 +100,7 @@ class _LyricsEmpty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final ink = PaletteInkScope.of(context);
     final cubit = context.read<LyricsCubit>();
     final note = state.unreachable
         ? l10n.lyricsUnreachable
@@ -109,19 +114,15 @@ class _LyricsEmpty extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              AppIcons.lyrics,
-              size: 36,
-              color: context.colors.labelSecondary,
-            ),
+            Icon(AppIcons.lyrics, size: 36, color: ink.secondary),
             const SizedBox(height: AppSpacing.md),
             Text(
               l10n.lyricsNone,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: ink.primary,
               ),
             ),
             if (note != null) ...[
@@ -129,10 +130,7 @@ class _LyricsEmpty extends StatelessWidget {
               Text(
                 note,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: context.colors.labelSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: ink.secondary),
               ),
             ],
             const SizedBox(height: AppSpacing.lg),

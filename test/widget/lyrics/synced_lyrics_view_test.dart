@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
+import 'package:troona/core/theme/semantic/palette_ink.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/lyrics/presentation/widgets/synced_lyrics_view.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/dynamic_background.dart';
+import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
 import '../../helpers/roboto.dart';
 
@@ -19,12 +22,22 @@ final _lyrics = SyncedLyrics([
     ),
 ], source: LyricsSource.online);
 
+const _red = Color(0xFF7A1020);
+const _blue = Color(0xFF102A7A);
+const _edge = Color(0xFF301040);
+
+PaletteInk _inkOf(Color a) => PaletteInk.of(
+  DynamicBackground.fitForText(a),
+  DynamicBackground.fitForText(_edge),
+);
+
 void main() {
   setUpAll(loadRoboto);
 
   late ValueNotifier<int> active;
   late ValueNotifier<PlaybackProgress> position;
   late List<Duration> seeks;
+  late ValueNotifier<Color> glow;
 
   Future<void> pump(
     WidgetTester tester, {
@@ -51,6 +64,8 @@ void main() {
     );
     addTearDown(position.dispose);
     seeks = [];
+    glow = ValueNotifier(_red);
+    addTearDown(glow.dispose);
     await tester.pumpWidget(
       MaterialApp(
         theme: robotoTheme(AppTheme.dark),
@@ -64,15 +79,24 @@ void main() {
             disableAnimations: still,
           ),
           child: Scaffold(
-            body: SizedBox(
-              height: 400,
-              child: SyncedLyricsView(
-                lyrics: lyrics ?? _lyrics,
-                activeLine: active,
-                position: position,
-                seekTargetOf: (line) =>
-                    line.at - const Duration(milliseconds: 200),
-                onSeek: seeks.add,
+            body: ValueListenableBuilder<Color>(
+              valueListenable: glow,
+              builder: (_, color, child) => PaletteInkScope(
+                colorA: color,
+                colorB: _edge,
+                tone: DynamicBackgroundTone.immersive,
+                child: child!,
+              ),
+              child: SizedBox(
+                height: 400,
+                child: SyncedLyricsView(
+                  lyrics: lyrics ?? _lyrics,
+                  activeLine: active,
+                  position: position,
+                  seekTargetOf: (line) =>
+                      line.at - const Duration(milliseconds: 200),
+                  onSeek: seeks.add,
+                ),
               ),
             ),
           ),
@@ -154,8 +178,14 @@ void main() {
     expect(find.bySemanticsLabel('Instrumental'), findsOneWidget);
   });
 
-  /// How lit the three dots of the first passage with no singing are.
-  List<double> dots(WidgetTester tester) {
+  /// A dot [filled] of the way from unlit (far) to lit (the line sung).
+  int lit(double filled) {
+    final ink = _inkOf(_red);
+    return Color.lerp(ink.far, ink.primary, filled)!.toARGB32();
+  }
+
+  /// How the three dots of the first passage with no singing are painted.
+  List<int> dots(WidgetTester tester) {
     final painter = tester
         .widget<CustomPaint>(
           find
@@ -169,7 +199,8 @@ void main() {
     // The painter exposes nothing: read what it draws.
     final canvas = _DotsCanvas();
     painter.paint(canvas, const Size(46, 10));
-    return canvas.alphas;
+    // As drawn: 8 bits a channel.
+    return [for (final c in canvas.colors) c.toARGB32()];
   }
 
   testWidgets('the dots of an intro fill one after the other as it goes, '
@@ -179,7 +210,7 @@ void main() {
     ], source: LyricsSource.online);
     // The first line is sought 200 ms early in this test: 11.8 s of intro.
     await pump(tester, lyrics: intro);
-    expect(dots(tester), [0.3, 0.3, 0.3], reason: 'at the very start');
+    expect(dots(tester), [lit(0), lit(0), lit(0)], reason: 'at the very start');
 
     position.value = const PlaybackProgress(
       position: Duration(milliseconds: 5900),
@@ -188,9 +219,16 @@ void main() {
     );
     await tester.pump();
     final half = dots(tester);
-    expect(half[0], 1, reason: 'the first third is over');
-    expect(half[1], closeTo(0.65, 0.01), reason: 'half of the second');
-    expect(half[2], 0.3);
+    expect(half[0], lit(1), reason: 'the first third is over');
+    // Half way, within the rounding of one channel step.
+    for (var shift = 0; shift < 32; shift += 8) {
+      expect(
+        (half[1] >> shift) & 0xFF,
+        closeTo((lit(0.5) >> shift) & 0xFF, 1),
+        reason: 'half of the second',
+      );
+    }
+    expect(half[2], lit(0));
 
     position.value = const PlaybackProgress(
       position: Duration(milliseconds: 11800),
@@ -198,7 +236,7 @@ void main() {
       duration: Duration(minutes: 3),
     );
     await tester.pump();
-    expect(dots(tester), [1.0, 1.0, 1.0]);
+    expect(dots(tester), [lit(1), lit(1), lit(1)]);
   });
 
   testWidgets('dots not being played are dim, whatever the position', (
@@ -207,7 +245,7 @@ void main() {
     await pump(tester, at: const Duration(seconds: 100));
     active.value = 0;
     await tester.pumpAndSettle();
-    expect(dots(tester), [0.3, 0.3, 0.3]);
+    expect(dots(tester), [lit(0), lit(0), lit(0)]);
   });
 
   testWidgets('with less motion the dots are simply lit while played', (
@@ -220,7 +258,7 @@ void main() {
         LyricLine(Duration(seconds: 12), 'Late start'),
       ], source: LyricsSource.online),
     );
-    expect(dots(tester), [1.0, 1.0, 1.0]);
+    expect(dots(tester), [lit(1), lit(1), lit(1)]);
   });
 
   /// How much of the lines shows, as painted in this frame.
@@ -303,15 +341,46 @@ void main() {
       ),
     );
   });
+
+  Color? colorOf(WidgetTester tester, String text) =>
+      tester.widget<Text>(find.text(text)).style?.color;
+
+  testWidgets('lines take tints of the glow: the line sung white, the two '
+      'around it near, the rest far', (tester) async {
+    await pump(tester);
+    active.value = 5;
+    await tester.pumpAndSettle();
+    final ink = _inkOf(_red);
+    expect(colorOf(tester, 'Line 5'), ink.primary);
+    expect(colorOf(tester, 'Line 4'), ink.near);
+    expect(colorOf(tester, 'Line 6'), ink.near);
+    expect(colorOf(tester, 'Line 3'), ink.near);
+    expect(colorOf(tester, 'Line 2'), ink.far);
+    expect(colorOf(tester, 'Line 9'), ink.far);
+    // A red glow gives a red tint, not a grey.
+    final near = colorOf(tester, 'Line 6')!;
+    expect(near.r, greaterThan(near.b));
+  });
+
+  testWidgets('a new song: the lines follow its glow', (tester) async {
+    await pump(tester);
+    active.value = 5;
+    await tester.pumpAndSettle();
+    glow.value = _blue;
+    await tester.pumpAndSettle();
+    final near = colorOf(tester, 'Line 6')!;
+    expect(near, _inkOf(_blue).near);
+    expect(near.b, greaterThan(near.r));
+  });
 }
 
-/// Records the alpha of each circle drawn.
+/// Records the colour of each circle drawn.
 class _DotsCanvas implements Canvas {
-  final alphas = <double>[];
+  final colors = <Color>[];
 
   @override
   void drawCircle(Offset c, double radius, Paint paint) =>
-      alphas.add((paint.color.a * 100).round() / 100);
+      colors.add(paint.color);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
