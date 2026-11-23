@@ -7,6 +7,10 @@ abstract interface class BackupRepository {
   /// likes, history, settings, equalizer.
   Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts);
 
+  /// What [backup] holds, whatever its date: two backups of the same
+  /// data have the same fingerprint.
+  Future<String> fingerprint(Backup backup);
+
   /// Writes [backup] to a file to share, and returns its path.
   Future<Either<Failure, String>> exportToFile(Backup backup);
 

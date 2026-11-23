@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dartz/dartz.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/app_logger.dart';
+import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/data/backup_file_name.dart';
 import 'package:troona/features/backup/data/backup_files.dart';
 import 'package:troona/features/backup/data/isar_backup_data_source.dart';
@@ -74,6 +76,10 @@ final class BackupRepositoryImpl implements BackupRepository {
       return left(ErrorHandler.handle(e, st));
     }
   }
+
+  @override
+  Future<String> fingerprint(Backup backup) =>
+      Isolate.run(() => BackupCodec.fingerprint(backup));
 
   @override
   Future<Either<Failure, String>> exportToFile(Backup backup) async {

@@ -131,6 +131,34 @@ abstract final class BackupCodec {
     );
   }
 
+  /// What [backup] holds, as 16 hex digits: 64-bit FNV-1a over its
+  /// encoding with the date left out, so two backups of the same data
+  /// match. Not for security: it only spares writing the same backup twice.
+  static String fingerprint(Backup backup) {
+    final undated = Backup(
+      createdAt: DateTime.utc(2000),
+      parts: backup.parts,
+      tracks: backup.tracks,
+      playlists: backup.playlists,
+      plays: backup.plays,
+      days: backup.days,
+      trackDays: backup.trackDays,
+      firstPlays: backup.firstPlays,
+      hours: backup.hours,
+      replayMonth: backup.replayMonth,
+      settings: backup.settings,
+      equalizer: backup.equalizer,
+    );
+    // Dart ints wrap on overflow, which is the modulo FNV needs.
+    var hash = 0xcbf29ce484222325;
+    for (final byte in encode(undated)) {
+      hash = (hash ^ byte) * 0x100000001b3;
+    }
+    // In two halves: a 64-bit hash is often negative as a Dart int.
+    String half(int bits) => bits.toRadixString(16).padLeft(8, '0');
+    return half((hash >> 32) & 0xffffffff) + half(hash & 0xffffffff);
+  }
+
   /// [now] bounds the dates: a backup cannot hold days to come.
   static Backup decode(List<int> bytes, {DateTime? now}) {
     final today = ListeningDay.of(now ?? DateTime.now());

@@ -97,9 +97,8 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
   @override
   Future<Either<Failure, List<StoredBackup>>> list() => _inFolder((uri) async {
     final files = await _platform.list(uri);
-    final backups = [
-      for (final file in files) ?_storedOf(file),
-    ]..sort(_newestFirst);
+    final backups = [for (final file in files) ?_storedOf(file)]
+      ..sort(_newestFirst);
     // Summaries of files gone from the folder are forgotten.
     final summaries = _summaries();
     final names = {for (final b in backups) b.name};
@@ -246,9 +245,7 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
 
   /// Runs [work] on the chosen folder: [BackupFolderLostFailure] without
   /// one, or once it can no longer be reached.
-  Future<Either<Failure, T>> _inFolder<T>(
-    Future<T> Function(String uri) work,
-  ) {
+  Future<Either<Failure, T>> _inFolder<T>(Future<T> Function(String uri) work) {
     final uri = _uri;
     if (!_supported || uri == null) {
       return Future.value(left(const BackupFolderLostFailure()));
@@ -256,9 +253,7 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     return _guard(() => work(uri));
   }
 
-  static Future<Either<Failure, T>> _guard<T>(
-    Future<T> Function() work,
-  ) async {
+  static Future<Either<Failure, T>> _guard<T>(Future<T> Function() work) async {
     try {
       return right(await work());
     } on PlatformException catch (e) {

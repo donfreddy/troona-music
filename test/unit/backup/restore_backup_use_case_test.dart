@@ -67,6 +67,9 @@ final class _Backups implements BackupRepository {
       throw UnimplementedError();
 
   @override
+  Future<String> fingerprint(Backup backup) => throw UnimplementedError();
+
+  @override
   Future<void> clearExports() async {}
 }
 
