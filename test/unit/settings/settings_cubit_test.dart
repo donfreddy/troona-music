@@ -197,40 +197,4 @@ void main() {
     expect(settingsOf(cubit)?.minTrackSeconds, 30);
     await cubit.close();
   });
-
-  test('only a change of what scans leave out asks for a rescan', () {
-    const loading = SettingsState.loading();
-    const base = SettingsState.loaded(AppSettings());
-
-    expect(scanFilterChanged(loading, base), isFalse);
-    expect(
-      scanFilterChanged(
-        base,
-        const SettingsState.loaded(AppSettings(hapticFeedbackEnabled: false)),
-      ),
-      isFalse,
-    );
-    expect(
-      scanFilterChanged(
-        base,
-        const SettingsState.loaded(AppSettings(minTrackSeconds: 30)),
-      ),
-      isTrue,
-    );
-    expect(
-      scanFilterChanged(
-        base,
-        const SettingsState.loaded(AppSettings(excludedFolders: ['/a'])),
-      ),
-      isTrue,
-    );
-    // The same folders in another order are the same filter.
-    expect(
-      scanFilterChanged(
-        const SettingsState.loaded(AppSettings(excludedFolders: ['/a', '/b'])),
-        const SettingsState.loaded(AppSettings(excludedFolders: ['/b', '/a'])),
-      ),
-      isFalse,
-    );
-  });
 }

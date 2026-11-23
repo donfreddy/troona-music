@@ -1541,17 +1541,34 @@
   "settingsMinLength": "Shortest song",
   "settingsMinLengthSubtitle": "Shorter files stay out of your library.",
   "durationSecondsShort": "{seconds} s",
-  "@durationSecondsShort": {"placeholders": {"seconds": {"type": "int"}}},
+  "@durationSecondsShort": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "settingsFolders": "Folders",
   "settingsFoldersAll": "Every folder is in your library",
   "settingsFoldersExcluded": "{count, plural, =1{1 folder left out} other{{count} folders left out}}",
-  "@settingsFoldersExcluded": {"placeholders": {"count": {"type": "int"}}},
+  "@settingsFoldersExcluded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settingsFoldersIntro": "Songs in a folder turned off leave your library, with its subfolders. Turn it back on and they come back with their likes, plays and playlists.",
-  "settingsFoldersFooter": "One folder at least stays in your library. Changes apply when you leave this page.",
+  "settingsFoldersFooter": "At least one song stays in your library.",
   "settingsFoldersEmpty": "No folders yet: your library is empty.",
-  "settingsFolderExcluded": "Left out",
   "settingsFolderCoveredBy": "Left out with {folder}",
-  "@settingsFolderCoveredBy": {"placeholders": {"folder": {"type": "String"}}},
+  "@settingsFolderCoveredBy": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
   "settingsFolderInPhone": "Phone",
   "settingsFolderInSdCard": "SD card",
   "settingsFoldersSection": "Folders with music",
@@ -1566,5 +1583,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "settingsMinLengthTooLong": "No song in your library is that long: it would be empty."
 }

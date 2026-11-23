@@ -18,15 +18,6 @@ ScanFilter scanFilterOf(AppSettings s) => ScanFilter(
   excludedFolders: s.excludedFolders.toSet(),
 );
 
-/// Whether what scans leave out changed between two loaded states: the
-/// first load is not a change.
-bool scanFilterChanged(SettingsState previous, SettingsState current) =>
-    switch ((previous, current)) {
-      (SettingsLoaded(settings: final a), SettingsLoaded(settings: final b)) =>
-        scanFilterOf(a) != scanFilterOf(b),
-      _ => false,
-    };
-
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repo;
 

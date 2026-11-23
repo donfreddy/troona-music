@@ -2879,14 +2879,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsFoldersFooter =>
-      'Au moins un dossier reste dans votre bibliothèque. Les changements s\'appliquent quand vous quittez cette page.';
+      'Au moins un titre reste dans votre bibliothèque.';
 
   @override
   String get settingsFoldersEmpty =>
       'Aucun dossier pour l\'instant : votre bibliothèque est vide.';
-
-  @override
-  String get settingsFolderExcluded => 'Exclu';
 
   @override
   String settingsFolderCoveredBy(String folder) {
@@ -2926,4 +2923,8 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsMinLengthTooLong =>
+      'Aucun titre de votre bibliothèque n\'est aussi long : elle serait vide.';
 }

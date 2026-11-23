@@ -37,9 +37,14 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   final OnAudioQuery _query;
 
   /// The user's filter (minimum length, excluded folders), read at the
-  /// start of each scan. System sounds are excluded by the MediaStore flags
-  /// and the fixed rules below whatever it says.
+  /// start of each scan. It marks songs [TrackModel.excluded] rather than
+  /// dropping them, so their rows stay. System sounds are dropped by the
+  /// MediaStore flags and the fixed rules below whatever it says.
   final ScanFilter Function() _filter;
+
+  /// Files this short are never stored: the shortest length the user can
+  /// keep.
+  static const _floorMs = ScanFilter.defaultMinDurationMs;
   static const _allowedExtensions = {
     'mp3',
     'm4a',
@@ -87,17 +92,17 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
 
     // Filter valid tracks safely item-by-item so a single malformed model
     // doesn't fail the whole scan.
-    final filter = _filter();
     final validTracks = <TrackModel>[];
     for (final song in songs) {
       try {
-        if (isValidTrack(song, filter)) {
+        if (isValidTrack(song)) {
           validTracks.add(TrackModel.fromSongModel(song));
         }
       } catch (_) {
         // Skip malformed track
       }
     }
+    markExcluded(validTracks, _filter());
 
     // Emit in chunks of 50 so the UI can update progressively on large
     // libraries without blocking the UI thread.
@@ -153,13 +158,12 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   ///
   /// Filters out:
   /// - Non-music items reported by MediaStore.
-  /// - What [filter] leaves out: songs too short, excluded folders.
-  /// - Empty files.
+  /// - Files under [_floorMs], and empty files.
   /// - System / messaging app audio directories.
   /// - Files with an empty title (likely corrupted).
   /// - Files with an empty path (no accessible storage location).
   @visibleForTesting
-  static bool isValidTrack(SongModel song, ScanFilter filter) {
+  static bool isValidTrack(SongModel song) {
     final path = song.data.trim();
     final title = song.title.trim();
     final lowerPath = path.toLowerCase();
@@ -175,9 +179,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
         song.isAudioBook == true) {
       return false;
     }
-    if (!filter.allows(path: path, durationMs: song.duration ?? 0)) {
-      return false;
-    }
+    if ((song.duration ?? 0) < _floorMs) return false;
     if (song.size <= 0) return false;
     if (!_allowedExtensions.contains(extension)) return false;
     if (lowerPath.contains(
@@ -189,5 +191,23 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     if (title.toLowerCase() == 'audio') return false;
 
     return true;
+  }
+
+  /// Marks the songs [filter] leaves out. A filter that would leave out
+  /// every song is not applied: a library emptied by a setting (a raised
+  /// length, the folders a restore brings) reads as songs lost.
+  @visibleForTesting
+  static void markExcluded(List<TrackModel> tracks, ScanFilter filter) {
+    final excluded = [
+      for (final t in tracks)
+        !filter.allows(path: t.path, durationMs: t.durationMs),
+    ];
+    final all = tracks.isNotEmpty && excluded.every((e) => e);
+    if (all) {
+      debugPrint('Scan filter leaves out every song: not applied');
+    }
+    for (final (i, t) in tracks.indexed) {
+      t.excluded = !all && excluded[i];
+    }
   }
 }

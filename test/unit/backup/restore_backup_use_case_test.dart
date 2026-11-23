@@ -7,7 +7,7 @@ import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.
 import 'package:troona/features/equalizer/domain/entities/equalizer_settings.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 import '../../helpers/fake_player.dart';
@@ -73,9 +73,9 @@ final class _Backups implements BackupRepository {
   Future<void> clearExports() async {}
 }
 
-final class _Library extends Fake implements LibraryRepository {
+final class _Library extends Fake implements StoredTrackRepository {
   @override
-  Future<Either<Failure, List<Track>>> getTracks() async =>
+  Future<Either<Failure, List<Track>>> getStoredTracks() async =>
       right([testTrack('a', durationMs: 200000)]);
 }
 

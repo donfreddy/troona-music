@@ -258,9 +258,13 @@ final appRouter = GoRouter(
                       AppRoute.settingsLibrary,
                       const LibrarySettingsPage(),
                     ),
-                    _settingsRoute(
-                      AppRoute.settingsFolders,
-                      const LibraryFoldersPage(),
+                    // Built on each visit: its repository is resolved
+                    // when the page opens, not when the router is made.
+                    GoRoute(
+                      path: 'folders',
+                      name: AppRoute.settingsFolders,
+                      builder: (_, _) =>
+                          _settingsPage(LibraryFoldersPage(stored: getIt())),
                     ),
                     _settingsRoute(
                       AppRoute.settingsOnline,

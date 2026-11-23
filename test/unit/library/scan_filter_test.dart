@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart' show SongModel;
+import 'package:troona/features/library/data/models/track_model.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/features/library/domain/entities/scan_filter.dart';
 import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
@@ -62,42 +63,55 @@ void main() {
   });
 
   group('scanner', () {
-    test('the user filter applies with the fixed rules', () {
-      const none = ScanFilter();
-      const filter = ScanFilter(
-        minDurationMs: 60000,
-        excludedFolders: {'/storage/emulated/0/WhatsApp/Audio'},
-      );
-      final song = _song('/storage/emulated/0/Music/a.mp3', duration: 45000);
-      final whatsApp = _song('/storage/emulated/0/WhatsApp/Audio/b.mp3');
-
-      expect(OnAudioQueryDataSource.isValidTrack(song, none), isTrue);
-      expect(OnAudioQueryDataSource.isValidTrack(song, filter), isFalse);
-      expect(OnAudioQueryDataSource.isValidTrack(whatsApp, none), isTrue);
-      expect(OnAudioQueryDataSource.isValidTrack(whatsApp, filter), isFalse);
-      // The default keeps what the scanner kept before: 10 s and more.
+    test('fixed rules drop system sounds and files under 10 s', () {
       expect(
-        OnAudioQueryDataSource.isValidTrack(
-          _song('/m/c.mp3', duration: 9999),
-          none,
-        ),
+        OnAudioQueryDataSource.isValidTrack(_song('/m/c.mp3', duration: 9999)),
         isFalse,
       );
       expect(
-        OnAudioQueryDataSource.isValidTrack(
-          _song('/m/c.mp3', duration: 10000),
-          none,
-        ),
+        OnAudioQueryDataSource.isValidTrack(_song('/m/c.mp3', duration: 10000)),
         isTrue,
       );
-      // A ringtone stays out whatever the filter says.
       expect(
         OnAudioQueryDataSource.isValidTrack(
           _song('/storage/emulated/0/Ringtones/r.mp3'),
-          none,
         ),
         isFalse,
       );
+    });
+
+    TrackModel row(String path, int durationMs) =>
+        TrackModel.fromSongModel(_song(path, duration: durationMs));
+
+    test('the user filter marks songs, it never drops them', () {
+      final tracks = [
+        row('/storage/emulated/0/Music/a.mp3', 45000),
+        row('/storage/emulated/0/Music/b.mp3', 200000),
+        row('/storage/emulated/0/WhatsApp/Audio/c.mp3', 200000),
+      ];
+
+      OnAudioQueryDataSource.markExcluded(
+        tracks,
+        const ScanFilter(
+          minDurationMs: 60000,
+          excludedFolders: {'/storage/emulated/0/WhatsApp/Audio'},
+        ),
+      );
+
+      expect([for (final t in tracks) t.excluded], [true, false, true]);
+    });
+
+    test('a filter leaving out every song is not applied', () {
+      final tracks = [row('/m/a.mp3', 45000), row('/m/b.mp3', 50000)]
+        ..first.excluded = true;
+
+      OnAudioQueryDataSource.markExcluded(
+        tracks,
+        const ScanFilter(minDurationMs: 120000),
+      );
+
+      expect([for (final t in tracks) t.excluded], [false, false]);
+      OnAudioQueryDataSource.markExcluded(const [], const ScanFilter());
     });
   });
 

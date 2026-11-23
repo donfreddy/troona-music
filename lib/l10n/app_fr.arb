@@ -766,9 +766,8 @@
   "settingsFoldersAll": "Tous les dossiers sont dans votre bibliothèque",
   "settingsFoldersExcluded": "{count, plural, =1{1 dossier exclu} other{{count} dossiers exclus}}",
   "settingsFoldersIntro": "Les titres d'un dossier désactivé quittent votre bibliothèque, sous-dossiers compris. Réactivez-le et ils reviennent avec leurs j'aime, leurs écoutes et leurs playlists.",
-  "settingsFoldersFooter": "Au moins un dossier reste dans votre bibliothèque. Les changements s'appliquent quand vous quittez cette page.",
+  "settingsFoldersFooter": "Au moins un titre reste dans votre bibliothèque.",
   "settingsFoldersEmpty": "Aucun dossier pour l'instant : votre bibliothèque est vide.",
-  "settingsFolderExcluded": "Exclu",
   "settingsFolderCoveredBy": "Exclu avec {folder}",
   "settingsFolderInPhone": "Téléphone",
   "settingsFolderInSdCard": "Carte SD",
@@ -777,5 +776,6 @@
   "licensesOwnTerms": "Conditions propres",
   "licensesNotFound": "Cette licence n'est plus listée.",
   "settingsLicensesSubtitle": "Les logiciels sur lesquels Troona repose",
-  "licensesCount": "{count, plural, =1{1 licence} other{{count} licences}}"
+  "licensesCount": "{count, plural, =1{1 licence} other{{count} licences}}",
+  "settingsMinLengthTooLong": "Aucun titre de votre bibliothèque n'est aussi long : elle serait vide."
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,7 @@ import 'package:troona/features/settings/presentation/widgets/settings_hue.dart'
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
 
 LibraryLoaded? _loaded(LibraryState state) => switch (state) {
   LibraryLoaded() => state,
@@ -96,7 +99,7 @@ class LibrarySettingsPage extends StatelessWidget {
 }
 
 /// The shortest song kept and the folders left out. A change rescans the
-/// library (`AppShell`), the folders once their page closes.
+/// library once the choice settles (`ScanFilterWatch`).
 class _Filters extends StatelessWidget {
   const _Filters();
 
@@ -123,7 +126,22 @@ class _Filters extends StatelessWidget {
                       : l10n.durationMinutes(s ~/ 60),
               ],
               selected: settings.minTrackSeconds,
-              onChanged: cubit.setMinTrackSeconds,
+              onChanged: (seconds) {
+                // A length no song reaches would empty the library: the
+                // scanner would not apply it, so it is not taken.
+                final library = _loaded(context.read<LibraryBloc>().state);
+                final empties =
+                    seconds > settings.minTrackSeconds &&
+                    library != null &&
+                    !library.allTracks.any(
+                      (t) => t.durationMs >= seconds * 1000,
+                    );
+                if (empties) {
+                  AppToast.show(context, l10n.settingsMinLengthTooLong);
+                  return;
+                }
+                unawaited(cubit.setMinTrackSeconds(seconds));
+              },
             ),
             SettingsTile.navigation(
               icon: AppIcons.libraryFolders,

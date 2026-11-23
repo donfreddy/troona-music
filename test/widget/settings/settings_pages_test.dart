@@ -24,6 +24,7 @@ import 'package:troona/features/equalizer/data/repositories/prefs_equalizer_repo
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
@@ -92,7 +93,14 @@ final class _Preferences extends Fake implements BackupPreferencesRepository {
 
 final class _Backups extends Fake implements BackupRepository {}
 
-final class _Library extends Fake implements LibraryRepository {
+final class _Library extends Fake
+    implements LibraryRepository, StoredTrackRepository {
+  /// What the phone stores, the songs left out included.
+  List<Track> stored = [testTrack('1', durationMs: 1000)];
+
+  @override
+  Future<Either<Failure, List<Track>>> getStoredTracks() async => right(stored);
+
   int scans = 0;
 
   @override
@@ -257,8 +265,10 @@ void main() {
   }
 
   group('folders', () {
+    /// The phone stores [ids]; the library holds the ones not left out.
     void holding(List<String> ids) {
       final tracks = [for (final id in ids) testTrack(id, durationMs: 60000)];
+      libraryRepo.stored = tracks;
       // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
       library.emit(
         LibraryLoaded(
@@ -285,57 +295,71 @@ void main() {
           ),
         );
 
-    testWidgets('a folder turned off is saved once the page goes', (
+    Widget page() => LibraryFoldersPage(stored: libraryRepo);
+
+    testWidgets('a folder turned off is saved at once, its songs counted', (
       tester,
     ) async {
       holding(['rap/1', 'rap/2', 'voice/1']);
-      await pump(tester, const LibraryFoldersPage());
+      await pump(tester, page());
 
       expect(find.text('2 songs, /music'), findsOneWidget);
       await tester.tap(find.text('voice'));
       await tester.pumpAndSettle();
-      expect(find.text('Left out, /music'), findsOneWidget);
-      // Not yet: each save rescans the library.
-      expect(excluded(), isEmpty);
-
-      await tester.pumpWidget(providers(const SizedBox()));
-      await tester.pumpAndSettle();
 
       expect(excluded(), ['/music/voice']);
+      expect(switchOf(tester, '/music/voice').value, isFalse);
+      // Left out, its songs are still stored and counted.
+      expect(find.text('1 song, /music'), findsOneWidget);
     });
 
-    testWidgets('turning a folder back on before leaving saves nothing', (
-      tester,
-    ) async {
+    testWidgets('the last songs in cannot be left out', (tester) async {
       holding(['rap/1', 'voice/1']);
       await settings.setExcludedFolders({'/music/voice'});
-      await pump(tester, const LibraryFoldersPage());
-
-      await tester.tap(find.text('voice'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('voice'));
-      await tester.pumpAndSettle();
-      final before = settings.state;
-      await tester.pumpWidget(providers(const SizedBox()));
-      await tester.pumpAndSettle();
-
-      expect(settings.state, same(before));
-    });
-
-    testWidgets('the last folder in cannot be turned off', (tester) async {
-      holding(['rap/1', 'voice/1']);
-      await settings.setExcludedFolders({'/music/voice'});
-      await pump(tester, const LibraryFoldersPage());
+      await pump(tester, page());
 
       expect(switchOf(tester, '/music/rap').onChanged, isNull);
       expect(switchOf(tester, '/music/voice').onChanged, isNotNull);
+    });
+
+    testWidgets('nor through a folder holding the only other one', (
+      tester,
+    ) async {
+      holding(['rap/1', 'rap/live/1']);
+      await pump(tester, page());
+
+      // Turning off rap would take live with it: nothing would be left.
+      expect(switchOf(tester, '/music/rap').onChanged, isNull);
+      expect(switchOf(tester, '/music/rap/live').onChanged, isNotNull);
+    });
+
+    testWidgets('nor by a length no song reaches', (tester) async {
+      holding(['rap/1', 'pop/1']);
+      await pump(tester, const LibrarySettingsPage());
+
+      await tester.tap(find.text('2 min'));
+      await tester.pump();
+
+      expect(
+        find.text('No song in your library is that long: it would be empty.'),
+        findsOneWidget,
+      );
+      expect(
+        settings.state,
+        isA<SettingsLoaded>().having(
+          (s) => s.settings.minTrackSeconds,
+          'length',
+          10,
+        ),
+      );
+      await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
     testWidgets('a subfolder of a folder left out says so and waits', (
       tester,
     ) async {
       holding(['rap/1', 'rap/live/1', 'pop/1']);
-      await pump(tester, const LibraryFoldersPage());
+      await pump(tester, page());
 
       await tester.tap(find.text('rap'));
       await tester.pumpAndSettle();
@@ -343,6 +367,34 @@ void main() {
       expect(find.text('Left out with rap, /music/rap'), findsOneWidget);
       expect(switchOf(tester, '/music/rap/live').value, isFalse);
       expect(switchOf(tester, '/music/rap/live').onChanged, isNull);
+
+      // Back on, it saves no folder under it.
+      await tester.tap(find.text('rap'));
+      await tester.pumpAndSettle();
+      expect(excluded(), isEmpty);
+    });
+
+    testWidgets('the root of the phone is named after it', (tester) async {
+      libraryRepo.stored = [
+        Track(
+          id: '1',
+          title: 'Title 1',
+          artist: 'Artist',
+          artistId: 1,
+          album: 'Album',
+          albumId: 1,
+          path: '/storage/emulated/0/song.mp3',
+          uri: 'content://1',
+          size: 1,
+          durationMs: 60000,
+          fileName: 'song.mp3',
+        ),
+        testTrack('2', durationMs: 60000),
+      ];
+      await pump(tester, page());
+
+      expect(find.text('Phone'), findsOneWidget);
+      expect(find.text('1 song'), findsOneWidget);
     });
 
     for (final scale in [1.0, 2.0]) {
@@ -362,11 +414,7 @@ void main() {
         ]);
         await settings.setExcludedFolders({'/music/x'});
 
-        await pump(
-          tester,
-          const LibraryFoldersPage(),
-          locale: const Locale('fr'),
-        );
+        await pump(tester, page(), locale: const Locale('fr'));
         // Dragged by the left edge, away from the switches.
         for (var i = 0; i < 10; i++) {
           await tester.dragFrom(const Offset(8, 500), const Offset(0, -400));

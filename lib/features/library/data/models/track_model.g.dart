@@ -40,6 +40,7 @@ final TrackModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'composer', type: IsarType.string),
       IsarPropertySchema(name: 'dateAdded', type: IsarType.dateTime),
       IsarPropertySchema(name: 'dateModified', type: IsarType.dateTime),
+      IsarPropertySchema(name: 'excluded', type: IsarType.bool),
       IsarPropertySchema(name: 'indexedAt', type: IsarType.dateTime),
       IsarPropertySchema(name: 'artworkPath', type: IsarType.string),
       IsarPropertySchema(name: 'artworkChecked', type: IsarType.bool),
@@ -118,20 +119,21 @@ int serializeTrackModel(IsarWriter writer, TrackModel object) {
     20,
     object.dateModified?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808,
   );
+  IsarCore.writeBool(writer, 21, value: object.excluded);
   IsarCore.writeLong(
     writer,
-    21,
+    22,
     object.indexedAt.toUtc().microsecondsSinceEpoch,
   );
   {
     final value = object.artworkPath;
     if (value == null) {
-      IsarCore.writeNull(writer, 22);
+      IsarCore.writeNull(writer, 23);
     } else {
-      IsarCore.writeString(writer, 22, value);
+      IsarCore.writeString(writer, 23, value);
     }
   }
-  IsarCore.writeBool(writer, 23, value: object.artworkChecked);
+  IsarCore.writeBool(writer, 24, value: object.artworkChecked);
   return object.id;
 }
 
@@ -213,8 +215,9 @@ TrackModel deserializeTrackModel(IsarReader reader) {
       ).toLocal();
     }
   }
+  object.excluded = IsarCore.readBool(reader, 21);
   {
-    final value = IsarCore.readLong(reader, 21);
+    final value = IsarCore.readLong(reader, 22);
     if (value == -9223372036854775808) {
       object.indexedAt = DateTime.fromMillisecondsSinceEpoch(
         0,
@@ -227,8 +230,8 @@ TrackModel deserializeTrackModel(IsarReader reader) {
       ).toLocal();
     }
   }
-  object.artworkPath = IsarCore.readString(reader, 22);
-  object.artworkChecked = IsarCore.readBool(reader, 23);
+  object.artworkPath = IsarCore.readString(reader, 23);
+  object.artworkChecked = IsarCore.readBool(reader, 24);
   return object;
 }
 
@@ -332,8 +335,10 @@ dynamic deserializeTrackModelProp(IsarReader reader, int property) {
         }
       }
     case 21:
+      return IsarCore.readBool(reader, 21);
+    case 22:
       {
-        final value = IsarCore.readLong(reader, 21);
+        final value = IsarCore.readLong(reader, 22);
         if (value == -9223372036854775808) {
           return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
         } else {
@@ -343,10 +348,10 @@ dynamic deserializeTrackModelProp(IsarReader reader, int property) {
           ).toLocal();
         }
       }
-    case 22:
-      return IsarCore.readString(reader, 22);
     case 23:
-      return IsarCore.readBool(reader, 23);
+      return IsarCore.readString(reader, 23);
+    case 24:
+      return IsarCore.readBool(reader, 24);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -373,6 +378,7 @@ sealed class _TrackModelUpdate {
     String? composer,
     DateTime? dateAdded,
     DateTime? dateModified,
+    bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
     bool? artworkChecked,
@@ -405,6 +411,7 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
     Object? composer = ignore,
     Object? dateAdded = ignore,
     Object? dateModified = ignore,
+    Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
     Object? artworkChecked = ignore,
@@ -430,9 +437,10 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
             if (composer != ignore) 18: composer as String?,
             if (dateAdded != ignore) 19: dateAdded as DateTime?,
             if (dateModified != ignore) 20: dateModified as DateTime?,
-            if (indexedAt != ignore) 21: indexedAt as DateTime?,
-            if (artworkPath != ignore) 22: artworkPath as String?,
-            if (artworkChecked != ignore) 23: artworkChecked as bool?,
+            if (excluded != ignore) 21: excluded as bool?,
+            if (indexedAt != ignore) 22: indexedAt as DateTime?,
+            if (artworkPath != ignore) 23: artworkPath as String?,
+            if (artworkChecked != ignore) 24: artworkChecked as bool?,
           },
         ) >
         0;
@@ -460,6 +468,7 @@ sealed class _TrackModelUpdateAll {
     String? composer,
     DateTime? dateAdded,
     DateTime? dateModified,
+    bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
     bool? artworkChecked,
@@ -492,6 +501,7 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
     Object? composer = ignore,
     Object? dateAdded = ignore,
     Object? dateModified = ignore,
+    Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
     Object? artworkChecked = ignore,
@@ -515,9 +525,10 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
       if (composer != ignore) 18: composer as String?,
       if (dateAdded != ignore) 19: dateAdded as DateTime?,
       if (dateModified != ignore) 20: dateModified as DateTime?,
-      if (indexedAt != ignore) 21: indexedAt as DateTime?,
-      if (artworkPath != ignore) 22: artworkPath as String?,
-      if (artworkChecked != ignore) 23: artworkChecked as bool?,
+      if (excluded != ignore) 21: excluded as bool?,
+      if (indexedAt != ignore) 22: indexedAt as DateTime?,
+      if (artworkPath != ignore) 23: artworkPath as String?,
+      if (artworkChecked != ignore) 24: artworkChecked as bool?,
     });
   }
 }
@@ -548,6 +559,7 @@ sealed class _TrackModelQueryUpdate {
     String? composer,
     DateTime? dateAdded,
     DateTime? dateModified,
+    bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
     bool? artworkChecked,
@@ -580,6 +592,7 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
     Object? composer = ignore,
     Object? dateAdded = ignore,
     Object? dateModified = ignore,
+    Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
     Object? artworkChecked = ignore,
@@ -603,9 +616,10 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
       if (composer != ignore) 18: composer as String?,
       if (dateAdded != ignore) 19: dateAdded as DateTime?,
       if (dateModified != ignore) 20: dateModified as DateTime?,
-      if (indexedAt != ignore) 21: indexedAt as DateTime?,
-      if (artworkPath != ignore) 22: artworkPath as String?,
-      if (artworkChecked != ignore) 23: artworkChecked as bool?,
+      if (excluded != ignore) 21: excluded as bool?,
+      if (indexedAt != ignore) 22: indexedAt as DateTime?,
+      if (artworkPath != ignore) 23: artworkPath as String?,
+      if (artworkChecked != ignore) 24: artworkChecked as bool?,
     });
   }
 }
@@ -643,6 +657,7 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
     Object? composer = ignore,
     Object? dateAdded = ignore,
     Object? dateModified = ignore,
+    Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
     Object? artworkChecked = ignore,
@@ -668,9 +683,10 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
         if (composer != ignore) 18: composer as String?,
         if (dateAdded != ignore) 19: dateAdded as DateTime?,
         if (dateModified != ignore) 20: dateModified as DateTime?,
-        if (indexedAt != ignore) 21: indexedAt as DateTime?,
-        if (artworkPath != ignore) 22: artworkPath as String?,
-        if (artworkChecked != ignore) 23: artworkChecked as bool?,
+        if (excluded != ignore) 21: excluded as bool?,
+        if (indexedAt != ignore) 22: indexedAt as DateTime?,
+        if (artworkPath != ignore) 23: artworkPath as String?,
+        if (artworkChecked != ignore) 24: artworkChecked as bool?,
       });
     } finally {
       q.close();
@@ -2945,8 +2961,8 @@ extension TrackModelQueryFilter
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> indexedAtEqualTo(
-    DateTime value,
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> excludedEqualTo(
+    bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2955,11 +2971,21 @@ extension TrackModelQueryFilter
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> indexedAtEqualTo(
+    DateTime value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 22, value: value),
+      );
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   indexedAtGreaterThan(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        GreaterCondition(property: 21, value: value),
+        GreaterCondition(property: 22, value: value),
       );
     });
   }
@@ -2968,7 +2994,7 @@ extension TrackModelQueryFilter
   indexedAtGreaterThanOrEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        GreaterOrEqualCondition(property: 21, value: value),
+        GreaterOrEqualCondition(property: 22, value: value),
       );
     });
   }
@@ -2978,7 +3004,7 @@ extension TrackModelQueryFilter
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        LessCondition(property: 21, value: value),
+        LessCondition(property: 22, value: value),
       );
     });
   }
@@ -2987,7 +3013,7 @@ extension TrackModelQueryFilter
   indexedAtLessThanOrEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        LessOrEqualCondition(property: 21, value: value),
+        LessOrEqualCondition(property: 22, value: value),
       );
     });
   }
@@ -2998,7 +3024,7 @@ extension TrackModelQueryFilter
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        BetweenCondition(property: 21, lower: lower, upper: upper),
+        BetweenCondition(property: 22, lower: lower, upper: upper),
       );
     });
   }
@@ -3006,14 +3032,14 @@ extension TrackModelQueryFilter
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   artworkPathIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 22));
+      return query.addFilterCondition(const IsNullCondition(property: 23));
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   artworkPathIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 22));
+      return query.addFilterCondition(const IsNullCondition(property: 23));
     });
   }
 
@@ -3022,7 +3048,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3035,7 +3061,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3048,7 +3074,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3060,7 +3086,7 @@ extension TrackModelQueryFilter
   artworkPathLessThan(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        LessCondition(property: 22, value: value, caseSensitive: caseSensitive),
+        LessCondition(property: 23, value: value, caseSensitive: caseSensitive),
       );
     });
   }
@@ -3070,7 +3096,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3087,7 +3113,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 22,
+          property: 23,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -3101,7 +3127,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3114,7 +3140,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3127,7 +3153,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 22,
+          property: 23,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3140,7 +3166,7 @@ extension TrackModelQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 22,
+          property: 23,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -3152,7 +3178,7 @@ extension TrackModelQueryFilter
   artworkPathIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const EqualCondition(property: 22, value: ''),
+        const EqualCondition(property: 23, value: ''),
       );
     });
   }
@@ -3161,7 +3187,7 @@ extension TrackModelQueryFilter
   artworkPathIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        const GreaterCondition(property: 22, value: ''),
+        const GreaterCondition(property: 23, value: ''),
       );
     });
   }
@@ -3170,7 +3196,7 @@ extension TrackModelQueryFilter
   artworkCheckedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        EqualCondition(property: 23, value: value),
+        EqualCondition(property: 24, value: value),
       );
     });
   }
@@ -3445,15 +3471,27 @@ extension TrackModelQuerySortBy
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAt() {
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByExcluded() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAtDesc() {
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByExcludedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByIndexedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22, sort: Sort.desc);
     });
   }
 
@@ -3461,7 +3499,7 @@ extension TrackModelQuerySortBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, caseSensitive: caseSensitive);
+      return query.addSortBy(23, caseSensitive: caseSensitive);
     });
   }
 
@@ -3469,20 +3507,20 @@ extension TrackModelQuerySortBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(23, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(23);
+      return query.addSortBy(24);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
   sortByArtworkCheckedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(23, sort: Sort.desc);
+      return query.addSortBy(24, sort: Sort.desc);
     });
   }
 }
@@ -3753,15 +3791,27 @@ extension TrackModelQuerySortThenBy
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAt() {
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByExcluded() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAtDesc() {
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByExcludedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByIndexedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22, sort: Sort.desc);
     });
   }
 
@@ -3769,7 +3819,7 @@ extension TrackModelQuerySortThenBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, caseSensitive: caseSensitive);
+      return query.addSortBy(23, caseSensitive: caseSensitive);
     });
   }
 
@@ -3777,20 +3827,20 @@ extension TrackModelQuerySortThenBy
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(23, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(23);
+      return query.addSortBy(24);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
   thenByArtworkCheckedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(23, sort: Sort.desc);
+      return query.addSortBy(24, sort: Sort.desc);
     });
   }
 }
@@ -3936,9 +3986,15 @@ extension TrackModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByIndexedAt() {
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByExcluded() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(21);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByIndexedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(22);
     });
   }
 
@@ -3946,14 +4002,14 @@ extension TrackModelQueryWhereDistinct
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(22, caseSensitive: caseSensitive);
+      return query.addDistinctBy(23, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterDistinct>
   distinctByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(23);
+      return query.addDistinctBy(24);
     });
   }
 }
@@ -4086,21 +4142,27 @@ extension TrackModelQueryProperty1
     });
   }
 
-  QueryBuilder<TrackModel, DateTime, QAfterProperty> indexedAtProperty() {
+  QueryBuilder<TrackModel, bool, QAfterProperty> excludedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
   }
 
-  QueryBuilder<TrackModel, String?, QAfterProperty> artworkPathProperty() {
+  QueryBuilder<TrackModel, DateTime, QAfterProperty> indexedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(22);
     });
   }
 
-  QueryBuilder<TrackModel, bool, QAfterProperty> artworkCheckedProperty() {
+  QueryBuilder<TrackModel, String?, QAfterProperty> artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(23);
+    });
+  }
+
+  QueryBuilder<TrackModel, bool, QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(24);
     });
   }
 }
@@ -4235,21 +4297,27 @@ extension TrackModelQueryProperty2<R>
     });
   }
 
-  QueryBuilder<TrackModel, (R, DateTime), QAfterProperty> indexedAtProperty() {
+  QueryBuilder<TrackModel, (R, bool), QAfterProperty> excludedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
   }
 
-  QueryBuilder<TrackModel, (R, String?), QAfterProperty> artworkPathProperty() {
+  QueryBuilder<TrackModel, (R, DateTime), QAfterProperty> indexedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(22);
     });
   }
 
-  QueryBuilder<TrackModel, (R, bool), QAfterProperty> artworkCheckedProperty() {
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty> artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(23);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, bool), QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(24);
     });
   }
 }
@@ -4386,24 +4454,30 @@ extension TrackModelQueryProperty3<R1, R2>
     });
   }
 
+  QueryBuilder<TrackModel, (R1, R2, bool), QOperations> excludedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
+    });
+  }
+
   QueryBuilder<TrackModel, (R1, R2, DateTime), QOperations>
   indexedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
+      return query.addProperty(22);
     });
   }
 
   QueryBuilder<TrackModel, (R1, R2, String?), QOperations>
   artworkPathProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(22);
+      return query.addProperty(23);
     });
   }
 
   QueryBuilder<TrackModel, (R1, R2, bool), QOperations>
   artworkCheckedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(23);
+      return query.addProperty(24);
     });
   }
 }

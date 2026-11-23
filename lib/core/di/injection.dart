@@ -63,6 +63,7 @@ import 'package:troona/features/library/domain/entities/scan_filter.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
@@ -282,6 +283,10 @@ Future<void> configureDependencies() async {
   // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
     () => LibraryRepositoryImpl(cache: getIt(), scanner: getIt()),
+  );
+  // The same object: one source for the library and the songs left out.
+  getIt.registerLazySingleton<StoredTrackRepository>(
+    () => getIt<LibraryRepository>() as StoredTrackRepository,
   );
   getIt.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(db: getIt(), history: getIt()),

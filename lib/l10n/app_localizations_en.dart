@@ -2856,13 +2856,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoldersFooter =>
-      'One folder at least stays in your library. Changes apply when you leave this page.';
+      'At least one song stays in your library.';
 
   @override
   String get settingsFoldersEmpty => 'No folders yet: your library is empty.';
-
-  @override
-  String get settingsFolderExcluded => 'Left out';
 
   @override
   String settingsFolderCoveredBy(String folder) {
@@ -2901,4 +2898,8 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get settingsMinLengthTooLong =>
+      'No song in your library is that long: it would be empty.';
 }

@@ -4697,7 +4697,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsFoldersFooter.
   ///
   /// In en, this message translates to:
-  /// **'One folder at least stays in your library. Changes apply when you leave this page.'**
+  /// **'At least one song stays in your library.'**
   String get settingsFoldersFooter;
 
   /// No description provided for @settingsFoldersEmpty.
@@ -4705,12 +4705,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No folders yet: your library is empty.'**
   String get settingsFoldersEmpty;
-
-  /// No description provided for @settingsFolderExcluded.
-  ///
-  /// In en, this message translates to:
-  /// **'Left out'**
-  String get settingsFolderExcluded;
 
   /// No description provided for @settingsFolderCoveredBy.
   ///
@@ -4765,6 +4759,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 license} other{{count} licenses}}'**
   String licensesCount(int count);
+
+  /// No description provided for @settingsMinLengthTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'No song in your library is that long: it would be empty.'**
+  String get settingsMinLengthTooLong;
 }
 
 class _AppLocalizationsDelegate

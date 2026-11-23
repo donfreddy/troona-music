@@ -5,7 +5,7 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/backup/domain/track_matcher.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
-import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// What a restore found.
@@ -40,11 +40,13 @@ final class RestoreReport extends Equatable {
 }
 
 /// Merges the parts of a backup the user chose into this phone, finding
-/// its songs in the library with [TrackMatcher]. Importing the same file
+/// its songs among the stored ones with [TrackMatcher]: a song a folder
+/// turned off leaves out of the library is still found, and its likes,
+/// plays and playlists come back with it. Importing the same file
 /// again after adding songs links the ones found since.
 final class RestoreBackupUseCase {
   final BackupRepository _backups;
-  final LibraryRepository _library;
+  final StoredTrackRepository _library;
 
   const RestoreBackupUseCase(this._backups, this._library);
 
@@ -56,7 +58,7 @@ final class RestoreBackupUseCase {
     Set<BackupPart> parts,
   ) async {
     final chosen = backup.only(parts);
-    final library = await _library.getTracks();
+    final library = await _library.getStoredTracks();
     return library.fold((f) async => left(f), (tracks) async {
       final matcher = TrackMatcher(tracks);
       final ids = <String, String>{};
