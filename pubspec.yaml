@@ -1,7 +1,7 @@
 name: troona
 description: "A premium offline music player with a glassmorphism design."
 publish_to: "none"
-version: 1.8.0+10
+version: 1.9.0+11
 
 environment:
   sdk: ^3.10.8

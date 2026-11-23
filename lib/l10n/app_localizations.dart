@@ -3380,6 +3380,102 @@ abstract class AppLocalizations {
   /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
   String get whatsNew170PhotosBody;
 
+  /// No description provided for @whatsNew190LyricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced lyrics'**
+  String get whatsNew190LyricsTitle;
+
+  /// No description provided for @whatsNew190LyricsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In Now Playing, the Lyrics button shows the words, the line sung lit and followed. Import a .lrc file, or turn on the lyrics search in Settings > Online extras.'**
+  String get whatsNew190LyricsBody;
+
+  /// No description provided for @whatsNew190OpenWithTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open with Troona'**
+  String get whatsNew190OpenWithTitle;
+
+  /// No description provided for @whatsNew190OpenWithBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch an audio file in a file manager or after a download: Troona plays it as the song of your library.'**
+  String get whatsNew190OpenWithBody;
+
+  /// No description provided for @whatsNew190BackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get whatsNew190BackupTitle;
+
+  /// No description provided for @whatsNew190BackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily or weekly, into a folder you pick once, kept even if you uninstall Troona. Choose what each backup holds. In Settings > Backup & restore.'**
+  String get whatsNew190BackupBody;
+
+  /// No description provided for @whatsNew190FiltersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep folders out'**
+  String get whatsNew190FiltersTitle;
+
+  /// No description provided for @whatsNew190FiltersBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave voice notes or podcasts out of your library, and choose the shortest song kept. Turn a folder back on and its likes, plays and playlists come back. In Settings > Library.'**
+  String get whatsNew190FiltersBody;
+
+  /// No description provided for @whatsNew190HistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause your history'**
+  String get whatsNew190HistoryTitle;
+
+  /// No description provided for @whatsNew190HistoryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'While it is paused, the songs you play are not recorded. In Settings > Library.'**
+  String get whatsNew190HistoryBody;
+
+  /// No description provided for @whatsNew190SettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings, reorganised'**
+  String get whatsNew190SettingsTitle;
+
+  /// No description provided for @whatsNew190SettingsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One page per subject, each row saying how it stands. Choose Troona\'s language, keep shuffle on or not, and find Help in About.'**
+  String get whatsNew190SettingsBody;
+
+  /// No description provided for @whatsNew190CoversTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Covers come back'**
+  String get whatsNew190CoversTitle;
+
+  /// No description provided for @whatsNew190CoversBody.
+  ///
+  /// In en, this message translates to:
+  /// **'After Android or Clear cache emptied Troona\'s cache, covers are extracted again on the next scan instead of staying blank.'**
+  String get whatsNew190CoversBody;
+
+  /// No description provided for @whatsNew190PlaylistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists count right'**
+  String get whatsNew190PlaylistsTitle;
+
+  /// No description provided for @whatsNew190PlaylistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'In a playlist holding songs you left out or deleted, moving a song moves the right one, and counts show only the songs you see.'**
+  String get whatsNew190PlaylistsBody;
+
   /// No description provided for @whatsNew180SmartTitle.
   ///
   /// In en, this message translates to:

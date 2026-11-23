@@ -2043,6 +2043,62 @@ class AppLocalizationsEn extends AppLocalizations {
       'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.';
 
   @override
+  String get whatsNew190LyricsTitle => 'Synced lyrics';
+
+  @override
+  String get whatsNew190LyricsBody =>
+      'In Now Playing, the Lyrics button shows the words, the line sung lit and followed. Import a .lrc file, or turn on the lyrics search in Settings > Online extras.';
+
+  @override
+  String get whatsNew190OpenWithTitle => 'Open with Troona';
+
+  @override
+  String get whatsNew190OpenWithBody =>
+      'Touch an audio file in a file manager or after a download: Troona plays it as the song of your library.';
+
+  @override
+  String get whatsNew190BackupTitle => 'Automatic backups';
+
+  @override
+  String get whatsNew190BackupBody =>
+      'Daily or weekly, into a folder you pick once, kept even if you uninstall Troona. Choose what each backup holds. In Settings > Backup & restore.';
+
+  @override
+  String get whatsNew190FiltersTitle => 'Keep folders out';
+
+  @override
+  String get whatsNew190FiltersBody =>
+      'Leave voice notes or podcasts out of your library, and choose the shortest song kept. Turn a folder back on and its likes, plays and playlists come back. In Settings > Library.';
+
+  @override
+  String get whatsNew190HistoryTitle => 'Pause your history';
+
+  @override
+  String get whatsNew190HistoryBody =>
+      'While it is paused, the songs you play are not recorded. In Settings > Library.';
+
+  @override
+  String get whatsNew190SettingsTitle => 'Settings, reorganised';
+
+  @override
+  String get whatsNew190SettingsBody =>
+      'One page per subject, each row saying how it stands. Choose Troona\'s language, keep shuffle on or not, and find Help in About.';
+
+  @override
+  String get whatsNew190CoversTitle => 'Covers come back';
+
+  @override
+  String get whatsNew190CoversBody =>
+      'After Android or Clear cache emptied Troona\'s cache, covers are extracted again on the next scan instead of staying blank.';
+
+  @override
+  String get whatsNew190PlaylistsTitle => 'Playlists count right';
+
+  @override
+  String get whatsNew190PlaylistsBody =>
+      'In a playlist holding songs you left out or deleted, moving a song moves the right one, and counts show only the songs you see.';
+
+  @override
   String get whatsNew180SmartTitle => 'Smart playlists';
 
   @override

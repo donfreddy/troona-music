@@ -2062,6 +2062,62 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plus de silhouettes grises ni de photos d\'homonymes, et la recherche affiche les photos téléchargées.';
 
   @override
+  String get whatsNew190LyricsTitle => 'Paroles synchronisées';
+
+  @override
+  String get whatsNew190LyricsBody =>
+      'Sur l\'écran En lecture, le bouton Paroles affiche les paroles, la ligne chantée allumée et suivie. Importez un fichier .lrc, ou activez la recherche de paroles dans Réglages > Extras en ligne.';
+
+  @override
+  String get whatsNew190OpenWithTitle => 'Ouvrir avec Troona';
+
+  @override
+  String get whatsNew190OpenWithBody =>
+      'Touchez un fichier audio dans un gestionnaire de fichiers ou après un téléchargement : Troona le lit comme le titre de votre bibliothèque.';
+
+  @override
+  String get whatsNew190BackupTitle => 'Sauvegardes automatiques';
+
+  @override
+  String get whatsNew190BackupBody =>
+      'Chaque jour ou chaque semaine, dans un dossier choisi une fois, conservées même si vous désinstallez Troona. Choisissez ce que contient chaque sauvegarde. Dans Réglages > Sauvegarde et restauration.';
+
+  @override
+  String get whatsNew190FiltersTitle => 'Écarter des dossiers';
+
+  @override
+  String get whatsNew190FiltersBody =>
+      'Laissez les messages vocaux ou les podcasts hors de votre bibliothèque, et choisissez la durée minimale d\'un titre. Réactivez un dossier et ses j\'aime, écoutes et playlists reviennent. Dans Réglages > Bibliothèque.';
+
+  @override
+  String get whatsNew190HistoryTitle => 'Mettre l\'historique en pause';
+
+  @override
+  String get whatsNew190HistoryBody =>
+      'Pendant la pause, les titres écoutés ne sont pas enregistrés. Dans Réglages > Bibliothèque.';
+
+  @override
+  String get whatsNew190SettingsTitle => 'Des réglages réorganisés';
+
+  @override
+  String get whatsNew190SettingsBody =>
+      'Une page par sujet, chaque ligne disant où il en est. Choisissez la langue de Troona, gardez l\'aléatoire ou non, et trouvez l\'Aide dans À propos.';
+
+  @override
+  String get whatsNew190CoversTitle => 'Les pochettes reviennent';
+
+  @override
+  String get whatsNew190CoversBody =>
+      'Quand Android ou « Vider le cache » a vidé le cache de Troona, les pochettes sont de nouveau extraites à la prochaine analyse au lieu de rester vides.';
+
+  @override
+  String get whatsNew190PlaylistsTitle => 'Des playlists qui comptent juste';
+
+  @override
+  String get whatsNew190PlaylistsBody =>
+      'Dans une playlist contenant des titres écartés ou supprimés, déplacer un titre déplace le bon, et les compteurs ne montrent que les titres visibles.';
+
+  @override
   String get whatsNew180SmartTitle => 'Playlists intelligentes';
 
   @override

@@ -4,57 +4,55 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-23
+
 ### Added
 
-- Open a song from another app: Troona is offered under Open with for an audio file (in a file manager, after a download), and plays it on Now Playing, the song of your library with its cover, plays and like. A file your library does not hold is not played yet: a message says so.
-- Synced lyrics in Now Playing: the Lyrics button in the dock shows them in place of the covers, the line being sung lit and kept in view, with a seek bar. Tap a line to go there; scroll freely and they follow again after a few seconds, or at once with Back to the current line. Plain lyrics show when they have no timings. The screen stays on while lyrics play. The covers and the lyrics fade into each other, the tab bar slides away to leave them the room, and the page still closes into the mini player. Now Playing opens on the lyrics when it was closed on them. Where nobody sings for a while, three dots fill until the singing comes back. The lines around the one sung take a light tint of the cover's colours instead of a grey, always readable.
-- Import a `.lrc` file for a song, and set its timing a tenth of a second at a time when it runs early or late. Both are in the song's menu, under Lyrics options.
-- Lyrics search, off by default: when a song has no lyrics, its title, artist, album and length go to LRCLIB, then lyrics.ovh, only when you open its lyrics. Turn it on from the lyrics screen or in Settings, Online extras. Clear downloaded info deletes the lyrics found online and keeps the ones you imported. Backups carry imported lyrics, and the timing you set on lyrics found online.
-- Automatic backups: daily or weekly, into a folder you pick once, with no storage permission; the folder and its backups stay if you uninstall Troona. The last five automatic backups are kept, the ones you make by hand are never deleted, and a backup with nothing new is not written again. Troona says when it can no longer reach the folder.
-- Choose what a backup holds: playlists, likes, listening history, lyrics, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
-- Keep folders out of your library, such as voice notes or a podcasts folder: Settings, Library, Folders. Their songs leave the library and come back, with their likes, plays and playlists, when you turn the folder back on.
-- Choose the shortest song your library keeps: 10 s, 30 s, 1 min or 2 min, in Settings, Library.
-- Keep shuffle on or not: a list you start stays shuffled while shuffle is on, or, with the switch off, plays in order and only the Shuffle button shuffles. Settings, Audio, which can also let the screen turn off while lyrics play.
-- Pause your listening history: while it is paused, plays are not recorded, so Recently played, Your listening, play counts, smart playlists and the monthly Replay leave them out; what is already recorded stays. Settings, Library; the Library row says when it is on. Backups never pause it on another phone.
-- Choose Troona's language, English or French, or let it follow your phone's: Settings, Appearance.
-- Help, in Settings, About: what to do when a song is missing, the music stops with the screen off, a song has no lyrics, about artist photos, and when moving to a new phone, each opening the setting that settles it.
+- Synced lyrics in Now Playing: the line sung is lit and followed; tap a line to go there.
+- Import a `.lrc` file for a song and adjust its timing, from the song's menu.
+- Lyrics search, off by default: LRCLIB, then lyrics.ovh, asked only when you open a song's lyrics.
+- Open with: an audio file touched in another app plays in Troona as the song of your library.
+- Automatic backups, daily or weekly, into a folder you pick once; choose what each backup holds.
+- Keep folders out of your library, and choose the shortest song kept.
+- Pause your listening history.
+- Keep shuffle on a new list or not, and let the screen turn off while lyrics play.
+- Choose Troona's language: English, French or your phone's.
+- Help, in Settings > About.
 
 ### Changed
 
-- Open-source licences open in Troona's own pages, with its background and back button: one row per package, in sections by initial, its licence shown. The list opens at once and scrolls smoothly.
-- Settings are organised in pages: Audio, Library, Online extras, Appearance, Backup & restore, Storage and About, each row saying what it holds or how it stands. Every switch explains what it does, and the caches and resets have their own page.
-- Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
+- Settings are organised in pages, each row saying what it holds or how it stands.
+- Backup & restore has its own page, listing the backups in your folder.
+- Open-source licences open in Troona's own pages, and scroll smoothly.
 
 ### Fixed
 
-- Moving a song in a playlist that holds songs you left out, or whose file is gone, moved the wrong one. Playlist and liked song counts now count only the songs you see.
-- A song you left out, or deleted, no longer drops the whole queue Troona resumes on its next start: the rest comes back.
-- Settings say when your filters would leave no song in your library, and are therefore not applied.
-- Covers come back by themselves after Android or a "Clear cache" emptied Troona's cache: the next scan extracts them again, where they stayed blank until Clear cover cache.
+- Moving a song in a playlist holding songs you left out or deleted moved the wrong one; counts now show only the songs you see.
+- The queue resumed at start-up no longer drops entirely when one of its songs is gone.
+- Covers come back after Android or Clear cache emptied Troona's cache.
 
 ## [1.8.0] - 2026-11-22
 
 ### Added
 
-- Smart playlists: songs picked by rules (plays over a period, last played, date added, liked, artist, album, genre, year, duration, lossless), matching all or any of them, sorted and capped as you choose. Start from a template (Most played this month, Never played, Forgotten, Recently added, Lossless) or from nothing; the editor counts the songs as the rules change. They are worked out again each time you open one and after each song you play, and Save as a playlist keeps today's songs as a playlist of your own. Backups carry their rules.
-- Pick several songs at once: a long press on a song in the Library's Songs, an album, a playlist, an artist's page, Recently added or Search starts picking, and taps add or remove songs. The header counts them, with Select all; the bar below plays them, shuffles them, queues them next or last, or adds them to a playlist, in the order of the list. Back ends the selection.
-- An equalizer, on Android: from Now Playing or Settings, draw the curve across your phone's bands with a finger, or start from a preset (Bass boost, Vocal, Rock and more). Save a curve under a name, hold the ear to hear the song without it, and add up to 6 dB with Volume +. Avoid clipping lowers the level by as much as the bands boost. Backups carry it.
+- Smart playlists: songs picked by rules (plays, last played, date added, likes, artist, genre, year and more), from a template or from nothing.
+- Pick several songs at once with a long press, then play, queue or add them to a playlist.
+- An equalizer, on Android: draw your curve with a finger or start from a preset, save it, and add up to 6 dB with Volume +.
 
 ### Changed
 
-- A new playlist starts named "My playlist #N", ready to save or rename. Its form covers the tabs and the mini player, and shows no empty cover.
-- In a playlist, a long press on a song picks it: the handle at the end of the row moves it.
-- The centre of the tab bar is an orb in the colours of the song playing, and a button: it opens Now Playing, or starts music when nothing is loaded (the last session, else the whole library shuffled). On Now Playing it closes the page. Its colours swirl to each new song's and it pulses on play and pause; at rest it does not move.
-- Glass effects: Light becomes Balanced, which keeps the blur in page headers only and draws the tab bar, Now Playing and sheets without it. Off becomes No blur, with tinted surfaces and their edges instead of flat grey. Settings say which one Auto picked.
+- A new playlist starts named "My playlist #N", ready to save or rename.
+- In a playlist, a long press picks a song; the handle moves it.
+- The centre of the tab bar is an orb in the colours of the song playing: it opens Now Playing, or starts music when nothing is loaded.
+- Glass effects: Light becomes Balanced (blur in page headers only), Off becomes No blur, with tinted surfaces.
 - The tab bar casts a shadow, and floating glass shares one edge.
-- Now Playing's ring is drawn in light grey to white, which reads over every cover's colours.
-- Small grey text is easier to read.
-- The mini player: swiping moves the titles only, with the next or previous song's coming in as you go, and the cover fades to the new song's instead of sliding.
+- Now Playing's ring and small grey text are easier to read.
+- Swiping the mini player moves the titles only, and the cover fades to the new song's.
 
 ### Fixed
 
 - Changing the glass effects applies at once, everywhere.
-- Swiping the mini player down closes it: over the tabs it comes down onto them and dissolves, alone it slides off the screen.
+- Swiping the mini player down closes it.
 
 ## [1.7.0] - 2026-11-19
 
@@ -266,7 +264,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only. Network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/donfreddy/troona-music/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/donfreddy/troona-music/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/donfreddy/troona-music/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/donfreddy/troona-music/compare/v1.5.0...v1.6.0
