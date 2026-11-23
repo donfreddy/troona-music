@@ -198,6 +198,10 @@
     }
   },
   "libraryRescanFailed": "Couldn't check for new music. Your library is as it was.",
+  "openedFileNotInLibrary": "This file isn't in your library. For now, Troona only opens songs from your music.",
+  "@openedFileNotInLibrary": {
+    "description": "Toast when a file opened from another app (Open with) is not in the library."
+  },
   "libraryLoadErrorTitle": "We couldn't open your library",
   "libraryLoadErrorBody": "Check that Troona can still access your music, then try again.",
   "errorTitle": "Something went wrong",

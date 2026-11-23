@@ -431,6 +431,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t check for new music. Your library is as it was.';
 
   @override
+  String get openedFileNotInLibrary =>
+      'This file isn\'t in your library. For now, Troona only opens songs from your music.';
+
+  @override
   String get libraryLoadErrorTitle => 'We couldn\'t open your library';
 
   @override
