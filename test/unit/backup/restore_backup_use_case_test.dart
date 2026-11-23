@@ -7,7 +7,7 @@ import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.
 import 'package:troona/features/equalizer/domain/entities/equalizer_settings.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
-import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 import '../../helpers/fake_player.dart';
@@ -73,14 +73,42 @@ final class _Backups implements BackupRepository {
   Future<void> clearExports() async {}
 }
 
-final class _Library extends Fake implements LibraryRepository {
+final class _Library extends Fake implements StoredTrackRepository {
+  _Library(this.stored);
+
+  final StoredTracks stored;
+
   @override
-  Future<Either<Failure, List<Track>>> getTracks() async =>
-      right([testTrack('a', durationMs: 200000)]);
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async =>
+      right(stored);
 }
 
-RestoreBackupUseCase _useCase(_Backups backups) =>
-    RestoreBackupUseCase(backups, _Library());
+RestoreBackupUseCase _useCase(_Backups backups, {StoredTracks? stored}) =>
+    RestoreBackupUseCase(
+      backups,
+      _Library(
+        stored ??
+            StoredTracks(
+              kept: [testTrack('a', durationMs: 200000)],
+              leftOut: const [],
+            ),
+      ),
+    );
+
+/// Song "a" of the backup as stored here under [id], from [fileName].
+Track _copy(String id, String fileName) => Track(
+  id: id,
+  title: 'Title a',
+  artist: 'Artist',
+  artistId: 1,
+  album: 'Album',
+  albumId: 1,
+  path: '/music/$fileName',
+  uri: 'content://$id',
+  size: 1,
+  durationMs: 200000,
+  fileName: fileName,
+);
 
 RestoreReport _report(Either<Failure, RestoreReport> result) =>
     result.getOrElse(() => throw StateError('failed'));
@@ -141,5 +169,76 @@ void main() {
       left(const BackupFormatFailure()),
     );
     expect(backups.restoredIds, isNull);
+  });
+
+  group('songs a folder turned off leaves out', () {
+    test('are found when the library has no copy', () async {
+      final backups = _Backups(right(_backup));
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: const [],
+          leftOut: [_copy('hidden', 'a.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'hidden'});
+    });
+
+    test('never take the song the library shows', () async {
+      final backups = _Backups(right(_backup));
+      // Same tags, same length, other files: together they would tie and
+      // match nothing.
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [_copy('shown', 'renamed.mp3')],
+          leftOut: [_copy('hidden', 'copy.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'shown'});
+    });
+
+    test('an exact file left out beats a title alone in the library', () async {
+      final backups = _Backups(right(_backup));
+      // The library's "Title a" is from another album: only title and
+      // artist match. The folder turned off holds the very file.
+      final other = Track(
+        id: 'other',
+        title: 'Title a',
+        artist: 'Artist',
+        artistId: 1,
+        album: 'Another album',
+        albumId: 2,
+        path: '/music/other.mp3',
+        uri: 'content://other',
+        size: 9,
+        durationMs: 200000,
+        fileName: 'other.mp3',
+      );
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [other],
+          leftOut: [_copy('hidden', 'a.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'hidden'});
+    });
+
+    test('a tie in the library is not settled by a copy left out', () async {
+      final backups = _Backups(right(_backup));
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [_copy('one', 'x.mp3'), _copy('two', 'y.mp3')],
+          leftOut: [_copy('hidden', 'z.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, isEmpty);
+    });
   });
 }

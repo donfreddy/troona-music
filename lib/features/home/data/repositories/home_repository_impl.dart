@@ -78,7 +78,10 @@ final class HomeRepositoryImpl implements HomeRepository {
           newAlbums: albums,
           topWeekly: topWeekly,
           hiddenGems: hiddenGems,
-          likesCount: likedIds.length,
+          // Liked songs a folder or a deleted file took away are not counted.
+          likesCount: likedIds
+              .where({for (final t in library) t.id}.contains)
+              .length,
           weeklyPlayCount: weeklyPlayCount,
         ),
       );

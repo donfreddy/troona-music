@@ -33,12 +33,17 @@ class PlaylistModel {
   /// songs. Added after v1.7.0: rows written before read null.
   String? rulesJson;
 
-  /// Converts this model to the immutable domain [Playlist] entity.
-  Playlist toEntity() => Playlist(
+  /// Converts this model to the immutable domain [Playlist] entity;
+  /// [library] holds the device ids of the library's songs, for
+  /// [Playlist.libraryCount].
+  Playlist toEntity({Set<String>? library}) => Playlist(
     id: playlistId,
     name: name,
     trackIds: trackIds,
     artworkPath: artworkPath,
     rules: SmartRulesJson.decodeString(rulesJson),
+    libraryCount: library == null
+        ? null
+        : trackIds.where(library.contains).length,
   );
 }

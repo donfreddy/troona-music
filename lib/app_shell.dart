@@ -37,6 +37,8 @@ import 'package:troona/features/player/domain/use_cases/resolve_opened_file_use_
 import 'package:troona/features/player/presentation/utils/opened_file_handler.dart';
 import 'package:troona/features/player/presentation/utils/play_opened_file.dart';
 import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/utils/scan_filter_watch.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
@@ -87,9 +89,21 @@ class _AppShellState extends State<AppShell> {
   /// Said once per run: an automatic backup that cannot reach its folder.
   bool _toldBackupFolderLost = false;
 
+  /// Rescans when what scans leave out changes. Made in [initState], from
+  /// the settings the start-up scan used.
+  late final ScanFilterWatch _scanFilter;
+
   @override
   void initState() {
     super.initState();
+    _scanFilter = ScanFilterWatch(
+      initial: getIt<SettingsCubit>().state,
+      rescan: () {
+        if (mounted) {
+          context.read<LibraryBloc>().add(const LibraryRefreshRequested());
+        }
+      },
+    );
     _currentLocation = widget.location;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -263,6 +277,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _scanFilter.dispose();
     _lifecycle.dispose();
     _firstAutoBackup?.cancel();
     _noticesSub?.cancel();
@@ -376,6 +391,13 @@ class _AppShellState extends State<AppShell> {
             };
             context.read<TrackPaletteCubit>().updateTrack(track);
           },
+        ),
+        // What scans leave out changed (Settings > Library, a restore, a
+        // reset): the library follows once the choice settles, its toast
+        // saying what left or came back.
+        BlocListener<SettingsCubit, SettingsState>(
+          bloc: getIt<SettingsCubit>(),
+          listener: (_, state) => _scanFilter.onSettings(state),
         ),
       ],
       child: BlocBuilder<LibraryBloc, LibraryState>(

@@ -39,12 +39,14 @@ void main() {
     final repo = await repoWith({
       'glass_quality': 'superUltraGlass',
       'haptic_feedback_enabled': 'yes',
+      'app_language': 'klingon',
     });
     final settings = (await repo.loadSettings()).getOrElse(
       () => throw 'no settings',
     );
     expect(settings.glassQuality, GlassQuality.auto);
     expect(settings.hapticFeedbackEnabled, isTrue);
+    expect(settings.language, AppLanguage.system);
   });
 
   test('migrates a legacy integer enum index', () async {
@@ -61,16 +63,28 @@ void main() {
       stopOnCallEnabled: false,
       resumeAfterCallEnabled: false,
       duckAudioOnNotification: false,
+      keepShuffle: false,
+      lyricsKeepScreenOn: false,
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
       fetchLyrics: true,
       onlineExtrasOffered: true,
       checkForUpdates: true,
+      historyPaused: true,
       hapticFeedbackEnabled: false,
       glassQuality: GlassQuality.off,
+      language: AppLanguage.fr,
     );
     expect((await repo.saveSettings(target)).isRight(), isTrue);
     expect((await repo.loadSettings()).getOrElse(() => throw 'none'), target);
+  });
+
+  test('a reset resumes a paused history', () async {
+    final repo = await repoWith({});
+    await repo.saveSettings(const AppSettings(historyPaused: true));
+    await repo.resetSettings();
+    final settings = (await repo.loadSettings()).getOrElse(() => throw 'none');
+    expect(settings.historyPaused, isFalse);
   });
 
   test('reset keeps preferences that are not settings', () async {
@@ -83,4 +97,30 @@ void main() {
     expect(prefs.getString('playback_session_v1'), '{"session":1}');
     expect(prefs.get('glass_quality'), isNull);
   });
+
+  test(
+    'library filters are saved, a length not offered reads as the default',
+    () async {
+      final repo = await repoWith({});
+      await repo.saveSettings(
+        const AppSettings(minTrackSeconds: 60, excludedFolders: ['/a', '/b']),
+      );
+      final saved = (await repo.loadSettings()).getOrElse(() => throw 'no');
+      expect(saved.minTrackSeconds, 60);
+      expect(saved.excludedFolders, ['/a', '/b']);
+
+      final odd = await repoWith({
+        'min_track_seconds': 45,
+        'excluded_folders': 3,
+      });
+      final read = (await odd.loadSettings()).getOrElse(() => throw 'no');
+      expect(read.minTrackSeconds, 10);
+      expect(read.excludedFolders, isEmpty);
+
+      await odd.saveSettings(const AppSettings(excludedFolders: ['/a']));
+      await odd.resetSettings();
+      final reset = (await odd.loadSettings()).getOrElse(() => throw 'no');
+      expect(reset.excludedFolders, isEmpty);
+    },
+  );
 }

@@ -12,10 +12,25 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Lyrics search, off by default: when a song has no lyrics, its title, artist, album and length go to LRCLIB, then lyrics.ovh, only when you open its lyrics. Turn it on from the lyrics screen or in Settings, Online extras. Clear downloaded info deletes the lyrics found online and keeps the ones you imported. Backups carry imported lyrics, and the timing you set on lyrics found online.
 - Automatic backups: daily or weekly, into a folder you pick once, with no storage permission; the folder and its backups stay if you uninstall Troona. The last five automatic backups are kept, the ones you make by hand are never deleted, and a backup with nothing new is not written again. Troona says when it can no longer reach the folder.
 - Choose what a backup holds: playlists, likes, listening history, lyrics, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
+- Keep folders out of your library, such as voice notes or a podcasts folder: Settings, Library, Folders. Their songs leave the library and come back, with their likes, plays and playlists, when you turn the folder back on.
+- Choose the shortest song your library keeps: 10 s, 30 s, 1 min or 2 min, in Settings, Library.
+- Keep shuffle on or not: a list you start stays shuffled while shuffle is on, or, with the switch off, plays in order and only the Shuffle button shuffles. Settings, Audio, which can also let the screen turn off while lyrics play.
+- Pause your listening history: while it is paused, plays are not recorded, so Recently played, Your listening, play counts, smart playlists and the monthly Replay leave them out; what is already recorded stays. Settings, Library; the Library row says when it is on. Backups never pause it on another phone.
+- Choose Troona's language, English or French, or let it follow your phone's: Settings, Appearance.
+- Help, in Settings, About: what to do when a song is missing, the music stops with the screen off, a song has no lyrics, about artist photos, and when moving to a new phone, each opening the setting that settles it.
 
 ### Changed
 
+- Open-source licences open in Troona's own pages, with its background and back button: one row per package, in sections by initial, its licence shown. The list opens at once and scrolls smoothly.
+- Settings are organised in pages: Audio, Library, Online extras, Appearance, Backup & restore, Storage and About, each row saying what it holds or how it stands. Every switch explains what it does, and the caches and resets have their own page.
 - Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
+
+### Fixed
+
+- Moving a song in a playlist that holds songs you left out, or whose file is gone, moved the wrong one. Playlist and liked song counts now count only the songs you see.
+- A song you left out, or deleted, no longer drops the whole queue Troona resumes on its next start: the rest comes back.
+- Settings say when your filters would leave no song in your library, and are therefore not applied.
+- Covers come back by themselves after Android or a "Clear cache" emptied Troona's cache: the next scan extracts them again, where they stayed blank until Clear cover cache.
 
 ## [1.8.0] - 2026-11-22
 

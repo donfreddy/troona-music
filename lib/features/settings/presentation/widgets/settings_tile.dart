@@ -22,6 +22,10 @@ class SettingsTile extends StatelessWidget {
   final bool showChevron;
   final bool enabled;
 
+  /// An action that cannot be undone (reset, clear): its title in the
+  /// error colour, as the confirming dialog's button.
+  final bool destructive;
+
   const SettingsTile({
     super.key,
     required this.icon,
@@ -32,6 +36,7 @@ class SettingsTile extends StatelessWidget {
     this.onTap,
     this.showChevron = false,
     this.enabled = true,
+    this.destructive = false,
   });
 
   /// Factory helper for a boolean switch toggle with CupertinoSwitch.
@@ -143,7 +148,11 @@ class SettingsTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: enabled ? Colors.white : colors.labelTertiary,
+                    color: !enabled
+                        ? colors.labelTertiary
+                        : destructive
+                        ? Theme.of(context).colorScheme.error
+                        : Colors.white,
                     letterSpacing: -0.2,
                   ),
                 ),

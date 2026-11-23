@@ -626,4 +626,86 @@ void main() {
       expect(() => BackupCodec.decode(_bytes(json)), _rejected);
     });
   });
+
+  group('library filters', () {
+    Backup withSettings(AppSettings settings) => Backup(
+      createdAt: _backup.createdAt,
+      tracks: _backup.tracks,
+      playlists: _backup.playlists,
+      plays: _backup.plays,
+      days: _backup.days,
+      trackDays: _backup.trackDays,
+      firstPlays: _backup.firstPlays,
+      replayMonth: null,
+      settings: settings,
+    );
+
+    test('travel with the settings', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(minTrackSeconds: 120, excludedFolders: ['/a/b']),
+          ),
+        ),
+      );
+
+      expect(read.settings?.minTrackSeconds, 120);
+      expect(read.settings?.excludedFolders, ['/a/b']);
+    });
+
+    test('the playback switches travel, and read as on when absent', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(keepShuffle: false, lyricsKeepScreenOn: false),
+          ),
+        ),
+      );
+      expect(read.settings?.keepShuffle, isFalse);
+      expect(read.settings?.lyricsKeepScreenOn, isFalse);
+
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('keepShuffle')
+        ..['lyricsKeepScreenOn'] = 'yes';
+      final older = BackupCodec.decode(_bytes(json));
+      expect(older.settings?.keepShuffle, isTrue);
+      expect(older.settings?.lyricsKeepScreenOn, isTrue);
+    });
+
+    test('a paused history stays on the phone it was paused on', () {
+      final bytes = BackupCodec.encode(
+        withSettings(const AppSettings(historyPaused: true)),
+      );
+
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      expect((json['settings'] as Map).keys, isNot(contains('historyPaused')));
+      expect(BackupCodec.decode(bytes).settings?.historyPaused, isFalse);
+    });
+
+    test('a backup made before them reads as the defaults', () {
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('minTrackSeconds')
+        ..remove('excludedFolders');
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings?.minTrackSeconds, 10);
+      expect(read.settings?.excludedFolders, isEmpty);
+    });
+
+    test('a broken value is dropped, never the backup', () {
+      final json = _json();
+      (json['settings'] as Map)
+        ..['minTrackSeconds'] = 45
+        ..['excludedFolders'] = ['/ok', 3, '', 'x' * 5000];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings?.minTrackSeconds, 10);
+      expect(read.settings?.excludedFolders, ['/ok']);
+      expect(read.settings?.hapticFeedbackEnabled, isFalse);
+    });
+  });
 }

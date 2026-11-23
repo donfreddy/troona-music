@@ -113,6 +113,7 @@ void main() {
       await cubit.load();
       await cubit.setGlassQuality(GlassQuality.low);
       await cubit.setFetchArtistArtwork(true);
+      await cubit.setLanguage(AppLanguage.fr);
 
       await cubit.restore(
         const AppSettings(
@@ -127,6 +128,7 @@ void main() {
       final restored = settingsOf(cubit)!;
       expect(restored.hapticFeedbackEnabled, isFalse);
       expect(restored.glassQuality, GlassQuality.low);
+      expect(restored.language, AppLanguage.fr, reason: 'never restored');
       expect(restored.fetchOnlineMetadata, isFalse);
       expect(restored.fetchArtistArtwork, isTrue);
       expect(restored.fetchLyrics, isFalse);
@@ -134,6 +136,18 @@ void main() {
       expect(metadata.forgets, 0);
     },
   );
+
+  test('a restore leaves the history of this phone as it is', () async {
+    final cubit = SettingsCubit(repo, null, metadata);
+    await cubit.load();
+
+    await cubit.restore(const AppSettings(historyPaused: true));
+    expect(settingsOf(cubit)!.historyPaused, isFalse, reason: 'never paused');
+
+    await cubit.setHistoryPaused(true);
+    await cubit.restore(const AppSettings());
+    expect(settingsOf(cubit)!.historyPaused, isTrue, reason: 'never resumed');
+  });
 
   test('a failed first load is retried when Settings opens', () async {
     final cubit = SettingsCubit(_FlakySettings(repo));
@@ -168,5 +182,33 @@ void main() {
     cubit.retryIfFailed();
     await pumpEventQueue();
     expect(cubit.state, same(before));
+  });
+
+  test('library filters: lengths offered only, folders kept sorted', () async {
+    final cubit = SettingsCubit(repo);
+    await cubit.load();
+
+    await cubit.setMinTrackSeconds(45);
+    expect(settingsOf(cubit)?.minTrackSeconds, 10);
+    await cubit.setMinTrackSeconds(120);
+    expect(settingsOf(cubit)?.minTrackSeconds, 120);
+
+    await cubit.setExcludedFolders({'/b', '/a'});
+    expect(settingsOf(cubit)?.excludedFolders, ['/a', '/b']);
+    await cubit.close();
+  });
+
+  test('a restore merges the folders left out and takes the length', () async {
+    final cubit = SettingsCubit(repo);
+    await cubit.load();
+    await cubit.setExcludedFolders({'/here'});
+
+    await cubit.restore(
+      const AppSettings(minTrackSeconds: 30, excludedFolders: ['/there']),
+    );
+
+    expect(settingsOf(cubit)?.excludedFolders, ['/here', '/there']);
+    expect(settingsOf(cubit)?.minTrackSeconds, 30);
+    await cubit.close();
   });
 }

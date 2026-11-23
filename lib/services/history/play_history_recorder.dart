@@ -19,6 +19,11 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 /// Listens to the audio port directly so the player bloc keeps no history
 /// logic, and so plays from the lock screen or a notification count too.
 ///
+/// While [paused] says so, positions credit nothing ([PlayCounter.skip]):
+/// no play is recorded, and playback during the pause never counts toward
+/// a listen. The time heard before is written as the pause starts; a
+/// listen begun before keeps it, unless it restarts during the pause.
+///
 /// The current track comes from the queue stream, not `currentTrackStream`:
 /// the adapter maps the player index through its queue, and while a new
 /// queue loads that index can be read against the old one (wrong track,
@@ -29,6 +34,7 @@ final class PlayHistoryRecorder {
   final RecordListeningUseCase _recordListening;
   final DateTime Function() _now;
   final PlayCounter _counter;
+  final bool Function() _paused;
 
   StreamSubscription<Queue>? _queueSub;
   StreamSubscription<Duration>? _positionSub;
@@ -44,11 +50,15 @@ final class PlayHistoryRecorder {
     required RecordListeningUseCase recordListening,
     DateTime Function()? now,
     PlayCounter? counter,
+    bool Function()? paused,
   }) : _port = port,
        _recordPlay = recordPlay,
        _recordListening = recordListening,
        _now = now ?? DateTime.now,
-       _counter = counter ?? PlayCounter();
+       _counter = counter ?? PlayCounter(),
+       _paused = paused ?? _never;
+
+  static bool _never() => false;
 
   void start() {
     _onTrack(_port.currentTrack);
@@ -76,6 +86,10 @@ final class PlayHistoryRecorder {
   }
 
   void _onPosition(Duration position) {
+    if (_paused()) {
+      _flush();
+      return _counter.skip(position);
+    }
     final trackId = _counter.onPosition(position);
     _addListening(_counter.heard);
     if (trackId == null) return;

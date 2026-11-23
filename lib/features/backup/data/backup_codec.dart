@@ -413,10 +413,38 @@ abstract final class BackupCodec {
     'onlinePhotos': s.fetchArtistArtwork,
     'onlineExtrasOffered': s.onlineExtrasOffered,
     'haptics': s.hapticFeedbackEnabled,
+    'keepShuffle': s.keepShuffle,
+    'lyricsKeepScreenOn': s.lyricsKeepScreenOn,
+    'minTrackSeconds': s.minTrackSeconds,
+    'excludedFolders': s.excludedFolders,
   };
 
   /// The glass quality depends on the phone: it is neither saved nor read.
+  /// The library filters came later and are read leniently: a backup
+  /// without them, or with a value this app does not offer, reads as the
+  /// defaults (what the app did before them), and a folder that is not a
+  /// short text is dropped. So are the playback switches, which came
+  /// later still (a value not a boolean reads as on, the default).
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
+    keepShuffle: switch (m['keepShuffle']) {
+      final bool b => b,
+      _ => true,
+    },
+    lyricsKeepScreenOn: switch (m['lyricsKeepScreenOn']) {
+      final bool b => b,
+      _ => true,
+    },
+    minTrackSeconds: switch (m['minTrackSeconds']) {
+      final int s when AppSettings.minTrackChoices.contains(s) => s,
+      _ => const AppSettings().minTrackSeconds,
+    },
+    excludedFolders: switch (m['excludedFolders']) {
+      final List<Object?> list => [
+        for (final f in list.take(_maxItems))
+          if (f is String && f.isNotEmpty && f.length <= maxText) f,
+      ],
+      _ => const [],
+    },
     stopOnCallEnabled: _bool(m['stopOnCall'], 'stopOnCall'),
     resumeAfterCallEnabled: _bool(m['resumeAfterCall'], 'resumeAfterCall'),
     duckAudioOnNotification: _bool(

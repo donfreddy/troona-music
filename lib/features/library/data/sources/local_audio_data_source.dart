@@ -6,6 +6,7 @@ import 'package:troona/core/utils/permission_handler.dart';
 import 'package:troona/features/library/data/models/album_model.dart';
 import 'package:troona/features/library/data/models/artist_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/domain/entities/scan_filter.dart';
 
 /// Contract for querying audio content from the device's media store.
 abstract interface class LocalAudioDataSource {
@@ -35,9 +36,15 @@ abstract interface class LocalAudioDataSource {
 final class OnAudioQueryDataSource implements LocalAudioDataSource {
   final OnAudioQuery _query;
 
-  /// Low on purpose: album intros, skits and interludes are often 20 to
-  /// 40 s. System sounds are excluded by the MediaStore flags instead.
-  static const _minTrackDurationMs = 10 * 1000;
+  /// The user's filter (minimum length, excluded folders), read at the
+  /// start of each scan. It marks songs [TrackModel.excluded] rather than
+  /// dropping them, so their rows stay. System sounds are dropped by the
+  /// MediaStore flags and the fixed rules below whatever it says.
+  final ScanFilter Function() _filter;
+
+  /// Files this short are never stored: the shortest length the user can
+  /// keep.
+  static const _floorMs = ScanFilter.defaultMinDurationMs;
   static const _allowedExtensions = {
     'mp3',
     'm4a',
@@ -60,8 +67,9 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     '/telegram voice/',
   };
 
-  OnAudioQueryDataSource({OnAudioQuery? query})
-    : _query = query ?? OnAudioQuery();
+  OnAudioQueryDataSource({OnAudioQuery? query, ScanFilter Function()? filter})
+    : _query = query ?? OnAudioQuery(),
+      _filter = filter ?? (() => const ScanFilter());
 
   @override
   Stream<List<TrackModel>> scanTracks() async* {
@@ -87,13 +95,14 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     final validTracks = <TrackModel>[];
     for (final song in songs) {
       try {
-        if (_isValidTrack(song)) {
+        if (isValidTrack(song)) {
           validTracks.add(TrackModel.fromSongModel(song));
         }
       } catch (_) {
         // Skip malformed track
       }
     }
+    markExcluded(validTracks, _filter());
 
     // Emit in chunks of 50 so the UI can update progressively on large
     // libraries without blocking the UI thread.
@@ -149,11 +158,12 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
   ///
   /// Filters out:
   /// - Non-music items reported by MediaStore.
-  /// - Files shorter than 10 seconds, and empty files.
+  /// - Files under [_floorMs], and empty files.
   /// - System / messaging app audio directories.
   /// - Files with an empty title (likely corrupted).
   /// - Files with an empty path (no accessible storage location).
-  bool _isValidTrack(SongModel song) {
+  @visibleForTesting
+  static bool isValidTrack(SongModel song) {
     final path = song.data.trim();
     final title = song.title.trim();
     final lowerPath = path.toLowerCase();
@@ -169,7 +179,7 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
         song.isAudioBook == true) {
       return false;
     }
-    if ((song.duration ?? 0) < _minTrackDurationMs) return false;
+    if ((song.duration ?? 0) < _floorMs) return false;
     if (song.size <= 0) return false;
     if (!_allowedExtensions.contains(extension)) return false;
     if (lowerPath.contains(
@@ -181,5 +191,23 @@ final class OnAudioQueryDataSource implements LocalAudioDataSource {
     if (title.toLowerCase() == 'audio') return false;
 
     return true;
+  }
+
+  /// Marks the songs [filter] leaves out. A filter that would leave out
+  /// every song is not applied: a library emptied by a setting (a raised
+  /// length, the folders a restore brings) reads as songs lost.
+  @visibleForTesting
+  static void markExcluded(List<TrackModel> tracks, ScanFilter filter) {
+    final excluded = [
+      for (final t in tracks)
+        !filter.allows(path: t.path, durationMs: t.durationMs),
+    ];
+    final all = tracks.isNotEmpty && excluded.every((e) => e);
+    if (all) {
+      debugPrint('Scan filter leaves out every song: not applied');
+    }
+    for (final (i, t) in tracks.indexed) {
+      t.excluded = !all && excluded[i];
+    }
   }
 }

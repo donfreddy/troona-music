@@ -144,6 +144,74 @@ void main() {
     expect(store.load(), isNotNull);
   });
 
+  test('a queued song gone from the library leaves the rest', () async {
+    final bloc = await restoreWith(right([b]));
+    expect((bloc.state as PlayerLoading).track, b);
+    expect(port.restoredQueue?.playbackTracks, [b]);
+    expect(port.restoredQueue?.currentIndex, 0);
+    expect(port.restoredPosition, const Duration(milliseconds: 5000));
+  });
+
+  test('without the song that was playing, the session goes', () async {
+    final bloc = await restoreWith(right([a]));
+    expect(bloc.state, isA<PlayerIdle>());
+    expect(store.load(), isNull);
+  });
+
+  Future<void> saveQueue({
+    required List<String> original,
+    required List<String> playback,
+    required String current,
+    required int index,
+    bool shuffle = false,
+  }) => store.save(
+    PlaybackSessionSnapshot(
+      currentTrackId: current,
+      originalTrackIds: original,
+      playbackTrackIds: playback,
+      currentIndex: index,
+      positionMs: 0,
+      wasPlaying: false,
+      shuffleEnabled: shuffle,
+      repeatMode: RepeatMode.off,
+      volume: 1,
+      speed: 1,
+    ),
+  );
+
+  test('a song queued twice comes back at its saved place', () async {
+    // Play next on the song playing: b, a, then b again, the second one
+    // playing.
+    await saveQueue(
+      original: ['b', 'a', 'b'],
+      playback: ['b', 'a', 'b'],
+      current: 'b',
+      index: 2,
+    );
+    await restoreWith(right([a, b]));
+    expect(port.restoredQueue?.currentIndex, 2);
+  });
+
+  test('a shuffled queue keeps both orders without the song gone', () async {
+    final c = testTrack('c', durationMs: 90000);
+    await saveQueue(
+      original: ['a', 'b', 'c'],
+      playback: ['c', 'b', 'a'],
+      current: 'a',
+      index: 2,
+      shuffle: true,
+    );
+    // c is gone: a and b come back, a still playing.
+    await restoreWith(right([a, b]));
+    final queue = port.restoredQueue!;
+    expect(queue.originalTracks, [a, b]);
+    expect(queue.playbackTracks, [b, a]);
+    expect(queue.currentIndex, 1);
+    expect(queue.currentTrack, a);
+    expect(queue.shuffleEnabled, isTrue);
+    expect([c], isNot(contains(queue.currentTrack)));
+  });
+
   test('songs gone from the library drop the session', () async {
     final bloc = await restoreWith(right(const []));
     expect(bloc.state, isA<PlayerIdle>());

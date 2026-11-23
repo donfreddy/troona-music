@@ -1,52 +1,31 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/router/app_router.dart';
-import 'package:troona/core/theme/glass_tier.dart';
-import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/backup/domain/entities/stored_backup.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/backup/presentation/utils/backup_labels.dart';
-import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
-import 'package:troona/features/equalizer/presentation/widgets/equalizer_sheet.dart';
-import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
-import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:troona/features/settings/domain/entities/app_settings.dart';
-import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
-import 'package:troona/features/whats_new/presentation/release_notes.dart';
-import 'package:troona/features/whats_new/presentation/widgets/whats_new_sheet.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:troona/features/settings/presentation/widgets/debug_section.dart';
-import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
-import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
-import 'package:troona/features/updates/presentation/open_release.dart';
-import 'package:troona/l10n/app_localizations.dart';
-import 'package:troona/shared/widgets/app_dialog.dart';
-import 'package:troona/shared/widgets/app_toast.dart';
 import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/shared/widgets/glass_sliver_header.dart';
 
-/// The name of [quality] in the glass setting.
-String _glassLabelOf(GlassQuality quality, AppLocalizations l10n) =>
-    switch (quality) {
-      GlassQuality.auto => l10n.settingsGlassAuto,
-      GlassQuality.high => l10n.settingsGlassFull,
-      GlassQuality.low => l10n.settingsGlassBalanced,
-      GlassQuality.off => l10n.settingsGlassOff,
-    };
-
+/// The root of Settings: one row per category, each saying what its page
+/// holds (or, where it helps, how it stands: online extras on or off, the
+/// last backup, the cache's size).
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -58,14 +37,25 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Once per visit, for the backup row's date: not in the route's
-    // builder, which runs again on each change of the router.
+    // Once per visit, for the backup row's date and the cache's size: not
+    // in the route's builder, which runs again on each change of the
+    // router.
     unawaited(context.read<BackupCubit>().load());
+    unawaited(context.read<MaintenanceCubit>().load());
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final settings = switch (context.watch<SettingsCubit>().state) {
+      SettingsLoaded(:final settings) => settings,
+      _ => null,
+    };
+    final maintenance = context.watch<MaintenanceCubit>().state;
+    final sizes = maintenance.sizes;
+    final version = maintenance.version;
+    final backup = context.watch<BackupCubit>().state;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
@@ -77,464 +67,107 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const AppBackButton(),
             title: l10n.settingsTitle,
           ),
-          BlocBuilder<SettingsCubit, SettingsState>(
-            builder: (context, state) => switch (state) {
-              SettingsLoaded(:final settings) => _SettingsList(
-                settings: settings,
-              ),
-              SettingsError() => SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: Text(
-                    l10n.settingsLoadError,
-                    style: TextStyle(color: context.colors.labelSecondary),
+          SliverList.list(
+            children: [
+              SettingsSection(
+                title: l10n.settingsPlayback,
+                children: [
+                  SettingsTile.navigation(
+                    icon: AppIcons.settingsAudio,
+                    iconColor: SettingsHue.audio,
+                    title: l10n.settingsAudio,
+                    subtitle: l10n.settingsAudioSummary,
+                    onTap: () => context.pushNamed(AppRoute.settingsAudio),
                   ),
-                ),
+                ],
               ),
-              _ => const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: CupertinoActivityIndicator(radius: 14)),
+              SettingsSection(
+                title: l10n.settingsLibrary,
+                children: [
+                  SettingsTile.navigation(
+                    icon: AppIcons.library,
+                    iconColor: SettingsHue.library,
+                    title: l10n.settingsLibrary,
+                    // A paused history is easy to forget: the row says so.
+                    subtitle: settings?.historyPaused ?? false
+                        ? l10n.settingsLibrarySummaryPaused
+                        : l10n.settingsLibrarySummary,
+                    onTap: () => context.pushNamed(AppRoute.settingsLibrary),
+                  ),
+                  SettingsTile.navigation(
+                    icon: AppIcons.settingsOnline,
+                    iconColor: SettingsHue.online,
+                    title: l10n.settingsOnline,
+                    subtitle: settings == null
+                        ? null
+                        : onlineSummary(l10n, settings),
+                    onTap: () => context.pushNamed(AppRoute.settingsOnline),
+                  ),
+                ],
               ),
-            },
+              SettingsSection(
+                title: l10n.settingsApp,
+                children: [
+                  SettingsTile.navigation(
+                    icon: AppIcons.settingsAppearance,
+                    iconColor: SettingsHue.appearance,
+                    title: l10n.settingsAppearance,
+                    subtitle: l10n.settingsAppearanceSummary,
+                    onTap: () => context.pushNamed(AppRoute.settingsAppearance),
+                  ),
+                  SettingsTile.navigation(
+                    icon: AppIcons.backup,
+                    iconColor: SettingsHue.backup,
+                    title: l10n.backupTitle,
+                    subtitle: !backup.folderRead
+                        ? null
+                        : switch ((
+                            backup.folder,
+                            // Another build's automatic backups are not
+                            // this one's.
+                            backup.backups.where((b) => b.mine).firstOrNull,
+                          )) {
+                            (BackupFolderLost(:final name), _) =>
+                              l10n.backupFolderLost(name),
+                            (_, final last?) => l10n.backupSettingsLast(
+                              backupDate(context, last.createdAt),
+                            ),
+                            _ => l10n.backupSettingsNone,
+                          },
+                    onTap: () => context.pushNamed(AppRoute.backup),
+                  ),
+                  SettingsTile.navigation(
+                    icon: AppIcons.settingsStorage,
+                    iconColor: SettingsHue.storage,
+                    title: l10n.settingsStorage,
+                    subtitle: sizes == null
+                        ? l10n.settingsStorageSummaryPending
+                        : l10n.settingsStorageSummary(
+                            megabytes(
+                              l10n,
+                              sizes.coverBytes + sizes.onlineInfoBytes,
+                            ),
+                          ),
+                    onTap: () => context.pushNamed(AppRoute.settingsStorage),
+                  ),
+                  SettingsTile.navigation(
+                    icon: AppIcons.settingsAbout,
+                    iconColor: SettingsHue.about,
+                    title: l10n.settingsAbout,
+                    subtitle: version == null
+                        ? l10n.settingsAboutSummaryPending
+                        : l10n.settingsAboutSummary(version.version),
+                    onTap: () => context.pushNamed(AppRoute.settingsAbout),
+                  ),
+                ],
+              ),
+              if (!kReleaseMode) const DebugSection(),
+              const SizedBox(height: AppSpacing.xl),
+              SizedBox(height: context.bottomBarInset(tabs: false)),
+            ],
           ),
         ],
       ),
-    );
-  }
-}
-
-class _SettingsList extends StatelessWidget {
-  final AppSettings settings;
-
-  const _SettingsList({required this.settings});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final cubit = context.read<SettingsCubit>();
-    final maintenance = context.watch<MaintenanceCubit>().state;
-    final sizes = maintenance.sizes;
-    final backup = context.watch<BackupCubit>().state;
-    final update = context.watch<UpdateCubit>().state;
-
-    return SliverList.list(
-      children: [
-        SettingsSection(
-          title: l10n.settingsPlayback,
-          children: [
-            // Supported or not is decided at start-up: a row that comes and
-            // goes would leave its divider behind.
-            if (context.read<EqualizerCubit?>() case final equalizer?
-                when equalizer.state.supported)
-              BlocBuilder<EqualizerCubit, EqualizerState>(
-                bloc: equalizer,
-                builder: (context, eq) => SettingsTile.navigation(
-                  icon: AppIcons.equalizer,
-                  iconColor: const Color(0xFF6366F1),
-                  title: l10n.equalizerTitle,
-                  value: eqSummary(l10n, eq),
-                  onTap: () => showEqualizerSheet(context),
-                ),
-              ),
-            SettingsTile.switchTile(
-              icon: AppIcons.volumeLow,
-              iconColor: const Color(0xFF8B5CF6),
-              title: l10n.settingsDuck,
-              value: settings.duckAudioOnNotification,
-              onChanged: cubit.setDuckAudioOnNotification,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.pauseOnCall,
-              iconColor: const Color(0xFFEC4899),
-              title: l10n.settingsPauseOnCall,
-              value: settings.stopOnCallEnabled,
-              onChanged: cubit.setStopOnCall,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.resumeAfterCall,
-              iconColor: const Color(0xFF10B981),
-              title: l10n.settingsResumeAfterCall,
-              value: settings.resumeAfterCallEnabled,
-              onChanged: cubit.setResumeAfterCall,
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsLibrary,
-          children: [
-            BlocBuilder<LibraryBloc, LibraryState>(
-              buildWhen: (p, c) =>
-                  (p is LibraryScanning) != (c is LibraryScanning),
-              builder: (context, state) {
-                final scanning = state is LibraryScanning;
-                return SettingsTile(
-                  icon: AppIcons.refresh,
-                  iconColor: const Color(0xFFF59E0B),
-                  title: l10n.settingsRescan,
-                  subtitle: scanning
-                      ? l10n.settingsRescanning
-                      : l10n.settingsRescanSubtitle,
-                  trailing: scanning
-                      ? const CupertinoActivityIndicator()
-                      : null,
-                  onTap: scanning
-                      ? null
-                      : () => context.read<LibraryBloc>().add(
-                          const LibraryRefreshRequested(),
-                        ),
-                );
-              },
-            ),
-            SettingsTile(
-              icon: AppIcons.clearCovers,
-              iconColor: const Color(0xFFEF4444),
-              title: l10n.settingsCoversClear,
-              subtitle: l10n.settingsCoversClearSubtitle,
-              trailing: _SizeLabel(sizes?.coverBytes),
-              onTap: maintenance.busy ? null : () => _clearCovers(context),
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsOnline,
-          footer: l10n.settingsOnlineFooter,
-          children: [
-            SettingsTile.switchTile(
-              icon: AppIcons.biographies,
-              iconColor: const Color(0xFFD51007),
-              title: l10n.settingsOnlineBios,
-              value: settings.fetchOnlineMetadata,
-              onChanged: cubit.setFetchOnlineMetadata,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.photos,
-              iconColor: const Color(0xFF10B981),
-              title: l10n.settingsOnlinePhotos,
-              value: settings.fetchArtistArtwork,
-              onChanged: cubit.setFetchArtistArtwork,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.lyrics,
-              iconColor: const Color(0xFF0EA5E9),
-              title: l10n.settingsOnlineLyrics,
-              value: settings.fetchLyrics,
-              onChanged: cubit.setFetchLyrics,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.update,
-              iconColor: const Color(0xFF8B5CF6),
-              title: l10n.settingsUpdateCheck,
-              subtitle: l10n.settingsUpdateCheckSubtitle,
-              value: settings.checkForUpdates,
-              onChanged: (on) => _setCheckForUpdates(context, on),
-            ),
-            SettingsTile(
-              icon: AppIcons.clearOnlineInfo,
-              iconColor: const Color(0xFFF97316),
-              title: l10n.settingsOnlineClear,
-              trailing: _SizeLabel(sizes?.onlineInfoBytes),
-              onTap: maintenance.busy ? null : () => _clearOnlineInfo(context),
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsAppearance,
-          footer: l10n.settingsGlassFooter(
-            _glassLabelOf(GlassTier.detected, l10n),
-          ),
-          children: [
-            SegmentedRow<GlassQuality>(
-              icon: AppIcons.glassEffect,
-              iconColor: const Color(0xFF06B6D4),
-              label: l10n.settingsGlass,
-              values: GlassQuality.values,
-              labels: [
-                for (final q in GlassQuality.values) _glassLabelOf(q, l10n),
-              ],
-              selected: settings.glassQuality,
-              onChanged: cubit.setGlassQuality,
-            ),
-            SettingsTile.switchTile(
-              icon: AppIcons.haptics,
-              iconColor: const Color(0xFFF43F5E),
-              title: l10n.settingsHaptics,
-              value: settings.hapticFeedbackEnabled,
-              onChanged: cubit.setHapticFeedback,
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsBackup,
-          children: [
-            SettingsTile.navigation(
-              icon: AppIcons.backup,
-              iconColor: const Color(0xFF3B82F6),
-              title: l10n.backupTitle,
-              subtitle: !backup.folderRead
-                  ? null
-                  : switch ((
-                      backup.folder,
-                      // Another build's automatic backups are not this one's.
-                      backup.backups.where((b) => b.mine).firstOrNull,
-                    )) {
-                      (BackupFolderLost(:final name), _) =>
-                        l10n.backupFolderLost(name),
-                      (_, final last?) => l10n.backupSettingsLast(
-                        backupDate(context, last.createdAt),
-                      ),
-                      _ => l10n.backupSettingsNone,
-                    },
-              onTap: () => context.pushNamed(AppRoute.backup),
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsSupport,
-          children: [
-            SettingsTile.navigation(
-              icon: AppIcons.whatsNew,
-              iconColor: const Color(0xFF8B5CF6),
-              title: l10n.whatsNewTitle,
-              subtitle: maintenance.version == null
-                  ? null
-                  : l10n.whatsNewVersion(maintenance.version!.version),
-              onTap: () => showWhatsNewSheet(
-                context,
-                releases: releaseNotes(l10n),
-                version: maintenance.version?.version,
-              ),
-            ),
-            SettingsTile(
-              icon: AppIcons.refresh,
-              iconColor: const Color(0xFF14B8A6),
-              title: l10n.updateCheckNow,
-              subtitle: switch (update.available) {
-                final release? => l10n.updateAvailable(release.version),
-                null => null,
-              },
-              trailing: update.checking
-                  ? const CupertinoActivityIndicator()
-                  : null,
-              onTap: update.checking ? null : () => _checkForUpdate(context),
-            ),
-            SettingsTile.navigation(
-              icon: AppIcons.report,
-              iconColor: const Color(0xFF6366F1),
-              title: l10n.settingsReport,
-              subtitle: l10n.settingsReportSubtitle,
-              onTap: () => _shareReport(context),
-            ),
-            SettingsTile.navigation(
-              icon: AppIcons.privacy,
-              iconColor: const Color(0xFF0EA5E9),
-              title: l10n.settingsPrivacy,
-              onTap: () => context.pushNamed(AppRoute.privacy),
-            ),
-            SettingsTile.navigation(
-              icon: AppIcons.licenses,
-              iconColor: const Color(0xFF64748B),
-              title: l10n.settingsLicenses,
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: l10n.appName,
-                applicationVersion: maintenance.version?.version,
-              ),
-            ),
-          ],
-        ),
-        SettingsSection(
-          title: l10n.settingsReset,
-          children: [
-            SettingsTile(
-              icon: AppIcons.removeFromList,
-              iconColor: const Color(0xFF64748B),
-              title: l10n.settingsForgetQueue,
-              onTap: () => _forgetQueue(context),
-            ),
-            SettingsTile(
-              icon: AppIcons.reset,
-              iconColor: const Color(0xFFDC2626),
-              title: l10n.settingsResetSettings,
-              onTap: () => _resetSettings(context),
-            ),
-          ],
-        ),
-        if (!kReleaseMode) const DebugSection(),
-        const SizedBox(height: AppSpacing.xl),
-        _Footer(version: maintenance.version),
-        SizedBox(height: context.bottomBarInset(tabs: false)),
-      ],
-    );
-  }
-
-  Future<void> _clearCovers(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.settingsCoversConfirmTitle,
-      body: l10n.settingsCoversConfirmBody,
-      confirmLabel: l10n.actionClear,
-      destructive: true,
-    );
-    if (!confirmed || !context.mounted) return;
-    // Captured up front: the rescan and the toast must happen even if the
-    // user leaves Settings while the files are being deleted.
-    final library = context.read<LibraryBloc>();
-    final overlay = Overlay.of(context, rootOverlay: true);
-    final ok = await context.read<MaintenanceCubit>().clearCovers();
-    library.add(const LibraryRefreshRequested());
-    AppToast.showOn(
-      overlay,
-      ok ? l10n.settingsCoversCleared : l10n.errorGeneric,
-    );
-  }
-
-  Future<void> _clearOnlineInfo(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.settingsOnlineConfirmTitle,
-      body: l10n.settingsOnlineConfirmBody,
-      confirmLabel: l10n.actionClear,
-      destructive: true,
-    );
-    if (!confirmed || !context.mounted) return;
-    final overlay = Overlay.of(context, rootOverlay: true);
-    final ok = await context.read<MaintenanceCubit>().clearOnlineInfo();
-    AppToast.showOn(
-      overlay,
-      ok ? l10n.settingsOnlineCleared : l10n.errorGeneric,
-    );
-  }
-
-  Future<void> _setCheckForUpdates(BuildContext context, bool on) async {
-    final updates = context.read<UpdateCubit>();
-    await context.read<SettingsCubit>().setCheckForUpdates(on);
-    on ? await updates.checkIfEnabled() : updates.clear();
-  }
-
-  /// Asks GitHub; a newer release is offered in a dialog, even a skipped
-  /// one, since the user asked.
-  Future<void> _checkForUpdate(BuildContext context) async {
-    final l10n = context.l10n;
-    final overlay = Overlay.of(context, rootOverlay: true);
-    final result = await context.read<UpdateCubit>().checkNow();
-    final release = result.fold((_) => null, (release) => release);
-    if (release == null) {
-      final failed = result.isLeft();
-      AppToast.showOn(
-        overlay,
-        failed ? l10n.updateCheckFailed : l10n.updateUpToDate,
-      );
-      return;
-    }
-    if (!context.mounted) return;
-    final view = await showConfirmDialog(
-      context,
-      title: l10n.updateAvailable(release.version),
-      body: l10n.updateAvailableBody,
-      confirmLabel: l10n.updateView,
-    );
-    if (view && context.mounted) await openRelease(context, release);
-  }
-
-  Future<void> _shareReport(BuildContext context) async {
-    final l10n = context.l10n;
-    final library = context.read<LibraryBloc>().state;
-    final trackCount = switch (library) {
-      LibraryLoaded(:final allTracks) => allTracks.length,
-      LibraryScanning(:final cached?) => cached.allTracks.length,
-      _ => 0,
-    };
-    final report = await context.read<MaintenanceCubit>().problemReport(
-      trackCount: trackCount,
-    );
-    await SharePlus.instance.share(
-      ShareParams(text: report, subject: l10n.settingsReportSubject),
-    );
-  }
-
-  Future<void> _forgetQueue(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.settingsForgetQueueConfirmTitle,
-      body: l10n.settingsForgetQueueConfirmBody,
-      confirmLabel: l10n.actionClear,
-      destructive: true,
-    );
-    if (!confirmed || !context.mounted) return;
-    // Stops the engine and clears the saved session in one place.
-    context.read<PlayerBloc>().add(const PlayerDismissed());
-    AppToast.show(context, l10n.settingsForgetQueueDone);
-  }
-
-  Future<void> _resetSettings(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.settingsResetConfirmTitle,
-      body: l10n.settingsResetConfirmBody,
-      confirmLabel: l10n.actionReset,
-      destructive: true,
-    );
-    if (!confirmed || !context.mounted) return;
-    final updates = context.read<UpdateCubit>();
-    // Off and flat; the saved profiles stay, as playlists do.
-    context.read<EqualizerCubit?>()?.resetAll();
-    await context.read<SettingsCubit>().resetToDefaults();
-    updates.clear();
-  }
-}
-
-class _SizeLabel extends StatelessWidget {
-  final int? bytes;
-
-  const _SizeLabel(this.bytes);
-
-  @override
-  Widget build(BuildContext context) {
-    final b = bytes;
-    final mb = b == null ? null : b / (1024 * 1024);
-    return Text(
-      mb == null ? '…' : context.l10n.sizeMegabytes(mb.toStringAsFixed(1)),
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: context.colors.labelSecondary,
-      ),
-    );
-  }
-}
-
-class _Footer extends StatelessWidget {
-  final AppVersion? version;
-
-  const _Footer({required this.version});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final v = version;
-    return Column(
-      children: [
-        Icon(AppIcons.track, size: 20, color: colors.labelTertiary),
-        const SizedBox(height: 6),
-        if (v != null)
-          Text(
-            context.l10n.settingsVersion(v.version, v.build),
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: colors.labelTertiary,
-            ),
-          ),
-        const SizedBox(height: 2),
-        Text(
-          context.l10n.settingsTagline,
-          style: TextStyle(fontSize: 11, color: colors.labelTertiary),
-        ),
-      ],
     );
   }
 }

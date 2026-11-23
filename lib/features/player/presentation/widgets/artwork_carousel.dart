@@ -81,7 +81,7 @@ const double _kArtFraction = 0.50;
 
 /// Centre-to-centre distance. With [_kNeighbourScale], a neighbour sits
 /// astride the lens rim and runs a little past the screen's edge, which
-/// cuts about a quarter of it (screenshots/inspire.png: centres 0.42 of
+/// cuts about a quarter of it (in the design reference, centres 0.42 of
 /// the width apart, a neighbour 0.31 of the width across).
 const double _kSpacingFraction = 0.42;
 const double _kNeighbourScale = 0.64;

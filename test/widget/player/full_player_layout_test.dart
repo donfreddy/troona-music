@@ -31,6 +31,7 @@ import 'package:troona/features/player/presentation/widgets/player_utility_dock.
 import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 
+import '../../helpers/test_settings.dart';
 import '../../helpers/fake_player.dart';
 
 /// No liked songs.
@@ -112,6 +113,8 @@ void main() {
     );
     final palette = TrackPaletteCubit();
     final sleep = SleepTimerCubit(port: port);
+    final settings = await loadedSettings();
+    addTearDown(settings.close);
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
       // Not awaited: under the fake clock the closes never settle.
@@ -135,6 +138,7 @@ void main() {
           BlocProvider.value(value: likes),
           BlocProvider.value(value: palette),
           BlocProvider.value(value: sleep),
+          BlocProvider.value(value: settings),
         ],
         child: MaterialApp(
           theme: AppTheme.withGlass(glass),

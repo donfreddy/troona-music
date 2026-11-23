@@ -115,6 +115,21 @@ abstract final class AppIcons {
 
   // ── Feedback ──────────────────────────────────────────────────────────────
   static const IconData info = LucideIcons300.info;
+
+  /// The language setting.
+  static const IconData language = LucideIcons300.languages;
+
+  /// About's Help row.
+  static const IconData help = LucideIcons300.circleQuestionMark;
+
+  /// Help: a song missing from the library.
+  static const IconData helpMissingSong = LucideIcons300.searchX;
+
+  /// Help: playback stopped by the phone's battery saving.
+  static const IconData helpBattery = LucideIcons300.batteryWarning;
+
+  /// Help: moving to another phone.
+  static const IconData helpPhoneChange = LucideIcons300.smartphone;
   static const IconData error = LucideIcons300.circleAlert;
   static const IconData noResults = LucideIcons300.searchX;
   static const IconData highlight = LucideIcons300.sparkles;
@@ -149,6 +164,20 @@ abstract final class AppIcons {
   static const IconData backupFromFile = LucideIcons300.fileInput;
   static const IconData report = LucideIcons300.messageSquareWarning;
   static const IconData privacy = LucideIcons300.shieldCheck;
+  static const IconData sourceCode = LucideIcons300.codeXml;
+
+  /// Settings categories at the root of Settings.
+  static const IconData settingsAudio = LucideIcons300.audioLines;
+  static const IconData settingsOnline = LucideIcons300.globe;
+  static const IconData settingsAppearance = LucideIcons300.palette;
+  static const IconData settingsStorage = LucideIcons300.hardDrive;
+  static const IconData settingsAbout = LucideIcons300.info;
   static const IconData licenses = LucideIcons300.scrollText;
+  static const IconData minTrackLength = LucideIcons300.hourglass;
+  static const IconData libraryFolders = LucideIcons300.folderTree;
+  static const IconData historyPause = LucideIcons300.history;
+  static const IconData keepShuffle = LucideIcons300.shuffle;
+  static const IconData lyricsScreenOn = LucideIcons300.sunMedium;
+  static const IconData folder = LucideIcons300.folder;
   static const IconData storageAccess = LucideIcons300.folderLock;
 }

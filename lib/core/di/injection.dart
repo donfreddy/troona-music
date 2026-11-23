@@ -59,9 +59,11 @@ import 'package:troona/features/library/data/repositories/artist_detail_reposito
 import 'package:troona/features/library/data/repositories/library_repository_impl.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
+import 'package:troona/features/library/domain/entities/scan_filter.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_albums_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_artists_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/get_likes_playlist_use_case.dart';
@@ -168,7 +170,15 @@ Future<void> configureDependencies() async {
   }
 
   getIt.registerLazySingleton<LocalAudioDataSource>(
-    () => OnAudioQueryDataSource(query: getIt()),
+    () => OnAudioQueryDataSource(
+      query: getIt(),
+      // Read at each scan. Settings are loaded before the first frame; if
+      // they could not be read, the defaults apply (nothing left out).
+      filter: () => switch (getIt<SettingsCubit>().state) {
+        SettingsLoaded(:final settings) => scanFilterOf(settings),
+        _ => const ScanFilter(),
+      },
+    ),
   );
 
   // ── Artwork cache directory ───────────────────────────────────────────────
@@ -237,7 +247,10 @@ Future<void> configureDependencies() async {
   AppHaptics.enabled = initialSettings.hapticFeedbackEnabled;
 
   final likeButton = AudioServiceInitializer.likeButton(
-    PlatformDispatcher.instance.locales,
+    AudioServiceInitializer.localesFor(
+      initialSettings.language,
+      PlatformDispatcher.instance.locales,
+    ),
   );
   // The handler is built before the player it resumes: it waits for it.
   final lastSession = Completer<ResumableSession>();
@@ -267,12 +280,24 @@ Future<void> configureDependencies() async {
         port: audioPort,
         recordPlay: RecordPlayUseCase(historyRepo),
         recordListening: RecordListeningUseCase(historyRepo),
+        // Read on each position: the switch applies at once. The cubit is
+        // registered further down; until then, the settings just loaded.
+        paused: () => getIt.isRegistered<SettingsCubit>()
+            ? switch (getIt<SettingsCubit>().state) {
+                SettingsLoaded(:final settings) => settings.historyPaused,
+                _ => initialSettings.historyPaused,
+              }
+            : initialSettings.historyPaused,
       )..start(),
     );
 
   // ── Repositories ──────────────────────────────────────────────────────────
   getIt.registerLazySingleton<LibraryRepository>(
     () => LibraryRepositoryImpl(cache: getIt(), scanner: getIt()),
+  );
+  // The same object: one source for the library and the songs left out.
+  getIt.registerLazySingleton<StoredTrackRepository>(
+    () => getIt<LibraryRepository>() as StoredTrackRepository,
   );
   getIt.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(db: getIt(), history: getIt()),
@@ -456,7 +481,11 @@ Future<void> configureDependencies() async {
   );
   await settingsCubit.load();
   getIt.registerSingleton<SettingsCubit>(settingsCubit);
-  getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
+  // Shared by the pages of Settings: a cache cleared on Storage shows on
+  // the root's row.
+  getIt.registerLazySingleton<MaintenanceCubit>(
+    () => MaintenanceCubit(getIt()),
+  );
   // Singleton: a restore keeps running after Settings closes, and reopening
   // it must not start a second task beside it.
   getIt.registerLazySingleton<BackupCubit>(
@@ -530,6 +559,10 @@ Future<void> configureDependencies() async {
       audioServicePort: getIt(),
       sessionStore: getIt(),
       getTracksByIds: getIt(),
+      keepShuffle: () => switch (getIt<SettingsCubit>().state) {
+        SettingsLoaded(:final settings) => settings.keepShuffle,
+        _ => const AppSettings().keepShuffle,
+      },
     ),
   );
   lastSession.complete(

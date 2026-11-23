@@ -25,6 +25,7 @@ import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playl
 import 'package:troona/features/playlist/presentation/widgets/playlist_detail_page.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import '../../helpers/fake_player.dart';
 
 /// One playlist, held in memory, reordered in place.
@@ -67,6 +68,7 @@ final class _NoLikes extends Fake implements LibraryRepository {
 }
 
 void main() {
+  late LibraryBloc libraryBloc;
   late TrackSelectionCubit selection;
   late PlaylistDetailBloc detail;
   late _Playlists repo;
@@ -89,12 +91,14 @@ void main() {
       isTrackLiked: IsTrackInLikesUseCase(likes),
       getLikesPlaylist: GetLikesPlaylistUseCase(likes),
     );
+    libraryBloc = idleLibraryBloc();
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
       unawaited(detail.close());
       unawaited(selection.close());
       unawaited(palette.close());
       unawaited(likesCubit.close());
+      unawaited(libraryBloc.close());
     });
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -104,6 +108,7 @@ void main() {
           BlocProvider<TrackSelectionCubit>.value(value: selection),
           BlocProvider<TrackPaletteCubit>.value(value: palette),
           BlocProvider<LikesCubit>.value(value: likesCubit),
+          BlocProvider<LibraryBloc>.value(value: libraryBloc),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
@@ -172,5 +177,27 @@ void main() {
     detail.add(const PlaylistDetailRequested('p'));
     await tester.pumpAndSettle();
     expect(picked(), ['b']);
+  });
+
+  testWidgets('a scan reloads the page, so a move counts on its rows', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.text('Title c'), findsOneWidget);
+    // A folder turned off took c out of the library.
+    repo.tracks.removeLast();
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+    libraryBloc.emit(
+      const LibraryLoaded(
+        allTracks: [],
+        allAlbums: [],
+        allArtists: [],
+        visibleTracks: [],
+        visibleAlbums: [],
+        visibleArtists: [],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Title c'), findsNothing);
   });
 }

@@ -77,8 +77,13 @@ final class MediaScannerService {
       return;
     }
 
-    // The artists each song credits, and the albums Android split.
-    TrackModel.link(scanned);
+    // The artists each song credits, and the albums Android split, among
+    // the songs of the library: one left out names no artist and joins no
+    // album until it is let back in, when the next scan links it.
+    TrackModel.link([
+      for (final t in scanned)
+        if (!t.excluded) t,
+    ]);
 
     // ── Phase 2: diff + index ───────────────────────────────────────────────
     yield ScanProgress(
@@ -128,6 +133,8 @@ final class MediaScannerService {
     }
 
     // ── Phase 3: artwork extraction ─────────────────────────────────────────
+    // Covers whose file the system deleted are extracted again.
+    await _cache.forgetMissingArtwork();
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     final artworkTotal = tracksWithoutArtwork.length;
 

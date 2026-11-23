@@ -1,3 +1,7 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
+import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
@@ -39,6 +43,7 @@ PlayerBloc buildTestPlayerBloc(
   AudioServicePort port,
   PlaybackSessionStore store, {
   LibraryRepository? library,
+  bool Function()? keepShuffle,
 }) {
   final repo = PortRepository(port);
   return PlayerBloc(
@@ -60,6 +65,7 @@ PlayerBloc buildTestPlayerBloc(
     audioServicePort: port,
     sessionStore: store,
     getTracksByIds: GetTracksByIdsUseCase(library ?? UnusedLibrary()),
+    keepShuffle: keepShuffle,
   );
 }
 
@@ -343,6 +349,17 @@ final class PortRepository implements PlayerRepository {
   @override
   dynamic noSuchMethod(Invocation invocation) =>
       Future<Either<Failure, Unit>>.value(const Right(unit));
+}
+
+/// A library bloc with nothing to read, for pages that only listen to it.
+LibraryBloc idleLibraryBloc() => LibraryBloc(
+  scanLibrary: ScanLibraryUseCase(_IdleLibrary()),
+  getTracks: GetTracksUseCase(_IdleLibrary()),
+);
+
+final class _IdleLibrary extends Fake implements LibraryRepository {
+  @override
+  void cancelScan() {}
 }
 
 final class UnusedLibrary implements LibraryRepository {

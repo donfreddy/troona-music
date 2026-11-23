@@ -15,7 +15,7 @@ import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.
 import 'package:troona/features/backup/domain/use_cases/run_auto_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/save_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
-import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 
 Backup _backup(Set<BackupPart> parts) => Backup(
   createdAt: DateTime.utc(2026, 11, 23),
@@ -136,7 +136,7 @@ final class _Preferences implements BackupPreferencesRepository {
   Future<void> setLastFailure(DateTime? at) async => lastFailure = at;
 }
 
-final class _Library extends Fake implements LibraryRepository {}
+final class _Library extends Fake implements StoredTrackRepository {}
 
 void main() {
   late _Backups backups;

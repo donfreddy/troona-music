@@ -173,10 +173,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsOnline => 'Online extras';
 
   @override
-  String get settingsOnlineFooter =>
-      'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song\'s title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
-
-  @override
   String get settingsOnlineBios => 'Artist bios and album notes';
 
   @override
@@ -265,11 +261,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsResetConfirmBody =>
       'All preferences go back to their defaults. Your library, likes and playlists stay as they are.';
-
-  @override
-  String settingsVersion(String version, String build) {
-    return 'Troona $version ($build)';
-  }
 
   @override
   String get settingsTagline => 'Made for the music you own.';
@@ -1343,9 +1334,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'The whole app follows your phone\'s language.';
-
-  @override
-  String get settingsBackup => 'Backup';
 
   @override
   String get settingsBackupFooter =>
@@ -2662,4 +2650,362 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyLyricsBody =>
       'When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.';
+
+  @override
+  String get settingsAudio => 'Audio';
+
+  @override
+  String get settingsAudioSummary => 'Equalizer, shuffle, lyrics, calls';
+
+  @override
+  String get settingsAudioIntro =>
+      'How Troona sounds and plays, and what it does when your phone needs the speaker for something else.';
+
+  @override
+  String get settingsSound => 'Sound';
+
+  @override
+  String get settingsInterruptions => 'Interruptions';
+
+  @override
+  String get settingsListening => 'Listening';
+
+  @override
+  String get settingsKeepShuffle => 'Keep shuffle on';
+
+  @override
+  String get settingsKeepShuffleSubtitle =>
+      'A list you start stays shuffled while shuffle is on. Off, lists play in order and only the Shuffle button shuffles them.';
+
+  @override
+  String get settingsLyricsScreenOn => 'Screen on with lyrics';
+
+  @override
+  String get settingsLyricsScreenOnSubtitle =>
+      'The screen stays on while lyrics show and the song plays.';
+
+  @override
+  String get settingsDuckSubtitle =>
+      'When a notification or a GPS voice speaks, the music gets quieter instead of pausing.';
+
+  @override
+  String get settingsPauseOnCallSubtitle =>
+      'During a call, or while another app plays sound.';
+
+  @override
+  String get settingsResumeAfterCallSubtitle =>
+      'Once a call or a short interruption is over.';
+
+  @override
+  String get settingsAudioFooter =>
+      'Unplugging headphones always pauses the music.';
+
+  @override
+  String get settingsLibrarySummary =>
+      'Songs on this phone, filters, rescan, history';
+
+  @override
+  String get settingsLibraryIntro =>
+      'The songs Troona found on this phone, what it leaves out, and whether your listening is recorded.';
+
+  @override
+  String get settingsLibraryContents => 'In your library';
+
+  @override
+  String get settingsScan => 'Scan';
+
+  @override
+  String get settingsScanFooter =>
+      'Troona reads the songs your phone lists as music. Ringtones, notifications and voice notes are always left out.';
+
+  @override
+  String get settingsOnlineOff => 'Off';
+
+  @override
+  String settingsOnlineOn(String parts) {
+    return 'On: $parts';
+  }
+
+  @override
+  String get settingsOnlineBiosShort => 'bios';
+
+  @override
+  String get settingsOnlinePhotosShort => 'photos';
+
+  @override
+  String get settingsOnlineLyricsShort => 'lyrics';
+
+  @override
+  String get settingsOnlineIntro =>
+      'Optional, and off until you turn them on. Each one says what it sends, and where.';
+
+  @override
+  String get settingsOnlineBiosSubtitle =>
+      'From Last.fm, with artist and album names.';
+
+  @override
+  String get settingsOnlinePhotosSubtitle =>
+      'From Deezer, with artist and album names and a few song titles.';
+
+  @override
+  String get settingsOnlineLyricsSubtitle =>
+      'From LRCLIB, then lyrics.ovh, when you open a song\'s lyrics.';
+
+  @override
+  String get settingsOnlinePageFooter =>
+      'Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.';
+
+  @override
+  String get settingsPrivacySection => 'Privacy';
+
+  @override
+  String get settingsAppearanceSummary => 'Language, glass effects, haptics';
+
+  @override
+  String get settingsAppearanceIntro =>
+      'Troona\'s language, how it looks, and how it answers your touch.';
+
+  @override
+  String get settingsTouch => 'Touch';
+
+  @override
+  String get settingsHapticsSubtitle =>
+      'Light vibrations when you tap, pick or like.';
+
+  @override
+  String get settingsApp => 'App';
+
+  @override
+  String get settingsStorage => 'Storage';
+
+  @override
+  String settingsStorageSummary(String size) {
+    return 'Cache $size, reset';
+  }
+
+  @override
+  String get settingsStorageSummaryPending => 'Cache, reset';
+
+  @override
+  String get settingsStorageIntro =>
+      'What Troona keeps on this phone besides your music, and how to start over.';
+
+  @override
+  String get settingsCache => 'Cache';
+
+  @override
+  String get settingsOnlineClearSubtitle =>
+      'Bios, photos and lyrics found online. Imported lyrics stay.';
+
+  @override
+  String get settingsForgetQueueSubtitle =>
+      'Stops the music and forgets the queue and where you were.';
+
+  @override
+  String get settingsResetSettingsSubtitle =>
+      'Every preference back to its default. Your library, likes and playlists stay.';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String settingsAboutSummary(String version) {
+    return 'Version $version, what\'s new, updates';
+  }
+
+  @override
+  String get settingsAboutSummaryPending => 'What\'s new, updates';
+
+  @override
+  String aboutVersion(String version, String build) {
+    return 'Version $version ($build)';
+  }
+
+  @override
+  String get aboutUpdates => 'Updates';
+
+  @override
+  String get aboutInformation => 'Information';
+
+  @override
+  String get aboutSource => 'Source code';
+
+  @override
+  String get aboutSourceSubtitle => 'On GitHub';
+
+  @override
+  String get settingsOnlineSources => 'Sources';
+
+  @override
+  String get settingsFilters => 'Filters';
+
+  @override
+  String get settingsMinLength => 'Shortest song';
+
+  @override
+  String get settingsMinLengthSubtitle =>
+      'Shorter files stay out of your library.';
+
+  @override
+  String durationSecondsShort(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get settingsFolders => 'Folders';
+
+  @override
+  String get settingsFoldersAll => 'Every folder is in your library';
+
+  @override
+  String settingsFoldersExcluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders left out',
+      one: '1 folder left out',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsFoldersIntro =>
+      'Songs in a folder turned off leave your library, with its subfolders. Turn it back on and they come back with their likes, plays and playlists.';
+
+  @override
+  String get settingsFoldersFooter =>
+      'At least one song stays in your library.';
+
+  @override
+  String get settingsFoldersEmpty => 'No folders yet: your library is empty.';
+
+  @override
+  String get settingsHistory => 'Listening history';
+
+  @override
+  String get settingsHistoryPause => 'Pause listening history';
+
+  @override
+  String get settingsHistoryPauseSubtitle =>
+      'Plays are not recorded. Recently played, Your listening, play counts and smart playlists leave them out.';
+
+  @override
+  String get settingsHistoryFooter =>
+      'The history already recorded stays as it is.';
+
+  @override
+  String get settingsLibrarySummaryPaused => 'Listening history paused';
+
+  @override
+  String settingsFolderCoveredBy(String folder) {
+    return 'Left out with $folder';
+  }
+
+  @override
+  String get settingsFolderInPhone => 'Phone';
+
+  @override
+  String get settingsFolderInSdCard => 'SD card';
+
+  @override
+  String get settingsFoldersSection => 'Folders with music';
+
+  @override
+  String get licensesIntro =>
+      'Troona is built with open-source software. Thank you to the people who make it.';
+
+  @override
+  String get licensesOwnTerms => 'Its own terms';
+
+  @override
+  String get licensesNotFound => 'This license is no longer listed.';
+
+  @override
+  String get settingsLicensesSubtitle => 'The software Troona is built with';
+
+  @override
+  String licensesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count licenses',
+      one: '1 license',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsMinLengthTooLong =>
+      'No song in your library is that long: it would be empty.';
+
+  @override
+  String get settingsFiltersNotApplied =>
+      'No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.';
+
+  @override
+  String get helpTitle => 'Help';
+
+  @override
+  String get helpSubtitle => 'Missing songs, playback, lyrics, a new phone';
+
+  @override
+  String get helpIntro =>
+      'Answers to the questions that come up most, each with the setting that settles it.';
+
+  @override
+  String get helpLibrarySection => 'Library';
+
+  @override
+  String get helpMissingSong => 'A song is missing';
+
+  @override
+  String get helpMissingSongAnswer =>
+      'Troona lists the songs Android knows about. A folder turned off or the Shortest song length may leave it out; a file just copied shows after Rescan library.';
+
+  @override
+  String get helpPlaybackSection => 'Playback';
+
+  @override
+  String get helpStopsInBackground => 'Music stops with the screen off';
+
+  @override
+  String get helpStopsInBackgroundAnswer =>
+      'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, let it use the battery without restrictions (the wording depends on the phone).';
+
+  @override
+  String get helpOnlineSection => 'Online extras';
+
+  @override
+  String get helpNoLyrics => 'A song has no lyrics';
+
+  @override
+  String get helpNoLyricsAnswer =>
+      'Turn on Song lyrics to look them up online. Or, playing the song, open Lyrics in Now Playing and choose Import a .lrc file.';
+
+  @override
+  String get helpArtistInfo => 'Artist photos and bios';
+
+  @override
+  String get helpArtistInfoAnswer =>
+      'They come from Deezer and Last.fm, only once you turn them on: until then, nothing about your artists leaves your phone.';
+
+  @override
+  String get helpBackupSection => 'Backup';
+
+  @override
+  String get helpNewPhone => 'Moving to a new phone';
+
+  @override
+  String get helpNewPhoneAnswer =>
+      'Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageSubtitle =>
+      'System follows your phone\'s language.';
+
+  @override
+  String get settingsLanguageSystem => 'System';
 }

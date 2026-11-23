@@ -64,30 +64,42 @@ void main() {
         .extractArtworks([for (var i = 1; i <= 6; i++) _track(i)])
         .listen(results.add, onDone: done.complete);
     await _until(() => query.gates.length == 4, 'four slots');
-    // Settled: no fifth query starts while the four wait.
+    // Settled: no fifth query starts while the four wait. Which four start
+    // first depends on the cache checks before them, real file reads that
+    // may end in any order.
     await pumpEventQueue();
-    expect(query.gates.keys, [1, 2, 3, 4], reason: 'four slots');
+    expect(query.gates, hasLength(4), reason: 'four slots');
 
-    query.gates[1]!.complete(Uint8List.fromList([1, 2, 3]));
+    final first = query.gates.keys.first;
+    final waiting = query.gates.keys.skip(1).toList();
+    query.gates[first]!.complete(Uint8List.fromList([1, 2, 3]));
     await _until(() => results.isNotEmpty, 'the first cover written');
-    expect(results.map((r) => r.deviceId), ['1']);
-    await _until(() => query.gates.containsKey(5), 'the slot handed over');
-    expect(query.gates[2]!.isCompleted, isFalse, reason: 'still waiting');
+    expect(results.map((r) => r.deviceId), ['$first']);
+    await _until(() => query.gates.length == 5, 'the slot handed over');
+    for (final id in waiting) {
+      expect(query.gates[id]!.isCompleted, isFalse, reason: 'still waiting');
+    }
 
-    for (final id in [2, 3, 4, 5]) {
+    for (final id in query.gates.keys.skip(1).toList()) {
       query.gates[id]!.complete(null);
     }
-    await _until(() => query.gates.containsKey(6), 'the last track');
-    query.gates[6]!.completeError(StateError('decoder'));
+    await _until(() => query.gates.length == 6, 'the last track');
+    final last = query.gates.keys.last;
+    query.gates[last]!.completeError(StateError('decoder'));
     await done.future;
 
     expect(query.maxRunning, 4);
     final byId = {for (final r in results) r.deviceId: r};
-    expect(byId['1']!.artworkPath, '${dir.path}/1.jpg');
-    expect(byId['1']!.checked, isTrue);
-    expect(byId['2']!.artworkPath, isNull);
-    expect(byId['2']!.checked, isTrue, reason: 'no cover is an answer');
-    expect(byId['6']!.checked, isFalse, reason: 'an error is retried later');
+    expect(byId['$first']!.artworkPath, '${dir.path}/$first.jpg');
+    expect(byId['$first']!.checked, isTrue);
+    final empty = waiting.first;
+    expect(byId['$empty']!.artworkPath, isNull);
+    expect(byId['$empty']!.checked, isTrue, reason: 'no cover is an answer');
+    expect(
+      byId['$last']!.checked,
+      isFalse,
+      reason: 'an error is retried later',
+    );
   });
 
   test('a cached file short-circuits the platform query', () async {
@@ -95,6 +107,21 @@ void main() {
     final results = await extractor.extractArtworks([_track(7)]).toList();
     expect(query.gates, isEmpty);
     expect(results.single.artworkPath, '${dir.path}/7.jpg');
+  });
+
+  test('a cache folder the system deleted is made again', () async {
+    await dir.delete(recursive: true);
+    final results = <ArtworkResult>[];
+    final done = Completer<void>();
+    extractor
+        .extractArtworks([_track(8)])
+        .listen(results.add, onDone: done.complete);
+    await _until(() => query.gates.containsKey(8), 'the query');
+    query.gates[8]!.complete(Uint8List.fromList([1]));
+    await done.future;
+
+    expect(results.single.checked, isTrue);
+    expect(File('${dir.path}/8.jpg').existsSync(), isTrue);
   });
 
   test('an empty list closes the stream', () async {

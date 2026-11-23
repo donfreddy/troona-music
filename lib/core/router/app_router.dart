@@ -31,7 +31,16 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
 import 'package:troona/features/backup/presentation/pages/backup_page.dart';
+import 'package:troona/features/settings/presentation/pages/about_page.dart';
+import 'package:troona/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
+import 'package:troona/features/settings/presentation/pages/help_page.dart';
+import 'package:troona/features/settings/presentation/pages/licenses_page.dart';
+import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
+import 'package:troona/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/tab_reselect.dart';
@@ -48,6 +57,16 @@ abstract class AppRoute {
   static const settings = 'settings';
   static const privacy = 'privacy';
   static const backup = 'backup';
+  static const settingsAudio = 'settings_audio';
+  static const settingsLibrary = 'settings_library';
+  static const settingsOnline = 'settings_online';
+  static const settingsAppearance = 'settings_appearance';
+  static const settingsStorage = 'settings_storage';
+  static const settingsAbout = 'settings_about';
+  static const settingsFolders = 'settings_folders';
+  static const settingsLicenses = 'settings_licenses';
+  static const settingsHelp = 'settings_help';
+  static const settingsLicense = 'settings_license';
   static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
@@ -60,6 +79,27 @@ abstract class AppRoute {
 /// its own gets a copy, or the page below would show through it while it
 /// slides in. Album, artist and playlist pages paint their own.
 Widget _overTab(Widget page) => AmbientBackground(child: page);
+
+/// A page of Settings, with what its rows read and change: singletons, so
+/// a change on one page shows on the others (a cache cleared, on the
+/// root's row).
+Widget _settingsPage(Widget page) => _overTab(
+  MultiBlocProvider(
+    providers: [
+      BlocProvider.value(value: getIt<SettingsCubit>()),
+      BlocProvider.value(value: getIt<MaintenanceCubit>()),
+      BlocProvider.value(value: getIt<BackupCubit>()),
+      BlocProvider.value(value: getIt<UpdateCubit>()),
+    ],
+    child: page,
+  ),
+);
+
+GoRoute _settingsRoute(String name, Widget page) => GoRoute(
+  path: name.replaceFirst('settings_', ''),
+  name: name,
+  builder: (_, _) => _settingsPage(page),
+);
 
 GoRoute _buildAlbumDetailRoute({String? name}) => GoRoute(
   path: 'albums/:id',
@@ -204,9 +244,7 @@ final appRouter = GoRouter(
                         BlocProvider.value(
                           value: getIt<SettingsCubit>()..retryIfFailed(),
                         ),
-                        BlocProvider(
-                          create: (_) => getIt<MaintenanceCubit>()..load(),
-                        ),
+                        BlocProvider.value(value: getIt<MaintenanceCubit>()),
                         BlocProvider.value(value: getIt<BackupCubit>()),
                         BlocProvider.value(value: getIt<UpdateCubit>()),
                       ],
@@ -214,6 +252,58 @@ final appRouter = GoRouter(
                     ),
                   ),
                   routes: [
+                    _settingsRoute(
+                      AppRoute.settingsAudio,
+                      const AudioSettingsPage(),
+                    ),
+                    GoRoute(
+                      path: 'library',
+                      name: AppRoute.settingsLibrary,
+                      builder: (_, _) =>
+                          _settingsPage(LibrarySettingsPage(stored: getIt())),
+                    ),
+                    // Built on each visit: its repository is resolved
+                    // when the page opens, not when the router is made.
+                    GoRoute(
+                      path: 'folders',
+                      name: AppRoute.settingsFolders,
+                      builder: (_, _) =>
+                          _settingsPage(LibraryFoldersPage(stored: getIt())),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsOnline,
+                      const OnlineSettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsAppearance,
+                      const AppearanceSettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsStorage,
+                      const StorageSettingsPage(),
+                    ),
+                    _settingsRoute(AppRoute.settingsAbout, const AboutPage()),
+                    _settingsRoute(AppRoute.settingsHelp, const HelpPage()),
+                    GoRoute(
+                      path: 'licenses',
+                      name: AppRoute.settingsLicenses,
+                      builder: (_, _) => _overTab(const LicensesPage()),
+                      routes: [
+                        GoRoute(
+                          path: ':index',
+                          name: AppRoute.settingsLicense,
+                          builder: (_, state) => _overTab(
+                            LicenseDetailPage(
+                              index:
+                                  int.tryParse(
+                                    state.pathParameters['index'] ?? '',
+                                  ) ??
+                                  -1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     GoRoute(
                       path: AppRoute.privacy,
                       name: AppRoute.privacy,
@@ -337,8 +427,12 @@ final appRouter = GoRouter(
         // chrome, stage) while the heroes fly, so two screens never show
         // on top of each other.
         transitionsBuilder: (_, _, _, child) => child,
-        child: BlocProvider<PlayerBloc>.value(
-          value: getIt<PlayerBloc>(),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
+            // Whether the lyrics keep the screen on.
+            BlocProvider.value(value: getIt<SettingsCubit>()),
+          ],
           child: FullPlayerPage(
             morphFromMini: state.extra != FullPlayerPage.noMorph,
           ),

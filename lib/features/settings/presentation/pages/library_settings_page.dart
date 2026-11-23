@@ -1,0 +1,236 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/router/app_router.dart';
+import 'package:troona/core/theme/semantic/app_icons.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_builder.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
+import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/app_toast.dart';
+
+LibraryLoaded? _loaded(LibraryState state) => switch (state) {
+  LibraryLoaded() => state,
+  LibraryScanning(:final cached?) => cached,
+  _ => null,
+};
+
+(int, int, int)? _counts(LibraryState state) => switch (_loaded(state)) {
+  final l? => (l.allTracks.length, l.allAlbums.length, l.allArtists.length),
+  null => null,
+};
+
+/// What the library holds, what scans leave out, and scanning the phone
+/// again.
+class LibrarySettingsPage extends StatelessWidget {
+  /// Every stored song, the ones left out included: what the scanner
+  /// applies the filters to.
+  final StoredTrackRepository stored;
+
+  const LibrarySettingsPage({super.key, required this.stored});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SettingsSubpage(
+      title: l10n.settingsLibrary,
+      intro: l10n.settingsLibraryIntro,
+      children: [
+        BlocBuilder<LibraryBloc, LibraryState>(
+          // A scan's progress emits often: only a start, an end or other
+          // counts redraw the page.
+          buildWhen: (previous, current) =>
+              (previous is LibraryScanning) != (current is LibraryScanning) ||
+              _counts(previous) != _counts(current),
+          builder: (context, state) {
+            final library = _loaded(state);
+            final scanning = state is LibraryScanning;
+            return Column(
+              children: [
+                if (library != null)
+                  SettingsSection(
+                    title: l10n.settingsLibraryContents,
+                    children: [
+                      SettingsTile(
+                        icon: AppIcons.library,
+                        iconColor: SettingsHue.library,
+                        title: l10n.songCount(library.allTracks.length),
+                        subtitle: [
+                          l10n.albumCount(library.allAlbums.length),
+                          l10n.artistCount(library.allArtists.length),
+                        ].join(', '),
+                      ),
+                    ],
+                  ),
+                _Filters(stored: stored),
+                SettingsSection(
+                  title: l10n.settingsScan,
+                  footer: l10n.settingsScanFooter,
+                  children: [
+                    SettingsTile(
+                      icon: AppIcons.refresh,
+                      iconColor: SettingsHue.library,
+                      title: l10n.settingsRescan,
+                      subtitle: scanning
+                          ? l10n.settingsRescanning
+                          : l10n.settingsRescanSubtitle,
+                      trailing: scanning
+                          ? const CupertinoActivityIndicator()
+                          : null,
+                      onTap: scanning
+                          ? null
+                          : () => context.read<LibraryBloc>().add(
+                              const LibraryRefreshRequested(),
+                            ),
+                    ),
+                  ],
+                ),
+                const _History(),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// The shortest song kept and the folders left out. A change rescans the
+/// library once the choice settles (`ScanFilterWatch`).
+class _Filters extends StatefulWidget {
+  final StoredTrackRepository stored;
+
+  const _Filters({required this.stored});
+
+  @override
+  State<_Filters> createState() => _FiltersState();
+}
+
+class _FiltersState extends State<_Filters> {
+  /// The stored songs, read again after each scan.
+  List<Track>? _stored;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_read());
+  }
+
+  Future<void> _read() async {
+    final result = await widget.stored.getStoredTracks();
+    if (!mounted) return;
+    setState(() => _stored = result.fold((_) => _stored, (t) => t.all));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return BlocListener<LibraryBloc, LibraryState>(
+      listenWhen: (previous, current) =>
+          current is LibraryLoaded &&
+          !identical(_loaded(previous)?.allTracks, current.allTracks),
+      listener: (_, _) => unawaited(_read()),
+      child: _section(context, l10n),
+    );
+  }
+
+  Widget _section(BuildContext context, AppLocalizations l10n) {
+    return SettingsBuilder(
+      builder: (context, settings) {
+        final cubit = context.read<SettingsCubit>();
+        final excluded = settings.excludedFolders.length;
+        // The scanner applies none of the filters when they would leave
+        // out every stored song (a restore's folders, a length chosen
+        // while scanning).
+        final stored = _stored;
+        final notApplied =
+            stored != null && scanFilterOf(settings).leavesOutEvery(stored);
+        return SettingsSection(
+          title: l10n.settingsFilters,
+          footer: notApplied ? l10n.settingsFiltersNotApplied : null,
+          children: [
+            SegmentedRow<int>(
+              label: l10n.settingsMinLength,
+              subtitle: l10n.settingsMinLengthSubtitle,
+              icon: AppIcons.minTrackLength,
+              iconColor: SettingsHue.library,
+              values: AppSettings.minTrackChoices,
+              labels: [
+                for (final s in AppSettings.minTrackChoices)
+                  s < 60
+                      ? l10n.durationSecondsShort(s)
+                      : l10n.durationMinutes(s ~/ 60),
+              ],
+              selected: settings.minTrackSeconds,
+              onChanged: (seconds) {
+                // A length no song reaches would empty the library: the
+                // scanner would not apply it, so it is not taken.
+                final songs =
+                    _stored ??
+                    _loaded(context.read<LibraryBloc>().state)?.allTracks;
+                final empties =
+                    seconds > settings.minTrackSeconds &&
+                    songs != null &&
+                    !songs.any((t) => t.durationMs >= seconds * 1000);
+                if (empties) {
+                  AppToast.show(context, l10n.settingsMinLengthTooLong);
+                  return;
+                }
+                unawaited(cubit.setMinTrackSeconds(seconds));
+              },
+            ),
+            SettingsTile.navigation(
+              icon: AppIcons.libraryFolders,
+              iconColor: SettingsHue.library,
+              title: l10n.settingsFolders,
+              subtitle: excluded == 0
+                  ? l10n.settingsFoldersAll
+                  : l10n.settingsFoldersExcluded(excluded),
+              onTap: () => context.pushNamed(AppRoute.settingsFolders),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Pausing the listening history: the recorder reads the switch on each
+/// position, so it applies at once.
+class _History extends StatelessWidget {
+  const _History();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SettingsBuilder(
+      builder: (context, settings) => SettingsSection(
+        title: l10n.settingsHistory,
+        footer: l10n.settingsHistoryFooter,
+        children: [
+          SettingsTile.switchTile(
+            icon: AppIcons.historyPause,
+            iconColor: SettingsHue.library,
+            title: l10n.settingsHistoryPause,
+            subtitle: l10n.settingsHistoryPauseSubtitle,
+            value: settings.historyPaused,
+            onChanged: (value) => unawaited(
+              context.read<SettingsCubit>().setHistoryPaused(value),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

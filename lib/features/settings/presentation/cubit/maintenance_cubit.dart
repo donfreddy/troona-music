@@ -10,12 +10,31 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
 
   MaintenanceCubit(this._repo) : super(const MaintenanceState());
 
-  Future<void> load() async {
+  /// The measure running: the root and Storage both ask on opening.
+  Future<void>? _loading;
+
+  /// Counts the clears that finished: a measure that saw one finish, or
+  /// ends while one runs, may have walked files being deleted.
+  int _cleared = 0;
+
+  /// Reads the version and measures the caches. One measure at a time; one
+  /// that overlapped a clear keeps the version only, or it would show the
+  /// size the clear just removed.
+  Future<void> load() =>
+      _loading ??= _load().whenComplete(() => _loading = null);
+
+  Future<void> _load() async {
+    final cleared = _cleared;
     final (version, sizes) = (
       await _repo.appVersion(),
       await _repo.cacheSizes(),
     );
-    _emitIfOpen(state.copyWith(version: version, sizes: sizes));
+    _emitIfOpen(
+      state.copyWith(
+        version: version,
+        sizes: cleared == _cleared && !state.busy ? sizes : state.sizes,
+      ),
+    );
   }
 
   /// True when the covers were cleared. The caller starts a rescan either
@@ -27,7 +46,9 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    final sizes = await _repo.cacheSizes();
+    _cleared++;
+    _emitIfOpen(state.copyWith(busy: false, sizes: sizes));
     return result.isRight();
   }
 
@@ -38,7 +59,9 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    final sizes = await _repo.cacheSizes();
+    _cleared++;
+    _emitIfOpen(state.copyWith(busy: false, sizes: sizes));
     return result.isRight();
   }
 

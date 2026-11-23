@@ -32,6 +32,7 @@ import 'package:troona/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:troona/shared/widgets/artwork_image.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
+import '../../helpers/test_settings.dart';
 import '../../helpers/fake_player.dart';
 
 final class _NoLikes implements LibraryRepository {
@@ -82,6 +83,8 @@ void main() {
     );
     final palette = TrackPaletteCubit();
     final sleep = SleepTimerCubit(port: port);
+    final settings = await loadedSettings();
+    addTearDown(settings.close);
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
       unawaited(bloc.close());
@@ -104,6 +107,7 @@ void main() {
           BlocProvider.value(value: likes),
           BlocProvider.value(value: palette),
           BlocProvider.value(value: sleep),
+          BlocProvider.value(value: settings),
         ],
         child: MaterialApp(
           navigatorKey: navigator,

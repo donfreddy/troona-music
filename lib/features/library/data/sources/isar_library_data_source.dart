@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
@@ -47,25 +49,54 @@ class IsarLibraryDataSource {
     return tracks.map((t) => t.deviceId).toSet();
   }
 
-  /// Returns every cached [TrackModel], ordered by Isar insertion ID.
+  /// The device ids of the library's songs, the ones left out skipped.
+  Future<Set<String>> getLibraryDeviceIds() async => _isar.trackModels
+      .where()
+      .not()
+      .excludedEqualTo(true)
+      .deviceIdProperty()
+      .findAll()
+      .toSet();
+
+  /// Returns every [TrackModel] of the library, ordered by Isar insertion
+  /// ID. Like every read here, it skips the songs the user's scan filter
+  /// leaves out ([TrackModel.excluded]); [getStoredTracks] keeps them.
   Future<List<TrackModel>> getAllTracks() async =>
+      _isar.trackModels.where().not().excludedEqualTo(true).findAll();
+
+  /// Every stored row, the songs left out included: what a backup names, a
+  /// restore matches and the folders page counts.
+  Future<List<TrackModel>> getStoredTracks() async =>
       _isar.trackModels.where().findAll();
 
-  /// Returns the total number of tracks in the cache.
-  Future<int> countTracks() async => _isar.trackModels.count();
+  /// Returns the number of tracks in the library.
+  Future<int> countTracks() async =>
+      _isar.trackModels.where().not().excludedEqualTo(true).count();
 
   /// Case-insensitive search across [TrackModel.title] and [TrackModel.artist].
   /// Artists and albums are searched among the ones the library groups.
   Future<List<TrackModel>> searchTracks(String query) async => _isar.trackModels
       .where()
-      .titleContains(query, caseSensitive: false)
-      .or()
-      .artistContains(query, caseSensitive: false)
+      .not()
+      .excludedEqualTo(true)
+      .and()
+      .group(
+        (q) => q
+            .titleContains(query, caseSensitive: false)
+            .or()
+            .artistContains(query, caseSensitive: false),
+      )
       .findAll();
 
-  /// Returns tracks the artwork extractor has not looked at yet.
-  Future<List<TrackModel>> getTracksWithoutArtwork() async =>
-      _isar.trackModels.where().artworkCheckedEqualTo(false).findAll();
+  /// Returns tracks the artwork extractor has not looked at yet; a song
+  /// left out waits until it is let back in.
+  Future<List<TrackModel>> getTracksWithoutArtwork() async => _isar.trackModels
+      .where()
+      .artworkCheckedEqualTo(false)
+      .and()
+      .not()
+      .excludedEqualTo(true)
+      .findAll();
 
   /// Returns the artwork path for a single track by [deviceId], or null.
   Future<String?> getArtworkPathById(String deviceId) async => _isar.trackModels
@@ -257,7 +288,10 @@ class IsarLibraryDataSource {
         .where()
         .anyOf(ids, (q, id) => q.deviceIdEqualTo(id))
         .findAll();
-    final map = {for (final t in tracks) t.deviceId: t};
+    final map = {
+      for (final t in tracks)
+        if (!t.excluded) t.deviceId: t,
+    };
     return [
       for (final id in ids)
         if (map.containsKey(id)) map[id]!,
@@ -269,9 +303,13 @@ class IsarLibraryDataSource {
   Future<List<TrackModel>> getTracksByArtistId(int artistId) async => _isar
       .trackModels
       .where()
-      .artistIdsElementEqualTo(artistId)
-      .or()
-      .artistIdEqualTo(artistId)
+      .not()
+      .excludedEqualTo(true)
+      .and()
+      .group(
+        (q) =>
+            q.artistIdsElementEqualTo(artistId).or().artistIdEqualTo(artistId),
+      )
       .findAll();
 
   /// Returns every track of the albums in which the artist [artistId] is
@@ -283,6 +321,9 @@ class IsarLibraryDataSource {
     if (albumIds.isEmpty) return const [];
     return _isar.trackModels
         .where()
+        .not()
+        .excludedEqualTo(true)
+        .and()
         .anyOf(albumIds, (q, id) => q.albumIdEqualTo(id))
         .sortByTrackNumber()
         .findAll();
@@ -293,6 +334,9 @@ class IsarLibraryDataSource {
       .trackModels
       .where()
       .albumIdEqualTo(albumId)
+      .and()
+      .not()
+      .excludedEqualTo(true)
       .sortByTrackNumber()
       .findAll();
 
@@ -381,8 +425,13 @@ class IsarLibraryDataSource {
 
   /// Returns up to [limit] most-recently-indexed tracks, sorted by
   /// [TrackModel.indexedAt] descending (newest first).
-  Future<List<TrackModel>> getRecentTracks({int limit = 20}) async =>
-      _isar.trackModels.where().sortByIndexedAtDesc().findAll(limit: limit);
+  Future<List<TrackModel>> getRecentTracks({int limit = 20}) async => _isar
+      .trackModels
+      .where()
+      .not()
+      .excludedEqualTo(true)
+      .sortByIndexedAtDesc()
+      .findAll(limit: limit);
 
   // ---------------------------------------------------------------------------
   // Write operations  (wrapped in Isar.write for atomicity)
@@ -454,6 +503,54 @@ class IsarLibraryDataSource {
         updated.add(track);
       }
       isar.trackModels.putAll(updated);
+    });
+  }
+
+  /// Hands back to the extractor the songs whose cover file is gone: the
+  /// covers live in the app's cache directory, which Android may empty
+  /// (low storage, "Clear cache" in the system settings) while the rows
+  /// still name them. Without this they would show no cover for good,
+  /// marked as checked. Returns how many were reset.
+  Future<int> forgetMissingArtwork() async {
+    final rows = _isar.trackModels.where().artworkPathIsNotNull().findAll();
+    // One listing per folder (they all share the cache's), not one check
+    // per song: a library of thousands would queue thousands of them.
+    final present = <String>{};
+    // A folder that cannot be read says nothing of its files: its covers
+    // are kept, and the scan goes on.
+    final unread = <String>{};
+    for (final folder in {
+      for (final r in rows) File(r.artworkPath!).parent.path,
+    }) {
+      final dir = Directory(folder);
+      try {
+        if (!await dir.exists()) continue;
+        await for (final entry in dir.list(followLinks: false)) {
+          present.add(entry.path);
+        }
+      } on FileSystemException {
+        unread.add(folder);
+      }
+    }
+    final gone = {
+      for (final row in rows)
+        if (!present.contains(File(row.artworkPath!).path) &&
+            !unread.contains(File(row.artworkPath!).parent.path))
+          row.id: row.artworkPath,
+    };
+    if (gone.isEmpty) return 0;
+    // Read again inside the write: a row changed during the checks keeps
+    // its changes, and one given a new cover meanwhile keeps it.
+    return _isar.write((isar) {
+      final reset = [
+        for (final row in isar.trackModels.getAll(gone.keys.toList()))
+          if (row != null && row.artworkPath == gone[row.id])
+            row
+              ..artworkPath = null
+              ..artworkChecked = false,
+      ];
+      isar.trackModels.putAll(reset);
+      return reset.length;
     });
   }
 

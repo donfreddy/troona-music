@@ -67,6 +67,11 @@ class TrackModel {
   DateTime? dateAdded;
   DateTime? dateModified;
 
+  /// Left out of the library by the user's scan filter (a folder turned off,
+  /// shorter than the length kept). The row stays, so backups still name
+  /// the song and a restore still finds it; every library read skips it.
+  bool excluded = false;
+
   /// Timestamp of first insertion into the Isar cache.
   ///
   /// Indexed for efficient descending sort in [IsarLibraryDataSource.getRecentTracks].
@@ -196,6 +201,7 @@ class TrackModel {
         composer != scanned.composer ||
         dateAdded != scanned.dateAdded ||
         dateModified != scanned.dateModified ||
+        excluded != scanned.excluded ||
         !_sameList(artistIds, scanned.artistIds) ||
         !_sameList(artistNames, scanned.artistNames);
     if (!changed) return false;
@@ -218,6 +224,7 @@ class TrackModel {
     composer = scanned.composer;
     dateAdded = scanned.dateAdded;
     dateModified = scanned.dateModified;
+    excluded = scanned.excluded;
     return true;
   }
 

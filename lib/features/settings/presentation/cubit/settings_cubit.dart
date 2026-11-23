@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/features/library/domain/entities/scan_filter.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
@@ -11,6 +12,12 @@ part 'settings_state.dart';
 /// App-wide singleton: Home's offer card and the Settings page share one
 /// state. A per-screen instance saved a stale copy of every setting over
 /// changes made elsewhere.
+/// What scans leave out, as the library reads it.
+ScanFilter scanFilterOf(AppSettings s) => ScanFilter(
+  minDurationMs: s.minTrackSeconds * 1000,
+  excludedFolders: s.excludedFolders.toSet(),
+);
+
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repo;
 
@@ -125,6 +132,29 @@ class SettingsCubit extends Cubit<SettingsState> {
     return _update((s) => s.copyWith(hapticFeedbackEnabled: value));
   }
 
+  /// The shell rescans when this changes (`AppShell`).
+  Future<void> setMinTrackSeconds(int seconds) {
+    if (!AppSettings.minTrackChoices.contains(seconds)) return Future.value();
+    return _update((s) => s.copyWith(minTrackSeconds: seconds));
+  }
+
+  /// Sorted, so the same folders always save the same list. The shell
+  /// rescans when this changes (`AppShell`).
+  Future<void> setExcludedFolders(Set<String> folders) =>
+      _update((s) => s.copyWith(excludedFolders: [...folders]..sort()));
+
+  Future<void> setKeepShuffle(bool value) =>
+      _update((s) => s.copyWith(keepShuffle: value));
+
+  Future<void> setLyricsKeepScreenOn(bool value) =>
+      _update((s) => s.copyWith(lyricsKeepScreenOn: value));
+
+  Future<void> setHistoryPaused(bool value) =>
+      _update((s) => s.copyWith(historyPaused: value));
+
+  Future<void> setLanguage(AppLanguage language) =>
+      _update((s) => s.copyWith(language: language));
+
   Future<void> setGlassQuality(GlassQuality quality) =>
       _update((s) => s.copyWith(glassQuality: quality));
 
@@ -137,12 +167,20 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   /// Applies settings from a backup. This phone keeps its own glass
-  /// quality, which depends on the device, and everything that goes online
+  /// quality, which depends on the device, its language, and everything that goes online
   /// (Last.fm, Deezer, LRCLIB, GitHub): only a choice made here turns it on.
+  /// Excluded folders merge, as the rest of a restore does: a folder left
+  /// out here stays out.
   Future<void> restore(AppSettings saved) async {
     await _update(
       (s) => saved.copyWith(
+        excludedFolders: ({
+          ...s.excludedFolders,
+          ...saved.excludedFolders,
+        }..removeWhere((f) => f.isEmpty)).toList()..sort(),
         glassQuality: s.glassQuality,
+        language: s.language,
+        historyPaused: s.historyPaused,
         fetchOnlineMetadata: s.fetchOnlineMetadata,
         fetchArtistArtwork: s.fetchArtistArtwork,
         fetchLyrics: s.fetchLyrics,

@@ -8,6 +8,7 @@ import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
@@ -38,21 +39,41 @@ import 'package:troona/features/player/domain/entities/queue_origin.dart';
 /// A smart playlist's songs come from its rules: they cannot be moved or
 /// removed, and its menu edits the rules or copies the songs into a
 /// playlist.
+List<Track>? _libraryTracksOf(LibraryState state) => switch (state) {
+  LibraryLoaded(:final allTracks) => allTracks,
+  LibraryScanning(:final cached?) => cached.allTracks,
+  _ => null,
+};
+
 class PlaylistDetailPage extends StatelessWidget {
   final String id;
   const PlaylistDetailPage({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LikesCubit, LikesState>(
-      // Likes, and a smart playlist (its rules may ask for liked songs),
-      // follow a song liked or unliked.
-      listenWhen: (prev, curr) =>
-          (id == Playlist.likesId || _showsSmart(context)) &&
-          prev.likedTrackIds != curr.likedTrackIds,
-      listener: (context, _) {
-        context.read<PlaylistDetailBloc>().add(PlaylistDetailRequested(id));
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<LikesCubit, LikesState>(
+          // Likes, and a smart playlist (its rules may ask for liked
+          // songs), follow a song liked or unliked.
+          listenWhen: (prev, curr) =>
+              (id == Playlist.likesId || _showsSmart(context)) &&
+              prev.likedTrackIds != curr.likedTrackIds,
+          listener: (context, _) => context.read<PlaylistDetailBloc>().add(
+            PlaylistDetailRequested(id),
+          ),
+        ),
+        // A scan changes which of its songs the library shows: the rows,
+        // and the places a move is counted in, must follow.
+        BlocListener<LibraryBloc, LibraryState>(
+          listenWhen: (previous, current) =>
+              current is LibraryLoaded &&
+              !identical(_libraryTracksOf(previous), current.allTracks),
+          listener: (context, _) => context.read<PlaylistDetailBloc>().add(
+            PlaylistDetailRequested(id),
+          ),
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: BlocBuilder<TrackPaletteCubit, TrackPaletteState>(

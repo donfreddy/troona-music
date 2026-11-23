@@ -7,10 +7,12 @@ import 'package:troona/features/library/domain/entities/artist.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/library/domain/services/library_grouping.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
-final class LibraryRepositoryImpl implements LibraryRepository {
+final class LibraryRepositoryImpl
+    implements LibraryRepository, StoredTrackRepository {
   final IsarLibraryDataSource _cache;
   final MediaScannerService _scanner;
 
@@ -47,6 +49,27 @@ final class LibraryRepositoryImpl implements LibraryRepository {
     try {
       final tracks = await _cache.getAllTracks();
       return right(tracks.map((t) => t.toEntity()).toList());
+    } catch (e, st) {
+      return left(ErrorHandler.handle(e, st));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async {
+    try {
+      final tracks = await _cache.getStoredTracks();
+      return right(
+        StoredTracks(
+          kept: [
+            for (final t in tracks)
+              if (!t.excluded) t.toEntity(),
+          ],
+          leftOut: [
+            for (final t in tracks)
+              if (t.excluded) t.toEntity(),
+          ],
+        ),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -90,6 +113,7 @@ final class LibraryRepositoryImpl implements LibraryRepository {
   Future<Either<Failure, Playlist>> getLikesPlaylist() async {
     try {
       final playlist = await _cache.ensureLikes();
+      // Read for its ids (likes): no count needed.
       return right(playlist.toEntity());
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));

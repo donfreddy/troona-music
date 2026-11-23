@@ -38,7 +38,7 @@ Troona is distributed as APKs on [GitHub Releases](https://github.com/donfreddy/
 
 ---
 
-Troona plays the music already on your phone. No account, no streaming catalogue, no ads, no analytics. Every byte of your library, your plays and your playlists stays on the device; the three online lookups it can make (artist bios, artist photos, update check) are opt-in, off by default, and documented in plain English in the [privacy policy](docs/privacy-policy.md).
+Troona plays the music already on your phone. No account, no streaming catalogue, no ads, no analytics. Every byte of your library, your plays and your playlists stays on the device; the four online lookups it can make (artist bios, artist photos, song lyrics, update check) are opt-in, off by default, and documented in plain English in the [privacy policy](docs/privacy-policy.md).
 
 It is also an engineering showcase: a Clean Architecture Flutter codebase with a Flutter-free domain layer, an audio engine fully isolated behind a port/adapter boundary, and a disciplined glassmorphism design system built for real device performance, not just a demo reel.
 
@@ -71,26 +71,29 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
 - Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
 - Equalizer (Android): the phone's own bands drawn as one curve you shape with a finger, nine presets, your own named profiles, Volume +, a hold-to-compare button and an anti-clip trim; it survives backups
-- Shuffle (Fisher–Yates) and repeat (off / one / all)
+- Shuffle (Fisher–Yates) and repeat (off / one / all); a new list keeps shuffle on, or plays in order if you prefer
+- Swipe a song to play it next or add it to the queue; swipe the mini player to change song, hold it to like
 - Queue sheet: history, now playing and up next in one list, tap to jump, drag to reorder, swipe to remove with a 4 s undo
 - Likes, persisted across sessions as a real playlist
 - Open with (Android): an audio file touched in another app plays in Troona as the song of your library, found by its MediaStore id or its file name and size
-- Synced lyrics in Now Playing: the line sung lit and followed, a tap on a line seeks there, a per-song timing correction, plain lyrics when that is all there is, the screen kept on while they play. Import a `.lrc` file, or turn on the lyrics search (below)
+- Synced lyrics in Now Playing: the line sung lit and followed, a tap on a line seeks there, a per-song timing correction, plain lyrics when that is all there is, the screen kept on while they play (or not, your choice). Import a `.lrc` file, or turn on the lyrics search (below)
 
 ### 📚 Library
 - 4-phase device scan: query, diff, persist, artwork extraction (4 concurrent workers, de-duplicated)
 - Isar-backed index (Rust core); rescans touch only what changed, with a live progress toast
+- Keep folders out of the library (voice notes, podcasts) and choose the shortest song kept (10 s to 2 min); songs left out come back with their likes, plays and playlists when you let them in again
 - Tracks, albums and artists, each with a dedicated detail page
 - Playlists: create, rename, delete, reorder, add/remove tracks
+- Pick several songs at once with a long press, in any list: play, shuffle, queue them or add them to a playlist, in the list's order
 - Smart playlists: rules on plays, last played, date added, likes, artist, album, genre, year, duration and lossless files, with templates, a sort and a limit; worked out again on each open, savable as a regular playlist
 - Monthly "Replay" playlist, auto-built from last month's 25 most-played tracks, once a month
 - Global search across tracks, artists and albums
 
 ### 🏠 Home & listening history
-- Recently Played, Your Artists, New Albums, Your Playlists
-- Persistent play history: a play counts after 30 s of listening (or half a track under a minute); seeking never counts
-- Daily listening totals (plays, time, first plays), kept forever
-- "Your week in music": a weekly recap with top artist/song, first listens and a monthly listening calendar
+- Home leads with music: resume where you stopped, quick shortcuts, Recently played, recently added albums and last week's recap
+- Persistent play history: a play counts after 30 s of listening (or half a track under a minute); seeking never counts. Pause it whenever you like
+- Daily listening totals (plays, time, first plays, hours), kept forever
+- Your listening: any week or month, with listening time, top songs, artists and albums, a calendar and when you listen most, shareable as a story image
 
 ### 🌐 Online extras, opt-in and off by default
 - Artist and album bios via Last.fm
@@ -105,14 +108,19 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Dark theme, portrait-locked; layouts adapt to the room on screen (down to 360 x 640 dp) and to the phone's font size
 
 ### ⚙️ Settings & maintenance
-- Playback toggles (duck on notification, pause on call, resume after call), glass quality, haptics
-- Clear cached covers / clear cached online info, each showing the size reclaimed
+- Settings in pages (Audio, Library, Online extras, Appearance, Backup & restore, Storage, About), each row saying what it holds or how it stands, every switch saying what it does
+- Audio: the equalizer, keep shuffle, screen on with lyrics, duck on notification, pause on call, resume after call
+- Library: what the library holds, folders and shortest song, pause listening history, rescan
+- Appearance: glass quality, haptics, language
+- Storage: clear cached covers / clear cached online info, each showing the size reclaimed, then the resets
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
-- Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
+- Help for the questions that come up most, each answer opening the setting that settles it
+- Report a problem (local log, shared only if you choose to), privacy policy, open-source licences in the app's own pages
 - Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics, settings and the equalizer in a JSON file, each part yours to leave out. Automatic backups, daily or weekly, go to a folder you pick (no storage permission, kept if you uninstall), the last five kept beside the ones you make. Restoring offers the parts a backup holds; on another phone, songs are found again by file, then by tags, and restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`
+- Follows the phone's language, or English or French chosen in Settings
 
 > **On lyrics and cast:** early builds shipped demo versions of both, with no lyrics backend or cast protocol behind them, and a demo equalizer with no DSP. They were removed deliberately ahead of v1 rather than kept half-working. The equalizer came back as a real one, on Android's audio effects, and lyrics came back with real sources (your own `.lrc` files, LRCLIB and lyrics.ovh); cast remains a post-v1 discussion, not a promise.
 
@@ -183,7 +191,7 @@ flutter run
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 <uses-permission android:name="android.permission.WAKE_LOCK" />
-<!-- Only used for the opt-in online bios/photos and update check, never for playback -->
+<!-- Only used for the opt-in online bios, photos, lyrics and update check, never for playback -->
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
@@ -219,7 +227,7 @@ Troona's glassmorphism direction started from a concept by **[Shimon Bar Yacov](
 
 ## Privacy
 
-Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The three online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer, the latest release number via GitHub) are opt-in and independently toggled. Bios send only artist and album names. Photos send those names plus up to three titles of each artist's most played songs, so the photo found is of that artist and not a namesake. The update check sends nothing about you or your music. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
+Troona has no account, no ads and no analytics. Your library, likes, playlists and listening history never leave the device. The four online lookups it can make (artist bios via Last.fm, artist/album photos via Deezer, song lyrics via LRCLIB then lyrics.ovh, the latest release number via GitHub) are opt-in and independently toggled. Bios send only artist and album names. Photos send those names plus up to three titles of each artist's most played songs, so the photo found is of that artist and not a namesake. Lyrics send a song's title, artist, album and length, only when you open the lyrics of a song that has none stored. The update check sends nothing about you or your music. Full detail in **[`docs/privacy-policy.md`](docs/privacy-policy.md)**.
 
 ## License
 

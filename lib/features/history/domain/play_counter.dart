@@ -42,6 +42,22 @@ final class PlayCounter {
 
   void stop() => _trackId = null;
 
+  /// Follows [position] without crediting any listening, for a paused
+  /// history: a restart during the pause still ends the listen, and the
+  /// first position after it steps from the last one seen, not from before.
+  void skip(Duration position) {
+    _heard = Duration.zero;
+    if (_trackId == null) return;
+    final last = _last;
+    _last = position;
+    if (last == null) return;
+    final step = position - last;
+    if (step.isNegative && position < restartWindow && -step > maxStep) {
+      _listened = Duration.zero;
+      _counted = false;
+    }
+  }
+
   /// Returns the track id on the position that makes the listen count,
   /// once per listen; null otherwise.
   String? onPosition(Duration position) {
