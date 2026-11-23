@@ -133,6 +133,10 @@ abstract final class AppIcons {
   static const IconData clearOnlineInfo = LucideIcons300.eraser;
   static const IconData backup = LucideIcons300.hardDriveUpload;
   static const IconData restore = LucideIcons300.archiveRestore;
+  static const IconData backupAuto = LucideIcons300.calendarClock;
+  static const IconData backupFolder = LucideIcons300.folderOpen;
+  static const IconData backupParts = LucideIcons300.listChecks;
+  static const IconData backupFromFile = LucideIcons300.fileInput;
   static const IconData report = LucideIcons300.messageSquareWarning;
   static const IconData privacy = LucideIcons300.shieldCheck;
   static const IconData licenses = LucideIcons300.scrollText;

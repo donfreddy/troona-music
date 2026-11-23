@@ -6,6 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:troona/core/di/injection.dart';
+import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/backup/domain/entities/stored_backup.dart';
+import 'package:troona/features/backup/domain/use_cases/run_auto_backup_use_case.dart';
+import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
@@ -70,6 +74,13 @@ class _AppShellState extends State<AppShell> {
   LibraryLoaded? _rescanBaseline;
   final _reselect = TabReselectController();
 
+  /// Checks for a due automatic backup on each return to the app.
+  late final AppLifecycleListener _lifecycle;
+  Timer? _firstAutoBackup;
+
+  /// Said once per run: an automatic backup that cannot reach its folder.
+  bool _toldBackupFolderLost = false;
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +114,33 @@ class _AppShellState extends State<AppShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _createMonthlyReplay());
     WidgetsBinding.instance.addPostFrameCallback((_) => _showWhatsNew());
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
+    _lifecycle = AppLifecycleListener(onResume: _autoBackup);
+    // A moment after start: the first frames and the library come first.
+    _firstAutoBackup = Timer(const Duration(seconds: 5), _autoBackup);
+  }
+
+  /// The automatic backup, when it is on and due. Silent unless its folder
+  /// can no longer be reached: the user would believe backups are made.
+  Future<void> _autoBackup() async {
+    final AutoBackupOutcome? outcome;
+    try {
+      outcome = await getIt<BackupCubit>().autoBackupIfDue();
+    } catch (e, st) {
+      appLogger.w('Automatic backup failed', error: e, stackTrace: st);
+      return;
+    }
+    if (!mounted) return;
+    switch (outcome) {
+      case AutoBackupNoFolder(folder: BackupFolderLost()) ||
+              AutoBackupFailed(failure: BackupFolderLostFailure())
+          when !_toldBackupFolderLost:
+        _toldBackupFolderLost = true;
+        AppToast.show(context, context.l10n.backupAutoFolderLost);
+      case AutoBackupFailed(:final failure):
+        appLogger.w('Automatic backup not written: $failure');
+      default:
+        break;
+    }
   }
 
   /// "What's new", once after an update that ships notes.
@@ -186,6 +224,8 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
+    _firstAutoBackup?.cancel();
     _noticesSub?.cancel();
     _router?.routerDelegate.removeListener(_onRouteChanged);
     _reselect.dispose();

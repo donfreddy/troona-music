@@ -770,17 +770,13 @@
   "whatsNew100LanguageBody": "The whole app follows your phone's language.",
   "settingsBackup": "Backup",
   "settingsBackupFooter": "The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.",
-  "backupExport": "Export a backup",
   "backupExportSubtitle": "Save it to Files, Drive or another app.",
   "backupShareSubject": "Troona backup",
   "backupRestore": "Restore a backup",
-  "backupRestoreSubtitle": "Adds its playlists, likes and history to yours.",
-  "backupRestoreConfirmTitle": "Restore a backup?",
-  "backupRestoreConfirmBody": "Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.",
-  "backupRestoreAction": "Choose file",
   "backupRestoreInvalid": "This file is not a Troona backup, or it is damaged.",
   "backupRestoreTooNew": "This backup comes from a newer version of Troona. Update the app, then try again.",
   "backupRestoreDoneTitle": "Backup restored",
+  "backupRestoreDoneBody": "Everything you chose is restored.",
   "backupRestoreFound": "Songs found on this phone: {found} of {total}.",
   "@backupRestoreFound": {
     "placeholders": {
@@ -808,7 +804,120 @@
       }
     }
   },
-  "backupRestoreOnline": "Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.",
+  "backupRestoreOnline": "Online extras were on in this backup. They stay as they are on this phone: turn them on in Settings if you want them.",
+  "backupTitle": "Backup & restore",
+  "backupSettingsLast": "Last backup: {date}",
+  "@backupSettingsLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSettingsNone": "Playlists, likes, history and settings",
+  "backupAutoSection": "Automatic backup",
+  "backupAuto": "Back up automatically",
+  "backupAutoOff": "Into a folder you choose, when you open Troona",
+  "backupAutoLast": "Last one: {date}",
+  "@backupAutoLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupAutoNone": "None yet",
+  "backupFrequency": "Frequency",
+  "backupDaily": "Every day",
+  "backupWeekly": "Every week",
+  "backupFolder": "Folder",
+  "backupFolderChoose": "Choose a folder",
+  "backupFolderLost": "Can't reach {name}. Choose it again.",
+  "@backupFolderLost": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backupFolderFooter": "Troona keeps its last 5 automatic backups there, and every backup you make. The folder stays if you uninstall Troona: choose it again after reinstalling to find your backups.",
+  "backupManualSection": "Back up",
+  "backupParts": "What to back up",
+  "backupPartsEverything": "Everything",
+  "backupPartHistory": "Listening history",
+  "backupPartSettings": "Settings",
+  "backupNow": "Back up now",
+  "backupNowInto": "Into {name}",
+  "@backupNowInto": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSaved": "Backup saved",
+  "backupRestoreSection": "Restore",
+  "backupNone": "No backups in this folder yet",
+  "backupFromFile": "Restore from a file",
+  "backupFromFileSubtitle": "A backup saved elsewhere, or from another phone",
+  "backupAutoBadge": "Auto",
+  "backupOptions": "Backup options",
+  "backupShare": "Share",
+  "backupDeleteTitle": "Delete this backup?",
+  "backupDeleteBody": "It is deleted from {name}.",
+  "@backupDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backupSummaryPlaylists": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "@backupSummaryPlaylists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSummaryLikes": "{count, plural, =1{1 liked song} other{{count} liked songs}}",
+  "@backupSummaryLikes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSummaryPlays": "{count, plural, =1{1 play} other{{count} plays}}",
+  "@backupSummaryPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSummaryProfiles": "{count, plural, =0{Its setting, no saved profile} =1{Its setting and 1 profile} other{Its setting and {count} profiles}}",
+  "@backupSummaryProfiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSettingsReplace": "They replace yours",
+  "backupRestoreTitle": "Restore this backup",
+  "backupRestoreFrom": "Made {date}. Playlists, likes and history are added to yours; settings and the equalizer replace yours.",
+  "@backupRestoreFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupRestoreButton": "Restore",
+  "backupRestoreNothing": "This backup holds nothing to restore.",
+  "backupFolderLostError": "Can't reach the backup folder. Choose it again.",
+  "backupAutoFolderLost": "Automatic backup can't reach its folder. Choose it again in Settings, Backup & restore.",
   "settingsUpdateCheck": "Check for updates",
   "settingsUpdateCheckSubtitle": "Once a day, on GitHub",
   "updateCheckNow": "Check for updates now",
