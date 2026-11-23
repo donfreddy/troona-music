@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,6 +32,7 @@ import 'package:troona/features/settings/data/repositories/settings_repository_i
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
 import 'package:troona/shared/widgets/app_button.dart';
 
 import '../../helpers/roboto.dart';
@@ -65,6 +68,9 @@ final class _Folder extends Fake implements BackupFolderRepository {
   _Folder(this.folder);
 
   final BackupFolderState folder;
+
+  /// Holds the folder's check until completed.
+  Completer<void>? gate;
   final backups = [
     StoredBackup(
       id: 'a',
@@ -81,7 +87,10 @@ final class _Folder extends Fake implements BackupFolderRepository {
   ];
 
   @override
-  Future<BackupFolderState> state() async => folder;
+  Future<BackupFolderState> state() async {
+    await gate?.future;
+    return folder;
+  }
 
   @override
   Future<Either<Failure, List<StoredBackup>>> list() async => right(backups);
@@ -158,8 +167,9 @@ void main() {
       BackupFolder(uri: 'tree:1', name: 'Troona backups on the SD card'),
     ),
     Locale locale = const Locale('en'),
+    Completer<void>? gate,
   }) async {
-    final repoFolder = _Folder(folder);
+    final repoFolder = _Folder(folder)..gate = gate;
     final preferences = _Preferences();
     final cubit = BackupCubit(
       export: ExportBackupUseCase(backups),
@@ -174,7 +184,7 @@ void main() {
       preferences: preferences,
     );
     addTearDown(cubit.close);
-    await cubit.load();
+    if (gate == null) await cubit.load();
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: [
@@ -243,6 +253,23 @@ void main() {
 
     expect(find.text('Back up automatically'), findsNothing);
     expect(find.text('Back up now'), findsOneWidget);
+  });
+
+  testWidgets('until the folder is checked, nothing that needs it can be '
+      'tapped', (tester) async {
+    final gate = Completer<void>();
+    final cubit = await pump(tester, gate: gate);
+    SettingsTile tile(String title) => tester.widget<SettingsTile>(
+      find.ancestor(of: find.text(title), matching: find.byType(SettingsTile)),
+    );
+
+    expect(cubit.state.folderRead, isFalse);
+    expect(tile('Back up now').onTap, isNull);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(tile('Back up now').onTap, isNotNull);
   });
 
   testWidgets('with its folder lost, Back up now says so and shares nothing', (

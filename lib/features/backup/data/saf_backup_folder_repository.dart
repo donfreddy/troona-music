@@ -150,11 +150,17 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     }
     final copied = await _inFolder((_) async {
       final local = await _workFile(stored.name);
-      await _platform.read(
-        stored.id,
-        local.path,
-        maxBytes: BackupCodec.maxBytes,
-      );
+      try {
+        await _platform.read(
+          stored.id,
+          local.path,
+          maxBytes: BackupCodec.maxBytes,
+        );
+      } catch (_) {
+        // Half a copy holds half a history: not left lying around.
+        await _deleteQuietly(local);
+        rethrow;
+      }
       return local;
     });
     return copied.fold((f) async => left(f), (local) async {

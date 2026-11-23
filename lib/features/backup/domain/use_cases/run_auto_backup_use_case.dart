@@ -94,7 +94,15 @@ final class RunAutoBackupUseCase {
     final folder = await _folder.state();
     if (folder is! BackupFolderReady) return AutoBackupNoFolder(folder);
 
-    final outcome = await _backUp(preferences, now);
+    AutoBackupOutcome outcome;
+    try {
+      outcome = await _backUp(preferences, now);
+    } catch (e) {
+      // Still a failure: waited on, and said when the user turned it on.
+      outcome = AutoBackupFailed(
+        UnexpectedFailure('Automatic backup: ${e.runtimeType}'),
+      );
+    }
     await _preferences.setLastFailure(outcome is AutoBackupFailed ? now : null);
     return outcome;
   }

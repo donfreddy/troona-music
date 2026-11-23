@@ -36,13 +36,19 @@ final class BackupState extends Equatable {
     this.backups = const [],
     this.summaries = const {},
     this.preferences = const BackupPreferences(),
+    this.folderRead = false,
   });
+
+  /// False until the folder was checked once: until then [folder] says
+  /// nothing, and Back up now must not share what belongs in a folder.
+  final bool folderRead;
 
   bool get busy => task != null;
 
   StoredBackup? get lastAuto {
     for (final b in backups) {
-      if (b.auto) return b;
+      // Another build's automatic backups say nothing of this one's.
+      if (b.auto && b.mine) return b;
     }
     return null;
   }
@@ -53,16 +59,25 @@ final class BackupState extends Equatable {
     List<StoredBackup>? backups,
     Map<String, BackupSummary>? summaries,
     BackupPreferences? preferences,
+    bool? folderRead,
   }) => BackupState(
     task: task == null ? this.task : task(),
     folder: folder ?? this.folder,
     backups: backups ?? this.backups,
     summaries: summaries ?? this.summaries,
     preferences: preferences ?? this.preferences,
+    folderRead: folderRead ?? this.folderRead,
   );
 
   @override
-  List<Object?> get props => [task, folder, backups, summaries, preferences];
+  List<Object?> get props => [
+    task,
+    folder,
+    backups,
+    summaries,
+    preferences,
+    folderRead,
+  ];
 }
 
 /// Backups by hand and automatic, the folder they go to, and restores.
@@ -107,6 +122,11 @@ final class BackupCubit extends Cubit<BackupState> {
   Future<Either<Failure, BackupFolder?>> pickFolder() =>
       _busy(BackupTask.folder, () async {
         final picked = await _folder.pick();
+        // A folder chosen again is tried at once, not after the wait that
+        // follows a failure.
+        if (picked case Right(value: _?)) {
+          await _preferences.setLastFailure(null);
+        }
         await _refresh();
         return picked;
       });
@@ -122,7 +142,9 @@ final class BackupCubit extends Cubit<BackupState> {
     }
     await _setPreferences(state.preferences.copyWith(auto: on));
     if (!on) return right(unit);
-    // The first backup, made now: a failure is said, not left for later.
+    // The first backup, made now: a failure is said, not left for later,
+    // nor skipped because one failed a moment ago.
+    await _preferences.setLastFailure(null);
     return switch (await autoBackupIfDue()) {
       AutoBackupFailed(:final failure) => left(failure),
       _ => right(unit),
@@ -241,6 +263,7 @@ final class BackupCubit extends Cubit<BackupState> {
     emit(
       state.copyWith(
         folder: folder,
+        folderRead: true,
         backups: backups,
         summaries: {
           for (final b in backups)

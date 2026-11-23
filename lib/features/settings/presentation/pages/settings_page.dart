@@ -263,15 +263,20 @@ class _SettingsList extends StatelessWidget {
               icon: AppIcons.backup,
               iconColor: const Color(0xFF3B82F6),
               title: l10n.backupTitle,
-              subtitle: switch ((backup.folder, backup.backups.firstOrNull)) {
-                (BackupFolderLost(:final name), _) => l10n.backupFolderLost(
-                  name,
-                ),
-                (_, final last?) => l10n.backupSettingsLast(
-                  backupDate(context, last.createdAt),
-                ),
-                _ => l10n.backupSettingsNone,
-              },
+              subtitle: !backup.folderRead
+                  ? null
+                  : switch ((
+                      backup.folder,
+                      // Another build's automatic backups are not this one's.
+                      backup.backups.where((b) => b.mine).firstOrNull,
+                    )) {
+                      (BackupFolderLost(:final name), _) =>
+                        l10n.backupFolderLost(name),
+                      (_, final last?) => l10n.backupSettingsLast(
+                        backupDate(context, last.createdAt),
+                      ),
+                      _ => l10n.backupSettingsNone,
+                    },
               onTap: () => context.pushNamed(AppRoute.backup),
             ),
           ],

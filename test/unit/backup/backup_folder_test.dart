@@ -70,12 +70,19 @@ final class _Folder implements BackupFolderPlatform {
 
   int reads = 0;
 
+  /// Writes half the file, then fails, as a provider dropping mid-copy.
+  bool halfReads = false;
+
   @override
   Future<void> read(String id, String path, {required int maxBytes}) async {
     _check();
     reads++;
     final bytes = files[id]!.bytes;
     if (bytes.length > maxBytes) throw PlatformException(code: 'large');
+    if (halfReads) {
+      File(path).writeAsBytesSync(bytes.sublist(0, bytes.length ~/ 2));
+      throw PlatformException(code: 'io');
+    }
     File(path).writeAsBytesSync(bytes);
   }
 
@@ -451,6 +458,17 @@ void main() {
         await repo.read(listed),
         left(const BackupFormatFailure('File too large')),
       );
+      expect(Directory('${dir.path}/work').listSync(), isEmpty);
+    });
+
+    test('a read cut short leaves no half copy behind', () async {
+      await repo.pick();
+      final stored = value(
+        await repo.save(_backup(DateTime(2026, 11, 23)), auto: false),
+      );
+      folder.halfReads = true;
+
+      expect(await repo.read(stored), left(const BackupFolderFailure('io')));
       expect(Directory('${dir.path}/work').listSync(), isEmpty);
     });
 

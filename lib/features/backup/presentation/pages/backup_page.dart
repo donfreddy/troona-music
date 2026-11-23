@@ -121,7 +121,9 @@ class _BackupPageState extends State<BackupPage> {
               ? l10n.backupAutoNone
               : l10n.backupAutoLast(backupDate(context, lastAuto.createdAt)),
           value: preferences.auto,
-          enabled: !state.busy,
+          // Until the folder was checked, turning it on would ask for one
+          // already chosen.
+          enabled: !state.busy && state.folderRead,
           onChanged: (on) => _setAuto(context, on),
         ),
         SettingsTile.navigation(
@@ -141,7 +143,7 @@ class _BackupPageState extends State<BackupPage> {
             BackupFolderLost(:final name) => l10n.backupFolderLost(name),
             _ => l10n.backupFolderChoose,
           },
-          enabled: !state.busy,
+          enabled: !state.busy && state.folderRead,
           onTap: () => _pickFolder(context),
         ),
       ],
@@ -176,7 +178,9 @@ class _BackupPageState extends State<BackupPage> {
             _ => l10n.backupExportSubtitle,
           },
           trailing: saving ? const CupertinoActivityIndicator() : null,
-          onTap: state.busy
+          // Until the folder was checked, a backup would be shared rather
+          // than written to it.
+          onTap: state.busy || !state.folderRead
               ? null
               : () => _run('now', () => _backUpNow(context, state.folder)),
         ),

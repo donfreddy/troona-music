@@ -137,6 +137,12 @@ class BackupFolderChannel(
         resolver().query(children, COLUMNS, null, null, null)?.use { cursor ->
             while (cursor.moveToNext()) {
                 if (cursor.getString(3) == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                if (isOrphan(cursor.getString(1), cursor, 4)) {
+                    deleteQuietly(
+                        DocumentsContract.buildDocumentUriUsingTree(tree, cursor.getString(0)),
+                    )
+                    continue
+                }
                 found += mapOf(
                     "id" to DocumentsContract.buildDocumentUriUsingTree(tree, cursor.getString(0))
                         .toString(),
@@ -147,6 +153,19 @@ class BackupFolderChannel(
             }
         }
         return found
+    }
+
+    /**
+     * A write left behind by an app killed before its rename. An hour old,
+     * so the other build (debug or release) sharing the folder is not
+     * writing it right now; it holds a history, so it is not kept.
+     */
+    private fun isOrphan(name: String?, cursor: android.database.Cursor, modified: Int): Boolean {
+        if (name == null || !name.startsWith("troona-") || !name.endsWith(".json.partial")) {
+            return false
+        }
+        if (cursor.isNull(modified)) return false
+        return System.currentTimeMillis() - cursor.getLong(modified) > ORPHAN_AGE_MS
     }
 
     /**
@@ -289,6 +308,7 @@ class BackupFolderChannel(
 
         /** No extension added by the provider to a file being written. */
         private const val PARTIAL_MIME = "application/octet-stream"
+        private const val ORPHAN_AGE_MS = 60 * 60 * 1000L
         private val COLUMNS = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,

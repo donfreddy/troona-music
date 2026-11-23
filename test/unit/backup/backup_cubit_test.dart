@@ -241,6 +241,65 @@ void main() {
     expect(cubit.state.backups, hasLength(1));
   });
 
+  test('turning it on backs up at once, even right after a failure', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    // Known as chosen: no picker, which would clear the wait itself.
+    await cubit.load();
+    preferences.lastFailure = DateTime.now();
+
+    expect(await cubit.setAuto(true), right(unit));
+
+    expect(folder.picks, 0);
+    expect(folder.stored.single.auto, isTrue);
+  });
+
+  test('a folder picked again clears the wait after a failure', () async {
+    preferences.lastFailure = DateTime.now();
+
+    await cubit.pickFolder();
+
+    expect(preferences.lastFailure, isNull);
+  });
+
+  test('a picker cancelled keeps the wait', () async {
+    final failed = DateTime.now();
+    preferences.lastFailure = failed;
+    folder.toPick = null;
+
+    await cubit.pickFolder();
+
+    expect(preferences.lastFailure, failed);
+  });
+
+  test('the folder is unknown until read once', () async {
+    expect(cubit.state.folderRead, isFalse);
+
+    await cubit.load();
+
+    expect(cubit.state.folderRead, isTrue);
+  });
+
+  test('another build\'s automatic backup is not this one\'s last', () {
+    final theirs = StoredBackup(
+      id: 'd',
+      name: 'troona-auto-dev-20261123-090000.json',
+      createdAt: DateTime(2026, 11, 23, 9),
+      auto: true,
+      mine: false,
+    );
+    final ours = StoredBackup(
+      id: 'r',
+      name: 'troona-auto-20261120-090000.json',
+      createdAt: DateTime(2026, 11, 20, 9),
+      auto: true,
+    );
+
+    expect(BackupState(backups: [theirs, ours]).lastAuto, ours);
+    expect(BackupState(backups: [theirs]).lastAuto, isNull);
+  });
+
   test('turning it on reports a first backup that fails', () async {
     folder.folder = const BackupFolderReady(
       BackupFolder(uri: 'tree:1', name: 'Troona'),

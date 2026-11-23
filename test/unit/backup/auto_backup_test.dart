@@ -31,6 +31,7 @@ final class _Backups extends Fake implements BackupRepository {
   String fingerprintValue = 'f1';
   Set<BackupPart>? asked;
   Failure? fails;
+  bool fingerprintThrows = false;
 
   @override
   Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async {
@@ -39,7 +40,10 @@ final class _Backups extends Fake implements BackupRepository {
   }
 
   @override
-  Future<String> fingerprint(Backup backup) async => fingerprintValue;
+  Future<String> fingerprint(Backup backup) async {
+    if (fingerprintThrows) throw StateError('isolate');
+    return fingerprintValue;
+  }
 }
 
 final class _Folder extends Fake implements BackupFolderRepository {
@@ -380,6 +384,14 @@ void main() {
       expect(await useCase()(), const AutoBackupFailed(DatabaseFailure()));
       expect(folder.stored, isEmpty);
       expect(preferences.lastFailure, now);
+    });
+
+    test('an error thrown on the way is a failure, waited on', () async {
+      backups.fingerprintThrows = true;
+
+      expect(await useCase()(), isA<AutoBackupFailed>());
+      expect(preferences.lastFailure, now);
+      expect(folder.stored, isEmpty);
     });
 
     test('a folder out of reach is not a failure to wait on', () async {
