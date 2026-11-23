@@ -493,19 +493,9 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         .whereType<Track>()
         .toList(growable: false);
 
-    final hasMissingOriginalTracks =
-        originalTracks.isNotEmpty &&
-        originalTracks.length != snapshot.originalTrackIds.length;
-    final hasMissingPlaybackTracks =
-        playbackTracks.length != snapshot.playbackTrackIds.length;
-
-    if (playbackTracks.isEmpty ||
-        hasMissingOriginalTracks ||
-        hasMissingPlaybackTracks) {
-      await _clearPersistedSession();
-      return;
-    }
-
+    // A song the library no longer shows (its file deleted, its folder
+    // turned off) leaves the queue, the rest stays; without the song that
+    // was playing, the saved place means nothing and the session goes.
     final restoredIndex = playbackTracks.indexWhere(
       (t) => t.id == snapshot.currentTrackId,
     );

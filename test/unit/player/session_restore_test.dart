@@ -144,6 +144,20 @@ void main() {
     expect(store.load(), isNotNull);
   });
 
+  test('a queued song gone from the library leaves the rest', () async {
+    final bloc = await restoreWith(right([b]));
+    expect((bloc.state as PlayerLoading).track, b);
+    expect(port.restoredQueue?.playbackTracks, [b]);
+    expect(port.restoredQueue?.currentIndex, 0);
+    expect(port.restoredPosition, const Duration(milliseconds: 5000));
+  });
+
+  test('without the song that was playing, the session goes', () async {
+    final bloc = await restoreWith(right([a]));
+    expect(bloc.state, isA<PlayerIdle>());
+    expect(store.load(), isNull);
+  });
+
   test('songs gone from the library drop the session', () async {
     final bloc = await restoreWith(right(const []));
     expect(bloc.state, isA<PlayerIdle>());
