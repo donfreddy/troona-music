@@ -313,8 +313,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Une sauvegarde contient les éléments que vous choisissez (playlists, likes, historique d\'écoute, réglages, égaliseur), avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Troona l\'écrit dans le dossier que vous avez choisi pour vos sauvegardes, ou la confie à l\'app de votre choix quand vous la partagez. Elle ne part nulle part ailleurs. La restauration ne lit que la sauvegarde que vous choisissez, et n\'écrit que les éléments que vous gardez.';
-      'Exporter une sauvegarde écrit vos playlists, vos likes, votre historique d\'écoute, vos paroles importées et vos réglages, avec les noms et tailles de vos fichiers musicaux, dans un fichier, sans chiffrement, et le confie à l\'app de votre choix. Il ne part nulle part ailleurs. La restauration ne lit que le fichier que vous choisissez.';
+      'Une sauvegarde contient les éléments que vous choisissez (playlists, likes, historique d\'écoute, paroles importées et leur décalage, réglages, égaliseur), avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Troona l\'écrit dans le dossier que vous avez choisi pour vos sauvegardes, ou la confie à l\'app de votre choix quand vous la partagez. Elle ne part nulle part ailleurs. La restauration ne lit que la sauvegarde que vous choisissez, et n\'écrit que les éléments que vous gardez.';
 
   @override
   String get privacyDeleteTitle => 'Supprimer vos données';
@@ -1484,6 +1483,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backupPartSettings => 'Réglages';
 
   @override
+  String get backupPartLyrics => 'Paroles';
+
+  @override
   String get backupNow => 'Sauvegarder maintenant';
 
   @override
@@ -1553,6 +1555,17 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count écoutes',
       one: '1 écoute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLyrics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Paroles ou décalage de $count titres',
+      one: 'Paroles ou décalage d\'1 titre',
     );
     return '$_temp0';
   }

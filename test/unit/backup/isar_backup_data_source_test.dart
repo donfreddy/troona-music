@@ -694,6 +694,28 @@ void main() {
         expect(read.tracks.keys, ['1', '2', '3']);
       });
 
+      test('are left out, with their songs, when not asked for', () {
+        store(tracks: [_track('1'), _track('2')]);
+        isar.write(
+          (isar) => isar.trackLyricsModels.putAll([
+            row('1', '[00:01.00]Mine', 'imported'),
+            row('2', '[00:01.00]Found', 'online'),
+          ]),
+        );
+
+        final read = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+          parts: BackupPart.all.difference({BackupPart.lyrics}),
+        );
+
+        expect(read.parts, isNot(contains(BackupPart.lyrics)));
+        expect(read.lyrics, isEmpty);
+        expect(read.lyricsOffsets, isEmpty);
+        expect(read.tracks, isEmpty);
+      });
+
       test('a correction restored on a phone that never looked the lyrics '
           'up is still in its next backup', () async {
         store(tracks: [_track('1')]);

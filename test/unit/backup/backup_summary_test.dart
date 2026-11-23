@@ -20,6 +20,8 @@ Backup _backup({
   List<BackupDay> days = const [],
   Set<BackupPart> parts = BackupPart.all,
   EqualizerSnapshot? equalizer,
+  List<BackupLyrics> lyrics = const [],
+  List<BackupLyricsOffset> lyricsOffsets = const [],
 }) => Backup(
   createdAt: DateTime.utc(2026),
   parts: parts,
@@ -32,6 +34,8 @@ Backup _backup({
   replayMonth: null,
   settings: parts.contains(BackupPart.settings) ? const AppSettings() : null,
   equalizer: equalizer,
+  lyrics: lyrics,
+  lyricsOffsets: lyricsOffsets,
 );
 
 void main() {
@@ -50,9 +54,16 @@ void main() {
           settings: EqualizerSettings(),
           profiles: [],
         ),
+        lyrics: const [BackupLyrics(track: 'a', text: '[00:01.00]La')],
+        lyricsOffsets: const [
+          BackupLyricsOffset(track: 'a', offsetMs: 300),
+          BackupLyricsOffset(track: 'b', offsetMs: -200),
+        ],
       ),
     );
 
+    // A song counted once, whether imported, corrected or both.
+    expect(summary.lyrics, 2);
     expect(summary.playlists, 1);
     expect(summary.likes, 2);
     expect(summary.plays, 12);
@@ -101,5 +112,22 @@ void main() {
     expect(likes.settings, isNotNull);
     // A part the backup does not hold cannot be chosen into it.
     expect(likes.only({BackupPart.history}).parts, isEmpty);
+  });
+
+  test('lyrics go with their part, and their songs with them', () {
+    final backup = _backup(
+      lyrics: const [BackupLyrics(track: 'a', text: '[00:01.00]La')],
+      lyricsOffsets: const [BackupLyricsOffset(track: 'b', offsetMs: 300)],
+    );
+
+    final lyrics = backup.only({BackupPart.lyrics});
+    final rest = backup.only(BackupPart.all.difference({BackupPart.lyrics}));
+
+    expect(lyrics.lyrics, backup.lyrics);
+    expect(lyrics.lyricsOffsets, backup.lyricsOffsets);
+    expect(lyrics.tracks.keys, unorderedEquals(['a', 'b']));
+    expect(rest.lyrics, isEmpty);
+    expect(rest.lyricsOffsets, isEmpty);
+    expect(rest.tracks, isEmpty);
   });
 }

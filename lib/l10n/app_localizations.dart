@@ -599,8 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBackupBody.
   ///
   /// In en, this message translates to:
-  /// **'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.'**
-  /// **'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
+  /// **'A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and their timing, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.'**
   String get privacyBackupBody;
 
   /// No description provided for @privacyDeleteTitle.
@@ -2457,6 +2456,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get backupPartSettings;
 
+  /// No description provided for @backupPartLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get backupPartLyrics;
+
   /// No description provided for @backupNow.
   ///
   /// In en, this message translates to:
@@ -2546,6 +2551,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 play} other{{count} plays}}'**
   String backupSummaryPlays(int count);
+
+  /// No description provided for @backupSummaryLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Lyrics or timing for 1 song} other{Lyrics or timing for {count} songs}}'**
+  String backupSummaryLyrics(int count);
 
   /// No description provided for @backupSummaryProfiles.
   ///

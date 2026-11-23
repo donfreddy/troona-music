@@ -459,6 +459,109 @@ void main() {
       expect(json.containsKey('equalizer'), isFalse);
     });
 
+    test('without lyrics and the equalizer, still version 1: older apps '
+        'ignore both', () {
+      final json =
+          jsonDecode(
+                utf8.decode(
+                  BackupCodec.encode(
+                    _backup.only(
+                      BackupPart.all.difference({
+                        BackupPart.lyrics,
+                        BackupPart.equalizer,
+                      }),
+                    ),
+                  ),
+                ),
+              )
+              as Map<String, dynamic>;
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+    });
+
+    test('lyrics alone are version 2, with the songs they name', () {
+      final lyrics = Backup(
+        createdAt: DateTime.utc(2026, 10, 30),
+        tracks: _backup.tracks,
+        playlists: _backup.playlists,
+        plays: const [],
+        days: const [],
+        trackDays: const [],
+        firstPlays: const [],
+        replayMonth: null,
+        settings: null,
+        lyrics: const [
+          BackupLyrics(track: '1', text: '[00:01.00]La', offsetMs: 100),
+        ],
+        lyricsOffsets: const [],
+      ).only({BackupPart.lyrics});
+      final bytes = BackupCodec.encode(lyrics);
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+
+      expect(json['version'], 2);
+      expect(json['contents'], ['lyrics']);
+      expect(json.containsKey('playlists'), isFalse);
+      expect(BackupCodec.decode(bytes), lyrics);
+    });
+
+    test('lyrics a backup holds outside its parts are not written', () {
+      final stray = Backup(
+        createdAt: DateTime.utc(2026, 10, 30),
+        parts: const {BackupPart.likes},
+        tracks: _backup.tracks,
+        playlists: const [
+          BackupPlaylist(name: 'Liked', isLikes: true, tracks: ['1']),
+        ],
+        plays: const [],
+        days: const [],
+        trackDays: const [],
+        firstPlays: const [],
+        replayMonth: null,
+        settings: null,
+        lyrics: const [BackupLyrics(track: '1', text: '[00:01.00]La')],
+        lyricsOffsets: const [BackupLyricsOffset(track: '1', offsetMs: 300)],
+      );
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(stray)))
+              as Map<String, dynamic>;
+
+      expect(json.containsKey('lyrics'), isFalse);
+      expect(json.containsKey('lyricsOffsets'), isFalse);
+    });
+
+    test('lyrics in a file that does not list them are not read', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['likes']
+        ..['lyrics'] = [
+          {'track': '1', 'text': '[00:01.00]La', 'offsetMs': 0},
+        ];
+
+      expect(BackupCodec.decode(_bytes(json)).lyrics, isEmpty);
+    });
+
+    test('lyrics change the fingerprint, so a new lyric is backed up', () {
+      final withLyrics = Backup(
+        createdAt: _backup.createdAt,
+        tracks: _backup.tracks,
+        playlists: _backup.playlists,
+        plays: _backup.plays,
+        days: _backup.days,
+        trackDays: _backup.trackDays,
+        firstPlays: _backup.firstPlays,
+        hours: _backup.hours,
+        replayMonth: _backup.replayMonth,
+        settings: _backup.settings,
+        lyricsOffsets: const [BackupLyricsOffset(track: '1', offsetMs: 300)],
+      );
+
+      expect(
+        BackupCodec.fingerprint(withLyrics),
+        isNot(BackupCodec.fingerprint(_backup)),
+      );
+    });
+
     test('a backup of some parts is version 2 and holds only those', () {
       final likes = _backup.only({BackupPart.likes, BackupPart.equalizer});
       final json =
@@ -487,7 +590,7 @@ void main() {
     test('a part this version does not know is skipped', () {
       final json = _json()
         ..['version'] = 2
-        ..['contents'] = ['likes', 'lyrics'];
+        ..['contents'] = ['likes', 'podcasts'];
 
       final read = BackupCodec.decode(_bytes(json));
 

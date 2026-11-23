@@ -58,26 +58,23 @@ final class IsarBackupDataSource {
     final firstPlays = history
         ? _isar.trackFirstPlayModels.where().findAll()
         : const <TrackFirstPlayModel>[];
-    final playlists = _isar.playlistModels.where().findAll();
-    final plays = _isar.playEventModels.where().sortByPlayedAt().findAll();
-    final trackDays = _isar.trackDayModels.where().findAll();
-    final firstPlays = _isar.trackFirstPlayModels.where().findAll();
-    final lyrics = _isar.trackLyricsModels
-        .where()
-        .sourceEqualTo(_imported)
-        .findAll();
+    final withLyrics = parts.contains(BackupPart.lyrics);
+    final lyrics = withLyrics
+        ? _isar.trackLyricsModels.where().sourceEqualTo(_imported).findAll()
+        : const <TrackLyricsModel>[];
     // Lyrics found online are found again; a correction set on them by
     // hand is not. One restored and still waiting for its lyrics (a row
     // with no text) is carried on too, or the next backup would lose it.
     final corrected = [
-      for (final l
-          in _isar.trackLyricsModels
-              .where()
-              .not()
-              .offsetMsEqualTo(0)
-              .sortById()
-              .findAll())
-        if (l.source != _imported) l,
+      if (withLyrics)
+        for (final l
+            in _isar.trackLyricsModels
+                .where()
+                .not()
+                .offsetMsEqualTo(0)
+                .sortById()
+                .findAll())
+          if (l.source != _imported) l,
     ];
 
     final named = {
@@ -148,15 +145,6 @@ final class IsarBackupDataSource {
       ],
       replayMonth: history ? replayMonth : null,
       settings: parts.contains(BackupPart.settings) ? settings : null,
-    );
-  }
-
-  /// Merges [backup] into the database, the records of each part it holds
-  /// (narrowed with [Backup.only] for a restore of some parts). [ids] gives
-  /// the device id of each song of the backup found in the library; the
-  /// others are skipped.
-      replayMonth: replayMonth,
-      settings: settings,
       lyrics: [
         for (final l in lyrics)
           if (tracks.containsKey(l.id) && l.raw != null)
@@ -172,8 +160,10 @@ final class IsarBackupDataSource {
 
   static final _imported = LyricsSource.imported.name;
 
-  /// Merges [backup] into the database. [ids] gives the device id of each
-  /// song of the backup found in the library; the others are skipped.
+  /// Merges [backup] into the database, the records of each part it holds
+  /// (narrowed with [Backup.only] for a restore of some parts). [ids] gives
+  /// the device id of each song of the backup found in the library; the
+  /// others are skipped.
   Future<void> restore(Backup backup, Map<String, String> ids) async =>
       _isar.write((isar) {
         _restorePlaylists(isar, backup.playlists, ids);

@@ -109,8 +109,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Clear cached covers / clear cached online info, each showing the size reclaimed
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
 - Report a problem (local log, shared only if you choose to), privacy policy, open-source licenses
-- Backup and restore: playlists (smart ones with their rules), likes, listening history, settings and the equalizer in a JSON file, each part yours to leave out. Automatic backups, daily or weekly, go to a folder you pick (no storage permission, kept if you uninstall), the last five kept beside the ones you make. Restoring offers the parts a backup holds; on another phone, songs are found again by file, then by tags, and restoring merges, so importing the same file twice changes nothing
-- Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics and settings in a JSON file you keep. On another phone, songs are found again by file, then by tags; restoring merges, so importing the same file twice changes nothing
+- Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics, settings and the equalizer in a JSON file, each part yours to leave out. Automatic backups, daily or weekly, go to a folder you pick (no storage permission, kept if you uninstall), the last five kept beside the ones you make. Restoring offers the parts a backup holds; on another phone, songs are found again by file, then by tags, and restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`

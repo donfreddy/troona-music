@@ -62,10 +62,10 @@ abstract final class BackupCodec {
       for (final part in backup.parts)
         if (part != BackupPart.settings || backup.settings != null) part,
     };
-    // The equalizer is optional in version 1 too: a backup without it is
-    // still one an older app restores whole.
+    // The equalizer and lyrics are optional in version 1 too: a backup
+    // without them is still one an older app restores whole.
     final complete = held.containsAll(
-      BackupPart.all.difference({BackupPart.equalizer}),
+      BackupPart.all.difference({BackupPart.equalizer, BackupPart.lyrics}),
     );
     bool has(BackupPart part) => held.contains(part);
     return utf8.encode(
@@ -134,6 +134,16 @@ abstract final class BackupCodec {
             'settings': EqualizerJson.encodeSettings(eq.settings),
             'profiles': EqualizerJson.encodeProfiles(eq.profiles),
           },
+        if (has(BackupPart.lyrics) && backup.lyrics.isNotEmpty)
+          'lyrics': [
+            for (final l in backup.lyrics)
+              {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
+          ],
+        if (has(BackupPart.lyrics) && backup.lyricsOffsets.isNotEmpty)
+          'lyricsOffsets': [
+            for (final o in backup.lyricsOffsets)
+              {'track': o.track, 'offsetMs': o.offsetMs},
+          ],
       }),
     );
   }
@@ -155,6 +165,8 @@ abstract final class BackupCodec {
       replayMonth: backup.replayMonth,
       settings: backup.settings,
       equalizer: backup.equalizer,
+      lyrics: backup.lyrics,
+      lyricsOffsets: backup.lyricsOffsets,
     );
     // Dart ints wrap on overflow, which is the modulo FNV needs.
     var hash = 0xcbf29ce484222325;
@@ -165,46 +177,6 @@ abstract final class BackupCodec {
     String half(int bits) => bits.toRadixString(16).padLeft(8, '0');
     return half((hash >> 32) & 0xffffffff) + half(hash & 0xffffffff);
   }
-      ],
-      'history': {
-        'plays': [
-          for (final p in backup.plays)
-            {'track': p.track, 'at': p.at.toUtc().toIso8601String()},
-        ],
-        'days': [
-          for (final d in backup.days)
-            {'day': d.day, 'plays': d.plays, 'listenedMs': d.listenedMs},
-        ],
-        'trackDays': [
-          for (final d in backup.trackDays)
-            {'day': d.day, 'track': d.track, 'plays': d.plays},
-        ],
-        'firstPlays': [
-          for (final f in backup.firstPlays) {'track': f.track, 'day': f.day},
-        ],
-        'hours': [
-          for (final h in backup.hours) {'hour': h.hour, 'plays': h.plays},
-        ],
-        'replayMonth': backup.replayMonth,
-      },
-      'settings': _encodeSettings(backup.settings),
-      if (backup.equalizer case final eq?)
-        'equalizer': {
-          'settings': EqualizerJson.encodeSettings(eq.settings),
-          'profiles': EqualizerJson.encodeProfiles(eq.profiles),
-        },
-      if (backup.lyrics.isNotEmpty)
-        'lyrics': [
-          for (final l in backup.lyrics)
-            {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
-        ],
-      if (backup.lyricsOffsets.isNotEmpty)
-        'lyricsOffsets': [
-          for (final o in backup.lyricsOffsets)
-            {'track': o.track, 'offsetMs': o.offsetMs},
-        ],
-    }),
-  );
 
   /// [now] bounds the dates: a backup cannot hold days to come.
   static Backup decode(List<int> bytes, {DateTime? now}) {
@@ -354,6 +326,12 @@ abstract final class BackupCodec {
       equalizer: has(BackupPart.equalizer)
           ? _decodeEqualizer(json['equalizer'])
           : null,
+      lyrics: has(BackupPart.lyrics)
+          ? _decodeLyrics(json['lyrics'], tracks.keys.toSet())
+          : const [],
+      lyricsOffsets: has(BackupPart.lyrics)
+          ? _decodeLyricsOffsets(json['lyricsOffsets'], tracks.keys.toSet())
+          : const [],
     );
   }
 
@@ -365,14 +343,6 @@ abstract final class BackupCodec {
       for (final part in BackupPart.values)
         if (names.contains(part.name)) part,
     };
-      settings: _decodeSettings(_map(json['settings'], 'settings')),
-      equalizer: _decodeEqualizer(json['equalizer']),
-      lyrics: _decodeLyrics(json['lyrics'], tracks.keys.toSet()),
-      lyricsOffsets: _decodeLyricsOffsets(
-        json['lyricsOffsets'],
-        tracks.keys.toSet(),
-      ),
-    );
   }
 
   /// Optional, and read leniently, as [_decodeLyrics]: a correction of an

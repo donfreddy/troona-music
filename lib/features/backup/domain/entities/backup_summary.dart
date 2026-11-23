@@ -17,6 +17,9 @@ final class BackupSummary extends Equatable {
   /// Every play the history counted, not only the recent ones it lists.
   final int plays;
 
+  /// Songs with imported lyrics or a timing set on lyrics found online.
+  final int lyrics;
+
   /// Saved equalizer profiles.
   final int profiles;
 
@@ -25,6 +28,7 @@ final class BackupSummary extends Equatable {
     this.playlists = 0,
     this.likes = 0,
     this.plays = 0,
+    this.lyrics = 0,
     this.profiles = 0,
   });
 
@@ -44,21 +48,27 @@ final class BackupSummary extends Equatable {
         backup.trackDays.isNotEmpty ||
         backup.firstPlays.isNotEmpty ||
         backup.hours.isNotEmpty;
+    final lyrics = {
+      for (final l in backup.lyrics) l.track,
+      for (final o in backup.lyricsOffsets) o.track,
+    }.length;
     return BackupSummary(
       parts: {
         if (playlists > 0) BackupPart.playlists,
         if (likes > 0) BackupPart.likes,
         if (history) BackupPart.history,
+        if (lyrics > 0) BackupPart.lyrics,
         if (backup.settings != null) BackupPart.settings,
         if (backup.equalizer != null) BackupPart.equalizer,
       },
       playlists: playlists,
       likes: likes,
       plays: plays,
+      lyrics: lyrics,
       profiles: backup.equalizer?.profiles.length ?? 0,
     );
   }
 
   @override
-  List<Object?> get props => [parts, playlists, likes, plays, profiles];
+  List<Object?> get props => [parts, playlists, likes, plays, lyrics, profiles];
 }

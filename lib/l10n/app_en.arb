@@ -138,8 +138,7 @@
   "privacyReportsTitle": "Problem reports",
   "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
   "privacyBackupTitle": "Backups",
-  "privacyBackupBody": "A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.",
-  "privacyBackupBody": "Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
+  "privacyBackupBody": "A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and their timing, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.",
   "privacyDeleteTitle": "Deleting your data",
   "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.",
   "permissionHeadline": "All your music.\nNothing in the way.",
@@ -851,6 +850,7 @@
   "backupPartsEverything": "Everything",
   "backupPartHistory": "Listening history",
   "backupPartSettings": "Settings",
+  "backupPartLyrics": "Lyrics",
   "backupNow": "Back up now",
   "backupNowInto": "Into {name}",
   "@backupNowInto": {
@@ -895,6 +895,14 @@
   },
   "backupSummaryPlays": "{count, plural, =1{1 play} other{{count} plays}}",
   "@backupSummaryPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSummaryLyrics": "{count, plural, =1{Lyrics or timing for 1 song} other{Lyrics or timing for {count} songs}}",
+  "@backupSummaryLyrics": {
     "placeholders": {
       "count": {
         "type": "int"

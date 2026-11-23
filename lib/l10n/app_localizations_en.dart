@@ -310,8 +310,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.';
-      'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
+      'A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and their timing, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.';
 
   @override
   String get privacyDeleteTitle => 'Deleting your data';
@@ -1470,6 +1469,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupPartSettings => 'Settings';
 
   @override
+  String get backupPartLyrics => 'Lyrics';
+
+  @override
   String get backupNow => 'Back up now';
 
   @override
@@ -1539,6 +1541,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count plays',
       one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLyrics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lyrics or timing for $count songs',
+      one: 'Lyrics or timing for 1 song',
     );
     return '$_temp0';
   }

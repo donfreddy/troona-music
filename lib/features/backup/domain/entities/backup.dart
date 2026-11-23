@@ -118,10 +118,15 @@ enum BackupPart {
   /// Plays, daily totals, plays per song and per hour, first plays and the
   /// last Replay month: one block, since its parts count the same plays.
   history,
+
+  /// Lyrics imported by hand, and the timing set on lyrics found online.
+  lyrics,
   settings,
   equalizer;
 
-  static const all = {playlists, likes, history, settings, equalizer};
+  static const all = {playlists, likes, history, lyrics, settings, equalizer};
+}
+
 /// Lyrics the user imported for a song, with their timing correction
 /// (positive shows the lines earlier). Lyrics found online are not carried:
 /// they are found again; their correction is ([BackupLyricsOffset]).
@@ -232,11 +237,18 @@ final class Backup extends Equatable {
     final plays = history ? this.plays : const <BackupPlay>[];
     final trackDays = history ? this.trackDays : const <BackupTrackDay>[];
     final firstPlays = history ? this.firstPlays : const <BackupFirstPlay>[];
+    final withLyrics = keep.contains(BackupPart.lyrics);
+    final lyrics = withLyrics ? this.lyrics : const <BackupLyrics>[];
+    final lyricsOffsets = withLyrics
+        ? this.lyricsOffsets
+        : const <BackupLyricsOffset>[];
     final named = {
       for (final p in playlists) ...p.tracks,
       for (final p in plays) p.track,
       for (final d in trackDays) d.track,
       for (final f in firstPlays) f.track,
+      for (final l in lyrics) l.track,
+      for (final o in lyricsOffsets) o.track,
     };
     return Backup(
       createdAt: createdAt,
@@ -254,6 +266,8 @@ final class Backup extends Equatable {
       replayMonth: history ? replayMonth : null,
       settings: keep.contains(BackupPart.settings) ? settings : null,
       equalizer: keep.contains(BackupPart.equalizer) ? equalizer : null,
+      lyrics: lyrics,
+      lyricsOffsets: lyricsOffsets,
     );
   }
 
