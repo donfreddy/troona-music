@@ -35,6 +35,7 @@ import 'package:troona/features/settings/presentation/pages/about_page.dart';
 import 'package:troona/features/settings/presentation/pages/appearance_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
+import 'package:troona/features/settings/presentation/pages/licenses_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
@@ -62,6 +63,8 @@ abstract class AppRoute {
   static const settingsStorage = 'settings_storage';
   static const settingsAbout = 'settings_about';
   static const settingsFolders = 'settings_folders';
+  static const settingsLicenses = 'settings_licenses';
+  static const settingsLicense = 'settings_license';
   static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
@@ -272,6 +275,26 @@ final appRouter = GoRouter(
                       const StorageSettingsPage(),
                     ),
                     _settingsRoute(AppRoute.settingsAbout, const AboutPage()),
+                    GoRoute(
+                      path: 'licenses',
+                      name: AppRoute.settingsLicenses,
+                      builder: (_, _) => _overTab(const LicensesPage()),
+                      routes: [
+                        GoRoute(
+                          path: ':index',
+                          name: AppRoute.settingsLicense,
+                          builder: (_, state) => _overTab(
+                            LicenseDetailPage(
+                              index:
+                                  int.tryParse(
+                                    state.pathParameters['index'] ?? '',
+                                  ) ??
+                                  -1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     GoRoute(
                       path: AppRoute.privacy,
                       name: AppRoute.privacy,

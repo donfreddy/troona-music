@@ -4735,6 +4735,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Folders with music'**
   String get settingsFoldersSection;
+
+  /// No description provided for @licensesIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona is built with open-source software. Thank you to the people who make it.'**
+  String get licensesIntro;
+
+  /// No description provided for @licensesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Packages'**
+  String get licensesSection;
+
+  /// No description provided for @licensesTitleMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{first} and {more, plural, =1{1 more} other{{more} more}}'**
+  String licensesTitleMore(String first, int more);
+
+  /// No description provided for @licensesOwnTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Its own terms'**
+  String get licensesOwnTerms;
+
+  /// No description provided for @licensesNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This license is no longer listed.'**
+  String get licensesNotFound;
+
+  /// No description provided for @settingsLicensesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The software Troona is built with'**
+  String get settingsLicensesSubtitle;
 }
 
 class _AppLocalizationsDelegate

@@ -2877,4 +2877,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoldersSection => 'Folders with music';
+
+  @override
+  String get licensesIntro =>
+      'Troona is built with open-source software. Thank you to the people who make it.';
+
+  @override
+  String get licensesSection => 'Packages';
+
+  @override
+  String licensesTitleMore(String first, int more) {
+    String _temp0 = intl.Intl.pluralLogic(
+      more,
+      locale: localeName,
+      other: '$more more',
+      one: '1 more',
+    );
+    return '$first and $_temp0';
+  }
+
+  @override
+  String get licensesOwnTerms => 'Its own terms';
+
+  @override
+  String get licensesNotFound => 'This license is no longer listed.';
+
+  @override
+  String get settingsLicensesSubtitle => 'The software Troona is built with';
 }

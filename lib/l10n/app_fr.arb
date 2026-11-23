@@ -772,5 +772,11 @@
   "settingsFolderCoveredBy": "Exclu avec {folder}",
   "settingsFolderInPhone": "Téléphone",
   "settingsFolderInSdCard": "Carte SD",
-  "settingsFoldersSection": "Dossiers de musique"
+  "settingsFoldersSection": "Dossiers de musique",
+  "licensesIntro": "Troona repose sur des logiciels libres. Merci à celles et ceux qui les font.",
+  "licensesSection": "Paquets",
+  "licensesTitleMore": "{first} et {more, plural, =1{1 autre} other{{more} autres}}",
+  "licensesOwnTerms": "Conditions propres",
+  "licensesNotFound": "Cette licence n'est plus listée.",
+  "settingsLicensesSubtitle": "Les logiciels sur lesquels Troona repose"
 }

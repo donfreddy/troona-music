@@ -1554,5 +1554,12 @@
   "@settingsFolderCoveredBy": {"placeholders": {"folder": {"type": "String"}}},
   "settingsFolderInPhone": "Phone",
   "settingsFolderInSdCard": "SD card",
-  "settingsFoldersSection": "Folders with music"
+  "settingsFoldersSection": "Folders with music",
+  "licensesIntro": "Troona is built with open-source software. Thank you to the people who make it.",
+  "licensesSection": "Packages",
+  "licensesTitleMore": "{first} and {more, plural, =1{1 more} other{{more} more}}",
+  "@licensesTitleMore": {"placeholders": {"first": {"type": "String"}, "more": {"type": "int"}}},
+  "licensesOwnTerms": "Its own terms",
+  "licensesNotFound": "This license is no longer listed.",
+  "settingsLicensesSubtitle": "The software Troona is built with"
 }

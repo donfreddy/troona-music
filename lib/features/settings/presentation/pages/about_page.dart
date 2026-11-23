@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -132,11 +131,8 @@ class _AboutPageState extends State<AboutPage> {
               icon: AppIcons.licenses,
               iconColor: SettingsHue.about,
               title: l10n.settingsLicenses,
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: l10n.appName,
-                applicationVersion: version?.version,
-              ),
+              subtitle: l10n.settingsLicensesSubtitle,
+              onTap: () => context.pushNamed(AppRoute.settingsLicenses),
             ),
           ],
         ),

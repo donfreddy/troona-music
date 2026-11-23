@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,6 +37,8 @@ import 'package:troona/features/settings/presentation/pages/appearance_settings_
 import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/licenses_page.dart';
+import 'package:troona/features/settings/presentation/utils/license_catalog.dart';
 import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/storage_settings_page.dart';
@@ -43,6 +46,7 @@ import 'package:troona/features/settings/presentation/widgets/settings_tile.dart
 import 'package:troona/features/updates/domain/use_cases/check_for_update_use_case.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/shared/widgets/app_back_button.dart';
 import 'package:troona/services/scanner/media_scanner_service.dart';
 
 import '../../helpers/fake_equalizer.dart';
@@ -372,6 +376,109 @@ void main() {
 
         expect(tester.takeException(), isNull);
       });
+    }
+  });
+
+  group('licenses', () {
+    setUp(() {
+      LicenseRegistry.reset();
+      LicenseCatalog.reset();
+      LicenseRegistry.addLicense(
+        () => Stream.fromIterable(const [
+          LicenseEntryWithLineBreaks(
+            ['on_audio_query_platform_interface', 'go_router'],
+            'Permission is hereby granted, free of charge, to any person.\n\n'
+            'THE SOFTWARE IS PROVIDED "AS IS".',
+          ),
+          LicenseEntryWithLineBreaks(['lucide'], 'Terms written by hand.'),
+        ]),
+      );
+    });
+
+    tearDown(() {
+      LicenseRegistry.reset();
+      LicenseCatalog.reset();
+    });
+
+    testWidgets('a license opens on its own page, in the app', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/licenses',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const SizedBox(),
+            routes: [
+              GoRoute(
+                path: 'licenses',
+                name: AppRoute.settingsLicenses,
+                builder: (_, _) => const LicensesPage(),
+                routes: [
+                  GoRoute(
+                    path: ':index',
+                    name: AppRoute.settingsLicense,
+                    builder: (_, state) => LicenseDetailPage(
+                      index: int.parse(state.pathParameters['index']!),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        providers(
+          MaterialApp.router(
+            theme: robotoTheme(AppTheme.dark),
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('go_router and 1 more'), findsOneWidget);
+      expect(find.text('MIT'), findsOneWidget);
+      expect(find.text('lucide'), findsOneWidget);
+      expect(find.text('Its own terms'), findsOneWidget);
+
+      await tester.tap(find.text('go_router and 1 more'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('go_router, on_audio_query_platform_interface'),
+        findsOneWidget,
+      );
+      expect(find.text('THE SOFTWARE IS PROVIDED "AS IS".'), findsOneWidget);
+      expect(find.byType(AppBackButton), findsOneWidget);
+    });
+
+    testWidgets('a place no longer listed says so', (tester) async {
+      await pump(tester, const LicenseDetailPage(index: 9));
+
+      expect(find.text('This license is no longer listed.'), findsOneWidget);
+    });
+
+    for (final locale in const [Locale('en'), Locale('fr')]) {
+      testWidgets(
+        '${locale.languageCode}, 360 x 640, text x2.0: nothing overflows',
+        (tester) async {
+          tester.view
+            ..devicePixelRatio = 3
+            ..physicalSize = const Size(360, 640) * 3;
+          tester.platformDispatcher.textScaleFactorTestValue = 2;
+          addTearDown(tester.view.reset);
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+          await pump(tester, const LicensesPage(), locale: locale);
+          expect(tester.takeException(), isNull);
+          await pump(tester, const LicenseDetailPage(index: 0), locale: locale);
+          expect(tester.takeException(), isNull);
+        },
+      );
     }
   });
 
