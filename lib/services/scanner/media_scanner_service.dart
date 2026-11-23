@@ -133,6 +133,8 @@ final class MediaScannerService {
     }
 
     // ── Phase 3: artwork extraction ─────────────────────────────────────────
+    // Covers whose file the system deleted are extracted again.
+    await _cache.forgetMissingArtwork();
     final tracksWithoutArtwork = await _cache.getTracksWithoutArtwork();
     final artworkTotal = tracksWithoutArtwork.length;
 

@@ -21,6 +21,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Settings are organised in pages: Audio, Library, Online extras, Appearance, Backup & restore, Storage and About, each row saying what it holds or how it stands. Every switch explains what it does, and the caches and resets have their own page.
 - Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
 
+### Fixed
+
+- Covers come back by themselves after Android or a "Clear cache" emptied Troona's cache: the next scan extracts them again, where they stayed blank until Clear cover cache.
+
 ## [1.8.0] - 2026-11-22
 
 ### Added

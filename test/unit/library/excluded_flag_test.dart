@@ -102,4 +102,39 @@ void main() {
     expect(await source.getStoredTracks(), hasLength(2));
   }, skip: skip);
 
+  group('forgetMissingArtwork', () {
+    test('hands back the songs whose cover file is gone', () async {
+      final kept = File('${dir.path}/kept.jpg')..writeAsBytesSync([1]);
+      await source.insertTracks([_row('kept'), _row('gone'), _row('none')]);
+      await source.saveArtworkResults({
+        'kept': kept.path,
+        'gone': '${dir.path}/gone.jpg',
+        'none': null, // checked, the file has no cover
+      });
+      expect(await source.getTracksWithoutArtwork(), isEmpty);
+
+      expect(await source.forgetMissingArtwork(), 1);
+
+      final byId = {
+        for (final t in await source.getStoredTracks()) t.deviceId: t,
+      };
+      expect(byId['kept']!.artworkPath, kept.path);
+      expect(byId['kept']!.artworkChecked, isTrue);
+      expect(byId['gone']!.artworkPath, isNull);
+      expect(byId['none']!.artworkChecked, isTrue, reason: 'no file to miss');
+      expect(
+        [for (final t in await source.getTracksWithoutArtwork()) t.deviceId],
+        ['gone'],
+      );
+    }, skip: skip);
+
+    test('changes nothing when every cover is there', () async {
+      final kept = File('${dir.path}/kept.jpg')..writeAsBytesSync([1]);
+      await source.insertTracks([_row('kept')]);
+      await source.saveArtworkResults({'kept': kept.path});
+
+      expect(await source.forgetMissingArtwork(), 0);
+      expect(await source.getTracksWithoutArtwork(), isEmpty);
+    }, skip: skip);
+  });
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:isar_plus/isar_plus.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
@@ -492,6 +494,36 @@ class IsarLibraryDataSource {
         updated.add(track);
       }
       isar.trackModels.putAll(updated);
+    });
+  }
+
+  /// Hands back to the extractor the songs whose cover file is gone: the
+  /// covers live in the app's cache directory, which Android may empty
+  /// (low storage, "Clear cache" in the system settings) while the rows
+  /// still name them. Without this they would show no cover for good,
+  /// marked as checked. Returns how many were reset.
+  Future<int> forgetMissingArtwork() async {
+    final rows = _isar.trackModels.where().artworkPathIsNotNull().findAll();
+    final exists = await Future.wait([
+      for (final row in rows) File(row.artworkPath!).exists(),
+    ]);
+    final gone = {
+      for (final (i, row) in rows.indexed)
+        if (!exists[i]) row.id: row.artworkPath,
+    };
+    if (gone.isEmpty) return 0;
+    // Read again inside the write: a row changed during the checks keeps
+    // its changes, and one given a new cover meanwhile keeps it.
+    return _isar.write((isar) {
+      final reset = [
+        for (final row in isar.trackModels.getAll(gone.keys.toList()))
+          if (row != null && row.artworkPath == gone[row.id])
+            row
+              ..artworkPath = null
+              ..artworkChecked = false,
+      ];
+      isar.trackModels.putAll(reset);
+      return reset.length;
     });
   }
 
