@@ -4,6 +4,15 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Automatic backups: daily or weekly, into a folder you pick once, with no storage permission; the folder and its backups stay if you uninstall Troona. The last five automatic backups are kept, the ones you make by hand are never deleted, and a backup with nothing new is not written again. Troona says when it can no longer reach the folder.
+- Choose what a backup holds: playlists, likes, listening history, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
+
+### Changed
+
+- Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
+
 ## [1.8.0] - 2026-11-22
 
 ### Added

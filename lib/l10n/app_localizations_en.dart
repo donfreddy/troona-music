@@ -310,14 +310,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
+      'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.';
 
   @override
   String get privacyDeleteTitle => 'Deleting your data';
 
   @override
   String get privacyDeleteBody =>
-      'Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.';
+      'Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.';
 
   @override
   String get permissionHeadline => 'All your music.\nNothing in the way.';
@@ -1345,7 +1345,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.';
+      'A backup holds what you choose above, with the names and sizes of your music files, unencrypted. Keep it somewhere private.';
 
   @override
   String get backupExportSubtitle => 'Save it to Files, Drive or another app.';

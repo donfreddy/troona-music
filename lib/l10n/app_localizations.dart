@@ -599,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBackupBody.
   ///
   /// In en, this message translates to:
-  /// **'Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
+  /// **'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.'**
   String get privacyBackupBody;
 
   /// No description provided for @privacyDeleteTitle.
@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.'**
+  /// **'Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.'**
   String get privacyDeleteBody;
 
   /// No description provided for @permissionHeadline.
@@ -2261,7 +2261,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBackupFooter.
   ///
   /// In en, this message translates to:
-  /// **'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.'**
+  /// **'A backup holds what you choose above, with the names and sizes of your music files, unencrypted. Keep it somewhere private.'**
   String get settingsBackupFooter;
 
   /// No description provided for @backupExportSubtitle.

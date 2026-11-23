@@ -313,14 +313,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Exporter une sauvegarde écrit vos playlists, vos likes, votre historique d\'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, dans un fichier, sans chiffrement, et le confie à l\'app de votre choix. Il ne part nulle part ailleurs. La restauration ne lit que le fichier que vous choisissez.';
+      'Une sauvegarde contient les éléments que vous choisissez (playlists, likes, historique d\'écoute, réglages, égaliseur), avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Troona l\'écrit dans le dossier que vous avez choisi pour vos sauvegardes, ou la confie à l\'app de votre choix quand vous la partagez. Elle ne part nulle part ailleurs. La restauration ne lit que la sauvegarde que vous choisissez, et n\'écrit que les éléments que vous gardez.';
 
   @override
   String get privacyDeleteTitle => 'Supprimer vos données';
 
   @override
   String get privacyDeleteBody =>
-      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux et les sauvegardes que vous avez exportées ne sont jamais modifiés.';
+      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux et vos sauvegardes, dans votre dossier de sauvegarde ou exportées, ne sont jamais modifiés.';
 
   @override
   String get permissionHeadline =>
@@ -1356,7 +1356,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'Le fichier contient vos playlists, vos likes, votre historique d\'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-le en lieu sûr.';
+      'Une sauvegarde contient ce que vous choisissez ci-dessus, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-la en lieu sûr.';
 
   @override
   String get backupExportSubtitle =>
