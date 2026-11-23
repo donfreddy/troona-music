@@ -113,6 +113,7 @@ void main() {
       await cubit.load();
       await cubit.setGlassQuality(GlassQuality.low);
       await cubit.setFetchArtistArtwork(true);
+      await cubit.setLanguage(AppLanguage.fr);
 
       await cubit.restore(
         const AppSettings(
@@ -127,6 +128,7 @@ void main() {
       final restored = settingsOf(cubit)!;
       expect(restored.hapticFeedbackEnabled, isFalse);
       expect(restored.glassQuality, GlassQuality.low);
+      expect(restored.language, AppLanguage.fr, reason: 'never restored');
       expect(restored.fetchOnlineMetadata, isFalse);
       expect(restored.fetchArtistArtwork, isTrue);
       expect(restored.fetchLyrics, isFalse);

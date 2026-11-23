@@ -143,6 +143,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setExcludedFolders(Set<String> folders) =>
       _update((s) => s.copyWith(excludedFolders: [...folders]..sort()));
 
+  Future<void> setLanguage(AppLanguage language) =>
+      _update((s) => s.copyWith(language: language));
+
   Future<void> setGlassQuality(GlassQuality quality) =>
       _update((s) => s.copyWith(glassQuality: quality));
 
@@ -155,7 +158,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   /// Applies settings from a backup. This phone keeps its own glass
-  /// quality, which depends on the device, and everything that goes online
+  /// quality, which depends on the device, its language, and everything that goes online
   /// (Last.fm, Deezer, LRCLIB, GitHub): only a choice made here turns it on.
   /// Excluded folders merge, as the rest of a restore does: a folder left
   /// out here stays out.
@@ -167,6 +170,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           ...saved.excludedFolders,
         }..removeWhere((f) => f.isEmpty)).toList()..sort(),
         glassQuality: s.glassQuality,
+        language: s.language,
         fetchOnlineMetadata: s.fetchOnlineMetadata,
         fetchArtistArtwork: s.fetchArtistArtwork,
         fetchLyrics: s.fetchLyrics,

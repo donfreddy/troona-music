@@ -12,6 +12,7 @@ import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
 import 'package:troona/features/library/presentation/bloc/selection/track_selection_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/app_locale_builder.dart';
 import 'package:troona/features/settings/presentation/widgets/app_theme_builder.dart';
 import 'package:troona/core/utils/crash_log.dart';
 import 'package:troona/l10n/app_localizations.dart';
@@ -81,17 +82,21 @@ class TroonaApp extends StatelessWidget {
       child: AppThemeBuilder(
         settings: getIt<SettingsCubit>(),
         detected: GlassTier.detected,
-        builder: (context, theme) => MaterialApp.router(
-          onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: appRouter,
-          themeMode: ThemeMode.dark,
-          theme: theme,
-          darkTheme: theme,
-          // A tier is not blended: no 200 ms of rebuilds to switch it.
-          themeAnimationDuration: Duration.zero,
-          debugShowCheckedModeBanner: false,
+        builder: (context, theme) => AppLocaleBuilder(
+          settings: getIt<SettingsCubit>(),
+          builder: (context, locale) => MaterialApp.router(
+            locale: locale,
+            onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: appRouter,
+            themeMode: ThemeMode.dark,
+            theme: theme,
+            darkTheme: theme,
+            // A tier is not blended: no 200 ms of rebuilds to switch it.
+            themeAnimationDuration: Duration.zero,
+            debugShowCheckedModeBanner: false,
+          ),
         ),
       ),
     );

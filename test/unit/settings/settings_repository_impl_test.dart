@@ -39,12 +39,14 @@ void main() {
     final repo = await repoWith({
       'glass_quality': 'superUltraGlass',
       'haptic_feedback_enabled': 'yes',
+      'app_language': 'klingon',
     });
     final settings = (await repo.loadSettings()).getOrElse(
       () => throw 'no settings',
     );
     expect(settings.glassQuality, GlassQuality.auto);
     expect(settings.hapticFeedbackEnabled, isTrue);
+    expect(settings.language, AppLanguage.system);
   });
 
   test('migrates a legacy integer enum index', () async {
@@ -68,6 +70,7 @@ void main() {
       checkForUpdates: true,
       hapticFeedbackEnabled: false,
       glassQuality: GlassQuality.off,
+      language: AppLanguage.fr,
     );
     expect((await repo.saveSettings(target)).isRight(), isTrue);
     expect((await repo.loadSettings()).getOrElse(() => throw 'none'), target);

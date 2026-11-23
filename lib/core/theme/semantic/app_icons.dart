@@ -116,6 +116,9 @@ abstract final class AppIcons {
   // ── Feedback ──────────────────────────────────────────────────────────────
   static const IconData info = LucideIcons300.info;
 
+  /// The language setting.
+  static const IconData language = LucideIcons300.languages;
+
   /// About's Help row.
   static const IconData help = LucideIcons300.circleQuestionMark;
 

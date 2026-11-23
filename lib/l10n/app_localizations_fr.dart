@@ -2763,11 +2763,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsPrivacySection => 'Confidentialité';
 
   @override
-  String get settingsAppearanceSummary => 'Effets de verre, retours haptiques';
+  String get settingsAppearanceSummary =>
+      'Langue, effets de verre, retours haptiques';
 
   @override
   String get settingsAppearanceIntro =>
-      'L\'allure de Troona, et sa réponse au toucher.';
+      'La langue de Troona, son allure et sa réponse au toucher.';
 
   @override
   String get settingsTouch => 'Toucher';
@@ -2989,4 +2990,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get helpNewPhoneAnswer =>
       'Faites une sauvegarde, copiez le fichier sur le nouveau téléphone et restaurez-la : playlists, j\'aime, historique et réglages reviennent, et vos titres sont retrouvés par leur nom, leur taille et leurs tags.';
+
+  @override
+  String get settingsLanguage => 'Langue';
+
+  @override
+  String get settingsLanguageSubtitle =>
+      'Système suit la langue de votre téléphone.';
+
+  @override
+  String get settingsLanguageSystem => 'Système';
 }

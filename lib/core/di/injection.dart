@@ -247,7 +247,10 @@ Future<void> configureDependencies() async {
   AppHaptics.enabled = initialSettings.hapticFeedbackEnabled;
 
   final likeButton = AudioServiceInitializer.likeButton(
-    PlatformDispatcher.instance.locales,
+    AudioServiceInitializer.localesFor(
+      initialSettings.language,
+      PlatformDispatcher.instance.locales,
+    ),
   );
   // The handler is built before the player it resumes: it waits for it.
   final lastSession = Completer<ResumableSession>();

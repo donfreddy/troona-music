@@ -66,7 +66,7 @@ final class AudioServiceInitializer {
       config: AudioServiceConfig(
         androidNotificationChannelId: 'com.donfreddy.troona',
         androidNotificationChannelName: channelName(
-          PlatformDispatcher.instance.locales,
+          localesFor(settings.language, PlatformDispatcher.instance.locales),
         ),
         // A white silhouette: Android draws small icons from their alpha
         // alone, so the full-colour launcher icon came out as a plain disc.
@@ -97,6 +97,14 @@ final class AudioServiceInitializer {
       unlikeLabel: strings.likesRemove,
     );
   }
+
+  /// The languages strings outside the widget tree resolve from: the one
+  /// chosen in Settings, else the phone's ([device]).
+  static List<Locale> localesFor(AppLanguage language, List<Locale> device) =>
+      switch (language.code) {
+        final code? => [Locale(code)],
+        null => device,
+      };
 
   static AppLocalizations _strings(List<Locale> device) =>
       lookupAppLocalizations(

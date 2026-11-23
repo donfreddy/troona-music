@@ -4517,13 +4517,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAppearanceSummary.
   ///
   /// In en, this message translates to:
-  /// **'Glass effects, haptics'**
+  /// **'Language, glass effects, haptics'**
   String get settingsAppearanceSummary;
 
   /// No description provided for @settingsAppearanceIntro.
   ///
   /// In en, this message translates to:
-  /// **'How Troona looks, and how it answers your touch.'**
+  /// **'Troona\'s language, how it looks, and how it answers your touch.'**
   String get settingsAppearanceIntro;
 
   /// No description provided for @settingsTouch.
@@ -4873,6 +4873,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.'**
   String get helpNewPhoneAnswer;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'System follows your phone\'s language.'**
+  String get settingsLanguageSubtitle;
+
+  /// No description provided for @settingsLanguageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsLanguageSystem;
 }
 
 class _AppLocalizationsDelegate

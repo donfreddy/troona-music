@@ -736,8 +736,8 @@
   "settingsOnlineLyricsSubtitle": "Depuis LRCLIB, puis lyrics.ovh, quand vous ouvrez les paroles d'un titre.",
   "settingsOnlinePageFooter": "Rien d'autre sur vous ou votre musique ne quitte ce téléphone. Les infos téléchargées s'effacent dans Stockage.",
   "settingsPrivacySection": "Confidentialité",
-  "settingsAppearanceSummary": "Effets de verre, retours haptiques",
-  "settingsAppearanceIntro": "L'allure de Troona, et sa réponse au toucher.",
+  "settingsAppearanceSummary": "Langue, effets de verre, retours haptiques",
+  "settingsAppearanceIntro": "La langue de Troona, son allure et sa réponse au toucher.",
   "settingsTouch": "Toucher",
   "settingsHapticsSubtitle": "De légères vibrations quand vous touchez, sélectionnez ou aimez.",
   "settingsApp": "Application",
@@ -795,5 +795,8 @@
   "helpArtistInfoAnswer": "Elles viennent de Deezer et de Last.fm, seulement une fois activées. Sinon, rien ne quitte votre téléphone.",
   "helpBackupSection": "Sauvegarde",
   "helpNewPhone": "Changer de téléphone",
-  "helpNewPhoneAnswer": "Faites une sauvegarde, copiez le fichier sur le nouveau téléphone et restaurez-la : playlists, j'aime, historique et réglages reviennent, et vos titres sont retrouvés par leur nom, leur taille et leurs tags."
+  "helpNewPhoneAnswer": "Faites une sauvegarde, copiez le fichier sur le nouveau téléphone et restaurez-la : playlists, j'aime, historique et réglages reviennent, et vos titres sont retrouvés par leur nom, leur taille et leurs tags.",
+  "settingsLanguage": "Langue",
+  "settingsLanguageSubtitle": "Système suit la langue de votre téléphone.",
+  "settingsLanguageSystem": "Système"
 }

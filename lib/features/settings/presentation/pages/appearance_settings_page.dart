@@ -22,7 +22,16 @@ String glassLabelOf(GlassQuality quality, AppLocalizations l10n) =>
       GlassQuality.off => l10n.settingsGlassOff,
     };
 
-/// Glass effects and haptics.
+/// The name of [language] in the language setting: each language in its
+/// own words, so it can be found whatever the app shows.
+String languageLabelOf(AppLanguage language, AppLocalizations l10n) =>
+    switch (language) {
+      AppLanguage.system => l10n.settingsLanguageSystem,
+      AppLanguage.en => 'English',
+      AppLanguage.fr => 'Français',
+    };
+
+/// The app's language, glass effects and haptics.
 class AppearanceSettingsPage extends StatelessWidget {
   const AppearanceSettingsPage({super.key});
 
@@ -37,6 +46,24 @@ class AppearanceSettingsPage extends StatelessWidget {
         SettingsBuilder(
           builder: (context, settings) => Column(
             children: [
+              SettingsSection(
+                title: l10n.settingsLanguage,
+                children: [
+                  SegmentedRow<AppLanguage>(
+                    icon: AppIcons.language,
+                    iconColor: SettingsHue.appearance,
+                    label: l10n.settingsLanguage,
+                    subtitle: l10n.settingsLanguageSubtitle,
+                    values: AppLanguage.values,
+                    labels: [
+                      for (final language in AppLanguage.values)
+                        languageLabelOf(language, l10n),
+                    ],
+                    selected: settings.language,
+                    onChanged: cubit.setLanguage,
+                  ),
+                ],
+              ),
               SettingsSection(
                 title: l10n.settingsGlass,
                 footer: l10n.settingsGlassFooter(

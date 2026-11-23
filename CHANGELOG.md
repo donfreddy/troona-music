@@ -14,6 +14,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Choose what a backup holds: playlists, likes, listening history, lyrics, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
 - Keep folders out of your library, such as voice notes or a podcasts folder: Settings, Library, Folders. Their songs leave the library and come back, with their likes, plays and playlists, when you turn the folder back on.
 - Choose the shortest song your library keeps: 10 s, 30 s, 1 min or 2 min, in Settings, Library.
+- Choose Troona's language, English or French, or let it follow your phone's: Settings, Appearance.
 - Help, in Settings, About: what to do when a song is missing, the music stops with the screen off, a song has no lyrics, about artist photos, and when moving to a new phone, each opening the setting that settles it.
 
 ### Changed

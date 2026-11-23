@@ -451,6 +451,25 @@ void main() {
     }
   });
 
+  testWidgets('the language is picked on Appearance, in its own words', (
+    tester,
+  ) async {
+    await pump(tester, const AppearanceSettingsPage());
+    expect(find.text('English'), findsOneWidget);
+
+    await tester.tap(find.text('Français'));
+    await tester.pumpAndSettle();
+
+    expect(
+      settings.state,
+      isA<SettingsLoaded>().having(
+        (s) => s.settings.language,
+        'language',
+        AppLanguage.fr,
+      ),
+    );
+  });
+
   testWidgets('Help opens from About, each answer on its setting', (
     tester,
   ) async {

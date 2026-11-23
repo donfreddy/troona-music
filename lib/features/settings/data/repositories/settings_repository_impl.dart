@@ -21,6 +21,7 @@ abstract final class _K {
   static const excludedFolders = 'excluded_folders';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
   static const glassQuality = 'glass_quality';
+  static const language = 'app_language';
 
   static const all = [
     stopOnCallEnabled,
@@ -35,6 +36,7 @@ abstract final class _K {
     excludedFolders,
     hapticFeedbackEnabled,
     glassQuality,
+    language,
   ];
 }
 
@@ -119,6 +121,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
             values: GlassQuality.values,
             defaultValue: d.glassQuality,
           ),
+          language: _loadEnum(
+            key: _K.language,
+            values: AppLanguage.values,
+            defaultValue: d.language,
+          ),
         ),
       );
     } catch (e, st) {
@@ -142,6 +149,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setStringList(_K.excludedFolders, s.excludedFolders),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
         _prefs.setString(_K.glassQuality, s.glassQuality.name),
+        _prefs.setString(_K.language, s.language.name),
       ]);
       return const Right(unit);
     } catch (e, st) {

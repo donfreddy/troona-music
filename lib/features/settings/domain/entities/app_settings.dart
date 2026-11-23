@@ -3,6 +3,18 @@ import 'package:equatable/equatable.dart';
 /// Global glass quality to balance fidelity vs performance.
 enum GlassQuality { auto, high, low, off }
 
+/// The language of the app's screens: the phone's, or one of the app's.
+enum AppLanguage {
+  system(null),
+  en('en'),
+  fr('fr');
+
+  /// Its language code; null for the phone's language.
+  final String? code;
+
+  const AppLanguage(this.code);
+}
+
 /// User preferences. Every field here is read somewhere: a setting that
 /// does nothing is a bug report waiting to happen.
 class AppSettings extends Equatable {
@@ -39,6 +51,10 @@ class AppSettings extends Equatable {
   final bool hapticFeedbackEnabled;
   final GlassQuality glassQuality;
 
+  /// Kept on this phone: never in a backup, so restoring one made
+  /// elsewhere, or before the setting existed, leaves it alone.
+  final AppLanguage language;
+
   const AppSettings({
     this.stopOnCallEnabled = true,
     this.resumeAfterCallEnabled = true,
@@ -52,6 +68,7 @@ class AppSettings extends Equatable {
     this.excludedFolders = const [],
     this.hapticFeedbackEnabled = true,
     this.glassQuality = GlassQuality.auto,
+    this.language = AppLanguage.system,
   });
 
   bool get onlineExtrasEnabled => fetchOnlineMetadata || fetchArtistArtwork;
@@ -73,6 +90,7 @@ class AppSettings extends Equatable {
     List<String>? excludedFolders,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
+    AppLanguage? language,
   }) => AppSettings(
     stopOnCallEnabled: stopOnCallEnabled ?? this.stopOnCallEnabled,
     resumeAfterCallEnabled:
@@ -88,6 +106,7 @@ class AppSettings extends Equatable {
     excludedFolders: excludedFolders ?? this.excludedFolders,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
     glassQuality: glassQuality ?? this.glassQuality,
+    language: language ?? this.language,
   );
 
   @override
@@ -104,5 +123,6 @@ class AppSettings extends Equatable {
     excludedFolders,
     hapticFeedbackEnabled,
     glassQuality,
+    language,
   ];
 }

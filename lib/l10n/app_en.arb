@@ -1491,8 +1491,8 @@
   "settingsOnlineLyricsSubtitle": "From LRCLIB, then lyrics.ovh, when you open a song's lyrics.",
   "settingsOnlinePageFooter": "Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.",
   "settingsPrivacySection": "Privacy",
-  "settingsAppearanceSummary": "Glass effects, haptics",
-  "settingsAppearanceIntro": "How Troona looks, and how it answers your touch.",
+  "settingsAppearanceSummary": "Language, glass effects, haptics",
+  "settingsAppearanceIntro": "Troona's language, how it looks, and how it answers your touch.",
   "settingsTouch": "Touch",
   "settingsHapticsSubtitle": "Light vibrations when you tap, pick or like.",
   "settingsApp": "App",
@@ -1602,5 +1602,8 @@
   "helpArtistInfoAnswer": "They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.",
   "helpBackupSection": "Backup",
   "helpNewPhone": "Moving to a new phone",
-  "helpNewPhoneAnswer": "Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags."
+  "helpNewPhoneAnswer": "Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.",
+  "settingsLanguage": "Language",
+  "settingsLanguageSubtitle": "System follows your phone's language.",
+  "settingsLanguageSystem": "System"
 }
