@@ -2,7 +2,8 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 
-/// Finds the songs of a backup in this phone's library.
+/// Finds the songs of a backup in this phone's library, then among the
+/// songs its scan filter leaves out.
 ///
 /// Device ids differ from one phone to another, so a song is looked up by
 /// what it is, in three steps from the strictest; the first step with a
@@ -19,44 +20,42 @@ import 'package:troona/features/library/domain/services/track_tags.dart';
 /// a playlist. At step 1 a tie is the same file in two folders: either copy
 /// is right, so the first one is taken.
 final class TrackMatcher {
-  TrackMatcher(Iterable<Track> library) {
-    for (final track in library) {
-      _byFile.add(_fileKey(track.fileName, track.size), track);
-      _byTags.add(_tagsKey(track.title, track.artist, track.album), track);
-      _byTitle.add(_titleKey(track.title, track.artist), track);
-    }
-  }
+  /// [library] holds the songs the library shows, [leftOut] the ones the
+  /// scan filter leaves out: a left-out copy is only taken where the
+  /// library has none at the same step (see [match]).
+  TrackMatcher(Iterable<Track> library, {Iterable<Track> leftOut = const []})
+    : _library = _Pool(library),
+      _leftOut = _Pool(leftOut);
 
   static const tolerance = Duration(seconds: 2);
 
-  final _byFile = <String, List<Track>>{};
-  final _byTags = <String, List<Track>>{};
-  final _byTitle = <String, List<Track>>{};
+  final _Pool _library;
+  final _Pool _leftOut;
 
-  /// The device id of [saved] in this library, or null when it is not found.
+  /// The device id of [saved] here, or null when it is not found or two
+  /// songs fit it as well.
+  ///
+  /// The steps go from the strictest, the library before the songs left
+  /// out at each level of certainty: the same file, then the same tags in
+  /// the library, then in the songs left out, then the same title and
+  /// artist in either. The first step with a candidate decides, a tie
+  /// included: a folder turned off often holds a second copy, which must
+  /// never take or settle what the library holds.
   String? match(BackupTrack saved) {
-    final copies = _byFile[_fileKey(saved.fileName, saved.size)];
-    if (copies != null) return _closest(copies, saved, firstOnTie: true)?.id;
-
-    // Saved without an artist by an earlier version, the song may now be
-    // named from its file: "Artist - Title" became Title by Artist.
     final named = _isKnown(saved.artist)
         ? null
         : TrackTags.fromName(saved.title);
-    final steps = [
-      _byTags[_tagsKey(saved.title, saved.artist, saved.album)],
-      if (named != null)
-        _byTags[_tagsKey(named.title, named.artist, saved.album)],
-      if (_isKnown(saved.artist))
-        _byTitle[_titleKey(saved.title, saved.artist)],
-      if (named != null) _byTitle[_titleKey(named.title, named.artist)],
-    ];
-    for (final found in steps) {
-      final candidates = [
-        for (final track in found ?? const <Track>[])
-          if (_gap(track, saved) <= tolerance.inMilliseconds) track,
-      ];
-      if (candidates.isNotEmpty) return _closest(candidates, saved)?.id;
+    for (final step in [
+      () => _library.byFile(saved),
+      () => _library.byTags(saved, named),
+      () => _leftOut.byFile(saved),
+      () => _leftOut.byTags(saved, named),
+      () => _library.byTitle(saved, named),
+      () => _leftOut.byTitle(saved, named),
+    ]) {
+      if (step() case (final found, :final firstOnTie)) {
+        return _closest(found, saved, firstOnTie: firstOnTie)?.id;
+      }
     }
     return null;
   }
@@ -93,6 +92,70 @@ final class TrackMatcher {
   /// Case and spacing differ between taggers.
   static String normalize(String text) =>
       text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+}
+
+/// The songs of one place (the library, or the ones left out), indexed by
+/// each step of [TrackMatcher.match]. A step gives its candidates, or null
+/// when it has none.
+final class _Pool {
+  _Pool(Iterable<Track> tracks) {
+    for (final track in tracks) {
+      _byFile.add(TrackMatcher._fileKey(track.fileName, track.size), track);
+      _byTags.add(
+        TrackMatcher._tagsKey(track.title, track.artist, track.album),
+        track,
+      );
+      _byTitle.add(TrackMatcher._titleKey(track.title, track.artist), track);
+    }
+  }
+
+  final _byFile = <String, List<Track>>{};
+  final _byTags = <String, List<Track>>{};
+  final _byTitle = <String, List<Track>>{};
+
+  /// The same file in two folders: either copy is right, so the first one
+  /// is taken.
+  (List<Track>, {bool firstOnTie})? byFile(BackupTrack saved) =>
+      switch (_byFile[TrackMatcher._fileKey(saved.fileName, saved.size)]) {
+        final copies? => (copies, firstOnTie: true),
+        null => null,
+      };
+
+  (List<Track>, {bool firstOnTie})? byTags(
+    BackupTrack saved,
+    ({String title, String artist})? named,
+  ) => _first(saved, [
+    _byTags[TrackMatcher._tagsKey(saved.title, saved.artist, saved.album)],
+    if (named != null)
+      _byTags[TrackMatcher._tagsKey(named.title, named.artist, saved.album)],
+  ]);
+
+  (List<Track>, {bool firstOnTie})? byTitle(
+    BackupTrack saved,
+    ({String title, String artist})? named,
+  ) => _first(saved, [
+    if (TrackMatcher._isKnown(saved.artist))
+      _byTitle[TrackMatcher._titleKey(saved.title, saved.artist)],
+    if (named != null)
+      _byTitle[TrackMatcher._titleKey(named.title, named.artist)],
+  ]);
+
+  /// The first of [lists] with songs within the tolerance of [saved].
+  static (List<Track>, {bool firstOnTie})? _first(
+    BackupTrack saved,
+    List<List<Track>?> lists,
+  ) {
+    for (final found in lists) {
+      final candidates = [
+        for (final track in found ?? const <Track>[])
+          if (TrackMatcher._gap(track, saved) <=
+              TrackMatcher.tolerance.inMilliseconds)
+            track,
+      ];
+      if (candidates.isNotEmpty) return (candidates, firstOnTie: false);
+    }
+    return null;
+  }
 }
 
 extension on Map<String, List<Track>> {

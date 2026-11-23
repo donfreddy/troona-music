@@ -199,5 +199,46 @@ void main() {
 
       expect(backups.restoredIds, {'k1': 'shown'});
     });
+
+    test('an exact file left out beats a title alone in the library', () async {
+      final backups = _Backups(right(_backup));
+      // The library's "Title a" is from another album: only title and
+      // artist match. The folder turned off holds the very file.
+      final other = Track(
+        id: 'other',
+        title: 'Title a',
+        artist: 'Artist',
+        artistId: 1,
+        album: 'Another album',
+        albumId: 2,
+        path: '/music/other.mp3',
+        uri: 'content://other',
+        size: 9,
+        durationMs: 200000,
+        fileName: 'other.mp3',
+      );
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [other],
+          leftOut: [_copy('hidden', 'a.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'hidden'});
+    });
+
+    test('a tie in the library is not settled by a copy left out', () async {
+      final backups = _Backups(right(_backup));
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [_copy('one', 'x.mp3'), _copy('two', 'y.mp3')],
+          leftOut: [_copy('hidden', 'z.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, isEmpty);
+    });
   });
 }

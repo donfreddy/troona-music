@@ -60,15 +60,13 @@ final class RestoreBackupUseCase {
     final chosen = backup.only(parts);
     final library = await _library.getStoredTracks();
     return library.fold((f) async => left(f), (stored) async {
-      // The library first: a folder turned off often holds a second copy
-      // (a download, a chat app's), which must not take the song the
-      // library shows, nor make a tie of it.
-      final kept = TrackMatcher(stored.kept);
-      final leftOut = TrackMatcher(stored.leftOut);
+      // The library before the songs left out, step by step: a folder
+      // turned off often holds a second copy (a download, a chat app's).
+      final matcher = TrackMatcher(stored.kept, leftOut: stored.leftOut);
       final ids = <String, String>{};
       final missing = <BackupTrack>[];
       for (final MapEntry(:key, value: saved) in chosen.tracks.entries) {
-        final id = kept.match(saved) ?? leftOut.match(saved);
+        final id = matcher.match(saved);
         if (id == null) {
           missing.add(saved);
         } else {
