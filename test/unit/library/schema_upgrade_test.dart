@@ -75,5 +75,8 @@ void main() {
     expect(await source.countTracks(), 2);
     expect(await source.getRecentTracks(), hasLength(2));
     expect(await source.getTracksWithoutArtwork(), isEmpty);
+    expect(await source.getLibraryDeviceIds(), {'1', '2'});
+    expect(await source.getTracksByIds(['2', '1']), hasLength(2));
+    expect(await source.getStoredTracks(), hasLength(2));
   }, skip: skip);
 }

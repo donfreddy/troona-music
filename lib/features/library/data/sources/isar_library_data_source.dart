@@ -516,18 +516,26 @@ class IsarLibraryDataSource {
     // One listing per folder (they all share the cache's), not one check
     // per song: a library of thousands would queue thousands of them.
     final present = <String>{};
+    // A folder that cannot be read says nothing of its files: its covers
+    // are kept, and the scan goes on.
+    final unread = <String>{};
     for (final folder in {
       for (final r in rows) File(r.artworkPath!).parent.path,
     }) {
       final dir = Directory(folder);
-      if (!await dir.exists()) continue;
-      await for (final entry in dir.list(followLinks: false)) {
-        present.add(entry.path);
+      try {
+        if (!await dir.exists()) continue;
+        await for (final entry in dir.list(followLinks: false)) {
+          present.add(entry.path);
+        }
+      } on FileSystemException {
+        unread.add(folder);
       }
     }
     final gone = {
       for (final row in rows)
-        if (!present.contains(File(row.artworkPath!).path))
+        if (!present.contains(File(row.artworkPath!).path) &&
+            !unread.contains(File(row.artworkPath!).parent.path))
           row.id: row.artworkPath,
     };
     if (gone.isEmpty) return 0;
