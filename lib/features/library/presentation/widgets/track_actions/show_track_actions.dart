@@ -24,6 +24,7 @@ void showTrackActions(
   Track track, {
   TrackActionOrigin origin = TrackActionOrigin.library,
   ValueChanged<bool>? onLikeToggled,
+  List<SheetAction> first = const [],
 }) {
   final isLiked = context.read<LikesCubit>().state.isTrackLiked(track.id);
   final l10n = context.l10n;
@@ -35,6 +36,8 @@ void showTrackActions(
     title: track.title,
     message: context.artistName(track.artist),
     actions: [
+      // What the place the menu opens from adds (Now Playing's lyrics).
+      ...first,
       SheetAction(
         label: l10n.trackPlayNext,
         icon: AppIcons.playNext,

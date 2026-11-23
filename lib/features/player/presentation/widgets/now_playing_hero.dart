@@ -66,6 +66,24 @@ abstract final class NowPlayingHero {
 
   static double _shuttleOpacity(double t) => (t / _landing).clamp(0.0, 1.0);
 
+  /// Share of the flight, from the stage end, over which the shuttles fade
+  /// when the stage is hidden ([NowPlayingStage]): Now Playing shows the
+  /// lyrics in place of the ring and the cover. The cover then comes out of
+  /// the lyrics on its way to the mini player (and melts into them on the
+  /// way in) instead of appearing over them at full size.
+  static const double _emerging = 0.35;
+
+  /// Opacity of a shuttle at [t] (1 at the stage) over a stage showing at
+  /// [stage] (1 the covers, 0 hidden): at the stage it is the stage's own,
+  /// so the two agree where they meet, and full [_emerging] away from it.
+  /// Read on each frame of the flight: a stage that fades meanwhile (the
+  /// lyrics asked for as the page opens) takes the shuttle with it.
+  @visibleForTesting
+  static double stageSideOpacity(double t, {required double stage}) {
+    final away = ((1 - t) / _emerging).clamp(0.0, 1.0);
+    return stage + (1 - stage) * away;
+  }
+
   /// Route animation of the Now Playing page while it is mounted, curved
   /// like the hero flight, for the mini player row. The shell route's
   /// secondary animation cannot stand in: a fullscreen dialog does not
@@ -95,6 +113,9 @@ abstract final class NowPlayingHero {
     BuildContext toHeroContext,
   ) {
     final (mini, full) = _ends(direction, fromHeroContext, toHeroContext);
+    final stage = NowPlayingStage.opacityOf(
+      direction == HeroFlightDirection.push ? toHeroContext : fromHeroContext,
+    );
     // Rebuilt whenever the flight resizes it, i.e. every frame of the tween.
     return LayoutBuilder(
       builder: (_, constraints) {
@@ -104,7 +125,8 @@ abstract final class NowPlayingHero {
         final radius = lerpDouble(miniSurfaceRadius, size.shortestSide / 2, t)!;
         // Crossfades with the mini row content on landing (see
         // miniRowOpacity) instead of being swapped on the last frame.
-        final opacity = _shuttleOpacity(t);
+        final opacity =
+            _shuttleOpacity(t) * stageSideOpacity(t, stage: stage?.value ?? 1);
         // No BackdropFilter in flight: a moving blur re-samples each frame.
         return CustomPaint(
           foregroundPainter: _ShuttleRimPainter(
@@ -131,6 +153,9 @@ abstract final class NowPlayingHero {
     BuildContext toHeroContext,
   ) {
     final (mini, full) = _ends(direction, fromHeroContext, toHeroContext);
+    final stage = NowPlayingStage.opacityOf(
+      direction == HeroFlightDirection.push ? toHeroContext : fromHeroContext,
+    );
     // Always the mini player's image: it is decoded at full size, so it is
     // ready on the first frame and sharp at any scale. The stage cover may
     // not be decoded yet at its own cache size on the first open.
@@ -143,13 +168,38 @@ abstract final class NowPlayingHero {
         final size = constraints.biggest;
         final t = _progress(size.width, mini.width, full.width);
         final radius = lerpDouble(miniArtworkRadius, size.shortestSide / 2, t)!;
-        return ClipRRect(
+        final cover = ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: image,
         );
+        // One small layer, for the length of a flight from the lyrics.
+        final opacity = stageSideOpacity(t, stage: stage?.value ?? 1);
+        return opacity >= 1 ? cover : Opacity(opacity: opacity, child: cover);
       },
     );
   }
+}
+
+/// Tells how much of Now Playing's stage (the ring and the cover the heroes
+/// fly to and from) shows while the lyrics stand in for it. Read by the shuttles
+/// from the stage's own hero, so each page answers for itself: a page
+/// closing and one opening at once do not share a flag.
+class NowPlayingStage extends InheritedWidget {
+  /// How much of the stage shows: 1 the covers, 0 the lyrics over them.
+  final Animation<double> opacity;
+
+  const NowPlayingStage({
+    super.key,
+    required this.opacity,
+    required super.child,
+  });
+
+  /// The opacity of the stage holding [heroContext]; null outside one.
+  static Animation<double>? opacityOf(BuildContext heroContext) =>
+      heroContext.getInheritedWidgetOfExactType<NowPlayingStage>()?.opacity;
+
+  @override
+  bool updateShouldNotify(NowPlayingStage old) => old.opacity != opacity;
 }
 
 /// Rim of the surface shuttle: the lens's polished edge (bright top left,

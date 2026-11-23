@@ -108,6 +108,36 @@ final class BackupFirstPlay extends Equatable {
   List<Object?> get props => [track, day];
 }
 
+/// Lyrics the user imported for a song, with their timing correction
+/// (positive shows the lines earlier). Lyrics found online are not carried:
+/// they are found again; their correction is ([BackupLyricsOffset]).
+final class BackupLyrics extends Equatable {
+  final String track;
+  final String text;
+  final int offsetMs;
+
+  const BackupLyrics({
+    required this.track,
+    required this.text,
+    this.offsetMs = 0,
+  });
+
+  @override
+  List<Object?> get props => [track, text, offsetMs];
+}
+
+/// The timing correction set by hand on lyrics found online: the lyrics
+/// are found again on another phone, the correction would not be.
+final class BackupLyricsOffset extends Equatable {
+  final String track;
+  final int offsetMs;
+
+  const BackupLyricsOffset({required this.track, required this.offsetMs});
+
+  @override
+  List<Object?> get props => [track, offsetMs];
+}
+
 /// Everything a backup carries. Songs are described once in [tracks] and
 /// named by their key everywhere else.
 final class Backup extends Equatable {
@@ -131,6 +161,12 @@ final class Backup extends Equatable {
   /// read: the rest restores without it.
   final EqualizerSnapshot? equalizer;
 
+  /// Empty in backups made before lyrics.
+  final List<BackupLyrics> lyrics;
+
+  /// Empty in backups made before they were carried.
+  final List<BackupLyricsOffset> lyricsOffsets;
+
   const Backup({
     required this.createdAt,
     required this.tracks,
@@ -143,6 +179,8 @@ final class Backup extends Equatable {
     required this.replayMonth,
     required this.settings,
     this.equalizer,
+    this.lyrics = const [],
+    this.lyricsOffsets = const [],
   });
 
   Backup withEqualizer(EqualizerSnapshot? equalizer) => Backup(
@@ -157,6 +195,8 @@ final class Backup extends Equatable {
     replayMonth: replayMonth,
     settings: settings,
     equalizer: equalizer,
+    lyrics: lyrics,
+    lyricsOffsets: lyricsOffsets,
   );
 
   @override
@@ -172,5 +212,7 @@ final class Backup extends Equatable {
     replayMonth,
     settings,
     equalizer,
+    lyrics,
+    lyricsOffsets,
   ];
 }

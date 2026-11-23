@@ -80,12 +80,12 @@
   "settingsCoversConfirmBody": "Covers reload in the background. Your music, likes and playlists aren't affected.",
   "settingsCoversCleared": "Cover cache cleared",
   "settingsOnline": "Online extras",
-  "settingsOnlineFooter": "Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. The update check asks GitHub for Troona's latest version. Your music files never leave this device.",
+  "settingsOnlineFooter": "Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song's title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona's latest version. Your music files never leave this device.",
   "settingsOnlineBios": "Artist bios and album notes",
   "settingsOnlinePhotos": "Artist photos and album covers",
   "settingsOnlineClear": "Clear downloaded info",
   "settingsOnlineConfirmTitle": "Clear downloaded info?",
-  "settingsOnlineConfirmBody": "Bios, album notes and photos will download again when you open an artist or an album, if they are still turned on.",
+  "settingsOnlineConfirmBody": "Bios, album notes, photos and lyrics found online will download again when you open them, if they are still turned on. Imported lyrics are kept.",
   "settingsOnlineCleared": "Downloaded info cleared",
   "settingsAppearance": "Appearance",
   "settingsGlass": "Glass effects",
@@ -138,7 +138,7 @@
   "privacyReportsTitle": "Problem reports",
   "privacyReportsBody": "Errors are written to a log on this device. It can contain file names. Nothing is sent unless you choose Report a problem and share it yourself.",
   "privacyBackupTitle": "Backups",
-  "privacyBackupBody": "Exporting a backup writes your playlists, likes, listening history and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
+  "privacyBackupBody": "Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.",
   "privacyDeleteTitle": "Deleting your data",
   "privacyDeleteBody": "Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.",
   "permissionHeadline": "All your music.\nNothing in the way.",
@@ -1307,5 +1307,51 @@
   "smartSortLeastPlayed": "Least played",
   "smartSortLastPlayedRecent": "Played most recently",
   "smartSortLastPlayedOldest": "Played longest ago",
-  "smartSortRandom": "Random"
+  "smartSortRandom": "Random",
+  "lyricsTitle": "Lyrics",
+  "lyricsShow": "Show lyrics",
+  "lyricsHide": "Hide lyrics",
+  "lyricsNone": "No lyrics for this song",
+  "lyricsNoneOnline": "None found online either.",
+  "lyricsUnreachable": "Couldn't reach the lyrics search. Try again later.",
+  "lyricsImport": "Import a .lrc file",
+  "lyricsSearchOnline": "Search online",
+  "lyricsSearchAgain": "Search online again",
+  "lyricsEnableSearch": "Turn on lyrics search",
+  "lyricsEnableTitle": "Search lyrics online?",
+  "lyricsEnableBody": "When a song has no lyrics, Troona sends its title, artist, album and length to LRCLIB, then lyrics.ovh, only when you open its lyrics. Nothing else leaves this device. You can turn this off in Settings.",
+  "lyricsEnableAction": "Turn on",
+  "lyricsNotSynced": "Not synced",
+  "lyricsBackToLine": "Back to the current line",
+  "lyricsGoTo": "Go to {time}",
+  "@lyricsGoTo": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsInstrumental": "Instrumental",
+  "lyricsImported": "Lyrics imported",
+  "lyricsImportInvalid": "This file holds no lyrics.",
+  "lyricsOptions": "Lyrics options",
+  "lyricsEarlier": "Show lines earlier (0.1 s)",
+  "lyricsLater": "Show lines later (0.1 s)",
+  "lyricsOffsetReset": "Reset the timing",
+  "lyricsOffsetValue": "Timing: {value} s",
+  "@lyricsOffsetValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsRemove": "Remove lyrics",
+  "lyricsRemoveTitle": "Remove these lyrics?",
+  "lyricsRemoveBody": "Lyrics found online come back only if you search again. Imported lyrics would need importing again.",
+  "lyricsSourceImported": "From an imported file",
+  "lyricsSourceOnline": "Found online (LRCLIB or lyrics.ovh)",
+  "settingsOnlineLyrics": "Song lyrics",
+  "privacyLyricsTitle": "Lyrics search (off by default)",
+  "privacyLyricsBody": "When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export."
 }

@@ -16,6 +16,10 @@ class AppSettings extends Equatable {
   final bool fetchOnlineMetadata;
   final bool fetchArtistArtwork;
 
+  /// Opt-in: sends a song's title, artist, album and length to LRCLIB, then
+  /// lyrics.ovh, when its lyrics are opened and none are stored.
+  final bool fetchLyrics;
+
   /// Whether the Home card offering online extras was answered or closed.
   final bool onlineExtrasOffered;
 
@@ -32,6 +36,7 @@ class AppSettings extends Equatable {
     this.duckAudioOnNotification = true,
     this.fetchOnlineMetadata = false,
     this.fetchArtistArtwork = false,
+    this.fetchLyrics = false,
     this.onlineExtrasOffered = false,
     this.checkForUpdates = false,
     this.hapticFeedbackEnabled = true,
@@ -46,6 +51,7 @@ class AppSettings extends Equatable {
     bool? duckAudioOnNotification,
     bool? fetchOnlineMetadata,
     bool? fetchArtistArtwork,
+    bool? fetchLyrics,
     bool? onlineExtrasOffered,
     bool? checkForUpdates,
     bool? hapticFeedbackEnabled,
@@ -58,6 +64,7 @@ class AppSettings extends Equatable {
         duckAudioOnNotification ?? this.duckAudioOnNotification,
     fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
     fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
+    fetchLyrics: fetchLyrics ?? this.fetchLyrics,
     onlineExtrasOffered: onlineExtrasOffered ?? this.onlineExtrasOffered,
     checkForUpdates: checkForUpdates ?? this.checkForUpdates,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
@@ -71,6 +78,7 @@ class AppSettings extends Equatable {
     duckAudioOnNotification,
     fetchOnlineMetadata,
     fetchArtistArtwork,
+    fetchLyrics,
     onlineExtrasOffered,
     checkForUpdates,
     hapticFeedbackEnabled,

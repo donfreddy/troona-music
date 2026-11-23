@@ -124,6 +124,7 @@ final class PlaybackSessionStore {
   static const _stateKey = 'playback_session_state_v2';
   static const _legacyKey = 'playback_session_v1';
   static const _fullPlayerOpenKey = 'playback_full_player_open_v1';
+  static const _lyricsShownKey = 'playback_lyrics_shown_v1';
 
   final SharedPreferences _prefs;
 
@@ -197,6 +198,14 @@ final class PlaybackSessionStore {
 
   Future<void> setFullPlayerOpen(bool value) =>
       _prefs.setBool(_fullPlayerOpenKey, value);
+
+  /// Whether Now Playing was last left on its lyrics: it opens on them
+  /// again. A way of looking at the page, kept apart from the session (a
+  /// queue cleared or replaced does not change it).
+  bool get wereLyricsShown => _prefs.getBool(_lyricsShownKey) ?? false;
+
+  Future<void> setLyricsShown(bool value) =>
+      _prefs.setBool(_lyricsShownKey, value);
 
   Future<void> clear() async {
     _savedQueueSignature = null;
