@@ -4771,6 +4771,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.'**
   String get settingsFiltersNotApplied;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get helpTitle;
+
+  /// No description provided for @helpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing songs, playback, lyrics, a new phone'**
+  String get helpSubtitle;
+
+  /// No description provided for @helpIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers to the questions that come up most, each with the setting that settles it.'**
+  String get helpIntro;
+
+  /// No description provided for @helpLibrarySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get helpLibrarySection;
+
+  /// No description provided for @helpMissingSong.
+  ///
+  /// In en, this message translates to:
+  /// **'A song is missing'**
+  String get helpMissingSong;
+
+  /// No description provided for @helpMissingSongAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona lists the songs Android knows about. A folder turned off or the shortest length may leave it out; a file just copied shows after Rescan library.'**
+  String get helpMissingSongAnswer;
+
+  /// No description provided for @helpPlaybackSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback'**
+  String get helpPlaybackSection;
+
+  /// No description provided for @helpStopsInBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Music stops with the screen off'**
+  String get helpStopsInBackground;
+
+  /// No description provided for @helpStopsInBackgroundAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, set battery use to Unrestricted.'**
+  String get helpStopsInBackgroundAnswer;
+
+  /// No description provided for @helpOnlineSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Online extras'**
+  String get helpOnlineSection;
+
+  /// No description provided for @helpNoLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'A song has no lyrics'**
+  String get helpNoLyrics;
+
+  /// No description provided for @helpNoLyricsAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on Song lyrics to look them up online, or import a .lrc file from the song\'s menu, under Lyrics options.'**
+  String get helpNoLyricsAnswer;
+
+  /// No description provided for @helpArtistInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist photos and bios'**
+  String get helpArtistInfo;
+
+  /// No description provided for @helpArtistInfoAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.'**
+  String get helpArtistInfoAnswer;
+
+  /// No description provided for @helpBackupSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get helpBackupSection;
+
+  /// No description provided for @helpNewPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving to a new phone'**
+  String get helpNewPhone;
+
+  /// No description provided for @helpNewPhoneAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.'**
+  String get helpNewPhoneAnswer;
 }
 
 class _AppLocalizationsDelegate

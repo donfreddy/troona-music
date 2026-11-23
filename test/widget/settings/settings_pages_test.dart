@@ -38,6 +38,7 @@ import 'package:troona/features/settings/presentation/pages/appearance_settings_
 import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/help_page.dart';
 import 'package:troona/features/settings/presentation/pages/licenses_page.dart';
 import 'package:troona/features/settings/presentation/utils/license_catalog.dart';
 import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
@@ -236,6 +237,7 @@ void main() {
     'appearance': () => const AppearanceSettingsPage(),
     'storage': () => const StorageSettingsPage(),
     'about': () => const AboutPage(),
+    'help': () => const HelpPage(),
   };
 
   for (final MapEntry(key: name, value: page) in pages.entries) {
@@ -446,6 +448,64 @@ void main() {
 
         expect(tester.takeException(), isNull);
       });
+    }
+  });
+
+  testWidgets('Help opens from About, each answer on its setting', (
+    tester,
+  ) async {
+    GoRoute stub(String name) =>
+        GoRoute(path: name, name: name, builder: (_, _) => Text('page $name'));
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const AboutPage(),
+          routes: [
+            GoRoute(
+              path: 'help',
+              name: AppRoute.settingsHelp,
+              builder: (_, _) => const HelpPage(),
+            ),
+            stub(AppRoute.settingsLibrary),
+            stub(AppRoute.settingsOnline),
+            stub(AppRoute.backup),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      providers(
+        MaterialApp.router(
+          theme: robotoTheme(AppTheme.dark),
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Help'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Help'));
+    await tester.pumpAndSettle();
+    expect(find.byType(HelpPage), findsOneWidget);
+
+    for (final (question, page) in [
+      ('A song is missing', AppRoute.settingsLibrary),
+      ('A song has no lyrics', AppRoute.settingsOnline),
+      ('Moving to a new phone', AppRoute.backup),
+    ]) {
+      await tester.ensureVisible(find.text(question));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(question));
+      await tester.pumpAndSettle();
+      expect(find.text('page $page'), findsOneWidget, reason: question);
+      router.pop();
+      await tester.pumpAndSettle();
     }
   });
 

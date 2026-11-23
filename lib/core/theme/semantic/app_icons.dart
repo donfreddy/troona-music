@@ -115,6 +115,18 @@ abstract final class AppIcons {
 
   // ── Feedback ──────────────────────────────────────────────────────────────
   static const IconData info = LucideIcons300.info;
+
+  /// About's Help row.
+  static const IconData help = LucideIcons300.circleQuestionMark;
+
+  /// Help: a song missing from the library.
+  static const IconData helpMissingSong = LucideIcons300.searchX;
+
+  /// Help: playback stopped by the phone's battery saving.
+  static const IconData helpBattery = LucideIcons300.batteryWarning;
+
+  /// Help: moving to another phone.
+  static const IconData helpPhoneChange = LucideIcons300.smartphone;
   static const IconData error = LucideIcons300.circleAlert;
   static const IconData noResults = LucideIcons300.searchX;
   static const IconData highlight = LucideIcons300.sparkles;

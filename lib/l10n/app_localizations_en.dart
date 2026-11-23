@@ -2906,4 +2906,61 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsFiltersNotApplied =>
       'No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.';
+
+  @override
+  String get helpTitle => 'Help';
+
+  @override
+  String get helpSubtitle => 'Missing songs, playback, lyrics, a new phone';
+
+  @override
+  String get helpIntro =>
+      'Answers to the questions that come up most, each with the setting that settles it.';
+
+  @override
+  String get helpLibrarySection => 'Library';
+
+  @override
+  String get helpMissingSong => 'A song is missing';
+
+  @override
+  String get helpMissingSongAnswer =>
+      'Troona lists the songs Android knows about. A folder turned off or the shortest length may leave it out; a file just copied shows after Rescan library.';
+
+  @override
+  String get helpPlaybackSection => 'Playback';
+
+  @override
+  String get helpStopsInBackground => 'Music stops with the screen off';
+
+  @override
+  String get helpStopsInBackgroundAnswer =>
+      'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, set battery use to Unrestricted.';
+
+  @override
+  String get helpOnlineSection => 'Online extras';
+
+  @override
+  String get helpNoLyrics => 'A song has no lyrics';
+
+  @override
+  String get helpNoLyricsAnswer =>
+      'Turn on Song lyrics to look them up online, or import a .lrc file from the song\'s menu, under Lyrics options.';
+
+  @override
+  String get helpArtistInfo => 'Artist photos and bios';
+
+  @override
+  String get helpArtistInfoAnswer =>
+      'They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.';
+
+  @override
+  String get helpBackupSection => 'Backup';
+
+  @override
+  String get helpNewPhone => 'Moving to a new phone';
+
+  @override
+  String get helpNewPhoneAnswer =>
+      'Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.';
 }

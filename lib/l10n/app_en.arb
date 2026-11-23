@@ -1585,5 +1585,22 @@
     }
   },
   "settingsMinLengthTooLong": "No song in your library is that long: it would be empty.",
-  "settingsFiltersNotApplied": "No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length."
+  "settingsFiltersNotApplied": "No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.",
+  "helpTitle": "Help",
+  "helpSubtitle": "Missing songs, playback, lyrics, a new phone",
+  "helpIntro": "Answers to the questions that come up most, each with the setting that settles it.",
+  "helpLibrarySection": "Library",
+  "helpMissingSong": "A song is missing",
+  "helpMissingSongAnswer": "Troona lists the songs Android knows about. A folder turned off or the shortest length may leave it out; a file just copied shows after Rescan library.",
+  "helpPlaybackSection": "Playback",
+  "helpStopsInBackground": "Music stops with the screen off",
+  "helpStopsInBackgroundAnswer": "Some phones stop apps in the background to save battery. In Troona's page in Android's settings, set battery use to Unrestricted.",
+  "helpOnlineSection": "Online extras",
+  "helpNoLyrics": "A song has no lyrics",
+  "helpNoLyricsAnswer": "Turn on Song lyrics to look them up online, or import a .lrc file from the song's menu, under Lyrics options.",
+  "helpArtistInfo": "Artist photos and bios",
+  "helpArtistInfoAnswer": "They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.",
+  "helpBackupSection": "Backup",
+  "helpNewPhone": "Moving to a new phone",
+  "helpNewPhoneAnswer": "Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags."
 }

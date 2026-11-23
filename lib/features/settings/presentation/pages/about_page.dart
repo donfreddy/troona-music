@@ -106,6 +106,13 @@ class _AboutPageState extends State<AboutPage> {
           title: l10n.settingsSupport,
           children: [
             SettingsTile.navigation(
+              icon: AppIcons.help,
+              iconColor: SettingsHue.about,
+              title: l10n.helpTitle,
+              subtitle: l10n.helpSubtitle,
+              onTap: () => context.pushNamed(AppRoute.settingsHelp),
+            ),
+            SettingsTile.navigation(
               icon: AppIcons.report,
               iconColor: SettingsHue.about,
               title: l10n.settingsReport,

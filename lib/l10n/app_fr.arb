@@ -778,5 +778,22 @@
   "settingsLicensesSubtitle": "Les logiciels sur lesquels Troona repose",
   "licensesCount": "{count, plural, =1{1 licence} other{{count} licences}}",
   "settingsMinLengthTooLong": "Aucun titre de votre bibliothèque n'est aussi long : elle serait vide.",
-  "settingsFiltersNotApplied": "Aucun titre de votre bibliothèque ne passe ces filtres : ils ne sont pas appliqués. Réactivez un dossier ou choisissez une durée plus courte."
+  "settingsFiltersNotApplied": "Aucun titre de votre bibliothèque ne passe ces filtres : ils ne sont pas appliqués. Réactivez un dossier ou choisissez une durée plus courte.",
+  "helpTitle": "Aide",
+  "helpSubtitle": "Titres manquants, lecture, paroles, nouveau téléphone",
+  "helpIntro": "Les réponses aux questions les plus fréquentes, chacune avec le réglage qui la règle.",
+  "helpLibrarySection": "Bibliothèque",
+  "helpMissingSong": "Un titre manque",
+  "helpMissingSongAnswer": "Troona liste les titres qu'Android connaît. Un dossier désactivé ou la durée minimale peuvent l'exclure ; un fichier tout juste copié apparaît après Actualiser la bibliothèque.",
+  "helpPlaybackSection": "Lecture",
+  "helpStopsInBackground": "La musique s'arrête écran éteint",
+  "helpStopsInBackgroundAnswer": "Certains téléphones arrêtent les apps en arrière-plan pour économiser la batterie. Dans la page de Troona des réglages d'Android, réglez l'utilisation de la batterie sur Non restreinte.",
+  "helpOnlineSection": "Extras en ligne",
+  "helpNoLyrics": "Un titre n'a pas de paroles",
+  "helpNoLyricsAnswer": "Activez Paroles des chansons pour les trouver en ligne, ou importez un fichier .lrc depuis le menu du titre, dans Options des paroles.",
+  "helpArtistInfo": "Photos et biographies des artistes",
+  "helpArtistInfoAnswer": "Elles viennent de Deezer et de Last.fm, seulement une fois activées. Sinon, rien ne quitte votre téléphone.",
+  "helpBackupSection": "Sauvegarde",
+  "helpNewPhone": "Changer de téléphone",
+  "helpNewPhoneAnswer": "Faites une sauvegarde, copiez le fichier sur le nouveau téléphone et restaurez-la : playlists, j'aime, historique et réglages reviennent, et vos titres sont retrouvés par leur nom, leur taille et leurs tags."
 }

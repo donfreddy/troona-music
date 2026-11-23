@@ -2931,4 +2931,62 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsFiltersNotApplied =>
       'Aucun titre de votre bibliothèque ne passe ces filtres : ils ne sont pas appliqués. Réactivez un dossier ou choisissez une durée plus courte.';
+
+  @override
+  String get helpTitle => 'Aide';
+
+  @override
+  String get helpSubtitle =>
+      'Titres manquants, lecture, paroles, nouveau téléphone';
+
+  @override
+  String get helpIntro =>
+      'Les réponses aux questions les plus fréquentes, chacune avec le réglage qui la règle.';
+
+  @override
+  String get helpLibrarySection => 'Bibliothèque';
+
+  @override
+  String get helpMissingSong => 'Un titre manque';
+
+  @override
+  String get helpMissingSongAnswer =>
+      'Troona liste les titres qu\'Android connaît. Un dossier désactivé ou la durée minimale peuvent l\'exclure ; un fichier tout juste copié apparaît après Actualiser la bibliothèque.';
+
+  @override
+  String get helpPlaybackSection => 'Lecture';
+
+  @override
+  String get helpStopsInBackground => 'La musique s\'arrête écran éteint';
+
+  @override
+  String get helpStopsInBackgroundAnswer =>
+      'Certains téléphones arrêtent les apps en arrière-plan pour économiser la batterie. Dans la page de Troona des réglages d\'Android, réglez l\'utilisation de la batterie sur Non restreinte.';
+
+  @override
+  String get helpOnlineSection => 'Extras en ligne';
+
+  @override
+  String get helpNoLyrics => 'Un titre n\'a pas de paroles';
+
+  @override
+  String get helpNoLyricsAnswer =>
+      'Activez Paroles des chansons pour les trouver en ligne, ou importez un fichier .lrc depuis le menu du titre, dans Options des paroles.';
+
+  @override
+  String get helpArtistInfo => 'Photos et biographies des artistes';
+
+  @override
+  String get helpArtistInfoAnswer =>
+      'Elles viennent de Deezer et de Last.fm, seulement une fois activées. Sinon, rien ne quitte votre téléphone.';
+
+  @override
+  String get helpBackupSection => 'Sauvegarde';
+
+  @override
+  String get helpNewPhone => 'Changer de téléphone';
+
+  @override
+  String get helpNewPhoneAnswer =>
+      'Faites une sauvegarde, copiez le fichier sur le nouveau téléphone et restaurez-la : playlists, j\'aime, historique et réglages reviennent, et vos titres sont retrouvés par leur nom, leur taille et leurs tags.';
 }
