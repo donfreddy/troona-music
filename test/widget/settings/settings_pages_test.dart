@@ -99,7 +99,8 @@ final class _Library extends Fake
   List<Track> stored = [testTrack('1', durationMs: 1000)];
 
   @override
-  Future<Either<Failure, List<Track>>> getStoredTracks() async => right(stored);
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async =>
+      right(StoredTracks(kept: stored, leftOut: const []));
 
   int scans = 0;
 

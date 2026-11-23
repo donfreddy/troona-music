@@ -74,13 +74,41 @@ final class _Backups implements BackupRepository {
 }
 
 final class _Library extends Fake implements StoredTrackRepository {
+  _Library(this.stored);
+
+  final StoredTracks stored;
+
   @override
-  Future<Either<Failure, List<Track>>> getStoredTracks() async =>
-      right([testTrack('a', durationMs: 200000)]);
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async =>
+      right(stored);
 }
 
-RestoreBackupUseCase _useCase(_Backups backups) =>
-    RestoreBackupUseCase(backups, _Library());
+RestoreBackupUseCase _useCase(_Backups backups, {StoredTracks? stored}) =>
+    RestoreBackupUseCase(
+      backups,
+      _Library(
+        stored ??
+            StoredTracks(
+              kept: [testTrack('a', durationMs: 200000)],
+              leftOut: const [],
+            ),
+      ),
+    );
+
+/// Song "a" of the backup as stored here under [id], from [fileName].
+Track _copy(String id, String fileName) => Track(
+  id: id,
+  title: 'Title a',
+  artist: 'Artist',
+  artistId: 1,
+  album: 'Album',
+  albumId: 1,
+  path: '/music/$fileName',
+  uri: 'content://$id',
+  size: 1,
+  durationMs: 200000,
+  fileName: fileName,
+);
 
 RestoreReport _report(Either<Failure, RestoreReport> result) =>
     result.getOrElse(() => throw StateError('failed'));
@@ -141,5 +169,35 @@ void main() {
       left(const BackupFormatFailure()),
     );
     expect(backups.restoredIds, isNull);
+  });
+
+  group('songs a folder turned off leaves out', () {
+    test('are found when the library has no copy', () async {
+      final backups = _Backups(right(_backup));
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: const [],
+          leftOut: [_copy('hidden', 'a.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'hidden'});
+    });
+
+    test('never take the song the library shows', () async {
+      final backups = _Backups(right(_backup));
+      // Same tags, same length, other files: together they would tie and
+      // match nothing.
+      await _useCase(
+        backups,
+        stored: StoredTracks(
+          kept: [_copy('shown', 'renamed.mp3')],
+          leftOut: [_copy('hidden', 'copy.mp3')],
+        ),
+      )(_backup, BackupPart.all);
+
+      expect(backups.restoredIds, {'k1': 'shown'});
+    });
   });
 }

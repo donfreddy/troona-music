@@ -55,10 +55,21 @@ final class LibraryRepositoryImpl
   }
 
   @override
-  Future<Either<Failure, List<Track>>> getStoredTracks() async {
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async {
     try {
       final tracks = await _cache.getStoredTracks();
-      return right(tracks.map((t) => t.toEntity()).toList());
+      return right(
+        StoredTracks(
+          kept: [
+            for (final t in tracks)
+              if (!t.excluded) t.toEntity(),
+          ],
+          leftOut: [
+            for (final t in tracks)
+              if (t.excluded) t.toEntity(),
+          ],
+        ),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

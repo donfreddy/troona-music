@@ -115,7 +115,7 @@ class _LibraryFoldersPageState extends State<LibraryFoldersPage> {
     final result = await widget.stored.getStoredTracks();
     if (!mounted) return;
     setState(() {
-      _tracks = result.fold((_) => _tracks, (t) => t);
+      _tracks = result.fold((_) => _tracks, (t) => t.all);
       _failed = result.isLeft() && _tracks == null;
     });
   }

@@ -21,7 +21,6 @@ import 'package:troona/features/backup/domain/use_cases/save_backup_use_case.dar
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/backup/presentation/pages/backup_page.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
-import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
 import 'package:troona/features/library/domain/use_cases/add_track_to_likes_use_case.dart';
@@ -119,8 +118,8 @@ final class _Preferences extends Fake implements BackupPreferencesRepository {
 
 final class _Library extends Fake implements StoredTrackRepository {
   @override
-  Future<Either<Failure, List<Track>>> getStoredTracks() async =>
-      right(const []);
+  Future<Either<Failure, StoredTracks>> getStoredTracks() async =>
+      right(const StoredTracks(kept: [], leftOut: []));
 }
 
 /// The liked songs, counting how often they are read again.
