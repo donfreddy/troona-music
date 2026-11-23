@@ -68,12 +68,21 @@ void main() {
       fetchLyrics: true,
       onlineExtrasOffered: true,
       checkForUpdates: true,
+      historyPaused: true,
       hapticFeedbackEnabled: false,
       glassQuality: GlassQuality.off,
       language: AppLanguage.fr,
     );
     expect((await repo.saveSettings(target)).isRight(), isTrue);
     expect((await repo.loadSettings()).getOrElse(() => throw 'none'), target);
+  });
+
+  test('a reset resumes a paused history', () async {
+    final repo = await repoWith({});
+    await repo.saveSettings(const AppSettings(historyPaused: true));
+    await repo.resetSettings();
+    final settings = (await repo.loadSettings()).getOrElse(() => throw 'none');
+    expect(settings.historyPaused, isFalse);
   });
 
   test('reset keeps preferences that are not settings', () async {

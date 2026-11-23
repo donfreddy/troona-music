@@ -96,6 +96,7 @@ class LibrarySettingsPage extends StatelessWidget {
                     ),
                   ],
                 ),
+                const _History(),
               ],
             );
           },
@@ -201,6 +202,35 @@ class _FiltersState extends State<_Filters> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Pausing the listening history: the recorder reads the switch on each
+/// position, so it applies at once.
+class _History extends StatelessWidget {
+  const _History();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SettingsBuilder(
+      builder: (context, settings) => SettingsSection(
+        title: l10n.settingsHistory,
+        footer: l10n.settingsHistoryFooter,
+        children: [
+          SettingsTile.switchTile(
+            icon: AppIcons.historyPause,
+            iconColor: SettingsHue.library,
+            title: l10n.settingsHistoryPause,
+            subtitle: l10n.settingsHistoryPauseSubtitle,
+            value: settings.historyPaused,
+            onChanged: (value) => unawaited(
+              context.read<SettingsCubit>().setHistoryPaused(value),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

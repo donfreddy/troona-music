@@ -2706,11 +2706,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLibrarySummary =>
-      'Titres de ce téléphone, filtres, nouvelle analyse';
+      'Titres de ce téléphone, filtres, nouvelle analyse, historique';
 
   @override
   String get settingsLibraryIntro =>
-      'Les titres que Troona a trouvés sur ce téléphone, et ce qu\'il écarte.';
+      'Les titres que Troona a trouvés sur ce téléphone, ce qu\'il écarte et si vos écoutes sont enregistrées.';
 
   @override
   String get settingsLibraryContents => 'Dans votre bibliothèque';
@@ -2885,6 +2885,23 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsFoldersEmpty =>
       'Aucun dossier pour l\'instant : votre bibliothèque est vide.';
+
+  @override
+  String get settingsHistory => 'Historique d\'écoute';
+
+  @override
+  String get settingsHistoryPause => 'Mettre l\'historique en pause';
+
+  @override
+  String get settingsHistoryPauseSubtitle =>
+      'Les écoutes ne sont pas enregistrées. Écoutés récemment, Vos écoutes, les compteurs d\'écoutes et les playlists intelligentes n\'en tiennent pas compte.';
+
+  @override
+  String get settingsHistoryFooter =>
+      'L\'historique déjà enregistré reste tel quel.';
+
+  @override
+  String get settingsLibrarySummaryPaused => 'Historique d\'écoute en pause';
 
   @override
   String settingsFolderCoveredBy(String folder) {

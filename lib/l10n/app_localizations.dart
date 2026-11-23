@@ -4421,13 +4421,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLibrarySummary.
   ///
   /// In en, this message translates to:
-  /// **'Songs on this phone, filters, rescan'**
+  /// **'Songs on this phone, filters, rescan, history'**
   String get settingsLibrarySummary;
 
   /// No description provided for @settingsLibraryIntro.
   ///
   /// In en, this message translates to:
-  /// **'The songs Troona found on this phone, and what it leaves out.'**
+  /// **'The songs Troona found on this phone, what it leaves out, and whether your listening is recorded.'**
   String get settingsLibraryIntro;
 
   /// No description provided for @settingsLibraryContents.
@@ -4705,6 +4705,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No folders yet: your library is empty.'**
   String get settingsFoldersEmpty;
+
+  /// No description provided for @settingsHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening history'**
+  String get settingsHistory;
+
+  /// No description provided for @settingsHistoryPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause listening history'**
+  String get settingsHistoryPause;
+
+  /// No description provided for @settingsHistoryPauseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plays are not recorded. Recently played, Your listening, play counts and smart playlists leave them out.'**
+  String get settingsHistoryPauseSubtitle;
+
+  /// No description provided for @settingsHistoryFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'The history already recorded stays as it is.'**
+  String get settingsHistoryFooter;
+
+  /// No description provided for @settingsLibrarySummaryPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening history paused'**
+  String get settingsLibrarySummaryPaused;
 
   /// No description provided for @settingsFolderCoveredBy.
   ///

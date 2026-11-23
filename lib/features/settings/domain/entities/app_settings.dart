@@ -47,6 +47,10 @@ class AppSettings extends Equatable {
   /// absolute paths with no trailing slash.
   final List<String> excludedFolders;
 
+  /// Songs played add nothing to the listening history while on. Kept on
+  /// this phone: a backup made where it was on never pauses another.
+  final bool historyPaused;
+
   // UI
   final bool hapticFeedbackEnabled;
   final GlassQuality glassQuality;
@@ -66,6 +70,7 @@ class AppSettings extends Equatable {
     this.checkForUpdates = false,
     this.minTrackSeconds = 10,
     this.excludedFolders = const [],
+    this.historyPaused = false,
     this.hapticFeedbackEnabled = true,
     this.glassQuality = GlassQuality.auto,
     this.language = AppLanguage.system,
@@ -88,6 +93,7 @@ class AppSettings extends Equatable {
     bool? checkForUpdates,
     int? minTrackSeconds,
     List<String>? excludedFolders,
+    bool? historyPaused,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
     AppLanguage? language,
@@ -104,6 +110,7 @@ class AppSettings extends Equatable {
     checkForUpdates: checkForUpdates ?? this.checkForUpdates,
     minTrackSeconds: minTrackSeconds ?? this.minTrackSeconds,
     excludedFolders: excludedFolders ?? this.excludedFolders,
+    historyPaused: historyPaused ?? this.historyPaused,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
     glassQuality: glassQuality ?? this.glassQuality,
     language: language ?? this.language,
@@ -121,6 +128,7 @@ class AppSettings extends Equatable {
     checkForUpdates,
     minTrackSeconds,
     excludedFolders,
+    historyPaused,
     hapticFeedbackEnabled,
     glassQuality,
     language,

@@ -1468,8 +1468,8 @@
   "settingsPauseOnCallSubtitle": "During a call, or while another app plays sound.",
   "settingsResumeAfterCallSubtitle": "Once a call or a short interruption is over.",
   "settingsAudioFooter": "Unplugging headphones always pauses the music.",
-  "settingsLibrarySummary": "Songs on this phone, filters, rescan",
-  "settingsLibraryIntro": "The songs Troona found on this phone, and what it leaves out.",
+  "settingsLibrarySummary": "Songs on this phone, filters, rescan, history",
+  "settingsLibraryIntro": "The songs Troona found on this phone, what it leaves out, and whether your listening is recorded.",
   "settingsLibraryContents": "In your library",
   "settingsScan": "Scan",
   "settingsScanFooter": "Troona reads the songs your phone lists as music. Ringtones, notifications and voice notes are always left out.",
@@ -1561,6 +1561,11 @@
   "settingsFoldersIntro": "Songs in a folder turned off leave your library, with its subfolders. Turn it back on and they come back with their likes, plays and playlists.",
   "settingsFoldersFooter": "At least one song stays in your library.",
   "settingsFoldersEmpty": "No folders yet: your library is empty.",
+  "settingsHistory": "Listening history",
+  "settingsHistoryPause": "Pause listening history",
+  "settingsHistoryPauseSubtitle": "Plays are not recorded. Recently played, Your listening, play counts and smart playlists leave them out.",
+  "settingsHistoryFooter": "The history already recorded stays as it is.",
+  "settingsLibrarySummaryPaused": "Listening history paused",
   "settingsFolderCoveredBy": "Left out with {folder}",
   "@settingsFolderCoveredBy": {
     "placeholders": {

@@ -88,7 +88,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: AppIcons.library,
                     iconColor: SettingsHue.library,
                     title: l10n.settingsLibrary,
-                    subtitle: l10n.settingsLibrarySummary,
+                    // A paused history is easy to forget: the row says so.
+                    subtitle: settings?.historyPaused ?? false
+                        ? l10n.settingsLibrarySummaryPaused
+                        : l10n.settingsLibrarySummary,
                     onTap: () => context.pushNamed(AppRoute.settingsLibrary),
                   ),
                   SettingsTile.navigation(

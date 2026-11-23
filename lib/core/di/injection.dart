@@ -280,6 +280,14 @@ Future<void> configureDependencies() async {
         port: audioPort,
         recordPlay: RecordPlayUseCase(historyRepo),
         recordListening: RecordListeningUseCase(historyRepo),
+        // Read on each position: the switch applies at once. The cubit is
+        // registered further down; until then, the settings just loaded.
+        paused: () => getIt.isRegistered<SettingsCubit>()
+            ? switch (getIt<SettingsCubit>().state) {
+                SettingsLoaded(:final settings) => settings.historyPaused,
+                _ => initialSettings.historyPaused,
+              }
+            : initialSettings.historyPaused,
       )..start(),
     );
 

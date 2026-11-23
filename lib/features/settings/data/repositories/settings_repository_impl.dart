@@ -19,6 +19,7 @@ abstract final class _K {
   static const checkForUpdates = 'update_check_enabled';
   static const minTrackSeconds = 'min_track_seconds';
   static const excludedFolders = 'excluded_folders';
+  static const historyPaused = 'history_paused';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
   static const glassQuality = 'glass_quality';
   static const language = 'app_language';
@@ -34,6 +35,7 @@ abstract final class _K {
     checkForUpdates,
     minTrackSeconds,
     excludedFolders,
+    historyPaused,
     hapticFeedbackEnabled,
     glassQuality,
     language,
@@ -112,6 +114,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
           checkForUpdates: _bool(_K.checkForUpdates, d.checkForUpdates),
           minTrackSeconds: _minTrackSeconds(d.minTrackSeconds),
           excludedFolders: _folders(),
+          historyPaused: _bool(_K.historyPaused, d.historyPaused),
           hapticFeedbackEnabled: _bool(
             _K.hapticFeedbackEnabled,
             d.hapticFeedbackEnabled,
@@ -147,6 +150,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.checkForUpdates, s.checkForUpdates),
         _prefs.setInt(_K.minTrackSeconds, s.minTrackSeconds),
         _prefs.setStringList(_K.excludedFolders, s.excludedFolders),
+        _prefs.setBool(_K.historyPaused, s.historyPaused),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
         _prefs.setString(_K.glassQuality, s.glassQuality.name),
         _prefs.setString(_K.language, s.language.name),

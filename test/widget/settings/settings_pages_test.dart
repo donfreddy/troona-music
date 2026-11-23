@@ -358,6 +358,30 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('pausing the history shows on the root of Settings', (
+      tester,
+    ) async {
+      await pump(tester, LibrarySettingsPage(stored: libraryRepo));
+      final row = find.text('Pause listening history');
+      await tester.ensureVisible(row);
+      await tester.pumpAndSettle();
+      await tester.tap(row);
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.state,
+        isA<SettingsLoaded>().having(
+          (s) => s.settings.historyPaused,
+          'paused',
+          isTrue,
+        ),
+      );
+
+      await pump(tester, const SettingsPage());
+      expect(find.text('Listening history paused'), findsOneWidget);
+      expect(find.text('Songs on this phone, filters, rescan, history'), findsNothing);
+    });
+
     testWidgets('filters that would leave no song say they are not applied', (
       tester,
     ) async {

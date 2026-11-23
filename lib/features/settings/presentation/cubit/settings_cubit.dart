@@ -143,6 +143,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setExcludedFolders(Set<String> folders) =>
       _update((s) => s.copyWith(excludedFolders: [...folders]..sort()));
 
+  Future<void> setHistoryPaused(bool value) =>
+      _update((s) => s.copyWith(historyPaused: value));
+
   Future<void> setLanguage(AppLanguage language) =>
       _update((s) => s.copyWith(language: language));
 
@@ -171,6 +174,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         }..removeWhere((f) => f.isEmpty)).toList()..sort(),
         glassQuality: s.glassQuality,
         language: s.language,
+        historyPaused: s.historyPaused,
         fetchOnlineMetadata: s.fetchOnlineMetadata,
         fetchArtistArtwork: s.fetchArtistArtwork,
         fetchLyrics: s.fetchLyrics,

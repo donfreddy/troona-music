@@ -2684,11 +2684,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unplugging headphones always pauses the music.';
 
   @override
-  String get settingsLibrarySummary => 'Songs on this phone, filters, rescan';
+  String get settingsLibrarySummary =>
+      'Songs on this phone, filters, rescan, history';
 
   @override
   String get settingsLibraryIntro =>
-      'The songs Troona found on this phone, and what it leaves out.';
+      'The songs Troona found on this phone, what it leaves out, and whether your listening is recorded.';
 
   @override
   String get settingsLibraryContents => 'In your library';
@@ -2860,6 +2861,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFoldersEmpty => 'No folders yet: your library is empty.';
+
+  @override
+  String get settingsHistory => 'Listening history';
+
+  @override
+  String get settingsHistoryPause => 'Pause listening history';
+
+  @override
+  String get settingsHistoryPauseSubtitle =>
+      'Plays are not recorded. Recently played, Your listening, play counts and smart playlists leave them out.';
+
+  @override
+  String get settingsHistoryFooter =>
+      'The history already recorded stays as it is.';
+
+  @override
+  String get settingsLibrarySummaryPaused => 'Listening history paused';
 
   @override
   String settingsFolderCoveredBy(String folder) {

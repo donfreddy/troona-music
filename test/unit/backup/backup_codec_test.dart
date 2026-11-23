@@ -653,6 +653,16 @@ void main() {
       expect(read.settings?.excludedFolders, ['/a/b']);
     });
 
+    test('a paused history stays on the phone it was paused on', () {
+      final bytes = BackupCodec.encode(
+        withSettings(const AppSettings(historyPaused: true)),
+      );
+
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      expect((json['settings'] as Map).keys, isNot(contains('historyPaused')));
+      expect(BackupCodec.decode(bytes).settings?.historyPaused, isFalse);
+    });
+
     test('a backup made before them reads as the defaults', () {
       final json = _json();
       (json['settings'] as Map)

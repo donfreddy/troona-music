@@ -64,9 +64,11 @@ void main() {
   late FakeAudioPort port;
   late _MemoryHistory history;
   late PlayHistoryRecorder recorder;
+  var paused = false;
 
   setUp(() {
     at = DateTime(2026, 10, 24, 9);
+    paused = false;
     port = FakeAudioPort();
     history = _MemoryHistory();
     recorder = PlayHistoryRecorder(
@@ -74,6 +76,7 @@ void main() {
       recordPlay: RecordPlayUseCase(history),
       recordListening: RecordListeningUseCase(history),
       now: () => at,
+      paused: () => paused,
     );
   });
 
@@ -238,6 +241,121 @@ void main() {
       await pumpEventQueue();
 
       expect(history.events.single.trackId, 'a');
+    });
+  });
+
+  group('paused history', () {
+    int dayOf(DateTime t) => ListeningDay.of(t);
+
+    test('records neither plays nor listening time', () async {
+      paused = true;
+      recorder.start();
+      playing([a]);
+      listen(0, 65);
+      playing([b]);
+      listen(0, 65);
+      await recorder.dispose();
+      await pumpEventQueue();
+
+      expect(history.events, isEmpty);
+      expect(history.listening, isEmpty);
+    });
+
+    test('a listen begun before keeps what was heard then', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 20);
+      paused = true;
+      listen(20, 40);
+      paused = false;
+      listen(40, 52);
+      await recorder.dispose();
+      await pumpEventQueue();
+
+      // 20 s before, 12 s after: the play counts at 30 s heard, later.
+      expect(history.events.single.trackId, 'a');
+      expect(history.listening, {dayOf(at): const Duration(seconds: 32)});
+    });
+
+    test('playback during the pause never counts toward a listen', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 20);
+      paused = true;
+      listen(20, 40);
+      paused = false;
+      listen(40, 49);
+      await pumpEventQueue();
+
+      expect(history.events, isEmpty, reason: '29 s heard while recording');
+    });
+
+    test('a replay from the top during the pause starts a new listen', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 29);
+      paused = true;
+      listen(0, 120); // the same song again: the queue keeps its id
+      paused = false;
+      listen(120, 125);
+      await pumpEventQueue();
+      expect(history.events, isEmpty, reason: '5 s heard since the replay');
+
+      listen(125, 150);
+      await pumpEventQueue();
+      expect(history.events.single.trackId, 'a');
+    });
+
+    test('a loop of repeat one during the pause starts a new listen', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 25);
+      paused = true;
+      listen(25, 240);
+      listen(0, 10);
+      paused = false;
+      listen(10, 30);
+      await pumpEventQueue();
+      expect(history.events, isEmpty, reason: '20 s heard since the loop');
+    });
+
+    test('a pause shorter than a seek still credits nothing', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 28);
+      paused = true;
+      port.position.add(const Duration(milliseconds: 29600));
+      paused = false;
+      listen(30, 31);
+      await pumpEventQueue();
+      expect(history.events, isEmpty, reason: '29.4 s heard while recording');
+    });
+
+    test('the time heard before is written as the pause starts', () async {
+      recorder.start();
+      playing([a]);
+      listen(0, 20);
+      paused = true;
+      listen(20, 21);
+      await pumpEventQueue();
+
+      expect(history.listening, {dayOf(at): const Duration(seconds: 20)});
+    });
+
+    test('a song started during the pause counts from its end', () async {
+      recorder.start();
+      playing([a]);
+      paused = true;
+      playing([b]);
+      listen(0, 25);
+      paused = false;
+      listen(25, 50);
+      await pumpEventQueue();
+      expect(history.events, isEmpty, reason: '25 s heard since');
+
+      listen(50, 56);
+      await pumpEventQueue();
+      expect(history.events.single.trackId, 'b');
     });
   });
 }

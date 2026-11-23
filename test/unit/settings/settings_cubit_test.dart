@@ -137,6 +137,18 @@ void main() {
     },
   );
 
+  test('a restore leaves the history of this phone as it is', () async {
+    final cubit = SettingsCubit(repo, null, metadata);
+    await cubit.load();
+
+    await cubit.restore(const AppSettings(historyPaused: true));
+    expect(settingsOf(cubit)!.historyPaused, isFalse, reason: 'never paused');
+
+    await cubit.setHistoryPaused(true);
+    await cubit.restore(const AppSettings());
+    expect(settingsOf(cubit)!.historyPaused, isTrue, reason: 'never resumed');
+  });
+
   test('a failed first load is retried when Settings opens', () async {
     final cubit = SettingsCubit(_FlakySettings(repo));
     await cubit.load();
