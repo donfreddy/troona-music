@@ -4493,7 +4493,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlinePhotosSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'From Deezer or Last.fm, with artist and album names and a few song titles.'**
+  /// **'From Deezer, with artist and album names and a few song titles.'**
   String get settingsOnlinePhotosSubtitle;
 
   /// No description provided for @settingsOnlineLyricsSubtitle.

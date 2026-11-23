@@ -13,17 +13,18 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
   /// The measure running: the root and Storage both ask on opening.
   Future<void>? _loading;
 
-  /// Counts the clears: a measure started before one is out of date.
-  int _clears = 0;
+  /// Counts the clears that finished: a measure that saw one finish, or
+  /// ends while one runs, may have walked files being deleted.
+  int _cleared = 0;
 
   /// Reads the version and measures the caches. One measure at a time; one
-  /// that started before a clear keeps the version only, or it would show
-  /// the size the clear just removed.
+  /// that overlapped a clear keeps the version only, or it would show the
+  /// size the clear just removed.
   Future<void> load() =>
       _loading ??= _load().whenComplete(() => _loading = null);
 
   Future<void> _load() async {
-    final clears = _clears;
+    final cleared = _cleared;
     final (version, sizes) = (
       await _repo.appVersion(),
       await _repo.cacheSizes(),
@@ -31,7 +32,7 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
     _emitIfOpen(
       state.copyWith(
         version: version,
-        sizes: clears == _clears ? sizes : state.sizes,
+        sizes: cleared == _cleared && !state.busy ? sizes : state.sizes,
       ),
     );
   }
@@ -39,26 +40,28 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
   /// True when the covers were cleared. The caller starts a rescan either
   /// way: even a partial failure may have reset artwork paths.
   Future<bool> clearCovers() async {
-    _clears++;
     emit(state.copyWith(busy: true));
     final result = await _repo.clearCovers();
     // Decoded images still point at the deleted files.
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    final sizes = await _repo.cacheSizes();
+    _cleared++;
+    _emitIfOpen(state.copyWith(busy: false, sizes: sizes));
     return result.isRight();
   }
 
   Future<bool> clearOnlineInfo() async {
-    _clears++;
     emit(state.copyWith(busy: true));
     final result = await _repo.clearOnlineInfo();
     // Deleted photos may still be decoded in memory.
     PaintingBinding.instance.imageCache
       ..clear()
       ..clearLiveImages();
-    _emitIfOpen(state.copyWith(busy: false, sizes: await _repo.cacheSizes()));
+    final sizes = await _repo.cacheSizes();
+    _cleared++;
+    _emitIfOpen(state.copyWith(busy: false, sizes: sizes));
     return result.isRight();
   }
 

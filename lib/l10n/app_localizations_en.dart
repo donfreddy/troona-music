@@ -2726,7 +2726,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlinePhotosSubtitle =>
-      'From Deezer or Last.fm, with artist and album names and a few song titles.';
+      'From Deezer, with artist and album names and a few song titles.';
 
   @override
   String get settingsOnlineLyricsSubtitle =>

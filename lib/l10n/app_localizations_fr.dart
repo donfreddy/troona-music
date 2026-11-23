@@ -2749,7 +2749,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlinePhotosSubtitle =>
-      'Depuis Deezer ou Last.fm, avec les noms d\'artistes et d\'albums et quelques titres.';
+      'Depuis Deezer, avec les noms d\'artistes et d\'albums et quelques titres.';
 
   @override
   String get settingsOnlineLyricsSubtitle =>

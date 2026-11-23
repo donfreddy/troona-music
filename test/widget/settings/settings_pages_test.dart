@@ -419,6 +419,13 @@ void main() {
     // The service resumes whatever the pause switch says (and iOS pauses
     // for calls on its own): it must stay reachable.
     expect(resume().enabled, isTrue);
+  });
+
+  testWidgets('Audio offers the equalizer on a phone that has one', (
+    tester,
+  ) async {
+    await pump(tester, const AudioSettingsPage());
+
     expect(find.text('Equalizer'), findsOneWidget);
   });
 
@@ -435,10 +442,13 @@ void main() {
 
     expect(maintenanceRepo.coverClears, 1);
     // The covers are extracted again by a scan, which starts once the
-    // previous one is cancelled (real time, not the test's clock).
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
+    // previous one is cancelled (real time, not the test's clock): up to
+    // a second, so a busy machine has room.
+    await tester.runAsync(() async {
+      for (var i = 0; i < 100 && libraryRepo.scans == 0; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+    });
     expect(libraryRepo.scans, 1);
     expect(find.text('Cover cache cleared'), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 5));
@@ -449,6 +459,7 @@ void main() {
   ) async {
     await settings.setHapticFeedback(false);
     equalizer.setEnabled(true);
+    expect(equalizer.state.settings.enabled, isTrue);
     await pump(tester, const StorageSettingsPage());
 
     await tester.tap(find.text('Reset settings'));

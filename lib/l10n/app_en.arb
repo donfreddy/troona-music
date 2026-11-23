@@ -1487,7 +1487,7 @@
   "settingsOnlineLyricsShort": "lyrics",
   "settingsOnlineIntro": "Optional, and off until you turn them on. Each one says what it sends, and where.",
   "settingsOnlineBiosSubtitle": "From Last.fm, with artist and album names.",
-  "settingsOnlinePhotosSubtitle": "From Deezer or Last.fm, with artist and album names and a few song titles.",
+  "settingsOnlinePhotosSubtitle": "From Deezer, with artist and album names and a few song titles.",
   "settingsOnlineLyricsSubtitle": "From LRCLIB, then lyrics.ovh, when you open a song's lyrics.",
   "settingsOnlinePageFooter": "Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.",
   "settingsPrivacySection": "Privacy",
