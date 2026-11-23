@@ -14,6 +14,7 @@ import 'package:troona/features/library/presentation/bloc/library/library_bloc.d
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/utils/license_catalog.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_builder.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
@@ -47,6 +48,8 @@ class _AboutPageState extends State<AboutPage> {
     // Read by the root already, unless the page was opened some other way.
     final maintenance = context.read<MaintenanceCubit>();
     if (maintenance.state.version == null) unawaited(maintenance.load());
+    // Read in the background now, so the licences open at once.
+    LicenseCatalog.load().ignore();
   }
 
   @override

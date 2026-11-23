@@ -7,21 +7,26 @@ const _mit =
     'a copy of this software';
 
 void main() {
-  test('entries with the same text are one group, packages named once', () {
-    final groups = LicenseCatalog.group([
-      const LicenseEntryWithLineBreaks(['zeta'], _mit),
-      const LicenseEntryWithLineBreaks(['Alpha', 'zeta'], _mit),
-      const LicenseEntryWithLineBreaks(['beta'], 'Some terms of its own.'),
-      const LicenseEntryWithLineBreaks([], 'Nobody claims this one.'),
+  test('texts gather by package, each once, and name its licence', () {
+    final index = LicenseCatalog.index([
+      (['zeta'], _mit),
+      (['Alpha', 'zeta'], _mit),
+      (['zeta'], 'Apache License\nVersion 2.0'),
+      (['beta'], 'Some terms of its own.'),
     ]);
 
-    expect(groups.map((g) => g.packages), [
-      ['Alpha', 'zeta'],
-      ['beta'],
-    ]);
-    expect(groups.first.kind, 'MIT');
-    expect(groups.last.kind, isNull);
-    expect(groups.last.paragraphs.single.text, 'Some terms of its own.');
+    expect(index.packages.map((p) => p.name), ['Alpha', 'beta', 'zeta']);
+    expect(index.texts, hasLength(3));
+    final [alpha, beta, zeta] = index.packages;
+    expect(alpha.kind, 'MIT');
+    expect(beta.kind, isNull);
+    // Two licences of different kinds: none names them both.
+    expect(zeta.texts, hasLength(2));
+    expect(zeta.kind, isNull);
+    expect(
+      LicenseCatalog.split([index.texts[beta.texts.single]]).single.single.text,
+      'Some terms of its own.',
+    );
   });
 
   test('names the common licenses by their own words', () {
@@ -48,17 +53,33 @@ void main() {
     }
   });
 
-  test('reads the registry once', () async {
+  test('reads the registry once, off the drawing thread', () async {
     LicenseRegistry.reset();
     LicenseCatalog.reset();
+    final labels = <String?>[];
+    LicenseCatalog.run = <M, R>(callback, message, {debugLabel}) async {
+      labels.add(debugLabel);
+      return callback(message);
+    };
+    addTearDown(() => LicenseCatalog.run = compute);
     addTearDown(LicenseRegistry.reset);
     addTearDown(LicenseCatalog.reset);
     LicenseRegistry.addLicense(
       () => Stream.value(const LicenseEntryWithLineBreaks(['a'], _mit)),
     );
 
+    expect(LicenseCatalog.loaded, isNull);
     final first = LicenseCatalog.load();
     expect(LicenseCatalog.load(), same(first));
-    expect((await first).single.packages, ['a']);
+    final index = await first;
+    expect(index.packages.single.name, 'a');
+    expect(LicenseCatalog.loaded, same(index));
+
+    final paragraphs = await LicenseCatalog.paragraphsOf(
+      index,
+      index.packages.single,
+    );
+    expect(paragraphs.single.single.text, _mit);
+    expect(labels, ['licenseIndex', 'licenseParagraphs']);
   });
 }

@@ -2883,20 +2883,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Troona is built with open-source software. Thank you to the people who make it.';
 
   @override
-  String get licensesSection => 'Packages';
-
-  @override
-  String licensesTitleMore(String first, int more) {
-    String _temp0 = intl.Intl.pluralLogic(
-      more,
-      locale: localeName,
-      other: '$more more',
-      one: '1 more',
-    );
-    return '$first and $_temp0';
-  }
-
-  @override
   String get licensesOwnTerms => 'Its own terms';
 
   @override
@@ -2904,4 +2890,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLicensesSubtitle => 'The software Troona is built with';
+
+  @override
+  String licensesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count licenses',
+      one: '1 license',
+    );
+    return '$_temp0';
+  }
 }

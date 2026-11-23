@@ -1,73 +1,132 @@
 import 'package:flutter/foundation.dart';
 
-/// One license text and every package it covers.
+/// One package and the licence texts that name it.
 @immutable
-final class LicenseGroup {
-  /// Sorted, each named once.
-  final List<String> packages;
-  final List<LicenseParagraph> paragraphs;
+final class LicensePackage {
+  final String name;
 
-  /// The usual name of the license ("MIT", "Apache 2.0"), or null when the
-  /// text is none of the common ones.
+  /// Places of its texts in [LicenseIndex.texts], each text once.
+  final List<int> texts;
+
+  /// The usual name of its licence ("MIT", "Apache 2.0") when all its texts
+  /// are that one; null when they differ or are none of the common ones.
   final String? kind;
 
-  const LicenseGroup({
-    required this.packages,
-    required this.paragraphs,
+  const LicensePackage({
+    required this.name,
+    required this.texts,
     required this.kind,
   });
 }
 
-/// The licenses the app ships, read once from [LicenseRegistry].
-///
-/// The registry gives one entry per package, and most packages share a
-/// handful of texts word for word: the same MIT or BSD text repeated
-/// drowns the few that differ. Entries with the same text are one group.
-abstract final class LicenseCatalog {
-  static Future<List<LicenseGroup>>? _groups;
+/// Every package of the app and the licence texts they ship.
+@immutable
+final class LicenseIndex {
+  /// Sorted by name whatever the case.
+  final List<LicensePackage> packages;
+  final List<String> texts;
 
-  /// Read once per process; a failed read is tried again next time.
-  static Future<List<LicenseGroup>> load() => _groups ??= LicenseRegistry
-      .licenses
-      .toList()
-      .then(group)
-      .catchError((Object e) {
-        _groups = null;
+  const LicenseIndex({required this.packages, required this.texts});
+}
+
+/// The licences the app ships, read once from [LicenseRegistry].
+///
+/// The registry holds over a thousand texts (the engine alone ships one per
+/// third-party file), and splitting one into paragraphs is the slow part:
+/// Flutter does it lazily, on the thread that draws. So nothing heavy runs
+/// there: the index (texts by package, the licence of each) is built in a
+/// background isolate, and a package's paragraphs are split in one only
+/// when its page opens. The list then shows one row per package (a couple
+/// of hundred, built as they scroll in), not one per text.
+abstract final class LicenseCatalog {
+  static Future<LicenseIndex>? _index;
+  static LicenseIndex? _loaded;
+
+  /// The index once read: a page opened after it shows at once, with no
+  /// frame of loading.
+  static LicenseIndex? get loaded => _loaded;
+
+  /// Runs heavy work off the drawing thread. Tests run it inline.
+  @visibleForTesting
+  static ComputeImpl run = compute;
+
+  /// Read once per process, started as About opens; a failed read is tried
+  /// again next time.
+  static Future<LicenseIndex> load() =>
+      _index ??= _read().catchError((Object e) {
+        _index = null;
         throw e;
       });
 
   @visibleForTesting
-  static void reset() => _groups = null;
-
-  /// Joins the entries whose text is the same, sorted by their first
-  /// package whatever the case.
-  static List<LicenseGroup> group(List<LicenseEntry> entries) {
-    final byText = <String, (List<LicenseParagraph>, Set<String>)>{};
-    for (final entry in entries) {
-      final paragraphs = entry.paragraphs.toList();
-      final text = paragraphs.map((p) => p.text).join('\n');
-      final (_, packages) = byText.putIfAbsent(
-        text,
-        () => (paragraphs, <String>{}),
-      );
-      packages.addAll(entry.packages);
-    }
-    return [
-      for (final MapEntry(key: text, value: (paragraphs, packages))
-          in byText.entries)
-        if (packages.isNotEmpty)
-          LicenseGroup(
-            packages: packages.toList()..sort(_byName),
-            paragraphs: paragraphs,
-            kind: kindOf(text),
-          ),
-    ]..sort((a, b) => _byName(a.packages.first, b.packages.first));
+  static void reset() {
+    _index = null;
+    _loaded = null;
   }
 
-  static int _byName(String a, String b) =>
-      a.toLowerCase().compareTo(b.toLowerCase());
+  static Future<LicenseIndex> _read() async {
+    final entries = await LicenseRegistry.licenses.toList();
+    final read = await run(index, [
+      for (final e in entries) (e.packages.toList(), _textOf(e)),
+    ], debugLabel: 'licenseIndex');
+    return _loaded = read;
+  }
 
-  /// Names the common licenses by a sentence only they hold. Checked in
+  /// The raw text: what Flutter's NOTICES gives, unsplit.
+  static String _textOf(LicenseEntry entry) => switch (entry) {
+    LicenseEntryWithLineBreaks(:final text) => text,
+    _ => entry.paragraphs.map((p) => p.text).join('\n\n'),
+  };
+
+  /// Gathers [entries] (packages, text) by package, each text once per
+  /// package. Top level work for an isolate: no paragraph is split here.
+  @visibleForTesting
+  static LicenseIndex index(List<(List<String>, String)> entries) {
+    final texts = <String>[];
+    final placeOf = <String, int>{};
+    final byPackage = <String, Set<int>>{};
+    for (final (packages, text) in entries) {
+      final place = placeOf.putIfAbsent(text, () {
+        texts.add(text);
+        return texts.length - 1;
+      });
+      for (final p in packages) {
+        (byPackage[p] ??= <int>{}).add(place);
+      }
+    }
+    final kinds = <int, String?>{};
+    String? kindAt(int place) =>
+        kinds.putIfAbsent(place, () => kindOf(texts[place]));
+    final packages = [
+      for (final MapEntry(key: name, value: places) in byPackage.entries)
+        LicensePackage(
+          name: name,
+          texts: places.toList()..sort(),
+          kind: switch ({for (final p in places) kindAt(p)}) {
+            final kinds when kinds.length == 1 => kinds.single,
+            _ => null,
+          },
+        ),
+    ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return LicenseIndex(packages: packages, texts: texts);
+  }
+
+  /// The paragraphs of each text of [package], split off the drawing
+  /// thread.
+  static Future<List<List<LicenseParagraph>>> paragraphsOf(
+    LicenseIndex index,
+    LicensePackage package,
+  ) => run(split, [
+    for (final t in package.texts) index.texts[t],
+  ], debugLabel: 'licenseParagraphs');
+
+  @visibleForTesting
+  static List<List<LicenseParagraph>> split(List<String> texts) => [
+    for (final text in texts)
+      LicenseEntryWithLineBreaks(const [], text).paragraphs.toList(),
+  ];
+
+  /// Names the common licences by a sentence only they hold. Checked in
   /// this order: a lesser GPL also says "General Public License".
   static String? kindOf(String text) {
     final t = text.toLowerCase();

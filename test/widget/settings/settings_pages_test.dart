@@ -383,6 +383,8 @@ void main() {
     setUp(() {
       LicenseRegistry.reset();
       LicenseCatalog.reset();
+      LicenseCatalog.run = <M, R>(callback, message, {debugLabel}) async =>
+          callback(message);
       LicenseRegistry.addLicense(
         () => Stream.fromIterable(const [
           LicenseEntryWithLineBreaks(
@@ -398,6 +400,7 @@ void main() {
     tearDown(() {
       LicenseRegistry.reset();
       LicenseCatalog.reset();
+      LicenseCatalog.run = compute;
     });
 
     testWidgets('a license opens on its own page, in the app', (tester) async {
@@ -440,18 +443,18 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('go_router and 1 more'), findsOneWidget);
-      expect(find.text('MIT'), findsOneWidget);
+      // One row per package, in sections by initial.
+      expect(find.text('G'), findsOneWidget);
+      expect(find.text('go_router'), findsOneWidget);
+      expect(find.text('on_audio_query_platform_interface'), findsOneWidget);
+      expect(find.text('MIT'), findsNWidgets(2));
       expect(find.text('lucide'), findsOneWidget);
       expect(find.text('Its own terms'), findsOneWidget);
 
-      await tester.tap(find.text('go_router and 1 more'));
+      await tester.tap(find.text('go_router'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('go_router, on_audio_query_platform_interface'),
-        findsOneWidget,
-      );
+      expect(find.text('go_router'), findsWidgets);
       expect(find.text('THE SOFTWARE IS PROVIDED "AS IS".'), findsOneWidget);
       expect(find.byType(AppBackButton), findsOneWidget);
     });

@@ -17,7 +17,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Changed
 
-- Open-source licences open in Troona's own pages, with its background and back button: one row per licence, the packages sharing it named together, its type shown.
+- Open-source licences open in Troona's own pages, with its background and back button: one row per package, in sections by initial, its licence shown. The list opens at once and scrolls smoothly.
 - Settings are organised in pages: Audio, Library, Online extras, Appearance, Backup & restore, Storage and About, each row saying what it holds or how it stands. Every switch explains what it does, and the caches and resets have their own page.
 - Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
 
