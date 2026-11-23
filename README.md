@@ -44,6 +44,8 @@ It is also an engineering showcase: a Clean Architecture Flutter codebase with a
 
 ## Screenshots
 
+https://github.com/user-attachments/assets/f2fe1340-86ac-49a2-a819-0ad3e520c172
+
 <table>
   <tr>
     <td align="center"><img src="screenshots/now-playing.jpg" width="200" alt="Now Playing"><br><sub>Your music, in its own colours</sub></td>
