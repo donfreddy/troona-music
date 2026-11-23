@@ -106,14 +106,11 @@ void main() {
   test('counts only the songs the page shows', () async {
     final id = await playlistOf(['a', 'b', 'gone', 'c']);
 
-    final one = (await repo.getPlaylistById(
-      id,
-    )).getOrElse(() => throw StateError('not found'));
-    expect(one.trackIds, hasLength(4), reason: 'the hidden ones are kept');
-    expect(one.songCount, 2);
     final listed = (await repo.getPlaylists()).getOrElse(
       () => throw StateError('no list'),
     );
-    expect(listed.firstWhere((p) => p.id == id).songCount, 2);
+    final one = listed.firstWhere((p) => p.id == id);
+    expect(one.trackIds, hasLength(4), reason: 'the hidden ones are kept');
+    expect(one.songCount, 2);
   }, skip: skip);
 }

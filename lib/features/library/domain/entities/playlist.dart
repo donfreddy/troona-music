@@ -12,7 +12,7 @@ final class Playlist {
 
   /// How many of [trackIds] the library shows: a song left out by the scan
   /// filter, or whose file is gone, stays in [trackIds] but is not counted.
-  /// Null when not worked out.
+  /// Worked out for the list of playlists only; null elsewhere.
   final int? libraryCount;
 
   const Playlist({

@@ -22,6 +22,7 @@ abstract final class PlaylistOrder {
     ];
     if (from < 0 || from >= places.length) return null;
     if (to < 0 || to >= places.length) return null;
+    if (from == to) return [...stored];
     final order = [...stored];
     final taken = places[from];
     final song = order.removeAt(taken);

@@ -34,9 +34,8 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
       if (playlist == null) {
         return left(const DatabaseFailure('Playlist not found'));
       }
-      return right(
-        playlist.toEntity(library: await _cache.getLibraryDeviceIds()),
-      );
+      // No count: its page counts the songs it lists.
+      return right(playlist.toEntity());
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

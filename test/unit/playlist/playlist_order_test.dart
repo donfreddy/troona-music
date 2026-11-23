@@ -35,4 +35,9 @@ void main() {
     expect(move('AxB', -1, 0), isNull);
     expect(move('xy', 0, 0), isNull);
   });
+
+  test('a song moved onto its own place stays, alone shown or not', () {
+    expect(move('xAy', 0, 0), 'xAy'.split(''));
+    expect(move('AB', 1, 1), 'AB'.split(''));
+  });
 }

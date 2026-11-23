@@ -25,6 +25,7 @@ import 'package:troona/features/playlist/presentation/bloc/playlist_detail/playl
 import 'package:troona/features/playlist/presentation/widgets/playlist_detail_page.dart';
 import 'package:troona/l10n/app_localizations.dart';
 
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import '../../helpers/fake_player.dart';
 import '../../helpers/fake_smart.dart';
 
@@ -58,6 +59,7 @@ final class _Likes extends Fake implements LibraryRepository {
 }
 
 void main() {
+  late LibraryBloc libraryBloc;
   late MemoryPlaylists playlists;
   late FakeSmartLibrary library;
   late LikesCubit likesCubit;
@@ -88,12 +90,14 @@ void main() {
       isTrackLiked: IsTrackInLikesUseCase(likes),
       getLikesPlaylist: GetLikesPlaylistUseCase(likes),
     );
+    libraryBloc = idleLibraryBloc();
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
       unawaited(detail.close());
       unawaited(selection.close());
       unawaited(palette.close());
       unawaited(likesCubit.close());
+      unawaited(libraryBloc.close());
     });
     await tester.pumpWidget(
       MultiBlocProvider(
@@ -103,6 +107,7 @@ void main() {
           BlocProvider<TrackSelectionCubit>.value(value: selection),
           BlocProvider<TrackPaletteCubit>.value(value: palette),
           BlocProvider<LikesCubit>.value(value: likesCubit),
+          BlocProvider<LibraryBloc>.value(value: libraryBloc),
         ],
         child: MaterialApp(
           theme: AppTheme.dark,
