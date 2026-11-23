@@ -626,4 +626,56 @@ void main() {
       expect(() => BackupCodec.decode(_bytes(json)), _rejected);
     });
   });
+
+  group('library filters', () {
+    Backup withSettings(AppSettings settings) => Backup(
+      createdAt: _backup.createdAt,
+      tracks: _backup.tracks,
+      playlists: _backup.playlists,
+      plays: _backup.plays,
+      days: _backup.days,
+      trackDays: _backup.trackDays,
+      firstPlays: _backup.firstPlays,
+      replayMonth: null,
+      settings: settings,
+    );
+
+    test('travel with the settings', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(minTrackSeconds: 120, excludedFolders: ['/a/b']),
+          ),
+        ),
+      );
+
+      expect(read.settings?.minTrackSeconds, 120);
+      expect(read.settings?.excludedFolders, ['/a/b']);
+    });
+
+    test('a backup made before them reads as the defaults', () {
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('minTrackSeconds')
+        ..remove('excludedFolders');
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings?.minTrackSeconds, 10);
+      expect(read.settings?.excludedFolders, isEmpty);
+    });
+
+    test('a broken value is dropped, never the backup', () {
+      final json = _json();
+      (json['settings'] as Map)
+        ..['minTrackSeconds'] = 45
+        ..['excludedFolders'] = ['/ok', 3, '', 'x' * 5000];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings?.minTrackSeconds, 10);
+      expect(read.settings?.excludedFolders, ['/ok']);
+      expect(read.settings?.hapticFeedbackEnabled, isFalse);
+    });
+  });
 }

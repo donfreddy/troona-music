@@ -37,6 +37,7 @@ import 'package:troona/features/player/domain/use_cases/resolve_opened_file_use_
 import 'package:troona/features/player/presentation/utils/opened_file_handler.dart';
 import 'package:troona/features/player/presentation/utils/play_opened_file.dart';
 import 'package:troona/features/player/presentation/widgets/player_notice_toast.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/features/whats_new/domain/use_cases/check_whats_new_use_case.dart';
 import 'package:troona/features/whats_new/presentation/release_notes.dart';
@@ -376,6 +377,15 @@ class _AppShellState extends State<AppShell> {
             };
             context.read<TrackPaletteCubit>().updateTrack(track);
           },
+        ),
+        // What scans leave out changed (Settings > Library, a restore, a
+        // reset): the library follows at once, its toast saying what left
+        // or came back.
+        BlocListener<SettingsCubit, SettingsState>(
+          bloc: getIt<SettingsCubit>(),
+          listenWhen: scanFilterChanged,
+          listener: (context, _) =>
+              context.read<LibraryBloc>().add(const LibraryRefreshRequested()),
         ),
       ],
       child: BlocBuilder<LibraryBloc, LibraryState>(

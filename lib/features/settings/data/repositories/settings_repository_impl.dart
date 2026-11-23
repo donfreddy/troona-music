@@ -17,6 +17,8 @@ abstract final class _K {
   static const fetchLyrics = 'online_lyrics_enabled';
   static const onlineExtrasOffered = 'online_extras_offered';
   static const checkForUpdates = 'update_check_enabled';
+  static const minTrackSeconds = 'min_track_seconds';
+  static const excludedFolders = 'excluded_folders';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
   static const glassQuality = 'glass_quality';
 
@@ -29,6 +31,8 @@ abstract final class _K {
     fetchLyrics,
     onlineExtrasOffered,
     checkForUpdates,
+    minTrackSeconds,
+    excludedFolders,
     hapticFeedbackEnabled,
     glassQuality,
   ];
@@ -63,6 +67,18 @@ class SettingsRepositoryImpl implements SettingsRepository {
     return raw is bool ? raw : fallback;
   }
 
+  int _minTrackSeconds(int fallback) {
+    final raw = _prefs.get(_K.minTrackSeconds);
+    return raw is int && AppSettings.minTrackChoices.contains(raw)
+        ? raw
+        : fallback;
+  }
+
+  List<String> _folders() {
+    final raw = _prefs.get(_K.excludedFolders);
+    return raw is List ? [...raw.whereType<String>()] : const [];
+  }
+
   @override
   Future<Either<Failure, AppSettings>> loadSettings() async {
     try {
@@ -92,6 +108,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
             d.onlineExtrasOffered,
           ),
           checkForUpdates: _bool(_K.checkForUpdates, d.checkForUpdates),
+          minTrackSeconds: _minTrackSeconds(d.minTrackSeconds),
+          excludedFolders: _folders(),
           hapticFeedbackEnabled: _bool(
             _K.hapticFeedbackEnabled,
             d.hapticFeedbackEnabled,
@@ -120,6 +138,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.fetchLyrics, s.fetchLyrics),
         _prefs.setBool(_K.onlineExtrasOffered, s.onlineExtrasOffered),
         _prefs.setBool(_K.checkForUpdates, s.checkForUpdates),
+        _prefs.setInt(_K.minTrackSeconds, s.minTrackSeconds),
+        _prefs.setStringList(_K.excludedFolders, s.excludedFolders),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
         _prefs.setString(_K.glassQuality, s.glassQuality.name),
       ]);

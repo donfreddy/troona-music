@@ -59,6 +59,7 @@ import 'package:troona/features/library/data/repositories/artist_detail_reposito
 import 'package:troona/features/library/data/repositories/library_repository_impl.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
+import 'package:troona/features/library/domain/entities/scan_filter.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/artist_detail_repository.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
@@ -168,7 +169,15 @@ Future<void> configureDependencies() async {
   }
 
   getIt.registerLazySingleton<LocalAudioDataSource>(
-    () => OnAudioQueryDataSource(query: getIt()),
+    () => OnAudioQueryDataSource(
+      query: getIt(),
+      // Read at each scan. Settings are loaded before the first frame; if
+      // they could not be read, the defaults apply (nothing left out).
+      filter: () => switch (getIt<SettingsCubit>().state) {
+        SettingsLoaded(:final settings) => scanFilterOf(settings),
+        _ => const ScanFilter(),
+      },
+    ),
   );
 
   // ── Artwork cache directory ───────────────────────────────────────────────

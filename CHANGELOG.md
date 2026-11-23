@@ -12,6 +12,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Lyrics search, off by default: when a song has no lyrics, its title, artist, album and length go to LRCLIB, then lyrics.ovh, only when you open its lyrics. Turn it on from the lyrics screen or in Settings, Online extras. Clear downloaded info deletes the lyrics found online and keeps the ones you imported. Backups carry imported lyrics, and the timing you set on lyrics found online.
 - Automatic backups: daily or weekly, into a folder you pick once, with no storage permission; the folder and its backups stay if you uninstall Troona. The last five automatic backups are kept, the ones you make by hand are never deleted, and a backup with nothing new is not written again. Troona says when it can no longer reach the folder.
 - Choose what a backup holds: playlists, likes, listening history, lyrics, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
+- Keep folders out of your library, such as voice notes or a podcasts folder: Settings, Library, Folders. Their songs leave the library and come back, with their likes, plays and playlists, when you turn the folder back on.
+- Choose the shortest song your library keeps: 10 s, 30 s, 1 min or 2 min, in Settings, Library.
 
 ### Changed
 

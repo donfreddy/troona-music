@@ -1,8 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:troona/core/extensions/context_ext.dart';
+import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_builder.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
@@ -19,7 +25,8 @@ LibraryLoaded? _loaded(LibraryState state) => switch (state) {
   null => null,
 };
 
-/// What the library holds, and scanning the phone again.
+/// What the library holds, what scans leave out, and scanning the phone
+/// again.
 class LibrarySettingsPage extends StatelessWidget {
   const LibrarySettingsPage({super.key});
 
@@ -56,6 +63,7 @@ class LibrarySettingsPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                const _Filters(),
                 SettingsSection(
                   title: l10n.settingsScan,
                   footer: l10n.settingsScanFooter,
@@ -83,6 +91,52 @@ class LibrarySettingsPage extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// The shortest song kept and the folders left out. A change rescans the
+/// library (`AppShell`), the folders once their page closes.
+class _Filters extends StatelessWidget {
+  const _Filters();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SettingsBuilder(
+      builder: (context, settings) {
+        final cubit = context.read<SettingsCubit>();
+        final excluded = settings.excludedFolders.length;
+        return SettingsSection(
+          title: l10n.settingsFilters,
+          children: [
+            SegmentedRow<int>(
+              label: l10n.settingsMinLength,
+              subtitle: l10n.settingsMinLengthSubtitle,
+              icon: AppIcons.minTrackLength,
+              iconColor: SettingsHue.library,
+              values: AppSettings.minTrackChoices,
+              labels: [
+                for (final s in AppSettings.minTrackChoices)
+                  s < 60
+                      ? l10n.durationSecondsShort(s)
+                      : l10n.durationMinutes(s ~/ 60),
+              ],
+              selected: settings.minTrackSeconds,
+              onChanged: cubit.setMinTrackSeconds,
+            ),
+            SettingsTile.navigation(
+              icon: AppIcons.libraryFolders,
+              iconColor: SettingsHue.library,
+              title: l10n.settingsFolders,
+              subtitle: excluded == 0
+                  ? l10n.settingsFoldersAll
+                  : l10n.settingsFoldersExcluded(excluded),
+              onTap: () => context.pushNamed(AppRoute.settingsFolders),
+            ),
+          ],
+        );
+      },
     );
   }
 }

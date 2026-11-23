@@ -2706,11 +2706,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLibrarySummary =>
-      'Titres de ce téléphone, nouvelle analyse';
+      'Titres de ce téléphone, filtres, nouvelle analyse';
 
   @override
   String get settingsLibraryIntro =>
-      'Les titres que Troona a trouvés sur ce téléphone.';
+      'Les titres que Troona a trouvés sur ce téléphone, et ce qu\'il écarte.';
 
   @override
   String get settingsLibraryContents => 'Dans votre bibliothèque';
@@ -2720,7 +2720,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsScanFooter =>
-      'Troona lit les titres que votre téléphone classe comme musique. Les sonneries, notifications, messages vocaux et fichiers de moins de 10 secondes sont écartés.';
+      'Troona lit les titres que votre téléphone classe comme musique. Les sonneries, notifications et messages vocaux sont toujours écartés.';
 
   @override
   String get settingsOnlineOff => 'Désactivés';
@@ -2839,4 +2839,66 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineSources => 'Sources';
+
+  @override
+  String get settingsFilters => 'Filtres';
+
+  @override
+  String get settingsMinLength => 'Durée minimale';
+
+  @override
+  String get settingsMinLengthSubtitle =>
+      'Les fichiers plus courts restent hors de votre bibliothèque.';
+
+  @override
+  String durationSecondsShort(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get settingsFolders => 'Dossiers';
+
+  @override
+  String get settingsFoldersAll =>
+      'Tous les dossiers sont dans votre bibliothèque';
+
+  @override
+  String settingsFoldersExcluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dossiers exclus',
+      one: '1 dossier exclu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsFoldersIntro =>
+      'Les titres d\'un dossier désactivé quittent votre bibliothèque, sous-dossiers compris. Réactivez-le et ils reviennent avec leurs j\'aime, leurs écoutes et leurs playlists.';
+
+  @override
+  String get settingsFoldersFooter =>
+      'Au moins un dossier reste dans votre bibliothèque. Les changements s\'appliquent quand vous quittez cette page.';
+
+  @override
+  String get settingsFoldersEmpty =>
+      'Aucun dossier pour l\'instant : votre bibliothèque est vide.';
+
+  @override
+  String get settingsFolderExcluded => 'Exclu';
+
+  @override
+  String settingsFolderCoveredBy(String folder) {
+    return 'Exclu avec $folder';
+  }
+
+  @override
+  String get settingsFolderInPhone => 'Téléphone';
+
+  @override
+  String get settingsFolderInSdCard => 'Carte SD';
+
+  @override
+  String get settingsFoldersSection => 'Dossiers de musique';
 }

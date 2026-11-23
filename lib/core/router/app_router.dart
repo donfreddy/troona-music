@@ -34,6 +34,7 @@ import 'package:troona/features/backup/presentation/pages/backup_page.dart';
 import 'package:troona/features/settings/presentation/pages/about_page.dart';
 import 'package:troona/features/settings/presentation/pages/appearance_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
@@ -60,6 +61,7 @@ abstract class AppRoute {
   static const settingsAppearance = 'settings_appearance';
   static const settingsStorage = 'settings_storage';
   static const settingsAbout = 'settings_about';
+  static const settingsFolders = 'settings_folders';
   static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
@@ -252,6 +254,10 @@ final appRouter = GoRouter(
                     _settingsRoute(
                       AppRoute.settingsLibrary,
                       const LibrarySettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsFolders,
+                      const LibraryFoldersPage(),
                     ),
                     _settingsRoute(
                       AppRoute.settingsOnline,

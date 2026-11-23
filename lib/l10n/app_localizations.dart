@@ -4421,13 +4421,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsLibrarySummary.
   ///
   /// In en, this message translates to:
-  /// **'Songs on this phone, rescan'**
+  /// **'Songs on this phone, filters, rescan'**
   String get settingsLibrarySummary;
 
   /// No description provided for @settingsLibraryIntro.
   ///
   /// In en, this message translates to:
-  /// **'The songs Troona found on this phone.'**
+  /// **'The songs Troona found on this phone, and what it leaves out.'**
   String get settingsLibraryIntro;
 
   /// No description provided for @settingsLibraryContents.
@@ -4445,7 +4445,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsScanFooter.
   ///
   /// In en, this message translates to:
-  /// **'Troona reads the songs your phone lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.'**
+  /// **'Troona reads the songs your phone lists as music. Ringtones, notifications and voice notes are always left out.'**
   String get settingsScanFooter;
 
   /// No description provided for @settingsOnlineOff.
@@ -4645,6 +4645,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sources'**
   String get settingsOnlineSources;
+
+  /// No description provided for @settingsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get settingsFilters;
+
+  /// No description provided for @settingsMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortest song'**
+  String get settingsMinLength;
+
+  /// No description provided for @settingsMinLengthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shorter files stay out of your library.'**
+  String get settingsMinLengthSubtitle;
+
+  /// No description provided for @durationSecondsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} s'**
+  String durationSecondsShort(int seconds);
+
+  /// No description provided for @settingsFolders.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders'**
+  String get settingsFolders;
+
+  /// No description provided for @settingsFoldersAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Every folder is in your library'**
+  String get settingsFoldersAll;
+
+  /// No description provided for @settingsFoldersExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 folder left out} other{{count} folders left out}}'**
+  String settingsFoldersExcluded(int count);
+
+  /// No description provided for @settingsFoldersIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs in a folder turned off leave your library, with its subfolders. Turn it back on and they come back with their likes, plays and playlists.'**
+  String get settingsFoldersIntro;
+
+  /// No description provided for @settingsFoldersFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'One folder at least stays in your library. Changes apply when you leave this page.'**
+  String get settingsFoldersFooter;
+
+  /// No description provided for @settingsFoldersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No folders yet: your library is empty.'**
+  String get settingsFoldersEmpty;
+
+  /// No description provided for @settingsFolderExcluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out'**
+  String get settingsFolderExcluded;
+
+  /// No description provided for @settingsFolderCoveredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Left out with {folder}'**
+  String settingsFolderCoveredBy(String folder);
+
+  /// No description provided for @settingsFolderInPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settingsFolderInPhone;
+
+  /// No description provided for @settingsFolderInSdCard.
+  ///
+  /// In en, this message translates to:
+  /// **'SD card'**
+  String get settingsFolderInSdCard;
+
+  /// No description provided for @settingsFoldersSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders with music'**
+  String get settingsFoldersSection;
 }
 
 class _AppLocalizationsDelegate

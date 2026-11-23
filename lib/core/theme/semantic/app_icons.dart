@@ -158,5 +158,8 @@ abstract final class AppIcons {
   static const IconData settingsStorage = LucideIcons300.hardDrive;
   static const IconData settingsAbout = LucideIcons300.info;
   static const IconData licenses = LucideIcons300.scrollText;
+  static const IconData minTrackLength = LucideIcons300.hourglass;
+  static const IconData libraryFolders = LucideIcons300.folderTree;
+  static const IconData folder = LucideIcons300.folder;
   static const IconData storageAccess = LucideIcons300.folderLock;
 }

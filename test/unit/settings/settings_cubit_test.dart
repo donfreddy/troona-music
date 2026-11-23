@@ -169,4 +169,68 @@ void main() {
     await pumpEventQueue();
     expect(cubit.state, same(before));
   });
+
+  test('library filters: lengths offered only, folders kept sorted', () async {
+    final cubit = SettingsCubit(repo);
+    await cubit.load();
+
+    await cubit.setMinTrackSeconds(45);
+    expect(settingsOf(cubit)?.minTrackSeconds, 10);
+    await cubit.setMinTrackSeconds(120);
+    expect(settingsOf(cubit)?.minTrackSeconds, 120);
+
+    await cubit.setExcludedFolders({'/b', '/a'});
+    expect(settingsOf(cubit)?.excludedFolders, ['/a', '/b']);
+    await cubit.close();
+  });
+
+  test('a restore merges the folders left out and takes the length', () async {
+    final cubit = SettingsCubit(repo);
+    await cubit.load();
+    await cubit.setExcludedFolders({'/here'});
+
+    await cubit.restore(
+      const AppSettings(minTrackSeconds: 30, excludedFolders: ['/there']),
+    );
+
+    expect(settingsOf(cubit)?.excludedFolders, ['/here', '/there']);
+    expect(settingsOf(cubit)?.minTrackSeconds, 30);
+    await cubit.close();
+  });
+
+  test('only a change of what scans leave out asks for a rescan', () {
+    const loading = SettingsState.loading();
+    const base = SettingsState.loaded(AppSettings());
+
+    expect(scanFilterChanged(loading, base), isFalse);
+    expect(
+      scanFilterChanged(
+        base,
+        const SettingsState.loaded(AppSettings(hapticFeedbackEnabled: false)),
+      ),
+      isFalse,
+    );
+    expect(
+      scanFilterChanged(
+        base,
+        const SettingsState.loaded(AppSettings(minTrackSeconds: 30)),
+      ),
+      isTrue,
+    );
+    expect(
+      scanFilterChanged(
+        base,
+        const SettingsState.loaded(AppSettings(excludedFolders: ['/a'])),
+      ),
+      isTrue,
+    );
+    // The same folders in another order are the same filter.
+    expect(
+      scanFilterChanged(
+        const SettingsState.loaded(AppSettings(excludedFolders: ['/a', '/b'])),
+        const SettingsState.loaded(AppSettings(excludedFolders: ['/b', '/a'])),
+      ),
+      isFalse,
+    );
+  });
 }

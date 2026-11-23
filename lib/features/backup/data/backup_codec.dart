@@ -413,10 +413,27 @@ abstract final class BackupCodec {
     'onlinePhotos': s.fetchArtistArtwork,
     'onlineExtrasOffered': s.onlineExtrasOffered,
     'haptics': s.hapticFeedbackEnabled,
+    'minTrackSeconds': s.minTrackSeconds,
+    'excludedFolders': s.excludedFolders,
   };
 
   /// The glass quality depends on the phone: it is neither saved nor read.
+  /// The library filters came later and are read leniently: a backup
+  /// without them, or with a value this app does not offer, reads as the
+  /// defaults (what the app did before them), and a folder that is not a
+  /// short text is dropped.
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
+    minTrackSeconds: switch (m['minTrackSeconds']) {
+      final int s when AppSettings.minTrackChoices.contains(s) => s,
+      _ => const AppSettings().minTrackSeconds,
+    },
+    excludedFolders: switch (m['excludedFolders']) {
+      final List<Object?> list => [
+        for (final f in list.take(_maxItems))
+          if (f is String && f.isNotEmpty && f.length <= maxText) f,
+      ],
+      _ => const [],
+    },
     stopOnCallEnabled: _bool(m['stopOnCall'], 'stopOnCall'),
     resumeAfterCallEnabled: _bool(m['resumeAfterCall'], 'resumeAfterCall'),
     duckAudioOnNotification: _bool(

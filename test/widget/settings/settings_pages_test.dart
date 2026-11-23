@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,7 @@ import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart'
 import 'package:troona/features/settings/presentation/pages/about_page.dart';
 import 'package:troona/features/settings/presentation/pages/appearance_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/library_folders_page.dart';
 import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
@@ -249,6 +251,129 @@ void main() {
       }
     }
   }
+
+  group('folders', () {
+    void holding(List<String> ids) {
+      final tracks = [for (final id in ids) testTrack(id, durationMs: 60000)];
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      library.emit(
+        LibraryLoaded(
+          allTracks: tracks,
+          allAlbums: const [],
+          allArtists: const [],
+          visibleTracks: tracks,
+          visibleAlbums: const [],
+          visibleArtists: const [],
+        ),
+      );
+    }
+
+    List<String>? excluded() => switch (settings.state) {
+      SettingsLoaded(:final settings) => settings.excludedFolders,
+      _ => null,
+    };
+
+    CupertinoSwitch switchOf(WidgetTester tester, String folder) =>
+        tester.widget<CupertinoSwitch>(
+          find.descendant(
+            of: find.byKey(ValueKey(folder)),
+            matching: find.byType(CupertinoSwitch),
+          ),
+        );
+
+    testWidgets('a folder turned off is saved once the page goes', (
+      tester,
+    ) async {
+      holding(['rap/1', 'rap/2', 'voice/1']);
+      await pump(tester, const LibraryFoldersPage());
+
+      expect(find.text('2 songs, /music'), findsOneWidget);
+      await tester.tap(find.text('voice'));
+      await tester.pumpAndSettle();
+      expect(find.text('Left out, /music'), findsOneWidget);
+      // Not yet: each save rescans the library.
+      expect(excluded(), isEmpty);
+
+      await tester.pumpWidget(providers(const SizedBox()));
+      await tester.pumpAndSettle();
+
+      expect(excluded(), ['/music/voice']);
+    });
+
+    testWidgets('turning a folder back on before leaving saves nothing', (
+      tester,
+    ) async {
+      holding(['rap/1', 'voice/1']);
+      await settings.setExcludedFolders({'/music/voice'});
+      await pump(tester, const LibraryFoldersPage());
+
+      await tester.tap(find.text('voice'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('voice'));
+      await tester.pumpAndSettle();
+      final before = settings.state;
+      await tester.pumpWidget(providers(const SizedBox()));
+      await tester.pumpAndSettle();
+
+      expect(settings.state, same(before));
+    });
+
+    testWidgets('the last folder in cannot be turned off', (tester) async {
+      holding(['rap/1', 'voice/1']);
+      await settings.setExcludedFolders({'/music/voice'});
+      await pump(tester, const LibraryFoldersPage());
+
+      expect(switchOf(tester, '/music/rap').onChanged, isNull);
+      expect(switchOf(tester, '/music/voice').onChanged, isNotNull);
+    });
+
+    testWidgets('a subfolder of a folder left out says so and waits', (
+      tester,
+    ) async {
+      holding(['rap/1', 'rap/live/1', 'pop/1']);
+      await pump(tester, const LibraryFoldersPage());
+
+      await tester.tap(find.text('rap'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Left out with rap, /music/rap'), findsOneWidget);
+      expect(switchOf(tester, '/music/rap/live').value, isFalse);
+      expect(switchOf(tester, '/music/rap/live').onChanged, isNull);
+    });
+
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('fr, 360 x 640, text x$scale: nothing overflows', (
+        tester,
+      ) async {
+        tester.view
+          ..devicePixelRatio = 3
+          ..physicalSize = const Size(360, 640) * 3;
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        holding([
+          'Téléchargements de musique pour la voiture/1',
+          'Albums complets en haute définition/sous-dossier très long/2',
+          'x/3',
+        ]);
+        await settings.setExcludedFolders({'/music/x'});
+
+        await pump(
+          tester,
+          const LibraryFoldersPage(),
+          locale: const Locale('fr'),
+        );
+        // Dragged by the left edge, away from the switches.
+        for (var i = 0; i < 10; i++) {
+          await tester.dragFrom(const Offset(8, 500), const Offset(0, -400));
+          await tester.pump();
+        }
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
 
   group('root', () {
     testWidgets('each category opens its page', (tester) async {

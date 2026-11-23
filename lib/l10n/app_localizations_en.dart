@@ -2684,10 +2684,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unplugging headphones always pauses the music.';
 
   @override
-  String get settingsLibrarySummary => 'Songs on this phone, rescan';
+  String get settingsLibrarySummary => 'Songs on this phone, filters, rescan';
 
   @override
-  String get settingsLibraryIntro => 'The songs Troona found on this phone.';
+  String get settingsLibraryIntro =>
+      'The songs Troona found on this phone, and what it leaves out.';
 
   @override
   String get settingsLibraryContents => 'In your library';
@@ -2697,7 +2698,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsScanFooter =>
-      'Troona reads the songs your phone lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.';
+      'Troona reads the songs your phone lists as music. Ringtones, notifications and voice notes are always left out.';
 
   @override
   String get settingsOnlineOff => 'Off';
@@ -2816,4 +2817,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineSources => 'Sources';
+
+  @override
+  String get settingsFilters => 'Filters';
+
+  @override
+  String get settingsMinLength => 'Shortest song';
+
+  @override
+  String get settingsMinLengthSubtitle =>
+      'Shorter files stay out of your library.';
+
+  @override
+  String durationSecondsShort(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get settingsFolders => 'Folders';
+
+  @override
+  String get settingsFoldersAll => 'Every folder is in your library';
+
+  @override
+  String settingsFoldersExcluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders left out',
+      one: '1 folder left out',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsFoldersIntro =>
+      'Songs in a folder turned off leave your library, with its subfolders. Turn it back on and they come back with their likes, plays and playlists.';
+
+  @override
+  String get settingsFoldersFooter =>
+      'One folder at least stays in your library. Changes apply when you leave this page.';
+
+  @override
+  String get settingsFoldersEmpty => 'No folders yet: your library is empty.';
+
+  @override
+  String get settingsFolderExcluded => 'Left out';
+
+  @override
+  String settingsFolderCoveredBy(String folder) {
+    return 'Left out with $folder';
+  }
+
+  @override
+  String get settingsFolderInPhone => 'Phone';
+
+  @override
+  String get settingsFolderInSdCard => 'SD card';
+
+  @override
+  String get settingsFoldersSection => 'Folders with music';
 }

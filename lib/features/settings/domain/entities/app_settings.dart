@@ -26,6 +26,15 @@ class AppSettings extends Equatable {
   /// Opt-in: asks GitHub once a day for the latest release.
   final bool checkForUpdates;
 
+  // Library: what scans leave out, besides the fixed rules.
+
+  /// The shortest song kept, in seconds: one of [minTrackChoices].
+  final int minTrackSeconds;
+
+  /// Folders whose songs stay out of the library, subfolders included:
+  /// absolute paths with no trailing slash.
+  final List<String> excludedFolders;
+
   // UI
   final bool hapticFeedbackEnabled;
   final GlassQuality glassQuality;
@@ -39,11 +48,17 @@ class AppSettings extends Equatable {
     this.fetchLyrics = false,
     this.onlineExtrasOffered = false,
     this.checkForUpdates = false,
+    this.minTrackSeconds = 10,
+    this.excludedFolders = const [],
     this.hapticFeedbackEnabled = true,
     this.glassQuality = GlassQuality.auto,
   });
 
   bool get onlineExtrasEnabled => fetchOnlineMetadata || fetchArtistArtwork;
+
+  /// The lengths offered for [minTrackSeconds]; anything else reads as the
+  /// default.
+  static const minTrackChoices = [10, 30, 60, 120];
 
   AppSettings copyWith({
     bool? stopOnCallEnabled,
@@ -54,6 +69,8 @@ class AppSettings extends Equatable {
     bool? fetchLyrics,
     bool? onlineExtrasOffered,
     bool? checkForUpdates,
+    int? minTrackSeconds,
+    List<String>? excludedFolders,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
   }) => AppSettings(
@@ -67,6 +84,8 @@ class AppSettings extends Equatable {
     fetchLyrics: fetchLyrics ?? this.fetchLyrics,
     onlineExtrasOffered: onlineExtrasOffered ?? this.onlineExtrasOffered,
     checkForUpdates: checkForUpdates ?? this.checkForUpdates,
+    minTrackSeconds: minTrackSeconds ?? this.minTrackSeconds,
+    excludedFolders: excludedFolders ?? this.excludedFolders,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
     glassQuality: glassQuality ?? this.glassQuality,
   );
@@ -81,6 +100,8 @@ class AppSettings extends Equatable {
     fetchLyrics,
     onlineExtrasOffered,
     checkForUpdates,
+    minTrackSeconds,
+    excludedFolders,
     hapticFeedbackEnabled,
     glassQuality,
   ];

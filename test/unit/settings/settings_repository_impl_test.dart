@@ -83,4 +83,30 @@ void main() {
     expect(prefs.getString('playback_session_v1'), '{"session":1}');
     expect(prefs.get('glass_quality'), isNull);
   });
+
+  test(
+    'library filters are saved, a length not offered reads as the default',
+    () async {
+      final repo = await repoWith({});
+      await repo.saveSettings(
+        const AppSettings(minTrackSeconds: 60, excludedFolders: ['/a', '/b']),
+      );
+      final saved = (await repo.loadSettings()).getOrElse(() => throw 'no');
+      expect(saved.minTrackSeconds, 60);
+      expect(saved.excludedFolders, ['/a', '/b']);
+
+      final odd = await repoWith({
+        'min_track_seconds': 45,
+        'excluded_folders': 3,
+      });
+      final read = (await odd.loadSettings()).getOrElse(() => throw 'no');
+      expect(read.minTrackSeconds, 10);
+      expect(read.excludedFolders, isEmpty);
+
+      await odd.saveSettings(const AppSettings(excludedFolders: ['/a']));
+      await odd.resetSettings();
+      final reset = (await odd.loadSettings()).getOrElse(() => throw 'no');
+      expect(reset.excludedFolders, isEmpty);
+    },
+  );
 }
