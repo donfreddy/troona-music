@@ -6,4 +6,8 @@ abstract interface class BackupPreferencesRepository {
 
   AutoBackupMark? get lastAuto;
   Future<void> setLastAuto(AutoBackupMark mark);
+
+  /// When the last automatic backup failed; null once one succeeds.
+  DateTime? get lastFailure;
+  Future<void> setLastFailure(DateTime? at);
 }

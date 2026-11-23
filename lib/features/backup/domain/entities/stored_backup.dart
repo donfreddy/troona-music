@@ -60,6 +60,11 @@ final class StoredBackup extends Equatable {
 
   /// Made by the automatic backup, which keeps only its last few.
   final bool auto;
+
+  /// Made by this build of the app. The debug and release builds are two
+  /// apps that may share a folder: each rotates only its own automatic
+  /// backups.
+  final bool mine;
   final int? size;
 
   const StoredBackup({
@@ -67,9 +72,10 @@ final class StoredBackup extends Equatable {
     required this.name,
     required this.createdAt,
     required this.auto,
+    this.mine = true,
     this.size,
   });
 
   @override
-  List<Object?> get props => [id, name, createdAt, auto, size];
+  List<Object?> get props => [id, name, createdAt, auto, mine, size];
 }

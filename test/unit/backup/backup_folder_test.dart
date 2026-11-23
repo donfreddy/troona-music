@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
+import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/data/backup_file_name.dart';
 import 'package:troona/features/backup/data/backup_summary_json.dart';
 import 'package:troona/features/backup/data/platform_backup_folder.dart';
@@ -67,10 +68,15 @@ final class _Folder implements BackupFolderPlatform {
     return {'id': id, 'name': stored, 'size': bytes.length};
   }
 
+  int reads = 0;
+
   @override
-  Future<void> read(String id, String path) async {
+  Future<void> read(String id, String path, {required int maxBytes}) async {
     _check();
-    File(path).writeAsBytesSync(files[id]!.bytes);
+    reads++;
+    final bytes = files[id]!.bytes;
+    if (bytes.length > maxBytes) throw PlatformException(code: 'large');
+    File(path).writeAsBytesSync(bytes);
   }
 
   @override
@@ -116,7 +122,25 @@ void main() {
       expect(BackupFileName.parse(BackupFileName.of(at, auto: true)), (
         createdAt: at,
         auto: true,
+        tag: null,
       ));
+    });
+
+    test('a build\'s tag goes in its automatic backups\' names', () {
+      final at = DateTime(2026, 11, 23, 3, 24, 15);
+      final name = BackupFileName.of(at, auto: true, tag: 'dev');
+
+      expect(name, 'troona-auto-dev-20261123-032415.json');
+      expect(BackupFileName.parse(name), (
+        createdAt: at,
+        auto: true,
+        tag: 'dev',
+      ));
+      // A backup by hand carries none: one tagged is no backup of ours.
+      expect(
+        BackupFileName.parse('troona-backup-dev-20261123-032415.json'),
+        isNull,
+      );
     });
 
     test('a name a provider numbered is still a backup', () {
@@ -169,13 +193,14 @@ void main() {
     late _Folder folder;
     late SafBackupFolderRepository repo;
 
-    SafBackupFolderRepository build({bool supported = true}) =>
+    SafBackupFolderRepository build({bool supported = true, String? tag}) =>
         SafBackupFolderRepository(
           platform: folder,
           prefs: prefs,
           workDir: Directory('${dir.path}/work'),
           exportDir: Directory('${dir.path}/exports'),
           supported: supported,
+          tag: tag,
         );
 
     setUp(() async {
@@ -351,6 +376,97 @@ void main() {
       );
       expect(Directory('${dir.path}/work').listSync(), isEmpty);
     });
+
+    test(
+      'each build owns its automatic backups, and every backup by hand',
+      () async {
+        await repo.pick();
+        final dev = build(tag: 'dev');
+        final releaseAuto = value(
+          await repo.save(_backup(DateTime(2026, 11, 1)), auto: true),
+        );
+        final devAuto = value(
+          await dev.save(_backup(DateTime(2026, 11, 2)), auto: true),
+        );
+        final manual = value(
+          await dev.save(_backup(DateTime(2026, 11, 3)), auto: false),
+        );
+
+        expect(devAuto.name, startsWith('troona-auto-dev-'));
+        expect(manual.name, startsWith('troona-backup-2026'));
+        final byRelease = {
+          for (final b in value(await repo.list())) b.name: b.mine,
+        };
+        final byDev = {for (final b in value(await dev.list())) b.name: b.mine};
+        expect(byRelease, {
+          releaseAuto.name: true,
+          devAuto.name: false,
+          manual.name: true,
+        });
+        expect(byDev, {
+          releaseAuto.name: false,
+          devAuto.name: true,
+          manual.name: true,
+        });
+      },
+    );
+
+    test('a file too large is refused before it is copied', () async {
+      await repo.pick();
+      folder.files['big'] = (
+        name: 'troona-backup-20261123-032415.json',
+        bytes: [1],
+      );
+      final big = StoredBackup(
+        id: 'big',
+        name: 'troona-backup-20261123-032415.json',
+        createdAt: DateTime(2026, 11, 23),
+        auto: false,
+        size: BackupCodec.maxBytes + 1,
+      );
+
+      expect(
+        await repo.read(big),
+        left(const BackupFormatFailure('File too large')),
+      );
+      expect(folder.reads, 0);
+    });
+
+    test('a file grown past the limit since listed is refused by the '
+        'platform', () async {
+      await repo.pick();
+      folder.files['big'] = (
+        name: 'troona-backup-20261123-032415.json',
+        bytes: List.filled(BackupCodec.maxBytes + 1, 32),
+      );
+      final listed = StoredBackup(
+        id: 'big',
+        name: 'troona-backup-20261123-032415.json',
+        createdAt: DateTime(2026, 11, 23),
+        auto: false,
+        size: 1,
+      );
+
+      expect(
+        await repo.read(listed),
+        left(const BackupFormatFailure('File too large')),
+      );
+      expect(Directory('${dir.path}/work').listSync(), isEmpty);
+    });
+
+    test(
+      'work files a killed app left behind are cleared by the next one',
+      () async {
+        await repo.pick();
+        final stale = File('${dir.path}/work/old.json')
+          ..createSync(recursive: true)
+          ..writeAsStringSync('x');
+
+        await repo.save(_backup(DateTime(2026, 11, 23)), auto: false);
+
+        expect(stale.existsSync(), isFalse);
+      },
+    );
 
     test('without a folder, nothing reaches the platform', () async {
       expect(

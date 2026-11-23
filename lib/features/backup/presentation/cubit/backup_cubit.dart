@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -90,9 +92,15 @@ final class BackupCubit extends Cubit<BackupState> {
        _preferences = preferences,
        super(BackupState(preferences: preferences.load()));
 
-  /// Reads the preferences, the folder and its backups again.
+  /// The task running, done when it ends.
+  Future<void>? _running;
+
+  /// Reads the preferences, the folder and its backups again, once the
+  /// task running is done: read beside it (a delete), the list could come
+  /// back with the file it removed.
   Future<void> load() async {
     emit(state.copyWith(preferences: _preferences.load()));
+    await _running;
     await _refresh();
   }
 
@@ -113,8 +121,12 @@ final class BackupCubit extends Cubit<BackupState> {
       if (state.folder is! BackupFolderReady) return right(unit);
     }
     await _setPreferences(state.preferences.copyWith(auto: on));
-    if (on) await autoBackupIfDue();
-    return right(unit);
+    if (!on) return right(unit);
+    // The first backup, made now: a failure is said, not left for later.
+    return switch (await autoBackupIfDue()) {
+      AutoBackupFailed(:final failure) => left(failure),
+      _ => right(unit),
+    };
   }
 
   Future<void> setFrequency(BackupFrequency frequency) =>
@@ -190,6 +202,8 @@ final class BackupCubit extends Cubit<BackupState> {
   /// task runs: the next start or return to the app tries again.
   Future<AutoBackupOutcome?> autoBackupIfDue() async {
     if (state.busy || isClosed) return null;
+    final done = Completer<void>();
+    _running = done.future;
     emit(state.copyWith(task: () => BackupTask.auto));
     try {
       final outcome = await _auto();
@@ -199,6 +213,7 @@ final class BackupCubit extends Cubit<BackupState> {
       ErrorHandler.handle(e, st);
       return null;
     } finally {
+      done.complete();
       if (!isClosed) emit(state.copyWith(task: () => null));
     }
   }
@@ -251,17 +266,25 @@ final class BackupCubit extends Cubit<BackupState> {
     }
   }
 
+  /// Runs one task the user asked for. One started while the automatic
+  /// backup runs (the app comes back from the file picker, and the backup
+  /// starts) waits for it; one started beside another of the user's is
+  /// refused.
   Future<Either<Failure, T>> _busy<T>(
     BackupTask task,
     Future<Either<Failure, T>> Function() run,
   ) async {
-    if (state.busy) {
+    if (state.task == BackupTask.auto) await _running;
+    if (state.busy || isClosed) {
       return left(const UnexpectedFailure('Backup task running'));
     }
+    final done = Completer<void>();
+    _running = done.future;
     emit(state.copyWith(task: () => task));
     try {
       return await run();
     } finally {
+      done.complete();
       if (!isClosed) emit(state.copyWith(task: () => null));
     }
   }

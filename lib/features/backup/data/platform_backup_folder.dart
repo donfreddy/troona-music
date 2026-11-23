@@ -15,14 +15,16 @@ abstract interface class BackupFolderPlatform {
   /// Copies the local file at [path] into a new file [name] of the folder.
   Future<Map<String, Object?>> write(String uri, String name, String path);
 
-  /// Copies the folder's file [id] to the local [path].
-  Future<void> read(String id, String path);
+  /// Copies the folder's file [id] to the local [path]. Over [maxBytes],
+  /// it stops and fails with the code `large`.
+  Future<void> read(String id, String path, {required int maxBytes});
   Future<void> delete(String id);
 }
 
 /// [BackupFolderPlatform] over the Android activity's channel
 /// (`BackupFolderChannel.kt`). A [PlatformException] with the code `lost`
-/// means the folder can no longer be reached.
+/// means the folder can no longer be reached; `large`, a file larger than
+/// any backup.
 final class ChannelBackupFolder implements BackupFolderPlatform {
   static const channel = MethodChannel('troona/backup_folder');
 
@@ -63,8 +65,12 @@ final class ChannelBackupFolder implements BackupFolderPlatform {
       const {};
 
   @override
-  Future<void> read(String id, String path) =>
-      channel.invokeMethod<bool>('read', {'uri': id, 'path': path});
+  Future<void> read(String id, String path, {required int maxBytes}) =>
+      channel.invokeMethod<bool>('read', {
+        'uri': id,
+        'path': path,
+        'maxBytes': maxBytes,
+      });
 
   @override
   Future<void> delete(String id) =>

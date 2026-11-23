@@ -51,12 +51,17 @@ final class _Folder extends Fake implements BackupFolderRepository {
   Failure? saveFails;
   var _n = 0;
 
-  StoredBackup add({required bool auto, required DateTime at}) {
+  StoredBackup add({
+    required bool auto,
+    required DateTime at,
+    bool mine = true,
+  }) {
     final b = StoredBackup(
       id: 'doc-${_n++}',
       name: 'b$_n',
       createdAt: at,
       auto: auto,
+      mine: mine,
     );
     stored.add(b);
     return b;
@@ -104,6 +109,12 @@ final class _Preferences implements BackupPreferencesRepository {
 
   @override
   Future<void> setLastAuto(AutoBackupMark mark) async => this.mark = mark;
+
+  @override
+  DateTime? lastFailure;
+
+  @override
+  Future<void> setLastFailure(DateTime? at) async => lastFailure = at;
 }
 
 void main() {
@@ -226,20 +237,54 @@ void main() {
       expect(outcome, isA<AutoBackupSaved>());
       expect(backups.asked, {BackupPart.likes});
       expect(folder.stored.single.auto, isTrue);
-      expect(preferences.mark, AutoBackupMark(at: now, fingerprint: 'f1'));
+      expect(
+        preferences.mark,
+        AutoBackupMark(at: now, fingerprint: 'f1', name: 'b1'),
+      );
     });
 
     test('nothing changed and the last one is there: no copy', () async {
+      final last = folder.add(auto: true, at: DateTime(2026, 11, 1));
       preferences.mark = AutoBackupMark(
         at: DateTime(2026, 11, 1),
         fingerprint: 'f1',
+        name: last.name,
       );
-      folder.add(auto: true, at: DateTime(2026, 11, 1));
 
       expect(await useCase()(), const AutoBackupUnchanged());
       expect(folder.stored, hasLength(1));
       // Checked today: not due again until next week.
       expect(preferences.mark?.at, now);
+      expect(preferences.mark?.name, last.name);
+    });
+
+    test('nothing changed but the last one was deleted, older ones kept: '
+        'written again', () async {
+      folder.add(auto: true, at: DateTime(2026, 10, 25));
+      preferences.mark = AutoBackupMark(
+        at: DateTime(2026, 11, 1),
+        fingerprint: 'f1',
+        name: 'gone.json',
+      );
+
+      expect(await useCase()(), isA<AutoBackupSaved>());
+      expect(folder.stored.where((b) => b.auto), hasLength(2));
+    });
+
+    test('nothing changed but the file of that name is not ours (the other '
+        'build\'s): written again', () async {
+      final theirs = folder.add(
+        auto: true,
+        at: DateTime(2026, 11, 1),
+        mine: false,
+      );
+      preferences.mark = AutoBackupMark(
+        at: DateTime(2026, 11, 1),
+        fingerprint: 'f1',
+        name: theirs.name,
+      );
+
+      expect(await useCase()(), isA<AutoBackupSaved>());
     });
 
     test(
@@ -270,6 +315,53 @@ void main() {
       expect(folder.stored, contains(manual));
     });
 
+    test(
+      'rotation leaves the other build\'s automatic backups alone',
+      () async {
+        final theirs = [
+          for (var day = 1; day <= 6; day++)
+            folder.add(auto: true, at: DateTime(2026, 10, day), mine: false),
+        ];
+        final mine = [
+          for (var day = 1; day <= 4; day++)
+            folder.add(auto: true, at: DateTime(2026, 11, day)),
+        ];
+
+        await useCase()();
+
+        // Four of ours and the new one: none to delete.
+        expect(folder.deleted, isEmpty);
+        expect(folder.stored, containsAll([...theirs, ...mine]));
+      },
+    );
+
+    test(
+      'a clock before 2024 (a phone reset to 1970) backs nothing up',
+      () async {
+        final useCase = RunAutoBackupUseCase(
+          backups: backups,
+          folder: folder,
+          preferences: preferences,
+          now: () => DateTime(1970, 1, 2),
+        );
+
+        expect(await useCase(), const AutoBackupSkipped());
+        expect(backups.asked, isNull);
+      },
+    );
+
+    test('after a failure, waits an hour before reading again', () async {
+      preferences.lastFailure = now.subtract(const Duration(minutes: 59));
+
+      expect(await useCase()(), const AutoBackupSkipped());
+      expect(backups.asked, isNull);
+
+      preferences.lastFailure = now.subtract(const Duration(hours: 1));
+      expect(await useCase()(), isA<AutoBackupSaved>());
+      // A success clears it.
+      expect(preferences.lastFailure, isNull);
+    });
+
     test('a failure marks nothing, so the next check tries again', () async {
       folder.saveFails = const BackupFolderLostFailure();
 
@@ -279,6 +371,7 @@ void main() {
       );
       expect(preferences.mark, isNull);
       expect(folder.deleted, isEmpty);
+      expect(preferences.lastFailure, now);
     });
 
     test('a snapshot that fails writes nothing', () async {
@@ -286,6 +379,15 @@ void main() {
 
       expect(await useCase()(), const AutoBackupFailed(DatabaseFailure()));
       expect(folder.stored, isEmpty);
+      expect(preferences.lastFailure, now);
+    });
+
+    test('a folder out of reach is not a failure to wait on', () async {
+      folder.folder = const NoBackupFolder();
+
+      await useCase()();
+
+      expect(preferences.lastFailure, isNull);
     });
   });
 
@@ -313,18 +415,45 @@ void main() {
       final mark = AutoBackupMark(
         at: DateTime(2026, 11, 23, 3, 24),
         fingerprint: '0a1b',
+        name: 'troona-auto-20261123-032400.json',
       );
+      final failed = DateTime(2026, 11, 23, 4);
 
       await repo.save(saved);
       await repo.setLastAuto(mark);
+      await repo.setLastFailure(failed);
 
       expect(repo.load(), saved);
       expect(repo.lastAuto, mark);
+      expect(repo.lastFailure, failed);
+
+      await repo.setLastFailure(null);
+      await repo.setLastAuto(AutoBackupMark(at: mark.at, fingerprint: 'f'));
+      expect(repo.lastFailure, isNull);
+      expect(repo.lastAuto?.name, isNull);
+    });
+
+    test('a part a later version adds is kept until left out', () async {
+      // Saved by a version that knew no equalizer part: it left history out.
+      SharedPreferences.setMockInitialValues({
+        PrefsBackupPreferencesRepository.partsLeftOutKey: <String>['history'],
+      });
+      final repo = PrefsBackupPreferencesRepository(
+        await SharedPreferences.getInstance(),
+      );
+
+      expect(
+        repo.load().parts,
+        BackupPart.all.difference({BackupPart.history}),
+      );
+      expect(repo.load().parts, contains(BackupPart.equalizer));
     });
 
     test('broken values read as the defaults, never an empty backup', () async {
       SharedPreferences.setMockInitialValues({
-        PrefsBackupPreferencesRepository.partsKey: <String>['lyrics'],
+        PrefsBackupPreferencesRepository.partsLeftOutKey: [
+          for (final p in BackupPart.values) p.name,
+        ],
         PrefsBackupPreferencesRepository.frequencyKey: 'hourly',
       });
       final repo = PrefsBackupPreferencesRepository(

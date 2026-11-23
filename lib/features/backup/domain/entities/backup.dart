@@ -166,10 +166,6 @@ final class Backup extends Equatable {
     this.equalizer,
   });
 
-  /// Whether it holds every part: such a file is written in the first
-  /// format version, which older apps read.
-  bool get complete => parts.containsAll(BackupPart.all);
-
   Backup withEqualizer(EqualizerSnapshot? equalizer) => Backup(
     createdAt: createdAt,
     parts: parts,

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/app_logger.dart';
+import 'package:troona/features/backup/data/backup_codec.dart';
 import 'package:troona/features/backup/data/backup_file_name.dart';
 import 'package:troona/features/backup/data/backup_files.dart';
 import 'package:troona/features/backup/data/backup_summary_json.dart';
@@ -34,6 +35,10 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
   /// False where there is no folder to pick (iOS).
   final bool _supported;
 
+  /// The build's tag in its automatic backups' names; null for the
+  /// release (see [BackupFileName]).
+  final String? _tag;
+
   static const uriKey = 'backup.folder.uri';
   static const nameKey = 'backup.folder.name';
   static const summariesKey = 'backup.folder.summaries';
@@ -44,7 +49,9 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     required Directory workDir,
     required Directory exportDir,
     required bool supported,
-  }) : _platform = platform,
+    String? tag,
+  }) : _tag = tag,
+       _platform = platform,
        _prefs = prefs,
        _workDir = workDir,
        _exportDir = exportDir,
@@ -114,7 +121,7 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     Backup backup, {
     required bool auto,
   }) => _inFolder((uri) async {
-    final name = BackupFileName.of(backup.createdAt, auto: auto);
+    final name = BackupFileName.of(backup.createdAt, auto: auto, tag: _tag);
     final local = await _workFile(name);
     try {
       await BackupFiles.write(backup, local);
@@ -137,9 +144,17 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
 
   @override
   Future<Either<Failure, Backup>> read(StoredBackup stored) async {
+    // Not copied at all: any file can carry a backup's name.
+    if ((stored.size ?? 0) > BackupCodec.maxBytes) {
+      return left(const BackupFormatFailure('File too large'));
+    }
     final copied = await _inFolder((_) async {
       final local = await _workFile(stored.name);
-      await _platform.read(stored.id, local.path);
+      await _platform.read(
+        stored.id,
+        local.path,
+        maxBytes: BackupCodec.maxBytes,
+      );
       return local;
     });
     return copied.fold((f) async => left(f), (local) async {
@@ -170,7 +185,7 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
         if (await _exportDir.exists()) await _exportDir.delete(recursive: true);
         await _exportDir.create(recursive: true);
         final path = '${_exportDir.path}/${stored.name}';
-        await _platform.read(stored.id, path);
+        await _platform.read(stored.id, path, maxBytes: BackupCodec.maxBytes);
         return path;
       });
 
@@ -197,6 +212,7 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
       name: name,
       createdAt: parsed.createdAt,
       auto: parsed.auto,
+      mine: !parsed.auto || parsed.tag == _tag,
       size: size is int ? size : null,
     );
   }
@@ -229,7 +245,15 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     await _saveSummaries(summaries);
   }
 
+  /// A fresh file in the work folder, emptied first: one task runs at a
+  /// time, so anything there was left by an app killed mid-way, and holds
+  /// the listening history in clear.
   Future<File> _workFile(String name) async {
+    try {
+      if (await _workDir.exists()) await _workDir.delete(recursive: true);
+    } catch (e) {
+      appLogger.w('Backup work folder not emptied: ${e.runtimeType}');
+    }
     await _workDir.create(recursive: true);
     final stamp = DateTime.now().microsecondsSinceEpoch;
     return File('${_workDir.path}/$stamp-$name');
@@ -257,11 +281,11 @@ final class SafBackupFolderRepository implements BackupFolderRepository {
     try {
       return right(await work());
     } on PlatformException catch (e) {
-      return left(
-        e.code == 'lost'
-            ? const BackupFolderLostFailure()
-            : BackupFolderFailure(e.code),
-      );
+      return left(switch (e.code) {
+        'lost' => const BackupFolderLostFailure(),
+        'large' => const BackupFormatFailure('File too large'),
+        _ => BackupFolderFailure(e.code),
+      });
     } on MissingPluginException {
       return left(const BackupFolderFailure('No backup folder channel'));
     } catch (e, st) {

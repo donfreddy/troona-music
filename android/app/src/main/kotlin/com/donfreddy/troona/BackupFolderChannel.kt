@@ -45,7 +45,13 @@ class BackupFolderChannel(
                 "write" -> io(result) {
                     write(call.uri(), call.argument<String>("name")!!, call.argument<String>("path")!!)
                 }
-                "read" -> io(result) { read(call.uri(), call.argument<String>("path")!!) }
+                "read" -> io(result) {
+                    read(
+                        call.uri(),
+                        call.argument<String>("path")!!,
+                        call.argument<Number>("maxBytes")?.toLong() ?: Long.MAX_VALUE,
+                    )
+                }
                 "delete" -> io(result) { delete(call.uri()) }
                 else -> result.notImplemented()
             }
@@ -145,47 +151,95 @@ class BackupFolderChannel(
 
     /**
      * A new document named [name] in the folder, holding the file at [path].
-     * Half-written, it is deleted: a backup that cannot be read is worse
-     * than none.
+     *
+     * Written under a name no list takes for a backup (`.partial`), then
+     * renamed: a write cut short, the app killed halfway, leaves no file
+     * that passes for a backup. A provider that cannot rename gets the file
+     * written again under its own name. Half-written, it is deleted: a
+     * backup that cannot be read is worse than none.
      */
     private fun write(tree: Uri, name: String, path: String): Map<String, Any?> {
         val parent = DocumentsContract.buildDocumentUriUsingTree(
             tree,
             DocumentsContract.getTreeDocumentId(tree),
         )
-        val document = DocumentsContract.createDocument(resolver(), parent, MIME, name)
+        val partial = createFrom(parent, PARTIAL_MIME, "$name.partial", path)
+        val renamed: Uri? = try {
+            DocumentsContract.renameDocument(resolver(), partial, name)
+        } catch (e: SecurityException) {
+            deleteQuietly(partial)
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        val document = renamed ?: run {
+            deleteQuietly(partial)
+            createFrom(parent, MIME, name, path)
+        }
+        return describe(document, name)
+    }
+
+    /** A new document holding the file at [path]; deleted if half-written. */
+    private fun createFrom(parent: Uri, mime: String, name: String, path: String): Uri {
+        val document = DocumentsContract.createDocument(resolver(), parent, mime, name)
             ?: throw IllegalStateException("Document not created")
         try {
             resolver().openOutputStream(document, "w")!!.use { out ->
                 File(path).inputStream().use { it.copyTo(out) }
             }
         } catch (e: Exception) {
-            try {
-                DocumentsContract.deleteDocument(resolver(), document)
-            } catch (_: Exception) {
-            }
+            deleteQuietly(document)
             throw e
         }
-        var stored: Map<String, Any?> = mapOf("id" to document.toString(), "name" to name)
-        resolver().query(document, COLUMNS, null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                stored = mapOf(
-                    "id" to document.toString(),
-                    // The provider may have renamed it ("name (1).json").
-                    "name" to cursor.getString(1),
-                    "size" to if (cursor.isNull(2)) null else cursor.getLong(2),
-                    "modified" to if (cursor.isNull(4)) null else cursor.getLong(4),
-                )
-            }
-        }
-        return stored
+        return document
     }
 
-    private fun read(document: Uri, path: String): Boolean {
+    /**
+     * What the provider says of a document just written. It is written
+     * whatever this answers: a failing query must not report it as lost.
+     */
+    private fun describe(document: Uri, name: String): Map<String, Any?> {
+        try {
+            resolver().query(document, COLUMNS, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    return mapOf(
+                        "id" to document.toString(),
+                        // The provider may have renamed it ("name (1).json").
+                        "name" to cursor.getString(1),
+                        "size" to if (cursor.isNull(2)) null else cursor.getLong(2),
+                        "modified" to if (cursor.isNull(4)) null else cursor.getLong(4),
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Backup written, not described: ${e.javaClass.simpleName}")
+        }
+        return mapOf("id" to document.toString(), "name" to name)
+    }
+
+    /** Copies [document] to [path], refusing more than [max] bytes. */
+    private fun read(document: Uri, path: String, max: Long): Boolean {
         resolver().openInputStream(document)!!.use { input ->
-            File(path).outputStream().use { input.copyTo(it) }
+            File(path).outputStream().use { out ->
+                val buffer = ByteArray(64 * 1024)
+                var total = 0L
+                while (true) {
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    total += read
+                    if (total > max) throw TooLarge()
+                    out.write(buffer, 0, read)
+                }
+            }
         }
         return true
+    }
+
+    private fun deleteQuietly(document: Uri) {
+        try {
+            DocumentsContract.deleteDocument(resolver(), document)
+        } catch (_: Exception) {
+        }
     }
 
     private fun delete(document: Uri): Boolean =
@@ -215,6 +269,8 @@ class BackupFolderChannel(
                 main.post { result.success(value) }
             } catch (e: SecurityException) {
                 main.post { result.error("lost", e.javaClass.simpleName, null) }
+            } catch (e: TooLarge) {
+                main.post { result.error("large", null, null) }
             } catch (e: Exception) {
                 // The class only: a message may hold a file's name.
                 Log.w(TAG, "Backup folder: ${e.javaClass.simpleName}")
@@ -230,6 +286,9 @@ class BackupFolderChannel(
         private const val TAG = "BackupFolder"
         private const val REQUEST_PICK = 0x7b0c
         private const val MIME = "application/json"
+
+        /** No extension added by the provider to a file being written. */
+        private const val PARTIAL_MIME = "application/octet-stream"
         private val COLUMNS = arrayOf(
             DocumentsContract.Document.COLUMN_DOCUMENT_ID,
             DocumentsContract.Document.COLUMN_DISPLAY_NAME,
@@ -241,3 +300,6 @@ class BackupFolderChannel(
         private val main = Handler(Looper.getMainLooper())
     }
 }
+
+/** A file larger than any backup: not copied whole. */
+private class TooLarge : java.io.IOException()

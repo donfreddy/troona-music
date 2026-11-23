@@ -35,9 +35,15 @@ final class _Backups extends Fake implements BackupRepository {
   int reads = 0;
   Set<BackupPart>? asked;
 
+  /// Holds the snapshot until completed.
+  Completer<void>? gate;
+  Failure? fails;
+
   @override
   Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async {
     asked = parts;
+    await gate?.future;
+    if (fails case final f?) return left(f);
     return right(_backup(parts));
   }
 
@@ -122,6 +128,12 @@ final class _Preferences implements BackupPreferencesRepository {
 
   @override
   Future<void> setLastAuto(AutoBackupMark mark) async => this.mark = mark;
+
+  @override
+  DateTime? lastFailure;
+
+  @override
+  Future<void> setLastFailure(DateTime? at) async => lastFailure = at;
 }
 
 final class _Library extends Fake implements LibraryRepository {}
@@ -186,6 +198,60 @@ void main() {
     expect(auto, isNull);
     expect(backups.reads, 0);
     expect((await first).isRight(), isTrue);
+  });
+
+  test('a task asked during an automatic backup waits for it, then runs '
+      '(the folder picker is not refused on coming back)', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    preferences.value = const BackupPreferences(auto: true);
+    backups.gate = Completer<void>();
+    final auto = cubit.autoBackupIfDue();
+    await pumpEventQueue();
+    expect(cubit.state.task, BackupTask.auto);
+
+    final picking = cubit.pickFolder();
+    await pumpEventQueue();
+    expect(folder.picks, 0);
+    backups.gate!.complete();
+
+    expect(await auto, isA<AutoBackupSaved>());
+    expect((await picking).isRight(), isTrue);
+    expect(folder.picks, 1);
+  });
+
+  test('a load waits for the task running, then lists what it wrote', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    preferences.value = const BackupPreferences(auto: true);
+    backups.gate = Completer<void>();
+    final auto = cubit.autoBackupIfDue();
+    await pumpEventQueue();
+
+    var loaded = false;
+    final load = cubit.load().then((_) => loaded = true);
+    await pumpEventQueue();
+    expect(loaded, isFalse);
+    backups.gate!.complete();
+    await auto;
+    await load;
+
+    expect(cubit.state.backups, hasLength(1));
+  });
+
+  test('turning it on reports a first backup that fails', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    backups.fails = const DatabaseFailure();
+
+    final result = await cubit.setAuto(true);
+
+    expect(result, left(const DatabaseFailure()));
+    // Still on: the next check tries again.
+    expect(cubit.state.preferences.auto, isTrue);
   });
 
   test('turning it on without a folder asks for one, then backs up', () async {

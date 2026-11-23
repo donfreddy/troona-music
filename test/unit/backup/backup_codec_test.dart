@@ -331,6 +331,20 @@ void main() {
       expect(json.containsKey('contents'), isFalse);
     });
 
+    test('every part but the equalizer is still version 1, which older apps '
+        'read whole', () {
+      final noEq = _backup.only(
+        BackupPart.all.difference({BackupPart.equalizer}),
+      );
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(noEq)))
+              as Map<String, dynamic>;
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+      expect(json.containsKey('equalizer'), isFalse);
+    });
+
     test('a backup of some parts is version 2 and holds only those', () {
       final likes = _backup.only({BackupPart.likes, BackupPart.equalizer});
       final json =

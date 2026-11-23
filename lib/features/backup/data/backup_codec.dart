@@ -59,7 +59,11 @@ abstract final class BackupCodec {
       for (final part in backup.parts)
         if (part != BackupPart.settings || backup.settings != null) part,
     };
-    final complete = held.containsAll(BackupPart.all);
+    // The equalizer is optional in version 1 too: a backup without it is
+    // still one an older app restores whole.
+    final complete = held.containsAll(
+      BackupPart.all.difference({BackupPart.equalizer}),
+    );
     bool has(BackupPart part) => held.contains(part);
     return utf8.encode(
       jsonEncode({

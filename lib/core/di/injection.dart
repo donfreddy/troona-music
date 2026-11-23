@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
@@ -310,6 +311,8 @@ Future<void> configureDependencies() async {
       // The same folder as the exports: cleared with them once shared.
       exportDir: Directory('${cacheBase.path}/troona_backup'),
       supported: Platform.isAndroid,
+      // The dev app keeps to its own automatic backups in a shared folder.
+      tag: kReleaseMode ? null : 'dev',
     ),
   );
   getIt.registerLazySingleton<BackupPreferencesRepository>(

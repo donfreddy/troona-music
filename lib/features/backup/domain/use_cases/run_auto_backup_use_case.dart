@@ -63,6 +63,14 @@ final class RunAutoBackupUseCase {
 
   static const keep = 5;
 
+  /// How long a failed backup waits before the next try: reading the whole
+  /// history again on every return to the app would make it stutter.
+  static const retryAfter = Duration(hours: 1);
+
+  /// Before this, the clock is wrong (a phone at 1970 after a reboot): a
+  /// backup dated then would sort as the oldest and push a real one out.
+  static final saneClock = DateTime(2024);
+
   RunAutoBackupUseCase({
     required BackupRepository backups,
     required BackupFolderRepository folder,
@@ -76,13 +84,25 @@ final class RunAutoBackupUseCase {
   Future<AutoBackupOutcome> call() async {
     final preferences = _preferences.load();
     final now = _now();
+    final failedAt = _preferences.lastFailure;
     if (!preferences.auto ||
-        !isDue(_preferences.lastAuto, preferences.frequency, now)) {
+        now.isBefore(saneClock) ||
+        !isDue(_preferences.lastAuto, preferences.frequency, now) ||
+        (failedAt != null && now.difference(failedAt).abs() < retryAfter)) {
       return const AutoBackupSkipped();
     }
     final folder = await _folder.state();
     if (folder is! BackupFolderReady) return AutoBackupNoFolder(folder);
 
+    final outcome = await _backUp(preferences, now);
+    await _preferences.setLastFailure(outcome is AutoBackupFailed ? now : null);
+    return outcome;
+  }
+
+  Future<AutoBackupOutcome> _backUp(
+    BackupPreferences preferences,
+    DateTime now,
+  ) async {
     final snapshot = await _backups.snapshot(preferences.parts);
     return snapshot.fold((f) async => AutoBackupFailed(f), (backup) async {
       final fingerprint = await _backups.fingerprint(backup);
@@ -90,19 +110,29 @@ final class RunAutoBackupUseCase {
       return listed.fold((f) async => AutoBackupFailed(f), (stored) async {
         final autos = [
           for (final b in stored)
-            if (b.auto) b,
+            if (b.auto && b.mine) b,
         ];
-        final mark = AutoBackupMark(at: now, fingerprint: fingerprint);
-        // The same data as last time, and that backup is still there (the
-        // user may have deleted it): nothing to write.
-        if (_preferences.lastAuto?.fingerprint == fingerprint &&
-            autos.isNotEmpty) {
-          await _preferences.setLastAuto(mark);
+        // The same data as the last backup, and that very file is still in
+        // this folder (the user may have deleted it, or picked another
+        // folder): nothing to write.
+        final last = _preferences.lastAuto;
+        if (last != null &&
+            last.fingerprint == fingerprint &&
+            autos.any((b) => b.name == last.name)) {
+          await _preferences.setLastAuto(
+            AutoBackupMark(at: now, fingerprint: fingerprint, name: last.name),
+          );
           return const AutoBackupUnchanged();
         }
         final saved = await _folder.save(backup, auto: true);
         return saved.fold((f) async => AutoBackupFailed(f), (written) async {
-          await _preferences.setLastAuto(mark);
+          await _preferences.setLastAuto(
+            AutoBackupMark(
+              at: now,
+              fingerprint: fingerprint,
+              name: written.name,
+            ),
+          );
           // Oldest last: the list is newest first, and the new one is not
           // in it yet.
           for (final old in autos.skip(keep - 1)) {

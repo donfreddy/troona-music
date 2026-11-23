@@ -207,7 +207,7 @@ final appRouter = GoRouter(
                         BlocProvider(
                           create: (_) => getIt<MaintenanceCubit>()..load(),
                         ),
-                        BlocProvider.value(value: getIt<BackupCubit>()..load()),
+                        BlocProvider.value(value: getIt<BackupCubit>()),
                         BlocProvider.value(value: getIt<UpdateCubit>()),
                       ],
                       child: const SettingsPage(),
@@ -225,9 +225,7 @@ final appRouter = GoRouter(
                       builder: (_, _) => _overTab(
                         MultiBlocProvider(
                           providers: [
-                            BlocProvider.value(
-                              value: getIt<BackupCubit>()..load(),
-                            ),
+                            BlocProvider.value(value: getIt<BackupCubit>()),
                             // A restore applies the backup's settings.
                             BlocProvider.value(value: getIt<SettingsCubit>()),
                           ],

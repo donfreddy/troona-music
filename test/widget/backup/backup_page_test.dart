@@ -245,6 +245,31 @@ void main() {
     expect(find.text('Back up now'), findsOneWidget);
   });
 
+  testWidgets('with its folder lost, Back up now says so and shares nothing', (
+    tester,
+  ) async {
+    await pump(tester, folder: const BackupFolderLost('Troona'));
+
+    // On the folder row and under Back up now.
+    expect(find.text("Can't reach Troona. Choose it again."), findsWidgets);
+
+    await tester.scrollUntilVisible(
+      find.text('Back up now'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Back up now'));
+    await tester.pump();
+
+    // The fake repository throws on a snapshot: none was taken.
+    expect(tester.takeException(), isNull);
+    expect(
+      find.text("Can't reach the backup folder. Choose it again."),
+      findsOneWidget,
+    );
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
   testWidgets('a restore offers the parts the backup holds, and writes the '
       'ones left ticked', (tester) async {
     tester.view

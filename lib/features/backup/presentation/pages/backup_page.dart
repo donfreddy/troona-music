@@ -47,6 +47,12 @@ class _BackupPageState extends State<BackupPage> {
   /// id. The cubit says whether a task runs, not which row started it.
   String? _working;
 
+  @override
+  void initState() {
+    super.initState();
+    unawaited(context.read<BackupCubit>().load());
+  }
+
   Future<void> _run(String row, Future<void> Function() task) async {
     setState(() => _working = row);
     try {
@@ -119,7 +125,7 @@ class _BackupPageState extends State<BackupPage> {
           onChanged: (on) => _setAuto(context, on),
         ),
         SettingsTile.navigation(
-          icon: AppIcons.recent,
+          icon: AppIcons.backupFrequency,
           iconColor: _autoColor,
           title: l10n.backupFrequency,
           value: _frequencyLabel(context, preferences.frequency),
@@ -164,13 +170,15 @@ class _BackupPageState extends State<BackupPage> {
           icon: AppIcons.backup,
           iconColor: _backupColor,
           title: l10n.backupNow,
-          subtitle: ready == null
-              ? l10n.backupExportSubtitle
-              : l10n.backupNowInto(ready.name),
+          subtitle: switch (state.folder) {
+            BackupFolderReady(:final folder) => l10n.backupNowInto(folder.name),
+            BackupFolderLost(:final name) => l10n.backupFolderLost(name),
+            _ => l10n.backupExportSubtitle,
+          },
           trailing: saving ? const CupertinoActivityIndicator() : null,
           onTap: state.busy
               ? null
-              : () => _run('now', () => _backUpNow(context, ready)),
+              : () => _run('now', () => _backUpNow(context, state.folder)),
         ),
       ],
     );
@@ -286,11 +294,19 @@ class _BackupPageState extends State<BackupPage> {
     if (chosen != null) await cubit.setParts(chosen);
   }
 
-  Future<void> _backUpNow(BuildContext context, BackupFolder? ready) async {
+  Future<void> _backUpNow(
+    BuildContext context,
+    BackupFolderState folder,
+  ) async {
     final overlay = Overlay.of(context, rootOverlay: true);
     final l10n = context.l10n;
     final cubit = context.read<BackupCubit>();
-    if (ready == null) {
+    // A folder chosen but lost: said, rather than shared somewhere else.
+    if (folder is BackupFolderLost) {
+      AppToast.showOn(overlay, l10n.backupFolderLostError);
+      return;
+    }
+    if (folder is! BackupFolderReady) {
       // share_plus copies the file before the share sheet opens, so the
       // cubit deletes its own once this returns.
       final shared = await cubit.export(_share(l10n.backupShareSubject));

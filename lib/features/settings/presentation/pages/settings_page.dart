@@ -13,6 +13,7 @@ import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
+import 'package:troona/features/backup/domain/entities/stored_backup.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/backup/presentation/utils/backup_labels.dart';
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
@@ -46,8 +47,21 @@ String _glassLabelOf(GlassQuality quality, AppLocalizations l10n) =>
       GlassQuality.off => l10n.settingsGlassOff,
     };
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Once per visit, for the backup row's date: not in the route's
+    // builder, which runs again on each change of the router.
+    unawaited(context.read<BackupCubit>().load());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -249,11 +263,14 @@ class _SettingsList extends StatelessWidget {
               icon: AppIcons.backup,
               iconColor: const Color(0xFF3B82F6),
               title: l10n.backupTitle,
-              subtitle: switch (backup.backups.firstOrNull) {
-                final last? => l10n.backupSettingsLast(
+              subtitle: switch ((backup.folder, backup.backups.firstOrNull)) {
+                (BackupFolderLost(:final name), _) => l10n.backupFolderLost(
+                  name,
+                ),
+                (_, final last?) => l10n.backupSettingsLast(
                   backupDate(context, last.createdAt),
                 ),
-                null => l10n.backupSettingsNone,
+                _ => l10n.backupSettingsNone,
               },
               onTap: () => context.pushNamed(AppRoute.backup),
             ),
