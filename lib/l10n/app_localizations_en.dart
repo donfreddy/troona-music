@@ -2925,7 +2925,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpMissingSongAnswer =>
-      'Troona lists the songs Android knows about. A folder turned off or the shortest length may leave it out; a file just copied shows after Rescan library.';
+      'Troona lists the songs Android knows about. A folder turned off or the Shortest song length may leave it out; a file just copied shows after Rescan library.';
 
   @override
   String get helpPlaybackSection => 'Playback';
@@ -2935,7 +2935,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpStopsInBackgroundAnswer =>
-      'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, set battery use to Unrestricted.';
+      'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, let it use the battery without restrictions (the wording depends on the phone).';
 
   @override
   String get helpOnlineSection => 'Online extras';
@@ -2945,14 +2945,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpNoLyricsAnswer =>
-      'Turn on Song lyrics to look them up online, or import a .lrc file from the song\'s menu, under Lyrics options.';
+      'Turn on Song lyrics to look them up online. Or, playing the song, open Lyrics in Now Playing and choose Import a .lrc file.';
 
   @override
   String get helpArtistInfo => 'Artist photos and bios';
 
   @override
   String get helpArtistInfoAnswer =>
-      'They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.';
+      'They come from Deezer and Last.fm, only once you turn them on: until then, nothing about your artists leaves your phone.';
 
   @override
   String get helpBackupSection => 'Backup';

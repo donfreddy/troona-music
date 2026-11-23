@@ -256,9 +256,11 @@ final appRouter = GoRouter(
                       AppRoute.settingsAudio,
                       const AudioSettingsPage(),
                     ),
-                    _settingsRoute(
-                      AppRoute.settingsLibrary,
-                      const LibrarySettingsPage(),
+                    GoRoute(
+                      path: 'library',
+                      name: AppRoute.settingsLibrary,
+                      builder: (_, _) =>
+                          _settingsPage(LibrarySettingsPage(stored: getIt())),
                     ),
                     // Built on each visit: its repository is resolved
                     // when the page opens, not when the router is made.

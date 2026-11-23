@@ -4805,7 +4805,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpMissingSongAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Troona lists the songs Android knows about. A folder turned off or the shortest length may leave it out; a file just copied shows after Rescan library.'**
+  /// **'Troona lists the songs Android knows about. A folder turned off or the Shortest song length may leave it out; a file just copied shows after Rescan library.'**
   String get helpMissingSongAnswer;
 
   /// No description provided for @helpPlaybackSection.
@@ -4823,7 +4823,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpStopsInBackgroundAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, set battery use to Unrestricted.'**
+  /// **'Some phones stop apps in the background to save battery. In Troona\'s page in Android\'s settings, let it use the battery without restrictions (the wording depends on the phone).'**
   String get helpStopsInBackgroundAnswer;
 
   /// No description provided for @helpOnlineSection.
@@ -4841,7 +4841,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpNoLyricsAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Turn on Song lyrics to look them up online, or import a .lrc file from the song\'s menu, under Lyrics options.'**
+  /// **'Turn on Song lyrics to look them up online. Or, playing the song, open Lyrics in Now Playing and choose Import a .lrc file.'**
   String get helpNoLyricsAnswer;
 
   /// No description provided for @helpArtistInfo.
@@ -4853,7 +4853,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpArtistInfoAnswer.
   ///
   /// In en, this message translates to:
-  /// **'They come from Deezer and Last.fm, only once you turn them on. Nothing leaves your phone otherwise.'**
+  /// **'They come from Deezer and Last.fm, only once you turn them on: until then, nothing about your artists leaves your phone.'**
   String get helpArtistInfoAnswer;
 
   /// No description provided for @helpBackupSection.

@@ -2962,7 +2962,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get helpStopsInBackgroundAnswer =>
-      'Certains téléphones arrêtent les apps en arrière-plan pour économiser la batterie. Dans la page de Troona des réglages d\'Android, réglez l\'utilisation de la batterie sur Non restreinte.';
+      'Certains téléphones arrêtent les apps en arrière-plan pour économiser la batterie. Dans la page de Troona des réglages d\'Android, autorisez-la à utiliser la batterie sans restriction (le libellé dépend du téléphone).';
 
   @override
   String get helpOnlineSection => 'Extras en ligne';
@@ -2972,14 +2972,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get helpNoLyricsAnswer =>
-      'Activez Paroles des chansons pour les trouver en ligne, ou importez un fichier .lrc depuis le menu du titre, dans Options des paroles.';
+      'Activez Paroles des chansons pour les trouver en ligne. Ou, pendant la lecture du titre, ouvrez Paroles dans le lecteur et choisissez Importer un fichier .lrc.';
 
   @override
   String get helpArtistInfo => 'Photos et biographies des artistes';
 
   @override
   String get helpArtistInfoAnswer =>
-      'Elles viennent de Deezer et de Last.fm, seulement une fois activées. Sinon, rien ne quitte votre téléphone.';
+      'Elles viennent de Deezer et de Last.fm, seulement une fois activées : d\'ici là, rien sur vos artistes ne quitte votre téléphone.';
 
   @override
   String get helpBackupSection => 'Sauvegarde';

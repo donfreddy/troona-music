@@ -193,7 +193,7 @@ class _FolderList extends StatelessWidget {
     return SettingsSection(
       title: l10n.settingsFoldersSection,
       footer: filter.leavesOutEvery(tracks)
-          ? l10n.settingsFiltersNotApplied
+          ? '${l10n.settingsFiltersNotApplied} ${l10n.settingsFoldersFooter}'
           : l10n.settingsFoldersFooter,
       children: [
         for (final folder in folders)

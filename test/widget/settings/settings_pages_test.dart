@@ -232,7 +232,7 @@ void main() {
   final pages = <String, Widget Function()>{
     'root': () => const SettingsPage(),
     'audio': () => const AudioSettingsPage(),
-    'library': () => const LibrarySettingsPage(),
+    'library': () => LibrarySettingsPage(stored: libraryRepo),
     'online': () => const OnlineSettingsPage(),
     'appearance': () => const AppearanceSettingsPage(),
     'storage': () => const StorageSettingsPage(),
@@ -338,7 +338,7 @@ void main() {
 
     testWidgets('nor by a length no song reaches', (tester) async {
       holding(['rap/1', 'pop/1']);
-      await pump(tester, const LibrarySettingsPage());
+      await pump(tester, LibrarySettingsPage(stored: libraryRepo));
 
       await tester.tap(find.text('2 min'));
       await tester.pump();
@@ -365,7 +365,7 @@ void main() {
           'No song in your library passes these filters, so they are not '
           'applied. Turn a folder back on or choose a shorter length.';
       holding(['rap/1', 'pop/1']);
-      await pump(tester, const LibrarySettingsPage());
+      await pump(tester, LibrarySettingsPage(stored: libraryRepo));
       expect(find.text(note), findsNothing);
 
       // As a restore brings them: every folder of the library left out.
@@ -374,9 +374,25 @@ void main() {
       expect(find.text(note), findsOneWidget);
 
       await pump(tester, page());
-      expect(find.text(note), findsOneWidget);
+      // With the usual footer after it.
+      expect(find.textContaining(note), findsOneWidget);
+      expect(find.textContaining('At least one song stays'), findsOneWidget);
       // A folder can still be turned back on.
       expect(switchOf(tester, '/music/rap').onChanged, isNotNull);
+    });
+
+    testWidgets('a song left out that the filter now lets in counts: no '
+        'note', (tester) async {
+      // The library shows pop; rap, left out until now, is stored.
+      holding(['pop/1']);
+      libraryRepo.stored = [
+        testTrack('rap/1', durationMs: 60000),
+        testTrack('pop/1', durationMs: 60000),
+      ];
+      await settings.setExcludedFolders({'/music/pop'});
+      await pump(tester, LibrarySettingsPage(stored: libraryRepo));
+
+      expect(find.textContaining('not applied'), findsNothing);
     });
 
     testWidgets('a subfolder of a folder left out says so and waits', (
@@ -449,6 +465,15 @@ void main() {
         expect(tester.takeException(), isNull);
       });
     }
+  });
+
+  testWidgets('Help leaves out the battery answer off Android', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pump(tester, const HelpPage());
+    expect(find.text('Music stops with the screen off'), findsNothing);
+    expect(find.text('A song is missing'), findsOneWidget);
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('the language is picked on Appearance, in its own words', (
@@ -891,7 +916,7 @@ void main() {
   });
 
   testWidgets('the library page counts the songs', (tester) async {
-    await pump(tester, const LibrarySettingsPage());
+    await pump(tester, LibrarySettingsPage(stored: libraryRepo));
 
     expect(find.text('2 songs'), findsOneWidget);
   });

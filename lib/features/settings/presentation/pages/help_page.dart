@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -34,20 +35,22 @@ class HelpPage extends StatelessWidget {
             ),
           ],
         ),
-        SettingsSection(
-          title: l10n.helpPlaybackSection,
-          children: [
-            SettingsTile.navigation(
-              icon: AppIcons.helpBattery,
-              iconColor: SettingsHue.audio,
-              title: l10n.helpStopsInBackground,
-              subtitle: l10n.helpStopsInBackgroundAnswer,
-              // Battery use is set from the app's page in Android's
-              // settings.
-              onTap: openAppSettings,
-            ),
-          ],
-        ),
+        // Battery saving that stops apps is Android's.
+        if (defaultTargetPlatform == TargetPlatform.android)
+          SettingsSection(
+            title: l10n.helpPlaybackSection,
+            children: [
+              SettingsTile.navigation(
+                icon: AppIcons.helpBattery,
+                iconColor: SettingsHue.audio,
+                title: l10n.helpStopsInBackground,
+                subtitle: l10n.helpStopsInBackgroundAnswer,
+                // Battery use is set from the app's page in Android's
+                // settings.
+                onTap: openAppSettings,
+              ),
+            ],
+          ),
         SettingsSection(
           title: l10n.helpOnlineSection,
           children: [

@@ -16,6 +16,8 @@ import 'package:troona/features/settings/presentation/widgets/settings_hue.dart'
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
+import 'package:troona/features/library/domain/repositories/stored_track_repository.dart';
+import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/app_toast.dart';
 
 LibraryLoaded? _loaded(LibraryState state) => switch (state) {
@@ -32,7 +34,11 @@ LibraryLoaded? _loaded(LibraryState state) => switch (state) {
 /// What the library holds, what scans leave out, and scanning the phone
 /// again.
 class LibrarySettingsPage extends StatelessWidget {
-  const LibrarySettingsPage({super.key});
+  /// Every stored song, the ones left out included: what the scanner
+  /// applies the filters to.
+  final StoredTrackRepository stored;
+
+  const LibrarySettingsPage({super.key, required this.stored});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +73,7 @@ class LibrarySettingsPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                const _Filters(),
+                _Filters(stored: stored),
                 SettingsSection(
                   title: l10n.settingsScan,
                   footer: l10n.settingsScanFooter,
@@ -101,25 +107,54 @@ class LibrarySettingsPage extends StatelessWidget {
 
 /// The shortest song kept and the folders left out. A change rescans the
 /// library once the choice settles (`ScanFilterWatch`).
-class _Filters extends StatelessWidget {
-  const _Filters();
+class _Filters extends StatefulWidget {
+  final StoredTrackRepository stored;
+
+  const _Filters({required this.stored});
+
+  @override
+  State<_Filters> createState() => _FiltersState();
+}
+
+class _FiltersState extends State<_Filters> {
+  /// The stored songs, read again after each scan.
+  List<Track>? _stored;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_read());
+  }
+
+  Future<void> _read() async {
+    final result = await widget.stored.getStoredTracks();
+    if (!mounted) return;
+    setState(() => _stored = result.fold((_) => _stored, (t) => t.all));
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    return BlocListener<LibraryBloc, LibraryState>(
+      listenWhen: (previous, current) =>
+          current is LibraryLoaded &&
+          !identical(_loaded(previous)?.allTracks, current.allTracks),
+      listener: (_, _) => unawaited(_read()),
+      child: _section(context, l10n),
+    );
+  }
+
+  Widget _section(BuildContext context, AppLocalizations l10n) {
     return SettingsBuilder(
       builder: (context, settings) {
         final cubit = context.read<SettingsCubit>();
         final excluded = settings.excludedFolders.length;
-        // Every song still in the library while none passes: the scanner
-        // did not apply them (a restore's folders, a length chosen while
-        // scanning).
-        // The list, not the state: a scan's progress emits often.
-        final tracks = context.select<LibraryBloc, List<Track>?>(
-          (bloc) => _loaded(bloc.state)?.allTracks,
-        );
+        // The scanner applies none of the filters when they would leave
+        // out every stored song (a restore's folders, a length chosen
+        // while scanning).
+        final stored = _stored;
         final notApplied =
-            tracks != null && scanFilterOf(settings).leavesOutEvery(tracks);
+            stored != null && scanFilterOf(settings).leavesOutEvery(stored);
         return SettingsSection(
           title: l10n.settingsFilters,
           footer: notApplied ? l10n.settingsFiltersNotApplied : null,
@@ -140,13 +175,13 @@ class _Filters extends StatelessWidget {
               onChanged: (seconds) {
                 // A length no song reaches would empty the library: the
                 // scanner would not apply it, so it is not taken.
-                final library = _loaded(context.read<LibraryBloc>().state);
+                final songs =
+                    _stored ??
+                    _loaded(context.read<LibraryBloc>().state)?.allTracks;
                 final empties =
                     seconds > settings.minTrackSeconds &&
-                    library != null &&
-                    !library.allTracks.any(
-                      (t) => t.durationMs >= seconds * 1000,
-                    );
+                    songs != null &&
+                    !songs.any((t) => t.durationMs >= seconds * 1000);
                 if (empties) {
                   AppToast.show(context, l10n.settingsMinLengthTooLong);
                   return;
