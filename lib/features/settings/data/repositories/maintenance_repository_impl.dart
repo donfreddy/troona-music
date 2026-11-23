@@ -8,20 +8,24 @@ import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/utils/crash_log.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/metadata/domain/repositories/metadata_repository.dart';
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
 
 final class MaintenanceRepositoryImpl implements MaintenanceRepository {
   final IsarLibraryDataSource _library;
   final MetadataRepository _metadata;
+  final LyricsRepository _lyrics;
   final Directory _coverDir;
 
   MaintenanceRepositoryImpl({
     required IsarLibraryDataSource library,
     required MetadataRepository metadata,
+    required LyricsRepository lyrics,
     required Directory coverDir,
   }) : _library = library,
        _metadata = metadata,
+       _lyrics = lyrics,
        _coverDir = coverDir;
 
   AppVersion? _version;
@@ -50,6 +54,9 @@ final class MaintenanceRepositoryImpl implements MaintenanceRepository {
     try {
       online = await _metadata.getMetadataCacheSizeBytes();
     } catch (_) {}
+    try {
+      online += await _lyrics.onlineSizeBytes();
+    } catch (_) {}
     return CacheSizes(coverBytes: covers, onlineInfoBytes: online);
   }
 
@@ -73,6 +80,8 @@ final class MaintenanceRepositoryImpl implements MaintenanceRepository {
   Future<Either<Failure, Unit>> clearOnlineInfo() async {
     try {
       await _metadata.clearMetadataCache();
+      // Lyrics found online go too; the imported ones are the user's.
+      await _lyrics.clearOnline();
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));

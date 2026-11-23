@@ -353,7 +353,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlineFooter.
   ///
   /// In en, this message translates to:
-  /// **'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
+  /// **'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song\'s title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
   String get settingsOnlineFooter;
 
   /// No description provided for @settingsOnlineBios.
@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlineConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Bios, album notes and photos will download again when you open an artist or an album, if they are still turned on.'**
+  /// **'Bios, album notes, photos and lyrics found online will download again when you open them, if they are still turned on. Imported lyrics are kept.'**
   String get settingsOnlineConfirmBody;
 
   /// No description provided for @settingsOnlineCleared.
@@ -600,6 +600,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.'**
+  /// **'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
   String get privacyBackupBody;
 
   /// No description provided for @privacyDeleteTitle.
@@ -769,6 +770,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t check for new music. Your library is as it was.'**
   String get libraryRescanFailed;
+
+  /// Toast when a file opened from another app (Open with) is not in the library.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t in your library. For now, Troona only opens songs from your music.'**
+  String get openedFileNotInLibrary;
 
   /// No description provided for @libraryLoadErrorTitle.
   ///
@@ -4171,6 +4178,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Random'**
   String get smartSortRandom;
+
+  /// No description provided for @lyricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get lyricsTitle;
+
+  /// No description provided for @lyricsShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show lyrics'**
+  String get lyricsShow;
+
+  /// No description provided for @lyricsHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide lyrics'**
+  String get lyricsHide;
+
+  /// No description provided for @lyricsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No lyrics for this song'**
+  String get lyricsNone;
+
+  /// No description provided for @lyricsNoneOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'None found online either.'**
+  String get lyricsNoneOnline;
+
+  /// No description provided for @lyricsUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the lyrics search. Try again later.'**
+  String get lyricsUnreachable;
+
+  /// No description provided for @lyricsImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a .lrc file'**
+  String get lyricsImport;
+
+  /// No description provided for @lyricsSearchOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Search online'**
+  String get lyricsSearchOnline;
+
+  /// No description provided for @lyricsSearchAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Search online again'**
+  String get lyricsSearchAgain;
+
+  /// No description provided for @lyricsEnableSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on lyrics search'**
+  String get lyricsEnableSearch;
+
+  /// No description provided for @lyricsEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Search lyrics online?'**
+  String get lyricsEnableTitle;
+
+  /// No description provided for @lyricsEnableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When a song has no lyrics, Troona sends its title, artist, album and length to LRCLIB, then lyrics.ovh, only when you open its lyrics. Nothing else leaves this device. You can turn this off in Settings.'**
+  String get lyricsEnableBody;
+
+  /// No description provided for @lyricsEnableAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get lyricsEnableAction;
+
+  /// No description provided for @lyricsNotSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced'**
+  String get lyricsNotSynced;
+
+  /// No description provided for @lyricsBackToLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the current line'**
+  String get lyricsBackToLine;
+
+  /// No description provided for @lyricsGoTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to {time}'**
+  String lyricsGoTo(String time);
+
+  /// No description provided for @lyricsInstrumental.
+  ///
+  /// In en, this message translates to:
+  /// **'Instrumental'**
+  String get lyricsInstrumental;
+
+  /// No description provided for @lyricsImported.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics imported'**
+  String get lyricsImported;
+
+  /// No description provided for @lyricsImportInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This file holds no lyrics.'**
+  String get lyricsImportInvalid;
+
+  /// No description provided for @lyricsOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics options'**
+  String get lyricsOptions;
+
+  /// No description provided for @lyricsEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Show lines earlier (0.1 s)'**
+  String get lyricsEarlier;
+
+  /// No description provided for @lyricsLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Show lines later (0.1 s)'**
+  String get lyricsLater;
+
+  /// No description provided for @lyricsOffsetReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the timing'**
+  String get lyricsOffsetReset;
+
+  /// No description provided for @lyricsOffsetValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing: {value} s'**
+  String lyricsOffsetValue(String value);
+
+  /// No description provided for @lyricsRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove lyrics'**
+  String get lyricsRemove;
+
+  /// No description provided for @lyricsRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove these lyrics?'**
+  String get lyricsRemoveTitle;
+
+  /// No description provided for @lyricsRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics found online come back only if you search again. Imported lyrics would need importing again.'**
+  String get lyricsRemoveBody;
+
+  /// No description provided for @lyricsSourceImported.
+  ///
+  /// In en, this message translates to:
+  /// **'From an imported file'**
+  String get lyricsSourceImported;
+
+  /// No description provided for @lyricsSourceOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Found online (LRCLIB or lyrics.ovh)'**
+  String get lyricsSourceOnline;
+
+  /// No description provided for @settingsOnlineLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Song lyrics'**
+  String get settingsOnlineLyrics;
+
+  /// No description provided for @privacyLyricsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics search (off by default)'**
+  String get privacyLyricsTitle;
+
+  /// No description provided for @privacyLyricsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.'**
+  String get privacyLyricsBody;
 }
 
 class _AppLocalizationsDelegate

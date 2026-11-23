@@ -11,6 +11,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/database/app_database.dart';
 import 'package:troona/core/network/api_client.dart';
+import 'package:troona/features/lyrics/data/repositories/lyrics_repository_impl.dart';
+import 'package:troona/features/lyrics/data/sources/isar_lyrics_data_source.dart';
+import 'package:troona/features/lyrics/data/sources/lrclib_remote_data_source.dart';
+import 'package:troona/features/lyrics/data/sources/lyrics_ovh_remote_data_source.dart';
+import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/metadata/data/repositories/metadata_repository_impl.dart';
 import 'package:troona/features/metadata/data/sources/last_fm_remote_data_source.dart';
 import 'package:troona/features/metadata/data/sources/metadata_cache_data_source.dart';
@@ -82,12 +87,15 @@ import 'package:troona/features/library/domain/use_cases/scan_library_use_case.d
 import 'package:troona/features/library/domain/use_cases/search_tracks_use_case.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/player/data/repositories/player_repository_impl.dart';
+import 'package:troona/features/player/data/adapters/platform_opened_file.dart';
 import 'package:troona/features/player/data/adapters/resumable_session.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
+import 'package:troona/features/player/domain/ports/opened_file_port.dart';
 import 'package:troona/features/player/domain/repositories/player_repository.dart';
 import 'package:troona/features/player/domain/use_cases/play_track_use_case.dart';
 import 'package:troona/features/player/domain/use_cases/player_use_cases.dart';
+import 'package:troona/features/player/domain/use_cases/resolve_opened_file_use_case.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/sleep_timer/sleep_timer_cubit.dart';
@@ -144,11 +152,13 @@ Future<void> configureDependencies() async {
   final isar = await AppDatabase.open([
     ...IsarLibraryDataSource.schemas,
     ...IsarPlayHistoryDataSource.schemas,
+    ...IsarLyricsDataSource.schemas,
   ]);
   final historySource = IsarPlayHistoryDataSource(isar);
   getIt
     ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
-    ..registerSingleton<IsarPlayHistoryDataSource>(historySource);
+    ..registerSingleton<IsarPlayHistoryDataSource>(historySource)
+    ..registerSingleton<IsarLyricsDataSource>(IsarLyricsDataSource(isar));
   // Before the recorder starts: it only runs while the daily totals are
   // empty, and the first play would make them non-empty.
   try {
@@ -336,10 +346,22 @@ Future<void> configureDependencies() async {
       artworkCacheDir: onlinePhotos,
     ),
   );
+  // LRCLIB first (synced lyrics), lyrics.ovh when it has none.
+  getIt.registerLazySingleton<LyricsRepository>(
+    () => LyricsRepositoryImpl(
+      store: getIt(),
+      remotes: [
+        LrclibRemoteDataSource(getIt<ApiClient>().dio),
+        LyricsOvhRemoteDataSource(getIt<ApiClient>().dio),
+      ],
+      settings: getIt(),
+    ),
+  );
   getIt.registerLazySingleton<MaintenanceRepository>(
     () => MaintenanceRepositoryImpl(
       library: getIt(),
       metadata: getIt(),
+      lyrics: getIt(),
       coverDir: artworkCache,
     ),
   );
@@ -368,6 +390,11 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<GetTracksUseCase>(() => GetTracksUseCase(getIt()))
     ..registerLazySingleton<GetTracksByIdsUseCase>(
       () => GetTracksByIdsUseCase(getIt()),
+    )
+    // "Open with": the activity's channel, read once the shell is up.
+    ..registerLazySingleton<OpenedFilePort>(PlatformOpenedFile.new)
+    ..registerLazySingleton<ResolveOpenedFileUseCase>(
+      () => ResolveOpenedFileUseCase(getIt()),
     )
     ..registerLazySingleton<GetAlbumsUseCase>(() => GetAlbumsUseCase(getIt()))
     ..registerLazySingleton<GetArtistsUseCase>(() => GetArtistsUseCase(getIt()))

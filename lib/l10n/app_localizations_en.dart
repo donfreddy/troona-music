@@ -174,7 +174,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
+      'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song\'s title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
 
   @override
   String get settingsOnlineBios => 'Artist bios and album notes';
@@ -190,7 +190,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlineConfirmBody =>
-      'Bios, album notes and photos will download again when you open an artist or an album, if they are still turned on.';
+      'Bios, album notes, photos and lyrics found online will download again when you open them, if they are still turned on. Imported lyrics are kept.';
 
   @override
   String get settingsOnlineCleared => 'Downloaded info cleared';
@@ -311,6 +311,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyBackupBody =>
       'A backup holds the parts you choose (playlists, likes, listening history, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.';
+      'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
 
   @override
   String get privacyDeleteTitle => 'Deleting your data';
@@ -429,6 +430,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get libraryRescanFailed =>
       'Couldn\'t check for new music. Your library is as it was.';
+
+  @override
+  String get openedFileNotInLibrary =>
+      'This file isn\'t in your library. For now, Troona only opens songs from your music.';
 
   @override
   String get libraryLoadErrorTitle => 'We couldn\'t open your library';
@@ -2540,4 +2545,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get smartSortRandom => 'Random';
+
+  @override
+  String get lyricsTitle => 'Lyrics';
+
+  @override
+  String get lyricsShow => 'Show lyrics';
+
+  @override
+  String get lyricsHide => 'Hide lyrics';
+
+  @override
+  String get lyricsNone => 'No lyrics for this song';
+
+  @override
+  String get lyricsNoneOnline => 'None found online either.';
+
+  @override
+  String get lyricsUnreachable =>
+      'Couldn\'t reach the lyrics search. Try again later.';
+
+  @override
+  String get lyricsImport => 'Import a .lrc file';
+
+  @override
+  String get lyricsSearchOnline => 'Search online';
+
+  @override
+  String get lyricsSearchAgain => 'Search online again';
+
+  @override
+  String get lyricsEnableSearch => 'Turn on lyrics search';
+
+  @override
+  String get lyricsEnableTitle => 'Search lyrics online?';
+
+  @override
+  String get lyricsEnableBody =>
+      'When a song has no lyrics, Troona sends its title, artist, album and length to LRCLIB, then lyrics.ovh, only when you open its lyrics. Nothing else leaves this device. You can turn this off in Settings.';
+
+  @override
+  String get lyricsEnableAction => 'Turn on';
+
+  @override
+  String get lyricsNotSynced => 'Not synced';
+
+  @override
+  String get lyricsBackToLine => 'Back to the current line';
+
+  @override
+  String lyricsGoTo(String time) {
+    return 'Go to $time';
+  }
+
+  @override
+  String get lyricsInstrumental => 'Instrumental';
+
+  @override
+  String get lyricsImported => 'Lyrics imported';
+
+  @override
+  String get lyricsImportInvalid => 'This file holds no lyrics.';
+
+  @override
+  String get lyricsOptions => 'Lyrics options';
+
+  @override
+  String get lyricsEarlier => 'Show lines earlier (0.1 s)';
+
+  @override
+  String get lyricsLater => 'Show lines later (0.1 s)';
+
+  @override
+  String get lyricsOffsetReset => 'Reset the timing';
+
+  @override
+  String lyricsOffsetValue(String value) {
+    return 'Timing: $value s';
+  }
+
+  @override
+  String get lyricsRemove => 'Remove lyrics';
+
+  @override
+  String get lyricsRemoveTitle => 'Remove these lyrics?';
+
+  @override
+  String get lyricsRemoveBody =>
+      'Lyrics found online come back only if you search again. Imported lyrics would need importing again.';
+
+  @override
+  String get lyricsSourceImported => 'From an imported file';
+
+  @override
+  String get lyricsSourceOnline => 'Found online (LRCLIB or lyrics.ovh)';
+
+  @override
+  String get settingsOnlineLyrics => 'Song lyrics';
+
+  @override
+  String get privacyLyricsTitle => 'Lyrics search (off by default)';
+
+  @override
+  String get privacyLyricsBody =>
+      'When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.';
 }

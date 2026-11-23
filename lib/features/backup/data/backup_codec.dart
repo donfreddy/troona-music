@@ -5,6 +5,9 @@ import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/equalizer/data/equalizer_json.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
+import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
+import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
+import 'package:troona/features/lyrics/domain/services/lrc_parser.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// Thrown by [BackupCodec.decode] on a file that is not a valid backup.
@@ -162,6 +165,46 @@ abstract final class BackupCodec {
     String half(int bits) => bits.toRadixString(16).padLeft(8, '0');
     return half((hash >> 32) & 0xffffffff) + half(hash & 0xffffffff);
   }
+      ],
+      'history': {
+        'plays': [
+          for (final p in backup.plays)
+            {'track': p.track, 'at': p.at.toUtc().toIso8601String()},
+        ],
+        'days': [
+          for (final d in backup.days)
+            {'day': d.day, 'plays': d.plays, 'listenedMs': d.listenedMs},
+        ],
+        'trackDays': [
+          for (final d in backup.trackDays)
+            {'day': d.day, 'track': d.track, 'plays': d.plays},
+        ],
+        'firstPlays': [
+          for (final f in backup.firstPlays) {'track': f.track, 'day': f.day},
+        ],
+        'hours': [
+          for (final h in backup.hours) {'hour': h.hour, 'plays': h.plays},
+        ],
+        'replayMonth': backup.replayMonth,
+      },
+      'settings': _encodeSettings(backup.settings),
+      if (backup.equalizer case final eq?)
+        'equalizer': {
+          'settings': EqualizerJson.encodeSettings(eq.settings),
+          'profiles': EqualizerJson.encodeProfiles(eq.profiles),
+        },
+      if (backup.lyrics.isNotEmpty)
+        'lyrics': [
+          for (final l in backup.lyrics)
+            {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
+        ],
+      if (backup.lyricsOffsets.isNotEmpty)
+        'lyricsOffsets': [
+          for (final o in backup.lyricsOffsets)
+            {'track': o.track, 'offsetMs': o.offsetMs},
+        ],
+    }),
+  );
 
   /// [now] bounds the dates: a backup cannot hold days to come.
   static Backup decode(List<int> bytes, {DateTime? now}) {
@@ -322,6 +365,63 @@ abstract final class BackupCodec {
       for (final part in BackupPart.values)
         if (names.contains(part.name)) part,
     };
+      settings: _decodeSettings(_map(json['settings'], 'settings')),
+      equalizer: _decodeEqualizer(json['equalizer']),
+      lyrics: _decodeLyrics(json['lyrics'], tracks.keys.toSet()),
+      lyricsOffsets: _decodeLyricsOffsets(
+        json['lyricsOffsets'],
+        tracks.keys.toSet(),
+      ),
+    );
+  }
+
+  /// Optional, and read leniently, as [_decodeLyrics]: a correction of an
+  /// unknown song, of nothing or out of bounds is left out.
+  static List<BackupLyricsOffset> _decodeLyricsOffsets(
+    Object? json,
+    Set<String> tracks,
+  ) {
+    if (json is! List || json.length > _maxItems) return const [];
+    final maxOffset = LyricsRepository.maxOffset.inMilliseconds;
+    final seen = <String>{};
+    return [
+      for (final item in json)
+        if (item
+            case {'track': final String track, 'offsetMs': final int offsetMs}
+            when tracks.contains(track) &&
+                offsetMs != 0 &&
+                _within(offsetMs, maxOffset) &&
+                seen.add(track))
+          BackupLyricsOffset(track: track, offsetMs: offsetMs),
+    ];
+  }
+
+  /// Both bounds, never `abs()`: the lowest integer has no positive.
+  static bool _within(int value, int bound) =>
+      value >= -bound && value <= bound;
+
+  /// Optional, and read leniently: lyrics that cannot be read are left
+  /// out, the rest of the backup still restores. An older app ignores the
+  /// key, so it needs no new [version].
+  static List<BackupLyrics> _decodeLyrics(Object? json, Set<String> tracks) {
+    if (json is! List || json.length > _maxItems) return const [];
+    final maxOffset = LyricsRepository.maxOffset.inMilliseconds;
+    return [
+      for (final item in json)
+        if (item
+            case {
+              'track': final String track,
+              'text': final String text,
+              'offsetMs': final int offsetMs,
+            }
+            when tracks.contains(track) &&
+                text.trim().isNotEmpty &&
+                text.length <= LrcParser.maxBytes &&
+                _within(offsetMs, maxOffset) &&
+                LrcParser.looksLikeText(text) &&
+                LrcParser.parse(text, source: LyricsSource.imported) != null)
+          BackupLyrics(track: track, text: text, offsetMs: offsetMs),
+    ];
   }
 
   /// Optional, and checked on its own: an equalizer out of bounds is left

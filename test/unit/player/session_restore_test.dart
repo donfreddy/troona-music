@@ -17,11 +17,14 @@ import '../../helpers/fake_player.dart';
 
 class _Library extends Fake implements LibraryRepository {
   Either<Failure, List<Track>> answer;
+  Completer<void>? gate;
   _Library(this.answer);
 
   @override
-  Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids) async =>
-      answer;
+  Future<Either<Failure, List<Track>>> getTracksByIds(List<String> ids) async {
+    await gate?.future;
+    return answer;
+  }
 }
 
 void main() {
@@ -102,6 +105,24 @@ void main() {
     port.status.add(PlaybackStatus.playing);
     await pumpEventQueue();
     expect(bloc.state, isA<PlayerActive>());
+  });
+
+  test('a song played while the restore reads the library stays: the '
+      'restore loads nothing (a file opened on a cold start)', () async {
+    final library = _Library(right([a, b]))..gate = Completer();
+    final bloc = buildTestPlayerBloc(port, store, library: library);
+    addTearDown(bloc.close);
+    bloc.add(const RestorePlaybackSessionRequested());
+    await pumpEventQueue();
+
+    final x = testTrack('x', durationMs: 60000);
+    bloc.add(PlayTrackRequested(x));
+    await pumpEventQueue();
+    library.gate!.complete();
+    await pumpEventQueue();
+
+    expect(port.restoredQueue, isNull);
+    expect((bloc.state as PlayerLoading).track, x);
   });
 
   test('restores where the queue came from', () async {

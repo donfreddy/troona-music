@@ -176,7 +176,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineFooter =>
-      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums, et pour les photos quelques titres de morceaux, à Last.fm et Deezer. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
+      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums, et pour les photos quelques titres de morceaux, à Last.fm et Deezer. Les paroles envoient le titre, l\'artiste, l\'album et la durée d\'un morceau à LRCLIB et lyrics.ovh quand vous ouvrez ses paroles. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
 
   @override
   String get settingsOnlineBios => 'Biographies et notes d\'albums';
@@ -192,7 +192,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlineConfirmBody =>
-      'Les biographies, notes d\'albums et photos seront retéléchargées à l\'ouverture d\'un artiste ou d\'un album, si elles sont toujours activées.';
+      'Les biographies, notes d\'albums, photos et paroles trouvées en ligne seront retéléchargées à leur ouverture, si elles sont toujours activées. Les paroles importées sont gardées.';
 
   @override
   String get settingsOnlineCleared => 'Infos téléchargées effacées';
@@ -314,6 +314,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get privacyBackupBody =>
       'Une sauvegarde contient les éléments que vous choisissez (playlists, likes, historique d\'écoute, réglages, égaliseur), avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Troona l\'écrit dans le dossier que vous avez choisi pour vos sauvegardes, ou la confie à l\'app de votre choix quand vous la partagez. Elle ne part nulle part ailleurs. La restauration ne lit que la sauvegarde que vous choisissez, et n\'écrit que les éléments que vous gardez.';
+      'Exporter une sauvegarde écrit vos playlists, vos likes, votre historique d\'écoute, vos paroles importées et vos réglages, avec les noms et tailles de vos fichiers musicaux, dans un fichier, sans chiffrement, et le confie à l\'app de votre choix. Il ne part nulle part ailleurs. La restauration ne lit que le fichier que vous choisissez.';
 
   @override
   String get privacyDeleteTitle => 'Supprimer vos données';
@@ -433,6 +434,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get libraryRescanFailed =>
       'Impossible de rechercher de la nouvelle musique. Votre bibliothèque est inchangée.';
+
+  @override
+  String get openedFileNotInLibrary =>
+      'Ce fichier n\'est pas dans votre bibliothèque. Pour l\'instant, Troona n\'ouvre que les titres de votre musique.';
 
   @override
   String get libraryLoadErrorTitle => 'Impossible d\'ouvrir votre bibliothèque';
@@ -2560,4 +2565,109 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get smartSortRandom => 'Aléatoire';
+
+  @override
+  String get lyricsTitle => 'Paroles';
+
+  @override
+  String get lyricsShow => 'Afficher les paroles';
+
+  @override
+  String get lyricsHide => 'Masquer les paroles';
+
+  @override
+  String get lyricsNone => 'Pas de paroles pour ce titre';
+
+  @override
+  String get lyricsNoneOnline => 'Aucune trouvée en ligne non plus.';
+
+  @override
+  String get lyricsUnreachable =>
+      'La recherche de paroles est injoignable. Réessayez plus tard.';
+
+  @override
+  String get lyricsImport => 'Importer un fichier .lrc';
+
+  @override
+  String get lyricsSearchOnline => 'Chercher en ligne';
+
+  @override
+  String get lyricsSearchAgain => 'Chercher à nouveau en ligne';
+
+  @override
+  String get lyricsEnableSearch => 'Activer la recherche de paroles';
+
+  @override
+  String get lyricsEnableTitle => 'Chercher les paroles en ligne ?';
+
+  @override
+  String get lyricsEnableBody =>
+      'Quand un titre n\'a pas de paroles, Troona envoie son titre, son artiste, son album et sa durée à LRCLIB, puis à lyrics.ovh, seulement quand vous ouvrez ses paroles. Rien d\'autre ne quitte cet appareil. Vous pouvez le désactiver dans les Réglages.';
+
+  @override
+  String get lyricsEnableAction => 'Activer';
+
+  @override
+  String get lyricsNotSynced => 'Paroles non synchronisées';
+
+  @override
+  String get lyricsBackToLine => 'Revenir à la ligne en cours';
+
+  @override
+  String lyricsGoTo(String time) {
+    return 'Aller à $time';
+  }
+
+  @override
+  String get lyricsInstrumental => 'Instrumental';
+
+  @override
+  String get lyricsImported => 'Paroles importées';
+
+  @override
+  String get lyricsImportInvalid => 'Ce fichier ne contient pas de paroles.';
+
+  @override
+  String get lyricsOptions => 'Options des paroles';
+
+  @override
+  String get lyricsEarlier => 'Afficher les lignes plus tôt (0,1 s)';
+
+  @override
+  String get lyricsLater => 'Afficher les lignes plus tard (0,1 s)';
+
+  @override
+  String get lyricsOffsetReset => 'Rétablir le décalage';
+
+  @override
+  String lyricsOffsetValue(String value) {
+    return 'Décalage : $value s';
+  }
+
+  @override
+  String get lyricsRemove => 'Supprimer les paroles';
+
+  @override
+  String get lyricsRemoveTitle => 'Supprimer ces paroles ?';
+
+  @override
+  String get lyricsRemoveBody =>
+      'Les paroles trouvées en ligne ne reviennent que si vous relancez la recherche. Des paroles importées devront être importées à nouveau.';
+
+  @override
+  String get lyricsSourceImported => 'Depuis un fichier importé';
+
+  @override
+  String get lyricsSourceOnline => 'Trouvées en ligne (LRCLIB ou lyrics.ovh)';
+
+  @override
+  String get settingsOnlineLyrics => 'Paroles des chansons';
+
+  @override
+  String get privacyLyricsTitle =>
+      'Recherche de paroles (désactivée par défaut)';
+
+  @override
+  String get privacyLyricsBody =>
+      'Activée, ouvrir les paroles d\'un titre qui n\'en a pas encore envoie son titre, son artiste, son album et sa durée à LRCLIB (lrclib.net), puis, s\'il n\'en a pas, son artiste et son titre à lyrics.ovh. Rien n\'est envoyé pour les autres titres, et jamais pour toute votre bibliothèque. Ces services voient aussi votre adresse IP, comme pour toute requête web. Les paroles trouvées restent sur ce téléphone ; « Effacer les infos téléchargées » les supprime. Les paroles que vous importez depuis un fichier ne quittent jamais ce téléphone, sauf dans une sauvegarde que vous exportez.';
 }

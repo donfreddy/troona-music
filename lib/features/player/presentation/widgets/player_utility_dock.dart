@@ -15,11 +15,21 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/components/glass_filter.dart';
 import 'package:troona/shared/widgets/action_sheet.dart';
 
-/// Secondary playback tools under the Now Playing controls: queue, sleep
-/// timer, playback speed and, where the phone supports it, the equalizer,
-/// each with a 44 px touch target.
+/// Secondary playback tools under the Now Playing controls: lyrics, queue,
+/// sleep timer, playback speed and, where the phone supports it, the
+/// equalizer, each with a 44 px touch target.
 class PlayerUtilityDock extends StatelessWidget {
-  const PlayerUtilityDock({super.key});
+  const PlayerUtilityDock({
+    super.key,
+    this.lyricsShown = false,
+    this.onLyricsTap,
+  });
+
+  /// Lit while Now Playing shows the lyrics.
+  final bool lyricsShown;
+
+  /// Shows or hides the lyrics; without it, no lyrics item.
+  final VoidCallback? onLyricsTap;
 
   static const height = 44.0;
 
@@ -39,6 +49,18 @@ class PlayerUtilityDock extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (onLyricsTap case final toggle?)
+            _DockItem(
+              icon: AppIcons.lyrics,
+              label: lyricsShown
+                  ? context.l10n.lyricsHide
+                  : context.l10n.lyricsShow,
+              isActive: lyricsShown,
+              onTap: () {
+                AppHaptics.selectionClick();
+                toggle();
+              },
+            ),
           _DockItem(
             icon: AppIcons.queue,
             label: context.l10n.queueTitle,
