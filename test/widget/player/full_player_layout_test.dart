@@ -8,6 +8,7 @@ import 'package:troona/shared/widgets/glass_bottom_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/layout/app_layout.dart';
+import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
@@ -89,7 +90,19 @@ void main() {
     port = FakeAudioPort()
       ..queue = Queue.fromTracks(queued, startIndex: 2)
       ..duration = const Duration(minutes: 3);
-    final bloc = buildTestPlayerBloc(port, PlaybackSessionStore(prefs));
+    // The page reads from it whether it was left on its lyrics.
+    final store = PlaybackSessionStore(prefs);
+    // A test may pump the page more than once.
+    if (getIt.isRegistered<PlaybackSessionStore>()) {
+      await getIt.unregister<PlaybackSessionStore>();
+    }
+    getIt.registerSingleton(store);
+    addTearDown(() async {
+      if (getIt.isRegistered<PlaybackSessionStore>()) {
+        await getIt.unregister<PlaybackSessionStore>();
+      }
+    });
+    final bloc = buildTestPlayerBloc(port, store);
     final repo = _NoLikes();
     final likes = LikesCubit(
       addTrack: AddTrackToLikesUseCase(repo),

@@ -119,6 +119,7 @@ void main() {
           hapticFeedbackEnabled: false,
           glassQuality: GlassQuality.off,
           fetchOnlineMetadata: true,
+          fetchLyrics: true,
           checkForUpdates: true,
         ),
       );
@@ -128,6 +129,7 @@ void main() {
       expect(restored.glassQuality, GlassQuality.low);
       expect(restored.fetchOnlineMetadata, isFalse);
       expect(restored.fetchArtistArtwork, isTrue);
+      expect(restored.fetchLyrics, isFalse);
       expect(restored.checkForUpdates, isFalse);
       expect(metadata.forgets, 0);
     },

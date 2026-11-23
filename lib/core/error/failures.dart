@@ -51,6 +51,13 @@ class DatabaseFailure extends Failure {
   const DatabaseFailure([super.message = 'Database operation failed.']);
 }
 
+// ── Lyrics ────────────────────────────────────────────────────────────────────
+
+/// The file holds no lyrics, or is too big to be a lyrics file.
+class LyricsFormatFailure extends Failure {
+  const LyricsFormatFailure([super.message = 'Not a lyrics file.']);
+}
+
 // ── Backup ────────────────────────────────────────────────────────────────────
 
 /// The file is not a Troona backup, or it is damaged.

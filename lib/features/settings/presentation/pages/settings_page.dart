@@ -204,6 +204,13 @@ class _SettingsList extends StatelessWidget {
               onChanged: cubit.setFetchArtistArtwork,
             ),
             SettingsTile.switchTile(
+              icon: AppIcons.lyrics,
+              iconColor: const Color(0xFF0EA5E9),
+              title: l10n.settingsOnlineLyrics,
+              value: settings.fetchLyrics,
+              onChanged: cubit.setFetchLyrics,
+            ),
+            SettingsTile.switchTile(
               icon: AppIcons.update,
               iconColor: const Color(0xFF8B5CF6),
               title: l10n.settingsUpdateCheck,
