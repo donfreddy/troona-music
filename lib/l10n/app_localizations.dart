@@ -350,12 +350,6 @@ abstract class AppLocalizations {
   /// **'Online extras'**
   String get settingsOnline;
 
-  /// No description provided for @settingsOnlineFooter.
-  ///
-  /// In en, this message translates to:
-  /// **'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song\'s title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.'**
-  String get settingsOnlineFooter;
-
   /// No description provided for @settingsOnlineBios.
   ///
   /// In en, this message translates to:
@@ -523,12 +517,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All preferences go back to their defaults. Your library, likes and playlists stay as they are.'**
   String get settingsResetConfirmBody;
-
-  /// No description provided for @settingsVersion.
-  ///
-  /// In en, this message translates to:
-  /// **'Troona {version} ({build})'**
-  String settingsVersion(String version, String build);
 
   /// No description provided for @settingsTagline.
   ///
@@ -2257,12 +2245,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The whole app follows your phone\'s language.'**
   String get whatsNew100LanguageBody;
-
-  /// No description provided for @settingsBackup.
-  ///
-  /// In en, this message translates to:
-  /// **'Backup'**
-  String get settingsBackup;
 
   /// No description provided for @settingsBackupFooter.
   ///
@@ -4381,6 +4363,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.'**
   String get privacyLyricsBody;
+
+  /// No description provided for @settingsAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get settingsAudio;
+
+  /// No description provided for @settingsAudioSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Equalizer, calls and notifications'**
+  String get settingsAudioSummary;
+
+  /// No description provided for @settingsAudioIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'How Troona sounds, and what it does when your phone needs the speaker for something else.'**
+  String get settingsAudioIntro;
+
+  /// No description provided for @settingsSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get settingsSound;
+
+  /// No description provided for @settingsInterruptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Interruptions'**
+  String get settingsInterruptions;
+
+  /// No description provided for @settingsDuckSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When a notification or a GPS voice speaks, the music gets quieter instead of pausing.'**
+  String get settingsDuckSubtitle;
+
+  /// No description provided for @settingsPauseOnCallSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'During a call, or while another app plays sound.'**
+  String get settingsPauseOnCallSubtitle;
+
+  /// No description provided for @settingsResumeAfterCallSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once the call or the other app is done.'**
+  String get settingsResumeAfterCallSubtitle;
+
+  /// No description provided for @settingsAudioFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Unplugging headphones always pauses the music.'**
+  String get settingsAudioFooter;
+
+  /// No description provided for @settingsLibrarySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs on this phone, rescan'**
+  String get settingsLibrarySummary;
+
+  /// No description provided for @settingsLibraryIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'The songs Troona found on this phone.'**
+  String get settingsLibraryIntro;
+
+  /// No description provided for @settingsLibraryContents.
+  ///
+  /// In en, this message translates to:
+  /// **'In your library'**
+  String get settingsLibraryContents;
+
+  /// No description provided for @settingsScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get settingsScan;
+
+  /// No description provided for @settingsScanFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona reads the songs Android lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.'**
+  String get settingsScanFooter;
+
+  /// No description provided for @settingsOnlineOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off. Nothing leaves your phone.'**
+  String get settingsOnlineOff;
+
+  /// No description provided for @settingsOnlineOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On: {parts}'**
+  String settingsOnlineOn(String parts);
+
+  /// No description provided for @settingsOnlineBiosShort.
+  ///
+  /// In en, this message translates to:
+  /// **'bios'**
+  String get settingsOnlineBiosShort;
+
+  /// No description provided for @settingsOnlinePhotosShort.
+  ///
+  /// In en, this message translates to:
+  /// **'photos'**
+  String get settingsOnlinePhotosShort;
+
+  /// No description provided for @settingsOnlineLyricsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'lyrics'**
+  String get settingsOnlineLyricsShort;
+
+  /// No description provided for @settingsOnlineIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, and off until you turn them on. Each one says what it sends, and where.'**
+  String get settingsOnlineIntro;
+
+  /// No description provided for @settingsOnlineBiosSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From Last.fm, with artist and album names.'**
+  String get settingsOnlineBiosSubtitle;
+
+  /// No description provided for @settingsOnlinePhotosSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From Deezer, with artist and album names and a few song titles.'**
+  String get settingsOnlinePhotosSubtitle;
+
+  /// No description provided for @settingsOnlineLyricsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From LRCLIB, then lyrics.ovh, when you open a song\'s lyrics.'**
+  String get settingsOnlineLyricsSubtitle;
+
+  /// No description provided for @settingsOnlinePageFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.'**
+  String get settingsOnlinePageFooter;
+
+  /// No description provided for @settingsPrivacySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get settingsPrivacySection;
+
+  /// No description provided for @settingsAppearanceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Glass effects, haptics'**
+  String get settingsAppearanceSummary;
+
+  /// No description provided for @settingsAppearanceIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'How Troona looks, and how it answers your touch.'**
+  String get settingsAppearanceIntro;
+
+  /// No description provided for @settingsTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch'**
+  String get settingsTouch;
+
+  /// No description provided for @settingsHapticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Light vibrations when you tap, pick or like.'**
+  String get settingsHapticsSubtitle;
+
+  /// No description provided for @settingsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'App'**
+  String get settingsApp;
+
+  /// No description provided for @settingsStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get settingsStorage;
+
+  /// No description provided for @settingsStorageSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache {size}, reset'**
+  String settingsStorageSummary(String size);
+
+  /// No description provided for @settingsStorageSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache, reset'**
+  String get settingsStorageSummaryPending;
+
+  /// No description provided for @settingsStorageIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'What Troona keeps on this phone besides your music, and how to start over.'**
+  String get settingsStorageIntro;
+
+  /// No description provided for @settingsCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache'**
+  String get settingsCache;
+
+  /// No description provided for @settingsOnlineClearSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bios, photos and lyrics found online. Imported lyrics stay.'**
+  String get settingsOnlineClearSubtitle;
+
+  /// No description provided for @settingsForgetQueueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops the music and forgets the queue and where you were.'**
+  String get settingsForgetQueueSubtitle;
+
+  /// No description provided for @settingsResetSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every preference back to its default. Your library, likes and playlists stay.'**
+  String get settingsResetSettingsSubtitle;
+
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsAboutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}, what\'s new, updates'**
+  String settingsAboutSummary(String version);
+
+  /// No description provided for @settingsAboutSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s new, updates'**
+  String get settingsAboutSummaryPending;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} ({build})'**
+  String aboutVersion(String version, String build);
+
+  /// No description provided for @aboutUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates'**
+  String get aboutUpdates;
+
+  /// No description provided for @aboutInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Information'**
+  String get aboutInformation;
+
+  /// No description provided for @aboutSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source code'**
+  String get aboutSource;
+
+  /// No description provided for @aboutSourceSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'On GitHub'**
+  String get aboutSourceSubtitle;
+
+  /// No description provided for @settingsOnlineSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get settingsOnlineSources;
 }
 
 class _AppLocalizationsDelegate

@@ -80,7 +80,6 @@
   "settingsCoversConfirmBody": "Covers reload in the background. Your music, likes and playlists aren't affected.",
   "settingsCoversCleared": "Cover cache cleared",
   "settingsOnline": "Online extras",
-  "settingsOnlineFooter": "Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song's title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona's latest version. Your music files never leave this device.",
   "settingsOnlineBios": "Artist bios and album notes",
   "settingsOnlinePhotos": "Artist photos and album covers",
   "settingsOnlineClear": "Clear downloaded info",
@@ -116,17 +115,6 @@
   "settingsResetSettings": "Reset settings",
   "settingsResetConfirmTitle": "Reset settings?",
   "settingsResetConfirmBody": "All preferences go back to their defaults. Your library, likes and playlists stay as they are.",
-  "settingsVersion": "Troona {version} ({build})",
-  "@settingsVersion": {
-    "placeholders": {
-      "version": {
-        "type": "String"
-      },
-      "build": {
-        "type": "String"
-      }
-    }
-  },
   "settingsTagline": "Made for the music you own.",
   "settingsLoadError": "We couldn't load your settings.",
   "privacyTitle": "Privacy",
@@ -772,7 +760,6 @@
   "whatsNew100PlaylistsBody": "Create playlists, reorder their songs, and find every song you like in one place.",
   "whatsNew100LanguageTitle": "English and French",
   "whatsNew100LanguageBody": "The whole app follows your phone's language.",
-  "settingsBackup": "Backup",
   "settingsBackupFooter": "A backup holds what you choose above, with the names and sizes of your music files, unencrypted. Keep it somewhere private.",
   "backupExportSubtitle": "Save it to Files, Drive or another app.",
   "backupShareSubject": "Troona backup",
@@ -1471,5 +1458,83 @@
   "lyricsSourceOnline": "Found online (LRCLIB or lyrics.ovh)",
   "settingsOnlineLyrics": "Song lyrics",
   "privacyLyricsTitle": "Lyrics search (off by default)",
-  "privacyLyricsBody": "When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export."
+  "privacyLyricsBody": "When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.",
+  "settingsAudio": "Audio",
+  "settingsAudioSummary": "Equalizer, calls and notifications",
+  "settingsAudioIntro": "How Troona sounds, and what it does when your phone needs the speaker for something else.",
+  "settingsSound": "Sound",
+  "settingsInterruptions": "Interruptions",
+  "settingsDuckSubtitle": "When a notification or a GPS voice speaks, the music gets quieter instead of pausing.",
+  "settingsPauseOnCallSubtitle": "During a call, or while another app plays sound.",
+  "settingsResumeAfterCallSubtitle": "Once the call or the other app is done.",
+  "settingsAudioFooter": "Unplugging headphones always pauses the music.",
+  "settingsLibrarySummary": "Songs on this phone, rescan",
+  "settingsLibraryIntro": "The songs Troona found on this phone.",
+  "settingsLibraryContents": "In your library",
+  "settingsScan": "Scan",
+  "settingsScanFooter": "Troona reads the songs Android lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.",
+  "settingsOnlineOff": "Off. Nothing leaves your phone.",
+  "settingsOnlineOn": "On: {parts}",
+  "@settingsOnlineOn": {
+    "placeholders": {
+      "parts": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsOnlineBiosShort": "bios",
+  "settingsOnlinePhotosShort": "photos",
+  "settingsOnlineLyricsShort": "lyrics",
+  "settingsOnlineIntro": "Optional, and off until you turn them on. Each one says what it sends, and where.",
+  "settingsOnlineBiosSubtitle": "From Last.fm, with artist and album names.",
+  "settingsOnlinePhotosSubtitle": "From Deezer, with artist and album names and a few song titles.",
+  "settingsOnlineLyricsSubtitle": "From LRCLIB, then lyrics.ovh, when you open a song's lyrics.",
+  "settingsOnlinePageFooter": "Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.",
+  "settingsPrivacySection": "Privacy",
+  "settingsAppearanceSummary": "Glass effects, haptics",
+  "settingsAppearanceIntro": "How Troona looks, and how it answers your touch.",
+  "settingsTouch": "Touch",
+  "settingsHapticsSubtitle": "Light vibrations when you tap, pick or like.",
+  "settingsApp": "App",
+  "settingsStorage": "Storage",
+  "settingsStorageSummary": "Cache {size}, reset",
+  "@settingsStorageSummary": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsStorageSummaryPending": "Cache, reset",
+  "settingsStorageIntro": "What Troona keeps on this phone besides your music, and how to start over.",
+  "settingsCache": "Cache",
+  "settingsOnlineClearSubtitle": "Bios, photos and lyrics found online. Imported lyrics stay.",
+  "settingsForgetQueueSubtitle": "Stops the music and forgets the queue and where you were.",
+  "settingsResetSettingsSubtitle": "Every preference back to its default. Your library, likes and playlists stay.",
+  "settingsAbout": "About",
+  "settingsAboutSummary": "Version {version}, what's new, updates",
+  "@settingsAboutSummary": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAboutSummaryPending": "What's new, updates",
+  "aboutVersion": "Version {version} ({build})",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpdates": "Updates",
+  "aboutInformation": "Information",
+  "aboutSource": "Source code",
+  "aboutSourceSubtitle": "On GitHub",
+  "settingsOnlineSources": "Sources"
 }

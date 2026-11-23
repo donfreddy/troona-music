@@ -31,7 +31,13 @@ import 'package:troona/features/player/presentation/pages/full_player_page.dart'
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
 import 'package:troona/features/backup/presentation/pages/backup_page.dart';
+import 'package:troona/features/settings/presentation/pages/about_page.dart';
+import 'package:troona/features/settings/presentation/pages/appearance_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/audio_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/library_settings_page.dart';
+import 'package:troona/features/settings/presentation/pages/online_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
+import 'package:troona/features/settings/presentation/pages/storage_settings_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/tab_reselect.dart';
@@ -48,6 +54,12 @@ abstract class AppRoute {
   static const settings = 'settings';
   static const privacy = 'privacy';
   static const backup = 'backup';
+  static const settingsAudio = 'settings_audio';
+  static const settingsLibrary = 'settings_library';
+  static const settingsOnline = 'settings_online';
+  static const settingsAppearance = 'settings_appearance';
+  static const settingsStorage = 'settings_storage';
+  static const settingsAbout = 'settings_about';
   static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
@@ -60,6 +72,27 @@ abstract class AppRoute {
 /// its own gets a copy, or the page below would show through it while it
 /// slides in. Album, artist and playlist pages paint their own.
 Widget _overTab(Widget page) => AmbientBackground(child: page);
+
+/// A page of Settings, with what its rows read and change: singletons, so
+/// a change on one page shows on the others (a cache cleared, on the
+/// root's row).
+Widget _settingsPage(Widget page) => _overTab(
+  MultiBlocProvider(
+    providers: [
+      BlocProvider.value(value: getIt<SettingsCubit>()),
+      BlocProvider.value(value: getIt<MaintenanceCubit>()),
+      BlocProvider.value(value: getIt<BackupCubit>()),
+      BlocProvider.value(value: getIt<UpdateCubit>()),
+    ],
+    child: page,
+  ),
+);
+
+GoRoute _settingsRoute(String name, Widget page) => GoRoute(
+  path: name.replaceFirst('settings_', ''),
+  name: name,
+  builder: (_, _) => _settingsPage(page),
+);
 
 GoRoute _buildAlbumDetailRoute({String? name}) => GoRoute(
   path: 'albums/:id',
@@ -204,9 +237,7 @@ final appRouter = GoRouter(
                         BlocProvider.value(
                           value: getIt<SettingsCubit>()..retryIfFailed(),
                         ),
-                        BlocProvider(
-                          create: (_) => getIt<MaintenanceCubit>()..load(),
-                        ),
+                        BlocProvider.value(value: getIt<MaintenanceCubit>()),
                         BlocProvider.value(value: getIt<BackupCubit>()),
                         BlocProvider.value(value: getIt<UpdateCubit>()),
                       ],
@@ -214,6 +245,27 @@ final appRouter = GoRouter(
                     ),
                   ),
                   routes: [
+                    _settingsRoute(
+                      AppRoute.settingsAudio,
+                      const AudioSettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsLibrary,
+                      const LibrarySettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsOnline,
+                      const OnlineSettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsAppearance,
+                      const AppearanceSettingsPage(),
+                    ),
+                    _settingsRoute(
+                      AppRoute.settingsStorage,
+                      const StorageSettingsPage(),
+                    ),
+                    _settingsRoute(AppRoute.settingsAbout, const AboutPage()),
                     GoRoute(
                       path: AppRoute.privacy,
                       name: AppRoute.privacy,

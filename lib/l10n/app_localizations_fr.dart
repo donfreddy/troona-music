@@ -175,10 +175,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsOnline => 'Extras en ligne';
 
   @override
-  String get settingsOnlineFooter =>
-      'Optionnel. Biographies et photos envoient les noms d\'artistes et d\'albums, et pour les photos quelques titres de morceaux, à Last.fm et Deezer. Les paroles envoient le titre, l\'artiste, l\'album et la durée d\'un morceau à LRCLIB et lyrics.ovh quand vous ouvrez ses paroles. La recherche de mises à jour demande à GitHub la dernière version de Troona. Vos fichiers ne quittent jamais cet appareil.';
-
-  @override
   String get settingsOnlineBios => 'Biographies et notes d\'albums';
 
   @override
@@ -268,11 +264,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsResetConfirmBody =>
       'Toutes les préférences reviennent à leurs valeurs par défaut. Votre bibliothèque, vos titres aimés et vos playlists restent intacts.';
-
-  @override
-  String settingsVersion(String version, String build) {
-    return 'Troona $version ($build)';
-  }
 
   @override
   String get settingsTagline => 'Pensé pour la musique qui vous appartient.';
@@ -1354,9 +1345,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'Toute l\'application suit la langue de votre téléphone.';
-
-  @override
-  String get settingsBackup => 'Sauvegarde';
 
   @override
   String get settingsBackupFooter =>
@@ -2683,4 +2671,172 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get privacyLyricsBody =>
       'Activée, ouvrir les paroles d\'un titre qui n\'en a pas encore envoie son titre, son artiste, son album et sa durée à LRCLIB (lrclib.net), puis, s\'il n\'en a pas, son artiste et son titre à lyrics.ovh. Rien n\'est envoyé pour les autres titres, et jamais pour toute votre bibliothèque. Ces services voient aussi votre adresse IP, comme pour toute requête web. Les paroles trouvées restent sur ce téléphone ; « Effacer les infos téléchargées » les supprime. Les paroles que vous importez depuis un fichier ne quittent jamais ce téléphone, sauf dans une sauvegarde que vous exportez.';
+
+  @override
+  String get settingsAudio => 'Audio';
+
+  @override
+  String get settingsAudioSummary => 'Égaliseur, appels et notifications';
+
+  @override
+  String get settingsAudioIntro =>
+      'Le son de Troona, et ce qu\'il fait quand votre téléphone a besoin du haut-parleur pour autre chose.';
+
+  @override
+  String get settingsSound => 'Son';
+
+  @override
+  String get settingsInterruptions => 'Interruptions';
+
+  @override
+  String get settingsDuckSubtitle =>
+      'Quand une notification ou un GPS parle, la musique baisse au lieu de s\'arrêter.';
+
+  @override
+  String get settingsPauseOnCallSubtitle =>
+      'Pendant un appel, ou quand une autre app joue du son.';
+
+  @override
+  String get settingsResumeAfterCallSubtitle =>
+      'Une fois l\'appel ou l\'autre app terminé.';
+
+  @override
+  String get settingsAudioFooter =>
+      'Débrancher un casque met toujours la musique en pause.';
+
+  @override
+  String get settingsLibrarySummary =>
+      'Titres de ce téléphone, nouvelle analyse';
+
+  @override
+  String get settingsLibraryIntro =>
+      'Les titres que Troona a trouvés sur ce téléphone.';
+
+  @override
+  String get settingsLibraryContents => 'Dans votre bibliothèque';
+
+  @override
+  String get settingsScan => 'Analyse';
+
+  @override
+  String get settingsScanFooter =>
+      'Troona lit les titres qu\'Android classe comme musique. Les sonneries, notifications, messages vocaux et fichiers de moins de 10 secondes sont écartés.';
+
+  @override
+  String get settingsOnlineOff => 'Désactivés. Rien ne quitte votre téléphone.';
+
+  @override
+  String settingsOnlineOn(String parts) {
+    return 'Activés : $parts';
+  }
+
+  @override
+  String get settingsOnlineBiosShort => 'biographies';
+
+  @override
+  String get settingsOnlinePhotosShort => 'photos';
+
+  @override
+  String get settingsOnlineLyricsShort => 'paroles';
+
+  @override
+  String get settingsOnlineIntro =>
+      'Facultatifs, et désactivés tant que vous ne les activez pas. Chacun dit ce qu\'il envoie, et à qui.';
+
+  @override
+  String get settingsOnlineBiosSubtitle =>
+      'Depuis Last.fm, avec les noms d\'artistes et d\'albums.';
+
+  @override
+  String get settingsOnlinePhotosSubtitle =>
+      'Depuis Deezer, avec les noms d\'artistes et d\'albums et quelques titres.';
+
+  @override
+  String get settingsOnlineLyricsSubtitle =>
+      'Depuis LRCLIB, puis lyrics.ovh, quand vous ouvrez les paroles d\'un titre.';
+
+  @override
+  String get settingsOnlinePageFooter =>
+      'Rien d\'autre sur vous ou votre musique ne quitte ce téléphone. Les infos téléchargées s\'effacent dans Stockage.';
+
+  @override
+  String get settingsPrivacySection => 'Confidentialité';
+
+  @override
+  String get settingsAppearanceSummary => 'Effets de verre, retours haptiques';
+
+  @override
+  String get settingsAppearanceIntro =>
+      'L\'allure de Troona, et sa réponse au toucher.';
+
+  @override
+  String get settingsTouch => 'Toucher';
+
+  @override
+  String get settingsHapticsSubtitle =>
+      'De légères vibrations quand vous touchez, sélectionnez ou aimez.';
+
+  @override
+  String get settingsApp => 'Application';
+
+  @override
+  String get settingsStorage => 'Stockage';
+
+  @override
+  String settingsStorageSummary(String size) {
+    return 'Cache $size, réinitialisation';
+  }
+
+  @override
+  String get settingsStorageSummaryPending => 'Cache, réinitialisation';
+
+  @override
+  String get settingsStorageIntro =>
+      'Ce que Troona garde sur ce téléphone en plus de votre musique, et comment repartir de zéro.';
+
+  @override
+  String get settingsCache => 'Cache';
+
+  @override
+  String get settingsOnlineClearSubtitle =>
+      'Biographies, photos et paroles trouvées en ligne. Les paroles importées restent.';
+
+  @override
+  String get settingsForgetQueueSubtitle =>
+      'Arrête la musique et oublie la file et où vous en étiez.';
+
+  @override
+  String get settingsResetSettingsSubtitle =>
+      'Chaque préférence revient à sa valeur par défaut. Votre bibliothèque, vos likes et vos playlists restent.';
+
+  @override
+  String get settingsAbout => 'À propos';
+
+  @override
+  String settingsAboutSummary(String version) {
+    return 'Version $version, nouveautés, mises à jour';
+  }
+
+  @override
+  String get settingsAboutSummaryPending => 'Nouveautés, mises à jour';
+
+  @override
+  String aboutVersion(String version, String build) {
+    return 'Version $version ($build)';
+  }
+
+  @override
+  String get aboutUpdates => 'Mises à jour';
+
+  @override
+  String get aboutInformation => 'Informations';
+
+  @override
+  String get aboutSource => 'Code source';
+
+  @override
+  String get aboutSourceSubtitle => 'Sur GitHub';
+
+  @override
+  String get settingsOnlineSources => 'Sources';
 }

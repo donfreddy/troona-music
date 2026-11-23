@@ -456,7 +456,11 @@ Future<void> configureDependencies() async {
   );
   await settingsCubit.load();
   getIt.registerSingleton<SettingsCubit>(settingsCubit);
-  getIt.registerFactory<MaintenanceCubit>(() => MaintenanceCubit(getIt()));
+  // Shared by the pages of Settings: a cache cleared on Storage shows on
+  // the root's row.
+  getIt.registerLazySingleton<MaintenanceCubit>(
+    () => MaintenanceCubit(getIt()),
+  );
   // Singleton: a restore keeps running after Settings closes, and reopening
   // it must not start a second task beside it.
   getIt.registerLazySingleton<BackupCubit>(

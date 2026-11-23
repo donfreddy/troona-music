@@ -15,6 +15,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Changed
 
+- Settings are organised in pages: Audio, Library, Online extras, Appearance, Backup & restore, Storage and About, each row saying what it holds or how it stands. Every switch explains what it does, Resume after calls waits for Pause during calls, and the caches and resets have their own page.
 - Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
 
 ## [1.8.0] - 2026-11-22

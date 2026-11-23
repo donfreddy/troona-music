@@ -149,6 +149,14 @@ abstract final class AppIcons {
   static const IconData backupFromFile = LucideIcons300.fileInput;
   static const IconData report = LucideIcons300.messageSquareWarning;
   static const IconData privacy = LucideIcons300.shieldCheck;
+  static const IconData sourceCode = LucideIcons300.codeXml;
+
+  /// Settings categories at the root of Settings.
+  static const IconData settingsAudio = LucideIcons300.audioLines;
+  static const IconData settingsOnline = LucideIcons300.globe;
+  static const IconData settingsAppearance = LucideIcons300.palette;
+  static const IconData settingsStorage = LucideIcons300.hardDrive;
+  static const IconData settingsAbout = LucideIcons300.info;
   static const IconData licenses = LucideIcons300.scrollText;
   static const IconData storageAccess = LucideIcons300.folderLock;
 }

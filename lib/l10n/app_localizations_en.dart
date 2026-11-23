@@ -173,10 +173,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsOnline => 'Online extras';
 
   @override
-  String get settingsOnlineFooter =>
-      'Optional. Bios and photos send artist and album names, and for photos a few song titles, to Last.fm and Deezer. Lyrics send a song\'s title, artist, album and length to LRCLIB and lyrics.ovh when you open its lyrics. The update check asks GitHub for Troona\'s latest version. Your music files never leave this device.';
-
-  @override
   String get settingsOnlineBios => 'Artist bios and album notes';
 
   @override
@@ -265,11 +261,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsResetConfirmBody =>
       'All preferences go back to their defaults. Your library, likes and playlists stay as they are.';
-
-  @override
-  String settingsVersion(String version, String build) {
-    return 'Troona $version ($build)';
-  }
 
   @override
   String get settingsTagline => 'Made for the music you own.';
@@ -1343,9 +1334,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get whatsNew100LanguageBody =>
       'The whole app follows your phone\'s language.';
-
-  @override
-  String get settingsBackup => 'Backup';
 
   @override
   String get settingsBackupFooter =>
@@ -2662,4 +2650,170 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyLyricsBody =>
       'When on, opening the lyrics of a song that has none stored sends its title, artist, album and length to LRCLIB (lrclib.net), then, if it has none, its artist and title to lyrics.ovh. Nothing is sent for other songs, and never for your whole library. These services also see your IP address, as with any web request. Lyrics found are kept on this phone; \"Clear downloaded info\" deletes them. Lyrics you import from a file never leave this phone, except in a backup you export.';
+
+  @override
+  String get settingsAudio => 'Audio';
+
+  @override
+  String get settingsAudioSummary => 'Equalizer, calls and notifications';
+
+  @override
+  String get settingsAudioIntro =>
+      'How Troona sounds, and what it does when your phone needs the speaker for something else.';
+
+  @override
+  String get settingsSound => 'Sound';
+
+  @override
+  String get settingsInterruptions => 'Interruptions';
+
+  @override
+  String get settingsDuckSubtitle =>
+      'When a notification or a GPS voice speaks, the music gets quieter instead of pausing.';
+
+  @override
+  String get settingsPauseOnCallSubtitle =>
+      'During a call, or while another app plays sound.';
+
+  @override
+  String get settingsResumeAfterCallSubtitle =>
+      'Once the call or the other app is done.';
+
+  @override
+  String get settingsAudioFooter =>
+      'Unplugging headphones always pauses the music.';
+
+  @override
+  String get settingsLibrarySummary => 'Songs on this phone, rescan';
+
+  @override
+  String get settingsLibraryIntro => 'The songs Troona found on this phone.';
+
+  @override
+  String get settingsLibraryContents => 'In your library';
+
+  @override
+  String get settingsScan => 'Scan';
+
+  @override
+  String get settingsScanFooter =>
+      'Troona reads the songs Android lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.';
+
+  @override
+  String get settingsOnlineOff => 'Off. Nothing leaves your phone.';
+
+  @override
+  String settingsOnlineOn(String parts) {
+    return 'On: $parts';
+  }
+
+  @override
+  String get settingsOnlineBiosShort => 'bios';
+
+  @override
+  String get settingsOnlinePhotosShort => 'photos';
+
+  @override
+  String get settingsOnlineLyricsShort => 'lyrics';
+
+  @override
+  String get settingsOnlineIntro =>
+      'Optional, and off until you turn them on. Each one says what it sends, and where.';
+
+  @override
+  String get settingsOnlineBiosSubtitle =>
+      'From Last.fm, with artist and album names.';
+
+  @override
+  String get settingsOnlinePhotosSubtitle =>
+      'From Deezer, with artist and album names and a few song titles.';
+
+  @override
+  String get settingsOnlineLyricsSubtitle =>
+      'From LRCLIB, then lyrics.ovh, when you open a song\'s lyrics.';
+
+  @override
+  String get settingsOnlinePageFooter =>
+      'Nothing else about you or your music leaves this phone. Downloaded info can be cleared in Storage.';
+
+  @override
+  String get settingsPrivacySection => 'Privacy';
+
+  @override
+  String get settingsAppearanceSummary => 'Glass effects, haptics';
+
+  @override
+  String get settingsAppearanceIntro =>
+      'How Troona looks, and how it answers your touch.';
+
+  @override
+  String get settingsTouch => 'Touch';
+
+  @override
+  String get settingsHapticsSubtitle =>
+      'Light vibrations when you tap, pick or like.';
+
+  @override
+  String get settingsApp => 'App';
+
+  @override
+  String get settingsStorage => 'Storage';
+
+  @override
+  String settingsStorageSummary(String size) {
+    return 'Cache $size, reset';
+  }
+
+  @override
+  String get settingsStorageSummaryPending => 'Cache, reset';
+
+  @override
+  String get settingsStorageIntro =>
+      'What Troona keeps on this phone besides your music, and how to start over.';
+
+  @override
+  String get settingsCache => 'Cache';
+
+  @override
+  String get settingsOnlineClearSubtitle =>
+      'Bios, photos and lyrics found online. Imported lyrics stay.';
+
+  @override
+  String get settingsForgetQueueSubtitle =>
+      'Stops the music and forgets the queue and where you were.';
+
+  @override
+  String get settingsResetSettingsSubtitle =>
+      'Every preference back to its default. Your library, likes and playlists stay.';
+
+  @override
+  String get settingsAbout => 'About';
+
+  @override
+  String settingsAboutSummary(String version) {
+    return 'Version $version, what\'s new, updates';
+  }
+
+  @override
+  String get settingsAboutSummaryPending => 'What\'s new, updates';
+
+  @override
+  String aboutVersion(String version, String build) {
+    return 'Version $version ($build)';
+  }
+
+  @override
+  String get aboutUpdates => 'Updates';
+
+  @override
+  String get aboutInformation => 'Information';
+
+  @override
+  String get aboutSource => 'Source code';
+
+  @override
+  String get aboutSourceSubtitle => 'On GitHub';
+
+  @override
+  String get settingsOnlineSources => 'Sources';
 }
