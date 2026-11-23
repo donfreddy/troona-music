@@ -5,9 +5,10 @@ import 'package:equatable/equatable.dart';
 /// [minDurationMs], and every song inside one of [excludedFolders] (their
 /// subfolders included).
 ///
-/// A song left out leaves the library on the next scan, as a deleted file
-/// would. Its likes, plays and playlists name it by its MediaStore id,
-/// which does not change: letting it back in brings them back.
+/// A song left out leaves the library on the next scan; its row stays,
+/// marked as left out, so backups and restores still find it. Its likes,
+/// plays and playlists name it by its MediaStore id, which does not change:
+/// letting it back in brings them back.
 final class ScanFilter extends Equatable {
   /// The shortest song kept. Low by default: album intros, skits and
   /// interludes are often 20 to 40 s.
