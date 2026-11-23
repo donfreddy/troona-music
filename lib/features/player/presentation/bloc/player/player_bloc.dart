@@ -456,6 +456,29 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     emit(const PlayerIdle());
   }
 
+  /// The place of the saved song in the restored queue, the songs gone
+  /// left out: its saved place when it holds that song (a song queued
+  /// twice, Play next on the one playing, comes back where it was), else
+  /// its first place; null when it is gone.
+  static int? _restoredIndexOf(
+    PlaybackSessionSnapshot snapshot,
+    Map<String, Track> kept,
+  ) {
+    final ids = snapshot.playbackTrackIds;
+    final saved = snapshot.currentIndex;
+    if (saved >= 0 &&
+        saved < ids.length &&
+        ids[saved] == snapshot.currentTrackId &&
+        kept.containsKey(snapshot.currentTrackId)) {
+      return ids.take(saved).where(kept.containsKey).length;
+    }
+    final first = [
+      for (final id in ids)
+        if (kept.containsKey(id)) id,
+    ].indexOf(snapshot.currentTrackId);
+    return first < 0 ? null : first;
+  }
+
   Future<void> _onRestorePlaybackSessionRequested(
     RestorePlaybackSessionRequested event,
     Emitter<PlayerState> emit,
@@ -496,18 +519,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     // A song the library no longer shows (its file deleted, its folder
     // turned off) leaves the queue, the rest stays; without the song that
     // was playing, the saved place means nothing and the session goes.
-    final restoredIndex = playbackTracks.indexWhere(
-      (t) => t.id == snapshot.currentTrackId,
-    );
-    if (restoredIndex < 0) {
+    final currentIndex = _restoredIndexOf(snapshot, trackById);
+    if (currentIndex == null) {
       await _clearPersistedSession();
       return;
     }
-    final currentIndex =
-        (restoredIndex >= 0 ? restoredIndex : snapshot.currentIndex).clamp(
-          0,
-          playbackTracks.length - 1,
-        );
     final queue = Queue(
       originalTracks: List.unmodifiable(
         originalTracks.isEmpty ? playbackTracks : originalTracks,
