@@ -6,12 +6,15 @@ import 'package:troona/core/error/error_handler.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/features/backup/data/backup_codec.dart';
+import 'package:troona/features/backup/data/backup_file_name.dart';
+import 'package:troona/features/backup/data/backup_files.dart';
 import 'package:troona/features/backup/data/isar_backup_data_source.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/equalizer/domain/entities/equalizer_snapshot.dart';
 import 'package:troona/features/equalizer/domain/repositories/equalizer_repository.dart';
 import 'package:troona/features/history/domain/repositories/monthly_replay_log.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/settings_repository.dart';
 
 final class BackupRepositoryImpl implements BackupRepository {
@@ -42,57 +45,61 @@ final class BackupRepositoryImpl implements BackupRepository {
        _now = now ?? DateTime.now;
 
   @override
-  Future<Either<Failure, String>> exportToFile() async {
+  Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async {
     try {
-      final settings = await _settings.loadSettings();
-      return await settings.fold((f) async => left(f), (settings) async {
-        final now = _now();
-        final backup = _source
-            .read(
-              createdAt: now,
-              settings: settings,
-              replayMonth: _replayLog.lastMonth,
-            )
-            .withEqualizer(switch (_equalizer) {
-              final eq? => EqualizerSnapshot(
-                settings: eq.loadSettings(),
-                profiles: eq.loadProfiles(),
-              ),
-              null => null,
-            });
-        if (await _exportDir.exists()) {
-          await _exportDir.delete(recursive: true);
-        }
-        await _exportDir.create(recursive: true);
-        final date = now.toIso8601String().substring(0, 10);
-        final file = File('${_exportDir.path}/troona-backup-$date.json');
-        await file.writeAsBytes(BackupCodec.encode(backup), flush: true);
-        return right(file.path);
-      });
+      AppSettings? settings;
+      if (parts.contains(BackupPart.settings)) {
+        final loaded = await _settings.loadSettings();
+        final failure = loaded.fold<Failure?>((f) => f, (s) {
+          settings = s;
+          return null;
+        });
+        if (failure != null) return left(failure);
+      }
+      final backup = _source.read(
+        createdAt: _now(),
+        settings: settings,
+        replayMonth: _replayLog.lastMonth,
+        parts: parts,
+      );
+      return right(
+        backup.withEqualizer(switch (_equalizer) {
+          final eq? when parts.contains(BackupPart.equalizer) =>
+            EqualizerSnapshot(
+              settings: eq.loadSettings(),
+              profiles: eq.loadProfiles(),
+            ),
+          _ => null,
+        }),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
   }
 
   @override
-  Future<Either<Failure, Backup>> readFile(String path) async {
+  Future<String> fingerprint(Backup backup) =>
+      Isolate.run(() => BackupCodec.fingerprint(backup));
+
+  @override
+  Future<Either<Failure, String>> exportToFile(Backup backup) async {
     try {
-      final file = File(path);
-      // Checked before reading: the file comes from anywhere.
-      if (await file.length() > BackupCodec.maxBytes) {
-        return left(const BackupFormatFailure('File too large'));
+      if (await _exportDir.exists()) {
+        await _exportDir.delete(recursive: true);
       }
-      final bytes = await file.readAsBytes();
-      // Up to 20 MB of JSON: parsed away from the UI thread.
-      return right(await Isolate.run(() => BackupCodec.decode(bytes)));
-    } on BackupFormatException catch (e) {
-      return left(BackupFormatFailure(e.message));
-    } on BackupVersionException catch (e) {
-      return left(BackupTooNewFailure(e.version));
+      await _exportDir.create(recursive: true);
+      final name = BackupFileName.of(backup.createdAt, auto: false);
+      final file = File('${_exportDir.path}/$name');
+      await BackupFiles.write(backup, file);
+      return right(file.path);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
   }
+
+  @override
+  Future<Either<Failure, Backup>> readFile(String path) =>
+      BackupFiles.read(path);
 
   @override
   Future<Either<Failure, Unit>> restore(

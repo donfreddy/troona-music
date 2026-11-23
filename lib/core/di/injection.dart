@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:get_it/get_it.dart';
 import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,10 +23,17 @@ import 'package:troona/features/metadata/domain/repositories/metadata_repository
 import 'package:troona/features/metadata/presentation/cubit/album_metadata_cubit.dart';
 import 'package:troona/features/metadata/presentation/cubit/artist_metadata_cubit.dart';
 import 'package:troona/features/backup/data/backup_repository_impl.dart';
+import 'package:troona/features/backup/data/platform_backup_folder.dart';
+import 'package:troona/features/backup/data/prefs_backup_preferences_repository.dart';
+import 'package:troona/features/backup/data/saf_backup_folder_repository.dart';
+import 'package:troona/features/backup/domain/repositories/backup_folder_repository.dart';
+import 'package:troona/features/backup/domain/repositories/backup_preferences_repository.dart';
 import 'package:troona/features/backup/data/isar_backup_data_source.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
+import 'package:troona/features/backup/domain/use_cases/run_auto_backup_use_case.dart';
+import 'package:troona/features/backup/domain/use_cases/save_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/equalizer/data/adapters/equalizer_probe.dart';
 import 'package:troona/features/equalizer/data/repositories/prefs_equalizer_repository.dart';
@@ -305,6 +313,21 @@ Future<void> configureDependencies() async {
       equalizer: PrefsEqualizerRepository(sharedPrefs),
     ),
   );
+  getIt.registerLazySingleton<BackupFolderRepository>(
+    () => SafBackupFolderRepository(
+      platform: const ChannelBackupFolder(),
+      prefs: sharedPrefs,
+      workDir: Directory('${cacheBase.path}/troona_backup_io'),
+      // The same folder as the exports: cleared with them once shared.
+      exportDir: Directory('${cacheBase.path}/troona_backup'),
+      supported: Platform.isAndroid,
+      // The dev app keeps to its own automatic backups in a shared folder.
+      tag: kReleaseMode ? null : 'dev',
+    ),
+  );
+  getIt.registerLazySingleton<BackupPreferencesRepository>(
+    () => PrefsBackupPreferencesRepository(sharedPrefs),
+  );
   getIt.registerLazySingleton<SearchRepository>(
     () => SearchRepositoryImpl(db: getIt()),
   );
@@ -440,6 +463,14 @@ Future<void> configureDependencies() async {
     () => BackupCubit(
       export: ExportBackupUseCase(getIt()),
       restore: RestoreBackupUseCase(getIt(), getIt()),
+      save: SaveBackupUseCase(getIt(), getIt()),
+      auto: RunAutoBackupUseCase(
+        backups: getIt(),
+        folder: getIt(),
+        preferences: getIt(),
+      ),
+      folder: getIt(),
+      preferences: getIt(),
     ),
   );
   // Singleton: Home's card and Settings show the same check.

@@ -30,6 +30,7 @@ import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart
 import 'package:troona/features/player/presentation/pages/full_player_page.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/cubit/maintenance_cubit.dart';
+import 'package:troona/features/backup/presentation/pages/backup_page.dart';
 import 'package:troona/features/settings/presentation/pages/privacy_page.dart';
 import 'package:troona/features/settings/presentation/pages/settings_page.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
@@ -46,6 +47,7 @@ abstract class AppRoute {
   static const permission = '/permission';
   static const settings = 'settings';
   static const privacy = 'privacy';
+  static const backup = 'backup';
   static const weeklyRecap = 'recap';
 
   static const albumDetail = 'album_detail';
@@ -216,6 +218,20 @@ final appRouter = GoRouter(
                       path: AppRoute.privacy,
                       name: AppRoute.privacy,
                       builder: (_, _) => _overTab(const PrivacyPage()),
+                    ),
+                    GoRoute(
+                      path: AppRoute.backup,
+                      name: AppRoute.backup,
+                      builder: (_, _) => _overTab(
+                        MultiBlocProvider(
+                          providers: [
+                            BlocProvider.value(value: getIt<BackupCubit>()),
+                            // A restore applies the backup's settings.
+                            BlocProvider.value(value: getIt<SettingsCubit>()),
+                          ],
+                          child: const BackupPage(),
+                        ),
+                      ),
                     ),
                   ],
                 ),

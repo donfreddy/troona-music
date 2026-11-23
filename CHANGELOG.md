@@ -10,6 +10,12 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Synced lyrics in Now Playing: the Lyrics button in the dock shows them in place of the covers, the line being sung lit and kept in view, with a seek bar. Tap a line to go there; scroll freely and they follow again after a few seconds, or at once with Back to the current line. Plain lyrics show when they have no timings. The screen stays on while lyrics play. The covers and the lyrics fade into each other, the tab bar slides away to leave them the room, and the page still closes into the mini player. Now Playing opens on the lyrics when it was closed on them. Where nobody sings for a while, three dots fill until the singing comes back. The lines around the one sung take a light tint of the cover's colours instead of a grey, always readable.
 - Import a `.lrc` file for a song, and set its timing a tenth of a second at a time when it runs early or late. Both are in the song's menu, under Lyrics options.
 - Lyrics search, off by default: when a song has no lyrics, its title, artist, album and length go to LRCLIB, then lyrics.ovh, only when you open its lyrics. Turn it on from the lyrics screen or in Settings, Online extras. Clear downloaded info deletes the lyrics found online and keeps the ones you imported. Backups carry imported lyrics, and the timing you set on lyrics found online.
+- Automatic backups: daily or weekly, into a folder you pick once, with no storage permission; the folder and its backups stay if you uninstall Troona. The last five automatic backups are kept, the ones you make by hand are never deleted, and a backup with nothing new is not written again. Troona says when it can no longer reach the folder.
+- Choose what a backup holds: playlists, likes, listening history, lyrics, settings, equalizer. Restoring a backup offers the parts it holds, all ticked, and writes only the ones you keep.
+
+### Changed
+
+- Backup moved to its own page, Settings > Backup & restore, which lists the backups in your folder with what each holds; each can be restored, shared or deleted.
 
 ## [1.8.0] - 2026-11-22
 

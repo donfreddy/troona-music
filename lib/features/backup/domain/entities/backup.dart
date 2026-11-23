@@ -108,6 +108,25 @@ final class BackupFirstPlay extends Equatable {
   List<Object?> get props => [track, day];
 }
 
+/// What a backup can hold, picked by the user when saving and again when
+/// restoring.
+enum BackupPart {
+  /// Playlists of songs and smart playlists.
+  playlists,
+  likes,
+
+  /// Plays, daily totals, plays per song and per hour, first plays and the
+  /// last Replay month: one block, since its parts count the same plays.
+  history,
+
+  /// Lyrics imported by hand, and the timing set on lyrics found online.
+  lyrics,
+  settings,
+  equalizer;
+
+  static const all = {playlists, likes, history, lyrics, settings, equalizer};
+}
+
 /// Lyrics the user imported for a song, with their timing correction
 /// (positive shows the lines earlier). Lyrics found online are not carried:
 /// they are found again; their correction is ([BackupLyricsOffset]).
@@ -140,8 +159,12 @@ final class BackupLyricsOffset extends Equatable {
 
 /// Everything a backup carries. Songs are described once in [tracks] and
 /// named by their key everywhere else.
+///
+/// [parts] says what it was saved with: a part left out has no records
+/// (and [settings] is null without [BackupPart.settings]).
 final class Backup extends Equatable {
   final DateTime createdAt;
+  final Set<BackupPart> parts;
   final Map<String, BackupTrack> tracks;
   final List<BackupPlaylist> playlists;
   final List<BackupPlay> plays;
@@ -155,7 +178,7 @@ final class Backup extends Equatable {
   /// The last month whose Replay playlist was made, as `MonthlyReplayLog`
   /// keeps it.
   final int? replayMonth;
-  final AppSettings settings;
+  final AppSettings? settings;
 
   /// Absent from backups made before the equalizer, or when it could not be
   /// read: the rest restores without it.
@@ -169,6 +192,7 @@ final class Backup extends Equatable {
 
   const Backup({
     required this.createdAt,
+    this.parts = BackupPart.all,
     required this.tracks,
     required this.playlists,
     required this.plays,
@@ -185,6 +209,7 @@ final class Backup extends Equatable {
 
   Backup withEqualizer(EqualizerSnapshot? equalizer) => Backup(
     createdAt: createdAt,
+    parts: parts,
     tracks: tracks,
     playlists: playlists,
     plays: plays,
@@ -199,9 +224,57 @@ final class Backup extends Equatable {
     lyricsOffsets: lyricsOffsets,
   );
 
+  /// This backup with the records of [chosen] parts only, and the songs
+  /// they name: what a restore of those parts writes.
+  Backup only(Set<BackupPart> chosen) {
+    final keep = parts.intersection(chosen);
+    final history = keep.contains(BackupPart.history);
+    final playlists = [
+      for (final p in this.playlists)
+        if (keep.contains(p.isLikes ? BackupPart.likes : BackupPart.playlists))
+          p,
+    ];
+    final plays = history ? this.plays : const <BackupPlay>[];
+    final trackDays = history ? this.trackDays : const <BackupTrackDay>[];
+    final firstPlays = history ? this.firstPlays : const <BackupFirstPlay>[];
+    final withLyrics = keep.contains(BackupPart.lyrics);
+    final lyrics = withLyrics ? this.lyrics : const <BackupLyrics>[];
+    final lyricsOffsets = withLyrics
+        ? this.lyricsOffsets
+        : const <BackupLyricsOffset>[];
+    final named = {
+      for (final p in playlists) ...p.tracks,
+      for (final p in plays) p.track,
+      for (final d in trackDays) d.track,
+      for (final f in firstPlays) f.track,
+      for (final l in lyrics) l.track,
+      for (final o in lyricsOffsets) o.track,
+    };
+    return Backup(
+      createdAt: createdAt,
+      parts: keep,
+      tracks: {
+        for (final MapEntry(:key, :value) in tracks.entries)
+          if (named.contains(key)) key: value,
+      },
+      playlists: playlists,
+      plays: plays,
+      days: history ? days : const [],
+      trackDays: trackDays,
+      firstPlays: firstPlays,
+      hours: history ? hours : const [],
+      replayMonth: history ? replayMonth : null,
+      settings: keep.contains(BackupPart.settings) ? settings : null,
+      equalizer: keep.contains(BackupPart.equalizer) ? equalizer : null,
+      lyrics: lyrics,
+      lyricsOffsets: lyricsOffsets,
+    );
+  }
+
   @override
   List<Object?> get props => [
     createdAt,
+    parts,
     tracks,
     playlists,
     plays,

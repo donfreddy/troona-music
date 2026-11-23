@@ -1,6 +1,6 @@
 # Troona privacy policy
 
-Last updated: November 22, 2026
+Last updated: November 23, 2026
 
 Troona plays the music stored on your phone. It has no account, no ads and no analytics.
 
@@ -34,11 +34,11 @@ Errors are written to a log on this device. It can contain file names. Nothing i
 
 ## Backups
 
-Exporting a backup writes your playlists, likes, listening history, imported lyrics, the timing you set on lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.
+A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and the timing you set on lyrics, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.
 
 ## Deleting your data
 
-Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.
+Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.
 
 ## Contact
 

@@ -599,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyBackupBody.
   ///
   /// In en, this message translates to:
-  /// **'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.'**
+  /// **'A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and their timing, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.'**
   String get privacyBackupBody;
 
   /// No description provided for @privacyDeleteTitle.
@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyDeleteBody.
   ///
   /// In en, this message translates to:
-  /// **'Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.'**
+  /// **'Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.'**
   String get privacyDeleteBody;
 
   /// No description provided for @permissionHeadline.
@@ -2267,14 +2267,8 @@ abstract class AppLocalizations {
   /// No description provided for @settingsBackupFooter.
   ///
   /// In en, this message translates to:
-  /// **'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.'**
+  /// **'A backup holds what you choose above, with the names and sizes of your music files, unencrypted. Keep it somewhere private.'**
   String get settingsBackupFooter;
-
-  /// No description provided for @backupExport.
-  ///
-  /// In en, this message translates to:
-  /// **'Export a backup'**
-  String get backupExport;
 
   /// No description provided for @backupExportSubtitle.
   ///
@@ -2294,30 +2288,6 @@ abstract class AppLocalizations {
   /// **'Restore a backup'**
   String get backupRestore;
 
-  /// No description provided for @backupRestoreSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Adds its playlists, likes and history to yours.'**
-  String get backupRestoreSubtitle;
-
-  /// No description provided for @backupRestoreConfirmTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Restore a backup?'**
-  String get backupRestoreConfirmTitle;
-
-  /// No description provided for @backupRestoreConfirmBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.'**
-  String get backupRestoreConfirmBody;
-
-  /// No description provided for @backupRestoreAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose file'**
-  String get backupRestoreAction;
-
   /// No description provided for @backupRestoreInvalid.
   ///
   /// In en, this message translates to:
@@ -2335,6 +2305,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup restored'**
   String get backupRestoreDoneTitle;
+
+  /// No description provided for @backupRestoreDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything you chose is restored.'**
+  String get backupRestoreDoneBody;
 
   /// No description provided for @backupRestoreFound.
   ///
@@ -2357,8 +2333,278 @@ abstract class AppLocalizations {
   /// No description provided for @backupRestoreOnline.
   ///
   /// In en, this message translates to:
-  /// **'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.'**
+  /// **'Online extras were on in this backup. They stay as they are on this phone: turn them on in Settings if you want them.'**
   String get backupRestoreOnline;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore'**
+  String get backupTitle;
+
+  /// No description provided for @backupSettingsLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {date}'**
+  String backupSettingsLast(String date);
+
+  /// No description provided for @backupSettingsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists, likes, history and settings'**
+  String get backupSettingsNone;
+
+  /// No description provided for @backupAutoSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get backupAutoSection;
+
+  /// No description provided for @backupAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up automatically'**
+  String get backupAuto;
+
+  /// No description provided for @backupAutoOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Into a folder you choose, when you open Troona'**
+  String get backupAutoOff;
+
+  /// No description provided for @backupAutoLast.
+  ///
+  /// In en, this message translates to:
+  /// **'Last one: {date}'**
+  String backupAutoLast(String date);
+
+  /// No description provided for @backupAutoNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None yet'**
+  String get backupAutoNone;
+
+  /// No description provided for @backupFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get backupFrequency;
+
+  /// No description provided for @backupDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get backupDaily;
+
+  /// No description provided for @backupWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get backupWeekly;
+
+  /// No description provided for @backupFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get backupFolder;
+
+  /// No description provided for @backupFolderChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder'**
+  String get backupFolderChoose;
+
+  /// No description provided for @backupFolderLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach {name}. Choose it again.'**
+  String backupFolderLost(String name);
+
+  /// No description provided for @backupFolderFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Troona keeps its last 5 automatic backups there, and every backup you make. The folder stays if you uninstall Troona: choose it again after reinstalling to find your backups.'**
+  String get backupFolderFooter;
+
+  /// No description provided for @backupManualSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up'**
+  String get backupManualSection;
+
+  /// No description provided for @backupParts.
+  ///
+  /// In en, this message translates to:
+  /// **'What to back up'**
+  String get backupParts;
+
+  /// No description provided for @backupPartsEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything'**
+  String get backupPartsEverything;
+
+  /// No description provided for @backupPartHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening history'**
+  String get backupPartHistory;
+
+  /// No description provided for @backupPartSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get backupPartSettings;
+
+  /// No description provided for @backupPartLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get backupPartLyrics;
+
+  /// No description provided for @backupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backupNow;
+
+  /// No description provided for @backupNowInto.
+  ///
+  /// In en, this message translates to:
+  /// **'Into {name}'**
+  String backupNowInto(String name);
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSaved;
+
+  /// No description provided for @backupRestoreSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestoreSection;
+
+  /// No description provided for @backupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups in this folder yet'**
+  String get backupNone;
+
+  /// No description provided for @backupFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a file'**
+  String get backupFromFile;
+
+  /// No description provided for @backupFromFileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A backup saved elsewhere, or from another phone'**
+  String get backupFromFileSubtitle;
+
+  /// No description provided for @backupAutoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get backupAutoBadge;
+
+  /// No description provided for @backupOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup options'**
+  String get backupOptions;
+
+  /// No description provided for @backupShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get backupShare;
+
+  /// No description provided for @backupDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this backup?'**
+  String get backupDeleteTitle;
+
+  /// No description provided for @backupDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It is deleted from {name}.'**
+  String backupDeleteBody(String name);
+
+  /// No description provided for @backupSummaryPlaylists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 playlist} other{{count} playlists}}'**
+  String backupSummaryPlaylists(int count);
+
+  /// No description provided for @backupSummaryLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 liked song} other{{count} liked songs}}'**
+  String backupSummaryLikes(int count);
+
+  /// No description provided for @backupSummaryPlays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 play} other{{count} plays}}'**
+  String backupSummaryPlays(int count);
+
+  /// No description provided for @backupSummaryLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Lyrics or timing for 1 song} other{Lyrics or timing for {count} songs}}'**
+  String backupSummaryLyrics(int count);
+
+  /// No description provided for @backupSummaryProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Its setting, no saved profile} =1{Its setting and 1 profile} other{Its setting and {count} profiles}}'**
+  String backupSummaryProfiles(int count);
+
+  /// No description provided for @backupSettingsReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'They replace yours'**
+  String get backupSettingsReplace;
+
+  /// No description provided for @backupRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup'**
+  String get backupRestoreTitle;
+
+  /// No description provided for @backupRestoreFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Made {date}. Playlists, likes and history are added to yours; settings and the equalizer replace yours.'**
+  String backupRestoreFrom(String date);
+
+  /// No description provided for @backupRestoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get backupRestoreButton;
+
+  /// No description provided for @backupRestoreNothing.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup holds nothing to restore.'**
+  String get backupRestoreNothing;
+
+  /// No description provided for @backupFolderLostError.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t reach the backup folder. Choose it again.'**
+  String get backupFolderLostError;
+
+  /// No description provided for @backupAutoFolderLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup can\'t reach its folder. Choose it again in Settings, Backup & restore.'**
+  String get backupAutoFolderLost;
 
   /// No description provided for @settingsUpdateCheck.
   ///

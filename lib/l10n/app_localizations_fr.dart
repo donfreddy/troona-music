@@ -313,14 +313,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Exporter une sauvegarde écrit vos playlists, vos likes, votre historique d\'écoute, vos paroles importées et vos réglages, avec les noms et tailles de vos fichiers musicaux, dans un fichier, sans chiffrement, et le confie à l\'app de votre choix. Il ne part nulle part ailleurs. La restauration ne lit que le fichier que vous choisissez.';
+      'Une sauvegarde contient les éléments que vous choisissez (playlists, likes, historique d\'écoute, paroles importées et leur décalage, réglages, égaliseur), avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Troona l\'écrit dans le dossier que vous avez choisi pour vos sauvegardes, ou la confie à l\'app de votre choix quand vous la partagez. Elle ne part nulle part ailleurs. La restauration ne lit que la sauvegarde que vous choisissez, et n\'écrit que les éléments que vous gardez.';
 
   @override
   String get privacyDeleteTitle => 'Supprimer vos données';
 
   @override
   String get privacyDeleteBody =>
-      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux et les sauvegardes que vous avez exportées ne sont jamais modifiés.';
+      'Désinstaller Troona supprime tout ce qu\'il a enregistré. Vos fichiers musicaux et vos sauvegardes, dans votre dossier de sauvegarde ou exportées, ne sont jamais modifiés.';
 
   @override
   String get permissionHeadline =>
@@ -1360,10 +1360,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'Le fichier contient vos playlists, vos likes, votre historique d\'écoute et vos réglages, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-le en lieu sûr.';
-
-  @override
-  String get backupExport => 'Exporter une sauvegarde';
+      'Une sauvegarde contient ce que vous choisissez ci-dessus, avec les noms et tailles de vos fichiers musicaux, sans chiffrement. Gardez-la en lieu sûr.';
 
   @override
   String get backupExportSubtitle =>
@@ -1376,20 +1373,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backupRestore => 'Restaurer une sauvegarde';
 
   @override
-  String get backupRestoreSubtitle =>
-      'Ajoute ses playlists, likes et historique aux vôtres.';
-
-  @override
-  String get backupRestoreConfirmTitle => 'Restaurer une sauvegarde ?';
-
-  @override
-  String get backupRestoreConfirmBody =>
-      'Ses playlists, likes et historique d\'écoute s\'ajoutent aux vôtres. Ses réglages remplacent les vôtres, sauf les extras en ligne.';
-
-  @override
-  String get backupRestoreAction => 'Choisir le fichier';
-
-  @override
   String get backupRestoreInvalid =>
       'Ce fichier n\'est pas une sauvegarde Troona, ou il est endommagé.';
 
@@ -1399,6 +1382,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backupRestoreDoneTitle => 'Sauvegarde restaurée';
+
+  @override
+  String get backupRestoreDoneBody =>
+      'Tout ce que vous avez choisi est restauré.';
 
   @override
   String backupRestoreFound(int found, int total) {
@@ -1425,7 +1412,201 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get backupRestoreOnline =>
-      'Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu\'ils sont sur ce téléphone : activez-les plus haut si vous le souhaitez.';
+      'Les extras en ligne étaient activés dans cette sauvegarde. Ils restent tels qu\'ils sont sur ce téléphone : activez-les dans les Réglages si vous le souhaitez.';
+
+  @override
+  String get backupTitle => 'Sauvegarde et restauration';
+
+  @override
+  String backupSettingsLast(String date) {
+    return 'Dernière sauvegarde : $date';
+  }
+
+  @override
+  String get backupSettingsNone => 'Playlists, likes, historique et réglages';
+
+  @override
+  String get backupAutoSection => 'Sauvegarde automatique';
+
+  @override
+  String get backupAuto => 'Sauvegarder automatiquement';
+
+  @override
+  String get backupAutoOff =>
+      'Dans un dossier de votre choix, à l\'ouverture de Troona';
+
+  @override
+  String backupAutoLast(String date) {
+    return 'Dernière : $date';
+  }
+
+  @override
+  String get backupAutoNone => 'Aucune pour l\'instant';
+
+  @override
+  String get backupFrequency => 'Fréquence';
+
+  @override
+  String get backupDaily => 'Chaque jour';
+
+  @override
+  String get backupWeekly => 'Chaque semaine';
+
+  @override
+  String get backupFolder => 'Dossier';
+
+  @override
+  String get backupFolderChoose => 'Choisir un dossier';
+
+  @override
+  String backupFolderLost(String name) {
+    return 'Impossible d\'atteindre $name. Choisissez-le à nouveau.';
+  }
+
+  @override
+  String get backupFolderFooter =>
+      'Troona y garde ses 5 dernières sauvegardes automatiques, et toutes celles que vous faites. Le dossier reste si vous désinstallez Troona : choisissez-le à nouveau après la réinstallation pour retrouver vos sauvegardes.';
+
+  @override
+  String get backupManualSection => 'Sauvegarder';
+
+  @override
+  String get backupParts => 'Éléments à sauvegarder';
+
+  @override
+  String get backupPartsEverything => 'Tout';
+
+  @override
+  String get backupPartHistory => 'Historique d\'écoute';
+
+  @override
+  String get backupPartSettings => 'Réglages';
+
+  @override
+  String get backupPartLyrics => 'Paroles';
+
+  @override
+  String get backupNow => 'Sauvegarder maintenant';
+
+  @override
+  String backupNowInto(String name) {
+    return 'Dans $name';
+  }
+
+  @override
+  String get backupSaved => 'Sauvegarde enregistrée';
+
+  @override
+  String get backupRestoreSection => 'Restaurer';
+
+  @override
+  String get backupNone => 'Aucune sauvegarde dans ce dossier pour l\'instant';
+
+  @override
+  String get backupFromFile => 'Restaurer depuis un fichier';
+
+  @override
+  String get backupFromFileSubtitle =>
+      'Une sauvegarde enregistrée ailleurs, ou venue d\'un autre téléphone';
+
+  @override
+  String get backupAutoBadge => 'Auto';
+
+  @override
+  String get backupOptions => 'Options de la sauvegarde';
+
+  @override
+  String get backupShare => 'Partager';
+
+  @override
+  String get backupDeleteTitle => 'Supprimer cette sauvegarde ?';
+
+  @override
+  String backupDeleteBody(String name) {
+    return 'Elle est supprimée de $name.';
+  }
+
+  @override
+  String backupSummaryPlaylists(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLikes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count titres aimés',
+      one: '1 titre aimé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryPlays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count écoutes',
+      one: '1 écoute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLyrics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Paroles ou décalage de $count titres',
+      one: 'Paroles ou décalage d\'1 titre',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryProfiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Son réglage et $count profils',
+      one: 'Son réglage et 1 profil',
+      zero: 'Son réglage, aucun profil enregistré',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupSettingsReplace => 'Ils remplacent les vôtres';
+
+  @override
+  String get backupRestoreTitle => 'Restaurer cette sauvegarde';
+
+  @override
+  String backupRestoreFrom(String date) {
+    return 'Faite le $date. Les playlists, likes et historique s\'ajoutent aux vôtres ; les réglages et l\'égaliseur remplacent les vôtres.';
+  }
+
+  @override
+  String get backupRestoreButton => 'Restaurer';
+
+  @override
+  String get backupRestoreNothing =>
+      'Cette sauvegarde ne contient rien à restaurer.';
+
+  @override
+  String get backupFolderLostError =>
+      'Impossible d\'atteindre le dossier de sauvegarde. Choisissez-le à nouveau.';
+
+  @override
+  String get backupAutoFolderLost =>
+      'La sauvegarde automatique n\'atteint plus son dossier. Choisissez-le à nouveau dans Réglages, Sauvegarde et restauration.';
 
   @override
   String get settingsUpdateCheck => 'Rechercher les mises à jour';

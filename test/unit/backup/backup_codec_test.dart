@@ -262,7 +262,7 @@ void main() {
 
     final read = BackupCodec.decode(BackupCodec.encode(backup));
 
-    expect(read.settings.glassQuality, GlassQuality.auto);
+    expect(read.settings?.glassQuality, GlassQuality.auto);
     expect(read.replayMonth, isNull);
   });
 
@@ -435,5 +435,195 @@ void main() {
     final read = BackupCodec.decode(BackupCodec.encode(long));
 
     expect(read.tracks['1']!.title, hasLength(BackupCodec.maxText));
+  });
+
+  group('parts', () {
+    test('a whole backup keeps version 1 and lists no contents', () {
+      final json = _json();
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+    });
+
+    test('every part but the equalizer is still version 1, which older apps '
+        'read whole', () {
+      final noEq = _backup.only(
+        BackupPart.all.difference({BackupPart.equalizer}),
+      );
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(noEq)))
+              as Map<String, dynamic>;
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+      expect(json.containsKey('equalizer'), isFalse);
+    });
+
+    test('without lyrics and the equalizer, still version 1: older apps '
+        'ignore both', () {
+      final json =
+          jsonDecode(
+                utf8.decode(
+                  BackupCodec.encode(
+                    _backup.only(
+                      BackupPart.all.difference({
+                        BackupPart.lyrics,
+                        BackupPart.equalizer,
+                      }),
+                    ),
+                  ),
+                ),
+              )
+              as Map<String, dynamic>;
+
+      expect(json['version'], 1);
+      expect(json.containsKey('contents'), isFalse);
+    });
+
+    test('lyrics alone are version 2, with the songs they name', () {
+      final lyrics = Backup(
+        createdAt: DateTime.utc(2026, 10, 30),
+        tracks: _backup.tracks,
+        playlists: _backup.playlists,
+        plays: const [],
+        days: const [],
+        trackDays: const [],
+        firstPlays: const [],
+        replayMonth: null,
+        settings: null,
+        lyrics: const [
+          BackupLyrics(track: '1', text: '[00:01.00]La', offsetMs: 100),
+        ],
+        lyricsOffsets: const [],
+      ).only({BackupPart.lyrics});
+      final bytes = BackupCodec.encode(lyrics);
+      final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+
+      expect(json['version'], 2);
+      expect(json['contents'], ['lyrics']);
+      expect(json.containsKey('playlists'), isFalse);
+      expect(BackupCodec.decode(bytes), lyrics);
+    });
+
+    test('lyrics a backup holds outside its parts are not written', () {
+      final stray = Backup(
+        createdAt: DateTime.utc(2026, 10, 30),
+        parts: const {BackupPart.likes},
+        tracks: _backup.tracks,
+        playlists: const [
+          BackupPlaylist(name: 'Liked', isLikes: true, tracks: ['1']),
+        ],
+        plays: const [],
+        days: const [],
+        trackDays: const [],
+        firstPlays: const [],
+        replayMonth: null,
+        settings: null,
+        lyrics: const [BackupLyrics(track: '1', text: '[00:01.00]La')],
+        lyricsOffsets: const [BackupLyricsOffset(track: '1', offsetMs: 300)],
+      );
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(stray)))
+              as Map<String, dynamic>;
+
+      expect(json.containsKey('lyrics'), isFalse);
+      expect(json.containsKey('lyricsOffsets'), isFalse);
+    });
+
+    test('lyrics in a file that does not list them are not read', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['likes']
+        ..['lyrics'] = [
+          {'track': '1', 'text': '[00:01.00]La', 'offsetMs': 0},
+        ];
+
+      expect(BackupCodec.decode(_bytes(json)).lyrics, isEmpty);
+    });
+
+    test('lyrics change the fingerprint, so a new lyric is backed up', () {
+      final withLyrics = Backup(
+        createdAt: _backup.createdAt,
+        tracks: _backup.tracks,
+        playlists: _backup.playlists,
+        plays: _backup.plays,
+        days: _backup.days,
+        trackDays: _backup.trackDays,
+        firstPlays: _backup.firstPlays,
+        hours: _backup.hours,
+        replayMonth: _backup.replayMonth,
+        settings: _backup.settings,
+        lyricsOffsets: const [BackupLyricsOffset(track: '1', offsetMs: 300)],
+      );
+
+      expect(
+        BackupCodec.fingerprint(withLyrics),
+        isNot(BackupCodec.fingerprint(_backup)),
+      );
+    });
+
+    test('a backup of some parts is version 2 and holds only those', () {
+      final likes = _backup.only({BackupPart.likes, BackupPart.equalizer});
+      final json =
+          jsonDecode(utf8.decode(BackupCodec.encode(likes)))
+              as Map<String, dynamic>;
+
+      expect(json['version'], 2);
+      // Listed though this backup has no equalizer, as a whole backup may
+      // lack one: a restore offers it only when there.
+      expect(json['contents'], ['likes', 'equalizer']);
+      expect(json.containsKey('history'), isFalse);
+      expect(json.containsKey('settings'), isFalse);
+      expect((json['playlists'] as List).single['likes'], isTrue);
+      expect(BackupCodec.decode(BackupCodec.encode(likes)), likes);
+    });
+
+    test('settings alone name no song', () {
+      final settings = _backup.only({BackupPart.settings});
+      final read = BackupCodec.decode(BackupCodec.encode(settings));
+
+      expect(read.parts, {BackupPart.settings});
+      expect(read.tracks, isEmpty);
+      expect(read.settings, _backup.settings);
+    });
+
+    test('a part this version does not know is skipped', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['likes', 'podcasts'];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.parts, {BackupPart.likes});
+      expect(read.playlists.single.isLikes, isTrue);
+    });
+
+    test('a section of a part not listed is not read', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['playlists'];
+
+      final read = BackupCodec.decode(_bytes(json));
+
+      expect(read.settings, isNull);
+      expect(read.plays, isEmpty);
+      expect(read.replayMonth, isNull);
+      expect(read.playlists.map((p) => p.name), ['Road trip', 'Forgotten']);
+    });
+
+    test('a part listed without its section is refused', () {
+      final json = _json()
+        ..['version'] = 2
+        ..['contents'] = ['history']
+        ..remove('history');
+
+      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+    });
+
+    test('version 2 without a list of contents is refused', () {
+      final json = _json()..['version'] = 2;
+
+      expect(() => BackupCodec.decode(_bytes(json)), _rejected);
+    });
   });
 }

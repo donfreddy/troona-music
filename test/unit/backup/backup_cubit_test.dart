@@ -4,18 +4,55 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/domain/entities/backup.dart';
+import 'package:troona/features/backup/domain/entities/backup_preferences.dart';
+import 'package:troona/features/backup/domain/entities/backup_summary.dart';
+import 'package:troona/features/backup/domain/entities/stored_backup.dart';
+import 'package:troona/features/backup/domain/repositories/backup_folder_repository.dart';
+import 'package:troona/features/backup/domain/repositories/backup_preferences_repository.dart';
 import 'package:troona/features/backup/domain/repositories/backup_repository.dart';
 import 'package:troona/features/backup/domain/use_cases/export_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
+import 'package:troona/features/backup/domain/use_cases/run_auto_backup_use_case.dart';
+import 'package:troona/features/backup/domain/use_cases/save_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
+
+Backup _backup(Set<BackupPart> parts) => Backup(
+  createdAt: DateTime.utc(2026, 11, 23),
+  parts: parts,
+  tracks: const {},
+  playlists: const [BackupPlaylist(name: 'Mix', isLikes: false, tracks: [])],
+  plays: const [],
+  days: const [],
+  trackDays: const [],
+  firstPlays: const [],
+  replayMonth: null,
+  settings: null,
+);
 
 final class _Backups extends Fake implements BackupRepository {
   int clears = 0;
   int reads = 0;
+  Set<BackupPart>? asked;
+
+  /// Holds the snapshot until completed.
+  Completer<void>? gate;
+  Failure? fails;
 
   @override
-  Future<Either<Failure, String>> exportToFile() async => right('/backup.json');
+  Future<Either<Failure, Backup>> snapshot(Set<BackupPart> parts) async {
+    asked = parts;
+    await gate?.future;
+    if (fails case final f?) return left(f);
+    return right(_backup(parts));
+  }
+
+  @override
+  Future<String> fingerprint(Backup backup) async => 'f';
+
+  @override
+  Future<Either<Failure, String>> exportToFile(Backup backup) async =>
+      right('/backup.json');
 
   @override
   Future<void> clearExports() async => clears++;
@@ -27,29 +64,119 @@ final class _Backups extends Fake implements BackupRepository {
   }
 }
 
+final class _Folder extends Fake implements BackupFolderRepository {
+  BackupFolderState folder = const NoBackupFolder();
+  BackupFolder? toPick = const BackupFolder(uri: 'tree:1', name: 'Troona');
+  final stored = <StoredBackup>[];
+  int picks = 0;
+  bool losesAccessOnList = false;
+
+  @override
+  Future<BackupFolderState> state() async => folder;
+
+  @override
+  Future<Either<Failure, BackupFolder?>> pick() async {
+    picks++;
+    if (toPick case final picked?) folder = BackupFolderReady(picked);
+    return right(toPick);
+  }
+
+  @override
+  Future<Either<Failure, List<StoredBackup>>> list() async {
+    if (losesAccessOnList) {
+      folder = const BackupFolderLost('Troona');
+      return left(const BackupFolderLostFailure());
+    }
+    return right([...stored.reversed]);
+  }
+
+  @override
+  Future<Either<Failure, StoredBackup>> save(
+    Backup backup, {
+    required bool auto,
+  }) async {
+    final b = StoredBackup(
+      id: 'doc-${stored.length}',
+      name: 'b${stored.length}',
+      createdAt: DateTime(2026, 11, 23, stored.length),
+      auto: auto,
+    );
+    stored.add(b);
+    return right(b);
+  }
+
+  @override
+  Future<Either<Failure, Backup>> read(StoredBackup stored) async =>
+      right(_backup({BackupPart.playlists}));
+
+  @override
+  BackupSummary? summaryOf(StoredBackup stored) => null;
+}
+
+final class _Preferences implements BackupPreferencesRepository {
+  BackupPreferences value = const BackupPreferences();
+  AutoBackupMark? mark;
+
+  @override
+  BackupPreferences load() => value;
+
+  @override
+  Future<void> save(BackupPreferences preferences) async => value = preferences;
+
+  @override
+  AutoBackupMark? get lastAuto => mark;
+
+  @override
+  Future<void> setLastAuto(AutoBackupMark mark) async => this.mark = mark;
+
+  @override
+  DateTime? lastFailure;
+
+  @override
+  Future<void> setLastFailure(DateTime? at) async => lastFailure = at;
+}
+
 final class _Library extends Fake implements LibraryRepository {}
 
 void main() {
   late _Backups backups;
+  late _Folder folder;
+  late _Preferences preferences;
   late BackupCubit cubit;
 
   setUp(() {
     backups = _Backups();
+    folder = _Folder();
+    preferences = _Preferences();
     cubit = BackupCubit(
       export: ExportBackupUseCase(backups),
       restore: RestoreBackupUseCase(backups, _Library()),
+      save: SaveBackupUseCase(backups, folder),
+      auto: RunAutoBackupUseCase(
+        backups: backups,
+        folder: folder,
+        preferences: preferences,
+      ),
+      folder: folder,
+      preferences: preferences,
     );
   });
 
   tearDown(() => cubit.close());
 
-  test('the export is deleted once shared', () async {
-    final result = await cubit.export((_) async {});
+  test(
+    'an export holds the parts chosen, and is deleted once shared',
+    () async {
+      await cubit.setParts({BackupPart.history});
 
-    expect(result.isRight(), isTrue);
-    expect(backups.clears, 1);
-    expect(cubit.state, isFalse);
-  });
+      final result = await cubit.export((_) async {});
+
+      expect(result.isRight(), isTrue);
+      expect(backups.asked, {BackupPart.history});
+      expect(backups.clears, 1);
+      expect(cubit.state.busy, isFalse);
+    },
+  );
 
   test('the export is deleted when sharing fails', () async {
     final result = await cubit.export((_) async => throw StateError('no'));
@@ -63,11 +190,187 @@ void main() {
     final first = cubit.export((_) => sharing.future);
     await pumpEventQueue();
 
-    final second = await cubit.restore('/other.json');
+    final second = await cubit.openFile('/other.json');
+    final auto = await cubit.autoBackupIfDue();
     sharing.complete();
 
     expect(second.isLeft(), isTrue);
+    expect(auto, isNull);
     expect(backups.reads, 0);
     expect((await first).isRight(), isTrue);
+  });
+
+  test('a task asked during an automatic backup waits for it, then runs '
+      '(the folder picker is not refused on coming back)', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    preferences.value = const BackupPreferences(auto: true);
+    backups.gate = Completer<void>();
+    final auto = cubit.autoBackupIfDue();
+    await pumpEventQueue();
+    expect(cubit.state.task, BackupTask.auto);
+
+    final picking = cubit.pickFolder();
+    await pumpEventQueue();
+    expect(folder.picks, 0);
+    backups.gate!.complete();
+
+    expect(await auto, isA<AutoBackupSaved>());
+    expect((await picking).isRight(), isTrue);
+    expect(folder.picks, 1);
+  });
+
+  test('a load waits for the task running, then lists what it wrote', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    preferences.value = const BackupPreferences(auto: true);
+    backups.gate = Completer<void>();
+    final auto = cubit.autoBackupIfDue();
+    await pumpEventQueue();
+
+    var loaded = false;
+    final load = cubit.load().then((_) => loaded = true);
+    await pumpEventQueue();
+    expect(loaded, isFalse);
+    backups.gate!.complete();
+    await auto;
+    await load;
+
+    expect(cubit.state.backups, hasLength(1));
+  });
+
+  test('turning it on backs up at once, even right after a failure', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    // Known as chosen: no picker, which would clear the wait itself.
+    await cubit.load();
+    preferences.lastFailure = DateTime.now();
+
+    expect(await cubit.setAuto(true), right(unit));
+
+    expect(folder.picks, 0);
+    expect(folder.stored.single.auto, isTrue);
+  });
+
+  test('a folder picked again clears the wait after a failure', () async {
+    preferences.lastFailure = DateTime.now();
+
+    await cubit.pickFolder();
+
+    expect(preferences.lastFailure, isNull);
+  });
+
+  test('a picker cancelled keeps the wait', () async {
+    final failed = DateTime.now();
+    preferences.lastFailure = failed;
+    folder.toPick = null;
+
+    await cubit.pickFolder();
+
+    expect(preferences.lastFailure, failed);
+  });
+
+  test('the folder is unknown until read once', () async {
+    expect(cubit.state.folderRead, isFalse);
+
+    await cubit.load();
+
+    expect(cubit.state.folderRead, isTrue);
+  });
+
+  test('another build\'s automatic backup is not this one\'s last', () {
+    final theirs = StoredBackup(
+      id: 'd',
+      name: 'troona-auto-dev-20261123-090000.json',
+      createdAt: DateTime(2026, 11, 23, 9),
+      auto: true,
+      mine: false,
+    );
+    final ours = StoredBackup(
+      id: 'r',
+      name: 'troona-auto-20261120-090000.json',
+      createdAt: DateTime(2026, 11, 20, 9),
+      auto: true,
+    );
+
+    expect(BackupState(backups: [theirs, ours]).lastAuto, ours);
+    expect(BackupState(backups: [theirs]).lastAuto, isNull);
+  });
+
+  test('turning it on reports a first backup that fails', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    backups.fails = const DatabaseFailure();
+
+    final result = await cubit.setAuto(true);
+
+    expect(result, left(const DatabaseFailure()));
+    // Still on: the next check tries again.
+    expect(cubit.state.preferences.auto, isTrue);
+  });
+
+  test('turning it on without a folder asks for one, then backs up', () async {
+    await cubit.setAuto(true);
+
+    expect(folder.picks, 1);
+    expect(cubit.state.preferences.auto, isTrue);
+    expect(preferences.value.auto, isTrue);
+    expect(cubit.state.backups.single.auto, isTrue);
+    expect(cubit.state.lastAuto, cubit.state.backups.single);
+  });
+
+  test('cancelling the folder picker leaves it off', () async {
+    folder.toPick = null;
+
+    await cubit.setAuto(true);
+
+    expect(cubit.state.preferences.auto, isFalse);
+    expect(preferences.value.auto, isFalse);
+    expect(folder.stored, isEmpty);
+  });
+
+  test('the parts are never left empty', () async {
+    await cubit.setParts({});
+
+    expect(cubit.state.preferences.parts, BackupPart.all);
+  });
+
+  test('a backup by hand joins the list', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+
+    final saved = await cubit.backUpNow();
+
+    expect(saved.isRight(), isTrue);
+    expect(cubit.state.backups.single.auto, isFalse);
+  });
+
+  test('a backup read once is counted in the list', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    await cubit.backUpNow();
+    final stored = cubit.state.backups.single;
+
+    await cubit.open(stored);
+
+    expect(cubit.state.summaries[stored.id]?.playlists, 1);
+  });
+
+  test('a folder whose access went while listing shows as lost', () async {
+    folder.folder = const BackupFolderReady(
+      BackupFolder(uri: 'tree:1', name: 'Troona'),
+    );
+    folder.losesAccessOnList = true;
+
+    await cubit.load();
+
+    expect(cubit.state.folder, const BackupFolderLost('Troona'));
+    expect(cubit.state.backups, isEmpty);
   });
 }

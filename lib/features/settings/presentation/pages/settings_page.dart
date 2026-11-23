@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,16 +11,14 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
-import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
-import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.dart';
+import 'package:troona/features/backup/domain/entities/stored_backup.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
+import 'package:troona/features/backup/presentation/utils/backup_labels.dart';
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
 import 'package:troona/features/equalizer/presentation/widgets/equalizer_sheet.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
-import 'package:troona/features/library/domain/services/track_tags.dart';
-import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/domain/repositories/maintenance_repository.dart';
@@ -50,8 +47,21 @@ String _glassLabelOf(GlassQuality quality, AppLocalizations l10n) =>
       GlassQuality.off => l10n.settingsGlassOff,
     };
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Once per visit, for the backup row's date: not in the route's
+    // builder, which runs again on each change of the router.
+    unawaited(context.read<BackupCubit>().load());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +114,7 @@ class _SettingsList extends StatelessWidget {
     final cubit = context.read<SettingsCubit>();
     final maintenance = context.watch<MaintenanceCubit>().state;
     final sizes = maintenance.sizes;
-    final backupBusy = context.watch<BackupCubit>().state;
+    final backup = context.watch<BackupCubit>().state;
     final update = context.watch<UpdateCubit>().state;
 
     return SliverList.list(
@@ -255,22 +265,26 @@ class _SettingsList extends StatelessWidget {
         ),
         SettingsSection(
           title: l10n.settingsBackup,
-          footer: l10n.settingsBackupFooter,
           children: [
-            SettingsTile(
+            SettingsTile.navigation(
               icon: AppIcons.backup,
               iconColor: const Color(0xFF3B82F6),
-              title: l10n.backupExport,
-              subtitle: l10n.backupExportSubtitle,
-              onTap: backupBusy ? null : () => _exportBackup(context),
-            ),
-            SettingsTile(
-              icon: AppIcons.restore,
-              iconColor: const Color(0xFF22C55E),
-              title: l10n.backupRestore,
-              subtitle: l10n.backupRestoreSubtitle,
-              trailing: backupBusy ? const CupertinoActivityIndicator() : null,
-              onTap: backupBusy ? null : () => _restoreBackup(context),
+              title: l10n.backupTitle,
+              subtitle: !backup.folderRead
+                  ? null
+                  : switch ((
+                      backup.folder,
+                      // Another build's automatic backups are not this one's.
+                      backup.backups.where((b) => b.mine).firstOrNull,
+                    )) {
+                      (BackupFolderLost(:final name), _) =>
+                        l10n.backupFolderLost(name),
+                      (_, final last?) => l10n.backupSettingsLast(
+                        backupDate(context, last.createdAt),
+                      ),
+                      _ => l10n.backupSettingsNone,
+                    },
+              onTap: () => context.pushNamed(AppRoute.backup),
             ),
           ],
         ),
@@ -422,91 +436,6 @@ class _SettingsList extends StatelessWidget {
       confirmLabel: l10n.updateView,
     );
     if (view && context.mounted) await openRelease(context, release);
-  }
-
-  Future<void> _exportBackup(BuildContext context) async {
-    final l10n = context.l10n;
-    final overlay = Overlay.of(context, rootOverlay: true);
-    // share_plus copies the file before the share sheet opens, so the
-    // cubit deletes its own once this returns.
-    final result = await context.read<BackupCubit>().export(
-      (path) => SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(path, mimeType: 'application/json')],
-          subject: l10n.backupShareSubject,
-        ),
-      ),
-    );
-    if (result.isLeft()) AppToast.showOn(overlay, l10n.errorGeneric);
-  }
-
-  Future<void> _restoreBackup(BuildContext context) async {
-    final l10n = context.l10n;
-    final confirmed = await showConfirmDialog(
-      context,
-      title: l10n.backupRestoreConfirmTitle,
-      body: l10n.backupRestoreConfirmBody,
-      confirmLabel: l10n.backupRestoreAction,
-    );
-    if (!confirmed || !context.mounted) return;
-    // Captured up front: the restore finishes even if Settings closes.
-    final backup = context.read<BackupCubit>();
-    final settings = context.read<SettingsCubit>();
-    final likes = context.read<LikesCubit>();
-    final equalizer = context.read<EqualizerCubit?>();
-
-    final picked = await FilePicker.pickFiles();
-    final path = picked?.files.singleOrNull?.path;
-    if (path == null) return;
-    final result = await backup.restore(path);
-    // The picker's copy holds the listening history: not left behind.
-    unawaited(FilePicker.clearTemporaryFiles());
-
-    final report = result.fold((_) => null, (report) => report);
-    if (report != null) {
-      await settings.restore(report.settings);
-      if (report.equalizer case final eq?) {
-        equalizer?.restore(eq.settings, eq.profiles);
-      }
-      unawaited(likes.loadAllLikes());
-    }
-    if (!context.mounted) return;
-    await result.fold(
-      (failure) => showMessageDialog(
-        context,
-        title: l10n.backupRestore,
-        body: switch (failure) {
-          BackupTooNewFailure() => l10n.backupRestoreTooNew,
-          BackupFormatFailure() => l10n.backupRestoreInvalid,
-          _ => l10n.errorGeneric,
-        },
-      ),
-      (report) => showMessageDialog(
-        context,
-        title: l10n.backupRestoreDoneTitle,
-        body: _restoreSummary(l10n, report),
-      ),
-    );
-  }
-
-  static const _missingShown = 5;
-
-  String _restoreSummary(AppLocalizations l10n, RestoreReport report) {
-    final missing = report.missing;
-    return [
-      l10n.backupRestoreFound(report.found, report.total),
-      if (missing.isNotEmpty)
-        [
-          l10n.backupRestoreMissing(missing.length),
-          for (final t in missing.take(_missingShown))
-            TrackTags.isUnknownArtist(t.artist)
-                ? t.title
-                : '${t.title}, ${t.artist}',
-          if (missing.length > _missingShown)
-            l10n.backupRestoreMore(missing.length - _missingShown),
-        ].join('\n'),
-      if (report.settings.onlineExtrasEnabled) l10n.backupRestoreOnline,
-    ].join('\n\n');
   }
 
   Future<void> _shareReport(BuildContext context) async {

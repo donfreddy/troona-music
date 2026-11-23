@@ -310,14 +310,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBackupBody =>
-      'Exporting a backup writes your playlists, likes, listening history, imported lyrics and settings, with the names and sizes of your music files, to a file, unencrypted, and hands it to the app you choose. It goes nowhere else. Restoring reads only the file you pick.';
+      'A backup holds the parts you choose (playlists, likes, listening history, imported lyrics and their timing, settings, equalizer), with the names and sizes of your music files, unencrypted. Troona writes it to the folder you picked for backups, or hands it to the app you choose when you share it. It goes nowhere else. Restoring reads only the backup you pick, and writes only the parts you keep.';
 
   @override
   String get privacyDeleteTitle => 'Deleting your data';
 
   @override
   String get privacyDeleteBody =>
-      'Uninstalling Troona deletes everything it stored. Your music files, and backups you exported, are never touched.';
+      'Uninstalling Troona deletes everything it stored. Your music files, and backups in your backup folder or exported, are never touched.';
 
   @override
   String get permissionHeadline => 'All your music.\nNothing in the way.';
@@ -1349,10 +1349,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBackupFooter =>
-      'The file holds your playlists, likes, listening history and settings, with the names and sizes of your music files, unencrypted. Keep it somewhere private.';
-
-  @override
-  String get backupExport => 'Export a backup';
+      'A backup holds what you choose above, with the names and sizes of your music files, unencrypted. Keep it somewhere private.';
 
   @override
   String get backupExportSubtitle => 'Save it to Files, Drive or another app.';
@@ -1364,20 +1361,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupRestore => 'Restore a backup';
 
   @override
-  String get backupRestoreSubtitle =>
-      'Adds its playlists, likes and history to yours.';
-
-  @override
-  String get backupRestoreConfirmTitle => 'Restore a backup?';
-
-  @override
-  String get backupRestoreConfirmBody =>
-      'Its playlists, likes and listening history are added to yours. Its settings replace yours, except online extras.';
-
-  @override
-  String get backupRestoreAction => 'Choose file';
-
-  @override
   String get backupRestoreInvalid =>
       'This file is not a Troona backup, or it is damaged.';
 
@@ -1387,6 +1370,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupRestoreDoneTitle => 'Backup restored';
+
+  @override
+  String get backupRestoreDoneBody => 'Everything you chose is restored.';
 
   @override
   String backupRestoreFound(int found, int total) {
@@ -1413,7 +1399,199 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupRestoreOnline =>
-      'Online extras were on in this backup. They stay as they are on this phone: turn them on above if you want them.';
+      'Online extras were on in this backup. They stay as they are on this phone: turn them on in Settings if you want them.';
+
+  @override
+  String get backupTitle => 'Backup & restore';
+
+  @override
+  String backupSettingsLast(String date) {
+    return 'Last backup: $date';
+  }
+
+  @override
+  String get backupSettingsNone => 'Playlists, likes, history and settings';
+
+  @override
+  String get backupAutoSection => 'Automatic backup';
+
+  @override
+  String get backupAuto => 'Back up automatically';
+
+  @override
+  String get backupAutoOff => 'Into a folder you choose, when you open Troona';
+
+  @override
+  String backupAutoLast(String date) {
+    return 'Last one: $date';
+  }
+
+  @override
+  String get backupAutoNone => 'None yet';
+
+  @override
+  String get backupFrequency => 'Frequency';
+
+  @override
+  String get backupDaily => 'Every day';
+
+  @override
+  String get backupWeekly => 'Every week';
+
+  @override
+  String get backupFolder => 'Folder';
+
+  @override
+  String get backupFolderChoose => 'Choose a folder';
+
+  @override
+  String backupFolderLost(String name) {
+    return 'Can\'t reach $name. Choose it again.';
+  }
+
+  @override
+  String get backupFolderFooter =>
+      'Troona keeps its last 5 automatic backups there, and every backup you make. The folder stays if you uninstall Troona: choose it again after reinstalling to find your backups.';
+
+  @override
+  String get backupManualSection => 'Back up';
+
+  @override
+  String get backupParts => 'What to back up';
+
+  @override
+  String get backupPartsEverything => 'Everything';
+
+  @override
+  String get backupPartHistory => 'Listening history';
+
+  @override
+  String get backupPartSettings => 'Settings';
+
+  @override
+  String get backupPartLyrics => 'Lyrics';
+
+  @override
+  String get backupNow => 'Back up now';
+
+  @override
+  String backupNowInto(String name) {
+    return 'Into $name';
+  }
+
+  @override
+  String get backupSaved => 'Backup saved';
+
+  @override
+  String get backupRestoreSection => 'Restore';
+
+  @override
+  String get backupNone => 'No backups in this folder yet';
+
+  @override
+  String get backupFromFile => 'Restore from a file';
+
+  @override
+  String get backupFromFileSubtitle =>
+      'A backup saved elsewhere, or from another phone';
+
+  @override
+  String get backupAutoBadge => 'Auto';
+
+  @override
+  String get backupOptions => 'Backup options';
+
+  @override
+  String get backupShare => 'Share';
+
+  @override
+  String get backupDeleteTitle => 'Delete this backup?';
+
+  @override
+  String backupDeleteBody(String name) {
+    return 'It is deleted from $name.';
+  }
+
+  @override
+  String backupSummaryPlaylists(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count playlists',
+      one: '1 playlist',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLikes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count liked songs',
+      one: '1 liked song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryPlays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plays',
+      one: '1 play',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryLyrics(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lyrics or timing for $count songs',
+      one: 'Lyrics or timing for 1 song',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String backupSummaryProfiles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Its setting and $count profiles',
+      one: 'Its setting and 1 profile',
+      zero: 'Its setting, no saved profile',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get backupSettingsReplace => 'They replace yours';
+
+  @override
+  String get backupRestoreTitle => 'Restore this backup';
+
+  @override
+  String backupRestoreFrom(String date) {
+    return 'Made $date. Playlists, likes and history are added to yours; settings and the equalizer replace yours.';
+  }
+
+  @override
+  String get backupRestoreButton => 'Restore';
+
+  @override
+  String get backupRestoreNothing => 'This backup holds nothing to restore.';
+
+  @override
+  String get backupFolderLostError =>
+      'Can\'t reach the backup folder. Choose it again.';
+
+  @override
+  String get backupAutoFolderLost =>
+      'Automatic backup can\'t reach its folder. Choose it again in Settings, Backup & restore.';
 
   @override
   String get settingsUpdateCheck => 'Check for updates';

@@ -37,7 +37,10 @@ final class BackupVersionException implements Exception {
 /// itself, and its backups must still restore.
 abstract final class BackupCodec {
   static const format = 'troona-backup';
-  static const version = 1;
+
+  /// The newest version read. Version 1 holds every part; version 2 lists
+  /// the parts it holds under `contents`.
+  static const version = 2;
 
   /// Larger than any real backup: a library of 100 000 songs with its
   /// history stays well under it.
@@ -54,71 +57,126 @@ abstract final class BackupCodec {
   static const _maxDayMs = 50 * Duration.millisecondsPerHour;
   static const _maxDayPlays = 100000;
 
-  static List<int> encode(Backup backup) => utf8.encode(
-    jsonEncode({
-      'format': format,
-      'version': version,
-      'createdAt': backup.createdAt.toUtc().toIso8601String(),
-      'tracks': {
-        for (final MapEntry(:key, value: t) in backup.tracks.entries)
-          key: {
-            'title': _clip(t.title),
-            'artist': _clip(t.artist),
-            'album': _clip(t.album),
-            'durationMs': t.durationMs,
-            'fileName': _clip(t.fileName),
-            'size': t.size,
-          },
-      },
-      'playlists': [
-        for (final p in backup.playlists)
-          {
-            'name': _clip(p.name),
-            'likes': p.isLikes,
-            'tracks': p.tracks,
-            if (p.rules case final rules?)
-              'rules': SmartRulesJson.encode(rules),
-          },
-      ],
-      'history': {
-        'plays': [
-          for (final p in backup.plays)
-            {'track': p.track, 'at': p.at.toUtc().toIso8601String()},
-        ],
-        'days': [
-          for (final d in backup.days)
-            {'day': d.day, 'plays': d.plays, 'listenedMs': d.listenedMs},
-        ],
-        'trackDays': [
-          for (final d in backup.trackDays)
-            {'day': d.day, 'track': d.track, 'plays': d.plays},
-        ],
-        'firstPlays': [
-          for (final f in backup.firstPlays) {'track': f.track, 'day': f.day},
-        ],
-        'hours': [
-          for (final h in backup.hours) {'hour': h.hour, 'plays': h.plays},
-        ],
-        'replayMonth': backup.replayMonth,
-      },
-      'settings': _encodeSettings(backup.settings),
-      if (backup.equalizer case final eq?)
-        'equalizer': {
-          'settings': EqualizerJson.encodeSettings(eq.settings),
-          'profiles': EqualizerJson.encodeProfiles(eq.profiles),
+  static List<int> encode(Backup backup) {
+    final held = {
+      for (final part in backup.parts)
+        if (part != BackupPart.settings || backup.settings != null) part,
+    };
+    // The equalizer and lyrics are optional in version 1 too: a backup
+    // without them is still one an older app restores whole.
+    final complete = held.containsAll(
+      BackupPart.all.difference({BackupPart.equalizer, BackupPart.lyrics}),
+    );
+    bool has(BackupPart part) => held.contains(part);
+    return utf8.encode(
+      jsonEncode({
+        'format': format,
+        // A whole backup keeps the first version, which older apps read; one
+        // that leaves parts out is a version they refuse, rather than
+        // restore as if it held nothing.
+        'version': complete ? 1 : version,
+        if (!complete)
+          'contents': [
+            for (final part in BackupPart.values)
+              if (has(part)) part.name,
+          ],
+        'createdAt': backup.createdAt.toUtc().toIso8601String(),
+        'tracks': {
+          for (final MapEntry(:key, value: t) in backup.tracks.entries)
+            key: {
+              'title': _clip(t.title),
+              'artist': _clip(t.artist),
+              'album': _clip(t.album),
+              'durationMs': t.durationMs,
+              'fileName': _clip(t.fileName),
+              'size': t.size,
+            },
         },
-      if (backup.lyrics.isNotEmpty)
-        'lyrics': [
-          for (final l in backup.lyrics)
-            {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
-        ],
-      if (backup.lyricsOffsets.isNotEmpty)
-        'lyricsOffsets': [
-          for (final o in backup.lyricsOffsets)
-            {'track': o.track, 'offsetMs': o.offsetMs},
-        ],
-    }),
-  );
+        if (has(BackupPart.playlists) || has(BackupPart.likes))
+          'playlists': [
+            for (final p in backup.playlists)
+              if (has(p.isLikes ? BackupPart.likes : BackupPart.playlists))
+                {
+                  'name': _clip(p.name),
+                  'likes': p.isLikes,
+                  'tracks': p.tracks,
+                  if (p.rules case final rules?)
+                    'rules': SmartRulesJson.encode(rules),
+                },
+          ],
+        if (has(BackupPart.history))
+          'history': {
+            'plays': [
+              for (final p in backup.plays)
+                {'track': p.track, 'at': p.at.toUtc().toIso8601String()},
+            ],
+            'days': [
+              for (final d in backup.days)
+                {'day': d.day, 'plays': d.plays, 'listenedMs': d.listenedMs},
+            ],
+            'trackDays': [
+              for (final d in backup.trackDays)
+                {'day': d.day, 'track': d.track, 'plays': d.plays},
+            ],
+            'firstPlays': [
+              for (final f in backup.firstPlays)
+                {'track': f.track, 'day': f.day},
+            ],
+            'hours': [
+              for (final h in backup.hours) {'hour': h.hour, 'plays': h.plays},
+            ],
+            'replayMonth': backup.replayMonth,
+          },
+        if (backup.settings case final settings? when has(BackupPart.settings))
+          'settings': _encodeSettings(settings),
+        if (backup.equalizer case final eq? when has(BackupPart.equalizer))
+          'equalizer': {
+            'settings': EqualizerJson.encodeSettings(eq.settings),
+            'profiles': EqualizerJson.encodeProfiles(eq.profiles),
+          },
+        if (has(BackupPart.lyrics) && backup.lyrics.isNotEmpty)
+          'lyrics': [
+            for (final l in backup.lyrics)
+              {'track': l.track, 'text': l.text, 'offsetMs': l.offsetMs},
+          ],
+        if (has(BackupPart.lyrics) && backup.lyricsOffsets.isNotEmpty)
+          'lyricsOffsets': [
+            for (final o in backup.lyricsOffsets)
+              {'track': o.track, 'offsetMs': o.offsetMs},
+          ],
+      }),
+    );
+  }
+
+  /// What [backup] holds, as 16 hex digits: 64-bit FNV-1a over its
+  /// encoding with the date left out, so two backups of the same data
+  /// match. Not for security: it only spares writing the same backup twice.
+  static String fingerprint(Backup backup) {
+    final undated = Backup(
+      createdAt: DateTime.utc(2000),
+      parts: backup.parts,
+      tracks: backup.tracks,
+      playlists: backup.playlists,
+      plays: backup.plays,
+      days: backup.days,
+      trackDays: backup.trackDays,
+      firstPlays: backup.firstPlays,
+      hours: backup.hours,
+      replayMonth: backup.replayMonth,
+      settings: backup.settings,
+      equalizer: backup.equalizer,
+      lyrics: backup.lyrics,
+      lyricsOffsets: backup.lyricsOffsets,
+    );
+    // Dart ints wrap on overflow, which is the modulo FNV needs.
+    var hash = 0xcbf29ce484222325;
+    for (final byte in encode(undated)) {
+      hash = (hash ^ byte) * 0x100000001b3;
+    }
+    // In two halves: a 64-bit hash is often negative as a Dart int.
+    String half(int bits) => bits.toRadixString(16).padLeft(8, '0');
+    return half((hash >> 32) & 0xffffffff) + half(hash & 0xffffffff);
+  }
 
   /// [now] bounds the dates: a backup cannot hold days to come.
   static Backup decode(List<int> bytes, {DateTime? now}) {
@@ -142,6 +200,10 @@ abstract final class BackupCodec {
     }
     final fileVersion = _int(json['version'], 'version', min: 1);
     if (fileVersion > version) throw BackupVersionException(fileVersion);
+    final parts = fileVersion == 1
+        ? BackupPart.all
+        : _contents(json['contents']);
+    bool has(BackupPart part) => parts.contains(part);
     bool inRange(int day) => day >= _firstDay && day <= lastDay;
     // Records failing these are dropped, not fatal (see the class comment).
     bool fair(int day, {int plays = 0, int listenedMs = 0}) =>
@@ -163,23 +225,40 @@ abstract final class BackupCodec {
       return key;
     }
 
-    final history = _map(json['history'], 'history');
+    // A part listed must be there; one left out is not read, even if its
+    // key is.
+    final history = has(BackupPart.history)
+        ? _map(json['history'], 'history')
+        : const <String, Object?>{
+            'plays': [],
+            'days': [],
+            'trackDays': [],
+            'firstPlays': [],
+          };
+    final playlists = has(BackupPart.playlists) || has(BackupPart.likes)
+        ? json['playlists']
+        : const <Object?>[];
     return Backup(
       createdAt: _utc(_text(json['createdAt'], 'createdAt'), 'createdAt'),
+      parts: parts,
       tracks: tracks,
-      playlists: _list(json['playlists'], 'playlists', (p) {
-        final m = _map(p, 'playlist');
-        return BackupPlaylist(
-          name: _text(m['name'], 'playlist name'),
-          isLikes: _bool(m['likes'], 'likes'),
-          tracks: _list(m['tracks'], 'playlist tracks', ref),
-          // Lenient: rules that cannot be read still make a smart playlist,
-          // one that keeps nothing until edited.
-          rules: m.containsKey('rules')
-              ? SmartRulesJson.decode(m['rules']) ?? SmartRulesJson.unreadable
-              : null,
-        );
-      }),
+      playlists: [
+        for (final playlist in _list(playlists, 'playlists', (p) {
+          final m = _map(p, 'playlist');
+          return BackupPlaylist(
+            name: _text(m['name'], 'playlist name'),
+            isLikes: _bool(m['likes'], 'likes'),
+            tracks: _list(m['tracks'], 'playlist tracks', ref),
+            // Lenient: rules that cannot be read still make a smart playlist,
+            // one that keeps nothing until edited.
+            rules: m.containsKey('rules')
+                ? SmartRulesJson.decode(m['rules']) ?? SmartRulesJson.unreadable
+                : null,
+          );
+        }))
+          if (has(playlist.isLikes ? BackupPart.likes : BackupPart.playlists))
+            playlist,
+      ],
       plays: [
         for (final play in _list(history['plays'], 'plays', (p) {
           final m = _map(p, 'play');
@@ -241,14 +320,29 @@ abstract final class BackupCodec {
           _ => null,
         },
       },
-      settings: _decodeSettings(_map(json['settings'], 'settings')),
-      equalizer: _decodeEqualizer(json['equalizer']),
-      lyrics: _decodeLyrics(json['lyrics'], tracks.keys.toSet()),
-      lyricsOffsets: _decodeLyricsOffsets(
-        json['lyricsOffsets'],
-        tracks.keys.toSet(),
-      ),
+      settings: has(BackupPart.settings)
+          ? _decodeSettings(_map(json['settings'], 'settings'))
+          : null,
+      equalizer: has(BackupPart.equalizer)
+          ? _decodeEqualizer(json['equalizer'])
+          : null,
+      lyrics: has(BackupPart.lyrics)
+          ? _decodeLyrics(json['lyrics'], tracks.keys.toSet())
+          : const [],
+      lyricsOffsets: has(BackupPart.lyrics)
+          ? _decodeLyricsOffsets(json['lyricsOffsets'], tracks.keys.toSet())
+          : const [],
     );
+  }
+
+  /// The parts a version 2 file lists. A name this version does not know
+  /// (a part added later) is skipped: the parts it knows still restore.
+  static Set<BackupPart> _contents(Object? json) {
+    final names = _list(json, 'contents', (n) => _text(n, 'part'));
+    return {
+      for (final part in BackupPart.values)
+        if (names.contains(part.name)) part,
+    };
   }
 
   /// Optional, and read leniently, as [_decodeLyrics]: a correction of an

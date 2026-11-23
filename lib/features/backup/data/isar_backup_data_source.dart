@@ -29,32 +29,52 @@ final class IsarBackupDataSource {
   IsarBackupDataSource(this._isar, {required this.maxPlays});
 
   /// Songs are keyed by their device id. A song no longer in the library
-  /// cannot be described, so what names it is left out.
+  /// cannot be described, so what names it is left out. Only the [parts]
+  /// asked for are read; [settings] come with [BackupPart.settings].
   Backup read({
     required DateTime createdAt,
-    required AppSettings settings,
+    required AppSettings? settings,
     required int? replayMonth,
+    Set<BackupPart> parts = BackupPart.all,
   }) {
-    final playlists = _isar.playlistModels.where().findAll();
-    final plays = _isar.playEventModels.where().sortByPlayedAt().findAll();
-    final trackDays = _isar.trackDayModels.where().findAll();
-    final firstPlays = _isar.trackFirstPlayModels.where().findAll();
-    final lyrics = _isar.trackLyricsModels
-        .where()
-        .sourceEqualTo(_imported)
-        .findAll();
+    final history = parts.contains(BackupPart.history);
+    final playlists = [
+      if (parts.contains(BackupPart.playlists) ||
+          parts.contains(BackupPart.likes))
+        for (final p in _isar.playlistModels.where().findAll())
+          if (parts.contains(
+            p.playlistId == Playlist.likesId
+                ? BackupPart.likes
+                : BackupPart.playlists,
+          ))
+            p,
+    ];
+    final plays = history
+        ? _isar.playEventModels.where().sortByPlayedAt().findAll()
+        : const <PlayEventModel>[];
+    final trackDays = history
+        ? _isar.trackDayModels.where().findAll()
+        : const <TrackDayModel>[];
+    final firstPlays = history
+        ? _isar.trackFirstPlayModels.where().findAll()
+        : const <TrackFirstPlayModel>[];
+    final withLyrics = parts.contains(BackupPart.lyrics);
+    final lyrics = withLyrics
+        ? _isar.trackLyricsModels.where().sourceEqualTo(_imported).findAll()
+        : const <TrackLyricsModel>[];
     // Lyrics found online are found again; a correction set on them by
     // hand is not. One restored and still waiting for its lyrics (a row
     // with no text) is carried on too, or the next backup would lose it.
     final corrected = [
-      for (final l
-          in _isar.trackLyricsModels
-              .where()
-              .not()
-              .offsetMsEqualTo(0)
-              .sortById()
-              .findAll())
-        if (l.source != _imported) l,
+      if (withLyrics)
+        for (final l
+            in _isar.trackLyricsModels
+                .where()
+                .not()
+                .offsetMsEqualTo(0)
+                .sortById()
+                .findAll())
+          if (l.source != _imported) l,
     ];
 
     final named = {
@@ -66,20 +86,25 @@ final class IsarBackupDataSource {
       for (final f in firstPlays) f.id,
     };
     final tracks = {
-      for (final t in _isar.trackModels.where().findAll())
-        if (named.contains(t.deviceId))
-          t.deviceId: BackupTrack(
-            title: t.title,
-            artist: t.artist,
-            album: t.album,
-            durationMs: t.durationMs,
-            fileName: t.fileName,
-            size: t.size,
-          ),
+      if (named.isNotEmpty)
+        for (final t in _isar.trackModels.where().findAll())
+          if (named.contains(t.deviceId))
+            t.deviceId: BackupTrack(
+              title: t.title,
+              artist: t.artist,
+              album: t.album,
+              durationMs: t.durationMs,
+              fileName: t.fileName,
+              size: t.size,
+            ),
     };
 
     return Backup(
       createdAt: createdAt,
+      parts: {
+        for (final part in parts)
+          if (part != BackupPart.settings || settings != null) part,
+      },
       tracks: tracks,
       playlists: [
         for (final p in playlists)
@@ -99,8 +124,9 @@ final class IsarBackupDataSource {
             BackupPlay(track: p.trackId, at: p.playedAt),
       ],
       days: [
-        for (final d in _isar.listeningDayModels.where().findAll())
-          BackupDay(day: d.id, plays: d.plays, listenedMs: d.listenedMs),
+        if (history)
+          for (final d in _isar.listeningDayModels.where().findAll())
+            BackupDay(day: d.id, plays: d.plays, listenedMs: d.listenedMs),
       ],
       trackDays: [
         for (final d in trackDays)
@@ -113,11 +139,12 @@ final class IsarBackupDataSource {
             BackupFirstPlay(track: f.id, day: f.day),
       ],
       hours: [
-        for (final h in _isar.listeningHourModels.where().findAll())
-          BackupHour(hour: h.id, plays: h.plays),
+        if (history)
+          for (final h in _isar.listeningHourModels.where().findAll())
+            BackupHour(hour: h.id, plays: h.plays),
       ],
-      replayMonth: replayMonth,
-      settings: settings,
+      replayMonth: history ? replayMonth : null,
+      settings: parts.contains(BackupPart.settings) ? settings : null,
       lyrics: [
         for (final l in lyrics)
           if (tracks.containsKey(l.id) && l.raw != null)
@@ -133,8 +160,10 @@ final class IsarBackupDataSource {
 
   static final _imported = LyricsSource.imported.name;
 
-  /// Merges [backup] into the database. [ids] gives the device id of each
-  /// song of the backup found in the library; the others are skipped.
+  /// Merges [backup] into the database, the records of each part it holds
+  /// (narrowed with [Backup.only] for a restore of some parts). [ids] gives
+  /// the device id of each song of the backup found in the library; the
+  /// others are skipped.
   Future<void> restore(Backup backup, Map<String, String> ids) async =>
       _isar.write((isar) {
         _restorePlaylists(isar, backup.playlists, ids);
