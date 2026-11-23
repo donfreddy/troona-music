@@ -2677,7 +2677,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsResumeAfterCallSubtitle =>
-      'Once the call or the other app is done.';
+      'Once a call or a short interruption is over.';
 
   @override
   String get settingsAudioFooter =>
@@ -2697,10 +2697,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsScanFooter =>
-      'Troona reads the songs Android lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.';
+      'Troona reads the songs your phone lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.';
 
   @override
-  String get settingsOnlineOff => 'Off. Nothing leaves your phone.';
+  String get settingsOnlineOff => 'Off';
 
   @override
   String settingsOnlineOn(String parts) {
@@ -2726,7 +2726,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOnlinePhotosSubtitle =>
-      'From Deezer, with artist and album names and a few song titles.';
+      'From Deezer or Last.fm, with artist and album names and a few song titles.';
 
   @override
   String get settingsOnlineLyricsSubtitle =>

@@ -4409,7 +4409,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsResumeAfterCallSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Once the call or the other app is done.'**
+  /// **'Once a call or a short interruption is over.'**
   String get settingsResumeAfterCallSubtitle;
 
   /// No description provided for @settingsAudioFooter.
@@ -4445,13 +4445,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsScanFooter.
   ///
   /// In en, this message translates to:
-  /// **'Troona reads the songs Android lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.'**
+  /// **'Troona reads the songs your phone lists as music. Ringtones, notifications, voice notes and files under 10 seconds are left out.'**
   String get settingsScanFooter;
 
   /// No description provided for @settingsOnlineOff.
   ///
   /// In en, this message translates to:
-  /// **'Off. Nothing leaves your phone.'**
+  /// **'Off'**
   String get settingsOnlineOff;
 
   /// No description provided for @settingsOnlineOn.
@@ -4493,7 +4493,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsOnlinePhotosSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'From Deezer, with artist and album names and a few song titles.'**
+  /// **'From Deezer or Last.fm, with artist and album names and a few song titles.'**
   String get settingsOnlinePhotosSubtitle;
 
   /// No description provided for @settingsOnlineLyricsSubtitle.

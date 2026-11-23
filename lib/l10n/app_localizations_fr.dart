@@ -2698,7 +2698,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsResumeAfterCallSubtitle =>
-      'Une fois l\'appel ou l\'autre app terminé.';
+      'Une fois l\'appel ou la courte interruption passés.';
 
   @override
   String get settingsAudioFooter =>
@@ -2720,10 +2720,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsScanFooter =>
-      'Troona lit les titres qu\'Android classe comme musique. Les sonneries, notifications, messages vocaux et fichiers de moins de 10 secondes sont écartés.';
+      'Troona lit les titres que votre téléphone classe comme musique. Les sonneries, notifications, messages vocaux et fichiers de moins de 10 secondes sont écartés.';
 
   @override
-  String get settingsOnlineOff => 'Désactivés. Rien ne quitte votre téléphone.';
+  String get settingsOnlineOff => 'Désactivés';
 
   @override
   String settingsOnlineOn(String parts) {
@@ -2749,7 +2749,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsOnlinePhotosSubtitle =>
-      'Depuis Deezer, avec les noms d\'artistes et d\'albums et quelques titres.';
+      'Depuis Deezer ou Last.fm, avec les noms d\'artistes et d\'albums et quelques titres.';
 
   @override
   String get settingsOnlineLyricsSubtitle =>
@@ -2807,7 +2807,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsResetSettingsSubtitle =>
-      'Chaque préférence revient à sa valeur par défaut. Votre bibliothèque, vos likes et vos playlists restent.';
+      'Chaque préférence revient à sa valeur par défaut. Votre bibliothèque, vos titres aimés et vos playlists restent.';
 
   @override
   String get settingsAbout => 'À propos';

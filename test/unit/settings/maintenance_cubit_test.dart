@@ -37,6 +37,25 @@ class _SlowRepo implements MaintenanceRepository {
   Future<String> problemReport({required int trackCount}) async => '';
 }
 
+/// Counts the measures; the first waits for [gate] when set.
+class _CountingRepo extends _SlowRepo {
+  int measures = 0;
+  int coverBytes = 50;
+  Completer<void>? gate;
+
+  @override
+  Future<CacheSizes> cacheSizes() async {
+    measures++;
+    final bytes = coverBytes;
+    final g = gate;
+    if (g != null && measures == 1) await g.future;
+    return CacheSizes(coverBytes: bytes, onlineInfoBytes: 0);
+  }
+
+  @override
+  Future<Either<Failure, Unit>> clearCovers() async => right(unit);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -57,6 +76,39 @@ void main() {
       expect(repo.cleared, 1);
     });
   }
+
+  test('two pages asking at once measure once', () async {
+    final repo = _CountingRepo();
+    final cubit = MaintenanceCubit(repo);
+
+    await Future.wait([cubit.load(), cubit.load()]);
+    await cubit.load();
+
+    expect(repo.measures, 2);
+    await cubit.close();
+  });
+
+  test(
+    'a measure started before a clear does not bring the old size back',
+    () async {
+      final repo = _CountingRepo()..gate = Completer<void>();
+      final cubit = MaintenanceCubit(repo);
+
+      final loading = cubit.load();
+      await pumpEventQueue();
+      repo.coverBytes = 0;
+      await cubit.clearCovers();
+      expect(cubit.state.sizes?.coverBytes, 0);
+      // The measure taken before the clear answers last, with the old size.
+      repo.coverBytes = 99;
+      repo.gate!.complete();
+      await loading;
+
+      expect(cubit.state.sizes?.coverBytes, 0);
+      expect(cubit.state.version, isNotNull);
+      await cubit.close();
+    },
+  );
 
   test('load after close does not throw', () async {
     final cubit = MaintenanceCubit(_SlowRepo());

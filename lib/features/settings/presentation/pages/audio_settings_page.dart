@@ -67,14 +67,14 @@ class AudioSettingsPage extends StatelessWidget {
                 value: settings.stopOnCallEnabled,
                 onChanged: cubit.setStopOnCall,
               ),
-              // Nothing to resume when nothing was paused.
+              // Not tied to the switch above: on iOS the system pauses for
+              // a call whatever it says.
               SettingsTile.switchTile(
                 icon: AppIcons.resumeAfterCall,
                 iconColor: SettingsHue.audio,
                 title: l10n.settingsResumeAfterCall,
                 subtitle: l10n.settingsResumeAfterCallSubtitle,
                 value: settings.resumeAfterCallEnabled,
-                enabled: settings.stopOnCallEnabled,
                 onChanged: cubit.setResumeAfterCall,
               ),
             ],

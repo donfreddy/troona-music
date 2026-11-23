@@ -10,17 +10,36 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
 
   MaintenanceCubit(this._repo) : super(const MaintenanceState());
 
-  Future<void> load() async {
+  /// The measure running: the root and Storage both ask on opening.
+  Future<void>? _loading;
+
+  /// Counts the clears: a measure started before one is out of date.
+  int _clears = 0;
+
+  /// Reads the version and measures the caches. One measure at a time; one
+  /// that started before a clear keeps the version only, or it would show
+  /// the size the clear just removed.
+  Future<void> load() =>
+      _loading ??= _load().whenComplete(() => _loading = null);
+
+  Future<void> _load() async {
+    final clears = _clears;
     final (version, sizes) = (
       await _repo.appVersion(),
       await _repo.cacheSizes(),
     );
-    _emitIfOpen(state.copyWith(version: version, sizes: sizes));
+    _emitIfOpen(
+      state.copyWith(
+        version: version,
+        sizes: clears == _clears ? sizes : state.sizes,
+      ),
+    );
   }
 
   /// True when the covers were cleared. The caller starts a rescan either
   /// way: even a partial failure may have reset artwork paths.
   Future<bool> clearCovers() async {
+    _clears++;
     emit(state.copyWith(busy: true));
     final result = await _repo.clearCovers();
     // Decoded images still point at the deleted files.
@@ -32,6 +51,7 @@ final class MaintenanceCubit extends Cubit<MaintenanceState> {
   }
 
   Future<bool> clearOnlineInfo() async {
+    _clears++;
     emit(state.copyWith(busy: true));
     final result = await _repo.clearOnlineInfo();
     // Deleted photos may still be decoded in memory.

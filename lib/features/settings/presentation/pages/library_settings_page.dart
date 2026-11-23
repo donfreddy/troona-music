@@ -8,6 +8,17 @@ import 'package:troona/features/settings/presentation/widgets/settings_section.d
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
 
+LibraryLoaded? _loaded(LibraryState state) => switch (state) {
+  LibraryLoaded() => state,
+  LibraryScanning(:final cached?) => cached,
+  _ => null,
+};
+
+(int, int, int)? _counts(LibraryState state) => switch (_loaded(state)) {
+  final l? => (l.allTracks.length, l.allAlbums.length, l.allArtists.length),
+  null => null,
+};
+
 /// What the library holds, and scanning the phone again.
 class LibrarySettingsPage extends StatelessWidget {
   const LibrarySettingsPage({super.key});
@@ -20,12 +31,13 @@ class LibrarySettingsPage extends StatelessWidget {
       intro: l10n.settingsLibraryIntro,
       children: [
         BlocBuilder<LibraryBloc, LibraryState>(
+          // A scan's progress emits often: only a start, an end or other
+          // counts redraw the page.
+          buildWhen: (previous, current) =>
+              (previous is LibraryScanning) != (current is LibraryScanning) ||
+              _counts(previous) != _counts(current),
           builder: (context, state) {
-            final library = switch (state) {
-              LibraryLoaded() => state,
-              LibraryScanning(:final cached?) => cached,
-              _ => null,
-            };
+            final library = _loaded(state);
             final scanning = state is LibraryScanning;
             return Column(
               children: [

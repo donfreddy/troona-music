@@ -18,6 +18,9 @@ import 'package:troona/features/backup/domain/use_cases/restore_backup_use_case.
 import 'package:troona/features/backup/domain/use_cases/run_auto_backup_use_case.dart';
 import 'package:troona/features/backup/domain/use_cases/save_backup_use_case.dart';
 import 'package:troona/features/backup/presentation/cubit/backup_cubit.dart';
+import 'package:troona/features/equalizer/data/repositories/prefs_equalizer_repository.dart';
+import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/library_repository.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_use_case.dart';
 import 'package:troona/features/library/domain/use_cases/scan_library_use_case.dart';
@@ -38,12 +41,22 @@ import 'package:troona/features/settings/presentation/widgets/settings_tile.dart
 import 'package:troona/features/updates/domain/use_cases/check_for_update_use_case.dart';
 import 'package:troona/features/updates/presentation/cubit/update_cubit.dart';
 import 'package:troona/l10n/app_localizations.dart';
+import 'package:troona/services/scanner/media_scanner_service.dart';
 
+import '../../helpers/fake_equalizer.dart';
 import '../../helpers/fake_player.dart';
 import '../../helpers/roboto.dart';
 import '../../unit/updates/update_fakes.dart';
 
 final class _Maintenance extends Fake implements MaintenanceRepository {
+  int coverClears = 0;
+
+  @override
+  Future<Either<Failure, Unit>> clearCovers() async {
+    coverClears++;
+    return right(unit);
+  }
+
   @override
   Future<AppVersion> appVersion() async =>
       const AppVersion(version: '1.9.0', build: '42');
@@ -74,8 +87,20 @@ final class _Preferences extends Fake implements BackupPreferencesRepository {
 final class _Backups extends Fake implements BackupRepository {}
 
 final class _Library extends Fake implements LibraryRepository {
+  int scans = 0;
+
   @override
   void cancelScan() {}
+
+  @override
+  Future<Either<Failure, Stream<ScanProgress>>> scanLibrary() async {
+    scans++;
+    return right(const Stream.empty());
+  }
+
+  @override
+  Future<Either<Failure, List<Track>>> getTracks() async =>
+      right([testTrack('1', durationMs: 1000)]);
 }
 
 void main() {
@@ -86,13 +111,27 @@ void main() {
   late BackupCubit backup;
   late UpdateCubit update;
   late LibraryBloc library;
+  late EqualizerCubit equalizer;
+  late _Maintenance maintenanceRepo;
+  late _Library libraryRepo;
+  late FakeUpdateRepository updates;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     final prefs = SettingsRepositoryImpl(await SharedPreferences.getInstance());
     settings = SettingsCubit(prefs);
     await settings.load();
-    maintenance = MaintenanceCubit(_Maintenance());
+    maintenanceRepo = _Maintenance();
+    libraryRepo = _Library();
+    maintenance = MaintenanceCubit(maintenanceRepo);
+    final eqRepo = PrefsEqualizerRepository(
+      await SharedPreferences.getInstance(),
+    );
+    await eqRepo.saveLayout(fiveBands);
+    equalizer = EqualizerCubit(
+      port: FakeEqualizerPort(supported: true),
+      repo: eqRepo,
+    )..start();
     final folder = _Folder();
     final preferences = _Preferences();
     backup = BackupCubit(
@@ -107,15 +146,15 @@ void main() {
       folder: folder,
       preferences: preferences,
     );
-    final updates = FakeUpdateRepository();
+    updates = FakeUpdateRepository();
     update = UpdateCubit(
       check: CheckForUpdateUseCase(updates, FakeApp()),
       repo: updates,
       settings: prefs,
     );
     library = LibraryBloc(
-      scanLibrary: ScanLibraryUseCase(_Library()),
-      getTracks: GetTracksUseCase(_Library()),
+      scanLibrary: ScanLibraryUseCase(libraryRepo),
+      getTracks: GetTracksUseCase(libraryRepo),
     );
     final tracks = [
       testTrack('1', durationMs: 1000),
@@ -140,6 +179,7 @@ void main() {
     await backup.close();
     await update.close();
     await library.close();
+    await equalizer.close();
   });
 
   Widget providers(Widget child) => MultiBlocProvider(
@@ -149,6 +189,7 @@ void main() {
       BlocProvider.value(value: backup),
       BlocProvider.value(value: update),
       BlocProvider.value(value: library),
+      BlocProvider.value(value: equalizer),
     ],
     child: child,
   );
@@ -277,6 +318,48 @@ void main() {
       }
     });
 
+    testWidgets('the privacy policy opens from Online extras', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/online',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const SizedBox(),
+            routes: [
+              GoRoute(
+                path: 'online',
+                builder: (_, _) => const OnlineSettingsPage(),
+              ),
+              GoRoute(
+                path: 'privacy',
+                name: AppRoute.privacy,
+                builder: (_, _) => const Scaffold(body: Text('page privacy')),
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        providers(
+          MaterialApp.router(
+            theme: robotoTheme(AppTheme.dark),
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(find.text('Privacy policy'), 100);
+      await tester.tap(find.text('Privacy policy'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('page privacy'), findsOneWidget);
+    });
+
     testWidgets('says how things stand: extras off, the cache, the version', (
       tester,
     ) async {
@@ -286,7 +369,8 @@ void main() {
       addTearDown(tester.view.reset);
       await pump(tester, const SettingsPage());
 
-      expect(find.text('Off. Nothing leaves your phone.'), findsOneWidget);
+      // Off, not "nothing leaves": the update check is elsewhere.
+      expect(find.text('Off'), findsOneWidget);
       // Both caches together.
       expect(find.text('Cache 42.3 MB, reset'), findsOneWidget);
       expect(find.text("Version 1.9.0, what's new, updates"), findsOneWidget);
@@ -301,10 +385,7 @@ void main() {
     });
 
     test('off when none is on', () {
-      expect(
-        onlineSummary(l10n, const AppSettings()),
-        'Off. Nothing leaves your phone.',
-      );
+      expect(onlineSummary(l10n, const AppSettings()), 'Off');
     });
 
     test('names the ones on, in their order', () {
@@ -318,9 +399,8 @@ void main() {
     });
   });
 
-  testWidgets('resuming after a call waits for pausing during one', (
-    tester,
-  ) async {
+  testWidgets('resuming after a call stays its own switch, as the service '
+      'reads it', (tester) async {
     tester.view
       ..devicePixelRatio = 1
       ..physicalSize = const Size(400, 1400);
@@ -333,12 +413,70 @@ void main() {
       ),
     );
 
-    expect(resume().enabled, isTrue);
-
     await settings.setStopOnCall(false);
     await tester.pumpAndSettle();
 
-    expect(resume().enabled, isFalse);
+    // The service resumes whatever the pause switch says (and iOS pauses
+    // for calls on its own): it must stay reachable.
+    expect(resume().enabled, isTrue);
+    expect(find.text('Equalizer'), findsOneWidget);
+  });
+
+  testWidgets('clearing the covers asks first, then clears and says so', (
+    tester,
+  ) async {
+    await pump(tester, const StorageSettingsPage());
+
+    await tester.tap(find.text('Clear cover cache'));
+    await tester.pumpAndSettle();
+    expect(maintenanceRepo.coverClears, 0);
+    await tester.tap(find.text('Clear'));
+    await tester.pumpAndSettle();
+
+    expect(maintenanceRepo.coverClears, 1);
+    // The covers are extracted again by a scan, which starts once the
+    // previous one is cancelled (real time, not the test's clock).
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    expect(libraryRepo.scans, 1);
+    expect(find.text('Cover cache cleared'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+  });
+
+  testWidgets('resetting turns the equalizer off and the settings back', (
+    tester,
+  ) async {
+    await settings.setHapticFeedback(false);
+    equalizer.setEnabled(true);
+    await pump(tester, const StorageSettingsPage());
+
+    await tester.tap(find.text('Reset settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reset'));
+    await tester.pumpAndSettle();
+
+    expect(
+      settings.state,
+      isA<SettingsLoaded>().having(
+        (s) => s.settings.hapticFeedbackEnabled,
+        'haptics',
+        isTrue,
+      ),
+    );
+    expect(equalizer.state.settings.enabled, isFalse);
+  });
+
+  testWidgets('checking now says when Troona is up to date', (tester) async {
+    updates.latest = release('1.0.0');
+    await pump(tester, const AboutPage());
+
+    await tester.tap(find.text('Check for updates now'));
+    await tester.pumpAndSettle();
+
+    expect(updates.fetches, 1);
+    expect(find.text('Troona is up to date'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 5));
   });
 
   testWidgets('About reads the version when opened first', (tester) async {
