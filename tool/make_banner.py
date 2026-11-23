@@ -1,6 +1,6 @@
 """Compose the 1280x640 README and social preview banner from real app screenshots.
 
-It reads screenshots/home.jpeg, player.jpeg and library.jpeg, plus
+It reads screenshots/home.jpg, lyrics.jpg and now-playing.jpg, plus
 assets/images/app-logo-round.png, renders at 2x and downsamples.
 
 Usage:
@@ -75,9 +75,9 @@ def drop(img, x, y):
 
 
 side_h, main_h = 470 * S, 540 * S
-left = phone(f"{ROOT}/screenshots/home.jpeg", side_h)
-right = phone(f"{ROOT}/screenshots/library.jpeg", side_h)
-main = phone(f"{ROOT}/screenshots/player.jpeg", main_h)
+left = phone(f"{ROOT}/screenshots/home.jpg", side_h)
+right = phone(f"{ROOT}/screenshots/now-playing.jpg", side_h)
+main = phone(f"{ROOT}/screenshots/lyrics.jpg", main_h)
 
 cx = 935 * S
 gap = 150 * S
@@ -90,16 +90,17 @@ d = ImageDraw.Draw(canvas)
 x = 72 * S
 logo = Image.open(f"{ROOT}/assets/images/app-logo-round.png").convert("RGBA")
 logo = logo.resize((88 * S, 88 * S), Image.LANCZOS)
-canvas.paste(logo, (x, 178 * S), logo)
+canvas.paste(logo, (x, 150 * S), logo)
 
 title = font(76 * S, 1)  # Bold
 body = font(27 * S, 0)  # Regular
 small = font(21 * S, 10)  # Medium
 
-d.text((x, 290 * S), "Troona", font=title, fill=(255, 255, 255))
-d.text((x, 384 * S), "Offline-first music player", font=body, fill=(235, 235, 245))
-d.text((x, 420 * S), "for Android", font=body, fill=(235, 235, 245))
-d.text((x, 476 * S), "No account. No ads. No analytics.", font=small, fill=ACCENT)
+d.text((x, 262 * S), "Troona", font=title, fill=(255, 255, 255))
+d.text((x, 356 * S), "Offline-first music player", font=body, fill=(235, 235, 245))
+d.text((x, 392 * S), "for Android", font=body, fill=(235, 235, 245))
+d.text((x, 448 * S), "Synced lyrics. Equalizer. Smart playlists.", font=small, fill=(200, 200, 215))
+d.text((x, 484 * S), "No account. No ads. No analytics.", font=small, fill=ACCENT)
 
 canvas.resize((1280, 640), Image.LANCZOS).save(OUT, optimize=True)
 print(OUT)

@@ -46,16 +46,16 @@ It is also an engineering showcase: a Clean Architecture Flutter codebase with a
 
 <table>
   <tr>
-    <td align="center"><img src="screenshots/home.jpeg" width="200" alt="Home"><br><sub>Home</sub></td>
-    <td align="center"><img src="screenshots/library.jpeg" width="200" alt="Library"><br><sub>Library</sub></td>
-    <td align="center"><img src="screenshots/player.jpeg" width="200" alt="Now Playing"><br><sub>Now Playing</sub></td>
-    <td align="center"><img src="screenshots/search.jpeg" width="200" alt="Search"><br><sub>Search</sub></td>
+    <td align="center"><img src="screenshots/now-playing.jpg" width="200" alt="Now Playing"><br><sub>Your music, in its own colours</sub></td>
+    <td align="center"><img src="screenshots/lyrics.jpg" width="200" alt="Synced lyrics"><br><sub>Synced lyrics, line by line</sub></td>
+    <td align="center"><img src="screenshots/equalizer.jpg" width="200" alt="Equalizer"><br><sub>Shape the sound with a finger</sub></td>
+    <td align="center"><img src="screenshots/your-listening.jpg" width="200" alt="Your listening"><br><sub>Your listening, week by week</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="screenshots/playlist.jpeg" width="200" alt="Playlists"><br><sub>Playlists</sub></td>
-    <td align="center"><img src="screenshots/album-detail.jpeg" width="200" alt="Album detail"><br><sub>Album</sub></td>
-    <td align="center"><img src="screenshots/artist-detail.jpeg" width="200" alt="Artist detail"><br><sub>Artist (Last.fm/Deezer bio)</sub></td>
-    <td align="center"><img src="screenshots/weekly-recap.jpeg" width="200" alt="Weekly Recap"><br><sub>Weekly Recap</sub></td>
+    <td align="center"><img src="screenshots/home.jpg" width="200" alt="Home"><br><sub>Back to your music in one tap</sub></td>
+    <td align="center"><img src="screenshots/album.jpg" width="200" alt="Album"><br><sub>Albums that feel like records</sub></td>
+    <td align="center"><img src="screenshots/smart-playlist.jpg" width="200" alt="Smart playlist editor"><br><sub>Playlists that build themselves</sub></td>
+    <td align="center"><img src="screenshots/selection.jpg" width="200" alt="Picking several songs"><br><sub>Pick, queue, done</sub></td>
   </tr>
 </table>
 

@@ -44,9 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Local recordings and screenshots
+# Local recordings, and the full-size captures the README images are made
+# from (the README's own images in screenshots/ are tracked)
 /music.mp4
-/screenshots/
+/screenshots/*.png
+!/screenshots/banner.png
+/screenshots/*.mp4
 
 # Local planning docs
 /*_PLAN.md
