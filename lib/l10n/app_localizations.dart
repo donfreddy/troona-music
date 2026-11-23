@@ -4765,6 +4765,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No song in your library is that long: it would be empty.'**
   String get settingsMinLengthTooLong;
+
+  /// No description provided for @settingsFiltersNotApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.'**
+  String get settingsFiltersNotApplied;
 }
 
 class _AppLocalizationsDelegate

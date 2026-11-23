@@ -192,7 +192,9 @@ class _FolderList extends StatelessWidget {
     ];
     return SettingsSection(
       title: l10n.settingsFoldersSection,
-      footer: l10n.settingsFoldersFooter,
+      footer: filter.leavesOutEvery(tracks)
+          ? l10n.settingsFiltersNotApplied
+          : l10n.settingsFoldersFooter,
       children: [
         for (final folder in folders)
           Builder(

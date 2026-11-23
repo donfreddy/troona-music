@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 
 /// What the user keeps out of the library, on top of the fixed rules that
 /// leave out ringtones, voice notes and the like: songs shorter than
@@ -26,6 +27,12 @@ final class ScanFilter extends Equatable {
 
   bool allows({required String path, required int durationMs}) =>
       durationMs >= minDurationMs && !excludes(path);
+
+  /// Whether it would leave out every one of [songs]: the scanner then
+  /// applies none of it, since an emptied library reads as songs lost.
+  bool leavesOutEvery(List<Track> songs) =>
+      songs.isNotEmpty &&
+      songs.every((t) => !allows(path: t.path, durationMs: t.durationMs));
 
   /// Whether [path], a file or a folder, lies inside an excluded folder (or
   /// is one). Compared up to a slash: excluding `/Music/A` keeps

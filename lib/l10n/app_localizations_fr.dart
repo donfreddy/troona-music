@@ -2927,4 +2927,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsMinLengthTooLong =>
       'Aucun titre de votre bibliothèque n\'est aussi long : elle serait vide.';
+
+  @override
+  String get settingsFiltersNotApplied =>
+      'Aucun titre de votre bibliothèque ne passe ces filtres : ils ne sont pas appliqués. Réactivez un dossier ou choisissez une durée plus courte.';
 }

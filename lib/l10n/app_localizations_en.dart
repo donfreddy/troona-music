@@ -2902,4 +2902,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsMinLengthTooLong =>
       'No song in your library is that long: it would be empty.';
+
+  @override
+  String get settingsFiltersNotApplied =>
+      'No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length.';
 }

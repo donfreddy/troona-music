@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/router/app_router.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
@@ -110,8 +111,18 @@ class _Filters extends StatelessWidget {
       builder: (context, settings) {
         final cubit = context.read<SettingsCubit>();
         final excluded = settings.excludedFolders.length;
+        // Every song still in the library while none passes: the scanner
+        // did not apply them (a restore's folders, a length chosen while
+        // scanning).
+        // The list, not the state: a scan's progress emits often.
+        final tracks = context.select<LibraryBloc, List<Track>?>(
+          (bloc) => _loaded(bloc.state)?.allTracks,
+        );
+        final notApplied =
+            tracks != null && scanFilterOf(settings).leavesOutEvery(tracks);
         return SettingsSection(
           title: l10n.settingsFilters,
+          footer: notApplied ? l10n.settingsFiltersNotApplied : null,
           children: [
             SegmentedRow<int>(
               label: l10n.settingsMinLength,

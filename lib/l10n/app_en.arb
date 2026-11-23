@@ -1584,5 +1584,6 @@
       }
     }
   },
-  "settingsMinLengthTooLong": "No song in your library is that long: it would be empty."
+  "settingsMinLengthTooLong": "No song in your library is that long: it would be empty.",
+  "settingsFiltersNotApplied": "No song in your library passes these filters, so they are not applied. Turn a folder back on or choose a shorter length."
 }

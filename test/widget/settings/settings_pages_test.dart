@@ -356,6 +356,27 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('filters that would leave no song say they are not applied', (
+      tester,
+    ) async {
+      const note =
+          'No song in your library passes these filters, so they are not '
+          'applied. Turn a folder back on or choose a shorter length.';
+      holding(['rap/1', 'pop/1']);
+      await pump(tester, const LibrarySettingsPage());
+      expect(find.text(note), findsNothing);
+
+      // As a restore brings them: every folder of the library left out.
+      await settings.setExcludedFolders({'/music/rap', '/music/pop'});
+      await tester.pumpAndSettle();
+      expect(find.text(note), findsOneWidget);
+
+      await pump(tester, page());
+      expect(find.text(note), findsOneWidget);
+      // A folder can still be turned back on.
+      expect(switchOf(tester, '/music/rap').onChanged, isNotNull);
+    });
+
     testWidgets('a subfolder of a folder left out says so and waits', (
       tester,
     ) async {
