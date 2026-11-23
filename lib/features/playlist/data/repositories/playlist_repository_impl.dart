@@ -8,6 +8,7 @@ import 'package:troona/features/library/data/sources/isar_library_data_source.da
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
+import 'package:troona/features/playlist/domain/services/playlist_order.dart';
 
 final class PlaylistRepositoryImpl implements PlaylistRepository {
   final IsarLibraryDataSource _cache;
@@ -19,7 +20,8 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
   Future<Either<Failure, List<Playlist>>> getPlaylists() async {
     try {
       final playlists = await _cache.getPlaylists();
-      return right(playlists.map((p) => p.toEntity()).toList());
+      final library = await _cache.getLibraryDeviceIds();
+      return right([for (final p in playlists) p.toEntity(library: library)]);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -32,7 +34,9 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
       if (playlist == null) {
         return left(const DatabaseFailure('Playlist not found'));
       }
-      return right(playlist.toEntity());
+      return right(
+        playlist.toEntity(library: await _cache.getLibraryDeviceIds()),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }
@@ -179,9 +183,20 @@ final class PlaylistRepositoryImpl implements PlaylistRepository {
         return left(const DatabaseFailure('A smart playlist has no order'));
       }
 
-      final tracks = List<String>.from(playlist.trackIds);
-      final item = tracks.removeAt(oldIndex);
-      tracks.insert(newIndex, item);
+      // The page numbers only the songs it shows.
+      final shown = {
+        for (final t in await _cache.getTracksByIds(playlist.trackIds))
+          t.deviceId,
+      };
+      final tracks = PlaylistOrder.move(
+        playlist.trackIds,
+        shown.contains,
+        from: oldIndex,
+        to: newIndex,
+      );
+      if (tracks == null) {
+        return left(const DatabaseFailure('No song at that place'));
+      }
 
       playlist.trackIds = tracks;
       await _cache.updatePlaylist(playlist);

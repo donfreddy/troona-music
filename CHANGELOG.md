@@ -23,6 +23,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Fixed
 
+- Moving a song in a playlist that holds songs you left out, or whose file is gone, moved the wrong one. Playlist and liked song counts now count only the songs you see.
 - Covers come back by themselves after Android or a "Clear cache" emptied Troona's cache: the next scan extracts them again, where they stayed blank until Clear cover cache.
 
 ## [1.8.0] - 2026-11-22

@@ -113,7 +113,9 @@ final class LibraryRepositoryImpl
   Future<Either<Failure, Playlist>> getLikesPlaylist() async {
     try {
       final playlist = await _cache.ensureLikes();
-      return right(playlist.toEntity());
+      return right(
+        playlist.toEntity(library: await _cache.getLibraryDeviceIds()),
+      );
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
     }

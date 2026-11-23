@@ -49,6 +49,15 @@ class IsarLibraryDataSource {
     return tracks.map((t) => t.deviceId).toSet();
   }
 
+  /// The device ids of the library's songs, the ones left out skipped.
+  Future<Set<String>> getLibraryDeviceIds() async => _isar.trackModels
+      .where()
+      .not()
+      .excludedEqualTo(true)
+      .deviceIdProperty()
+      .findAll()
+      .toSet();
+
   /// Returns every [TrackModel] of the library, ordered by Isar insertion
   /// ID. Like every read here, it skips the songs the user's scan filter
   /// leaves out ([TrackModel.excluded]); [getStoredTracks] keeps them.

@@ -8,6 +8,8 @@ import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/core/theme/semantic/app_spacing.dart';
 import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/presentation/bloc/library/library_bloc.dart';
 import 'package:troona/features/playlist/presentation/bloc/playlist/playlist_bloc.dart';
 import 'package:troona/features/playlist/presentation/pages/playlist_editor_page.dart';
 import 'package:troona/features/playlist/presentation/utils/default_playlist_name.dart';
@@ -34,6 +36,12 @@ class PlaylistPage extends StatefulWidget {
   @override
   State<PlaylistPage> createState() => _PlaylistPageState();
 }
+
+List<Track>? _tracksOf(LibraryState state) => switch (state) {
+  LibraryLoaded(:final allTracks) => allTracks,
+  LibraryScanning(:final cached?) => cached.allTracks,
+  _ => null,
+};
 
 class _PlaylistPageState extends State<PlaylistPage> {
   bool _isGrid = true;
@@ -65,50 +73,58 @@ class _PlaylistPageState extends State<PlaylistPage> {
     final l10n = context.l10n;
 
     // Likes and changes made elsewhere reach the list through the bloc,
-    // which watches the stored playlists.
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
+    // which watches the stored playlists. A scan changes what the library
+    // shows, hence the counts, without writing a playlist.
+    return BlocListener<LibraryBloc, LibraryState>(
+      listenWhen: (previous, current) =>
+          current is LibraryLoaded &&
+          !identical(_tracksOf(previous), current.allTracks),
+      listener: (context, _) =>
+          context.read<PlaylistBloc>().add(PlaylistListRequested()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            GlassSliverHeader.largeTitle(
+              title: l10n.navPlaylists,
+              actions: [
+                GlassIconButton(
+                  icon: _isGrid ? AppIcons.listView : AppIcons.gridView,
+                  tooltip: _isGrid
+                      ? l10n.playlistsListView
+                      : l10n.playlistsGridView,
+                  onTap: () => setState(() => _isGrid = !_isGrid),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                GlassIconButton(
+                  icon: AppIcons.add,
+                  tooltip: l10n.playlistsCreate,
+                  onTap: () => _openCreateDialog(context),
+                ),
+              ],
+            ),
+            BlocBuilder<PlaylistBloc, PlaylistState>(
+              builder: (context, state) => switch (state) {
+                PlaylistLoaded(:final playlists) => _PlaylistsBody(
+                  playlists: playlists,
+                  isGrid: _isGrid,
+                  onCreate: () => _openCreateDialog(context),
+                ),
+                PlaylistError() => SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: ErrorView(body: l10n.playlistLoadError),
+                ),
+                _ => const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              },
+            ),
+          ],
         ),
-        slivers: [
-          GlassSliverHeader.largeTitle(
-            title: l10n.navPlaylists,
-            actions: [
-              GlassIconButton(
-                icon: _isGrid ? AppIcons.listView : AppIcons.gridView,
-                tooltip: _isGrid
-                    ? l10n.playlistsListView
-                    : l10n.playlistsGridView,
-                onTap: () => setState(() => _isGrid = !_isGrid),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              GlassIconButton(
-                icon: AppIcons.add,
-                tooltip: l10n.playlistsCreate,
-                onTap: () => _openCreateDialog(context),
-              ),
-            ],
-          ),
-          BlocBuilder<PlaylistBloc, PlaylistState>(
-            builder: (context, state) => switch (state) {
-              PlaylistLoaded(:final playlists) => _PlaylistsBody(
-                playlists: playlists,
-                isGrid: _isGrid,
-                onCreate: () => _openCreateDialog(context),
-              ),
-              PlaylistError() => SliverFillRemaining(
-                hasScrollBody: false,
-                child: ErrorView(body: l10n.playlistLoadError),
-              ),
-              _ => const SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            },
-          ),
-        ],
       ),
     );
   }
@@ -394,7 +410,7 @@ class _PlaylistTile extends StatelessWidget {
                   Text(
                     playlist.isSmart
                         ? context.l10n.smartPlaylistKind
-                        : context.l10n.songCount(playlist.trackIds.length),
+                        : context.l10n.songCount(playlist.songCount),
                     style: TextStyle(
                       color: colors.labelSecondary,
                       fontSize: 12.5,

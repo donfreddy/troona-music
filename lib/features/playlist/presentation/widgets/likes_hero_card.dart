@@ -109,7 +109,7 @@ class _LikesHeroCardState extends State<LikesHeroCard> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final glass = GlassTheme.card(context);
-    final count = widget.playlist.trackIds.length;
+    final count = widget.playlist.songCount;
     final l10n = context.l10n;
 
     return GestureDetector(
