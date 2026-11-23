@@ -504,12 +504,22 @@ class IsarLibraryDataSource {
   /// marked as checked. Returns how many were reset.
   Future<int> forgetMissingArtwork() async {
     final rows = _isar.trackModels.where().artworkPathIsNotNull().findAll();
-    final exists = await Future.wait([
-      for (final row in rows) File(row.artworkPath!).exists(),
-    ]);
+    // One listing per folder (they all share the cache's), not one check
+    // per song: a library of thousands would queue thousands of them.
+    final present = <String>{};
+    for (final folder in {
+      for (final r in rows) File(r.artworkPath!).parent.path,
+    }) {
+      final dir = Directory(folder);
+      if (!await dir.exists()) continue;
+      await for (final entry in dir.list(followLinks: false)) {
+        present.add(entry.path);
+      }
+    }
     final gone = {
-      for (final (i, row) in rows.indexed)
-        if (!exists[i]) row.id: row.artworkPath,
+      for (final row in rows)
+        if (!present.contains(File(row.artworkPath!).path))
+          row.id: row.artworkPath,
     };
     if (gone.isEmpty) return 0;
     // Read again inside the write: a row changed during the checks keeps

@@ -97,6 +97,21 @@ void main() {
     expect(results.single.artworkPath, '${dir.path}/7.jpg');
   });
 
+  test('a cache folder the system deleted is made again', () async {
+    await dir.delete(recursive: true);
+    final results = <ArtworkResult>[];
+    final done = Completer<void>();
+    extractor
+        .extractArtworks([_track(8)])
+        .listen(results.add, onDone: done.complete);
+    await _until(() => query.gates.containsKey(8), 'the query');
+    query.gates[8]!.complete(Uint8List.fromList([1]));
+    await done.future;
+
+    expect(results.single.checked, isTrue);
+    expect(File('${dir.path}/8.jpg').existsSync(), isTrue);
+  });
+
   test('an empty list closes the stream', () async {
     expect(await extractor.extractArtworks([]).toList(), isEmpty);
   });

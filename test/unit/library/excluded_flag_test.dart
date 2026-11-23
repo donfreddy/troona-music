@@ -128,6 +128,22 @@ void main() {
       );
     }, skip: skip);
 
+    test('hands back every cover when their folder is gone', () async {
+      final folder = '${dir.path}/covers';
+      await source.insertTracks([_row('a'), _row('b', excluded: true)]);
+      await source.saveArtworkResults({
+        'a': '$folder/a.jpg',
+        'b': '$folder/b.jpg',
+      });
+
+      expect(await source.forgetMissingArtwork(), 2);
+      // The song left out waits until it is let back in.
+      expect(
+        [for (final t in await source.getTracksWithoutArtwork()) t.deviceId],
+        ['a'],
+      );
+    }, skip: skip);
+
     test('changes nothing when every cover is there', () async {
       final kept = File('${dir.path}/kept.jpg')..writeAsBytesSync([1]);
       await source.insertTracks([_row('kept')]);

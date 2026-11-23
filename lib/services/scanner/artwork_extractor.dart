@@ -135,6 +135,8 @@ final class ArtworkExtractor {
       );
 
       if (bytes != null && bytes.isNotEmpty) {
+        // Android may empty the cache, folder included, while the app runs.
+        await cacheFile.parent.create(recursive: true);
         await cacheFile.writeAsBytes(bytes);
         return track..artworkPath = cacheFile.path;
       }
