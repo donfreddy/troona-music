@@ -43,6 +43,7 @@ PlayerBloc buildTestPlayerBloc(
   AudioServicePort port,
   PlaybackSessionStore store, {
   LibraryRepository? library,
+  bool Function()? keepShuffle,
 }) {
   final repo = PortRepository(port);
   return PlayerBloc(
@@ -64,6 +65,7 @@ PlayerBloc buildTestPlayerBloc(
     audioServicePort: port,
     sessionStore: store,
     getTracksByIds: GetTracksByIdsUseCase(library ?? UnusedLibrary()),
+    keepShuffle: keepShuffle,
   );
 }
 

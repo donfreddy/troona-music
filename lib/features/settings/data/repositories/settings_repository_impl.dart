@@ -12,6 +12,8 @@ abstract final class _K {
   static const stopOnCallEnabled = 'stop_on_call_enabled';
   static const resumeAfterCallEnabled = 'resume_after_call_enabled';
   static const duckAudioOnNotification = 'duck_audio_on_notification';
+  static const keepShuffle = 'keep_shuffle';
+  static const lyricsKeepScreenOn = 'lyrics_keep_screen_on';
   static const fetchOnlineMetadata = 'online_bios_enabled';
   static const fetchArtistArtwork = 'online_photos_enabled';
   static const fetchLyrics = 'online_lyrics_enabled';
@@ -28,6 +30,8 @@ abstract final class _K {
     stopOnCallEnabled,
     resumeAfterCallEnabled,
     duckAudioOnNotification,
+    keepShuffle,
+    lyricsKeepScreenOn,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,
@@ -98,6 +102,11 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _K.duckAudioOnNotification,
             d.duckAudioOnNotification,
           ),
+          keepShuffle: _bool(_K.keepShuffle, d.keepShuffle),
+          lyricsKeepScreenOn: _bool(
+            _K.lyricsKeepScreenOn,
+            d.lyricsKeepScreenOn,
+          ),
           fetchOnlineMetadata: _bool(
             _K.fetchOnlineMetadata,
             d.fetchOnlineMetadata,
@@ -143,6 +152,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.stopOnCallEnabled, s.stopOnCallEnabled),
         _prefs.setBool(_K.resumeAfterCallEnabled, s.resumeAfterCallEnabled),
         _prefs.setBool(_K.duckAudioOnNotification, s.duckAudioOnNotification),
+        _prefs.setBool(_K.keepShuffle, s.keepShuffle),
+        _prefs.setBool(_K.lyricsKeepScreenOn, s.lyricsKeepScreenOn),
         _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
         _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
         _prefs.setBool(_K.fetchLyrics, s.fetchLyrics),

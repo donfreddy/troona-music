@@ -559,6 +559,10 @@ Future<void> configureDependencies() async {
       audioServicePort: getIt(),
       sessionStore: getIt(),
       getTracksByIds: getIt(),
+      keepShuffle: () => switch (getIt<SettingsCubit>().state) {
+        SettingsLoaded(:final settings) => settings.keepShuffle,
+        _ => const AppSettings().keepShuffle,
+      },
     ),
   );
   lastSession.complete(

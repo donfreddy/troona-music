@@ -24,6 +24,8 @@ import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dar
 import 'package:troona/features/lyrics/presentation/cubit/lyrics_cubit.dart';
 import 'package:troona/features/lyrics/presentation/widgets/keep_screen_on.dart';
 import 'package:troona/features/lyrics/presentation/widgets/lyrics_view.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/player/data/playback_session_store.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
@@ -474,18 +476,7 @@ class _FullPlayerPageState extends State<FullPlayerPage>
                                         maxScaleFactor: AppLayout.maxTextScale,
                                         child: const PlayerProgressBar(),
                                       ),
-                                      BlocSelector<
-                                        PlayerBloc,
-                                        PlayerState,
-                                        bool
-                                      >(
-                                        selector: (s) =>
-                                            s is PlayerActive && s.isPlaying,
-                                        builder: (_, playing) => KeepScreenOn(
-                                          active: shown && playing,
-                                          child: const SizedBox.shrink(),
-                                        ),
-                                      ),
+                                      _LyricsScreenOn(shown: shown),
                                     ],
                                   ),
                                 ),
@@ -1053,6 +1044,34 @@ class _TrackInfo extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// Keeps the screen on while the lyrics show and the song plays, unless
+/// Settings > Audio turned it off.
+class _LyricsScreenOn extends StatelessWidget {
+  final bool shown;
+
+  const _LyricsScreenOn({required this.shown});
+
+  @override
+  Widget build(BuildContext context) {
+    final playing = context.select<PlayerBloc, bool>(
+      (bloc) => switch (bloc.state) {
+        PlayerActive(:final isPlaying) => isPlaying,
+        _ => false,
+      },
+    );
+    final allowed = context.select<SettingsCubit, bool>(
+      (cubit) => switch (cubit.state) {
+        SettingsLoaded(:final settings) => settings.lyricsKeepScreenOn,
+        _ => const AppSettings().lyricsKeepScreenOn,
+      },
+    );
+    return KeepScreenOn(
+      active: shown && playing && allowed,
+      child: const SizedBox.shrink(),
     );
   }
 }

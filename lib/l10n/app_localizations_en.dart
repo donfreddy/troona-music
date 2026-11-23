@@ -2655,17 +2655,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAudio => 'Audio';
 
   @override
-  String get settingsAudioSummary => 'Equalizer, calls and notifications';
+  String get settingsAudioSummary => 'Equalizer, shuffle, lyrics, calls';
 
   @override
   String get settingsAudioIntro =>
-      'How Troona sounds, and what it does when your phone needs the speaker for something else.';
+      'How Troona sounds and plays, and what it does when your phone needs the speaker for something else.';
 
   @override
   String get settingsSound => 'Sound';
 
   @override
   String get settingsInterruptions => 'Interruptions';
+
+  @override
+  String get settingsListening => 'Listening';
+
+  @override
+  String get settingsKeepShuffle => 'Keep shuffle on';
+
+  @override
+  String get settingsKeepShuffleSubtitle =>
+      'A list you start stays shuffled while shuffle is on. Off, lists play in order and only the Shuffle button shuffles them.';
+
+  @override
+  String get settingsLyricsScreenOn => 'Screen on with lyrics';
+
+  @override
+  String get settingsLyricsScreenOnSubtitle =>
+      'The screen stays on while lyrics show and the song plays.';
 
   @override
   String get settingsDuckSubtitle =>

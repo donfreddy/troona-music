@@ -176,6 +176,8 @@ abstract final class AppIcons {
   static const IconData minTrackLength = LucideIcons300.hourglass;
   static const IconData libraryFolders = LucideIcons300.folderTree;
   static const IconData historyPause = LucideIcons300.history;
+  static const IconData keepShuffle = LucideIcons300.shuffle;
+  static const IconData lyricsScreenOn = LucideIcons300.sunMedium;
   static const IconData folder = LucideIcons300.folder;
   static const IconData storageAccess = LucideIcons300.folderLock;
 }

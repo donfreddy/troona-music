@@ -23,6 +23,13 @@ class AppSettings extends Equatable {
   final bool resumeAfterCallEnabled;
   final bool duckAudioOnNotification;
 
+  /// A new list keeps shuffle on when it is; off, it plays in order and
+  /// shuffle turns off (the Shuffle button still shuffles).
+  final bool keepShuffle;
+
+  /// The screen stays on while lyrics show and the song plays.
+  final bool lyricsKeepScreenOn;
+
   // Online extras: opt-in, they send artist and album names to Last.fm and
   // Deezer.
   final bool fetchOnlineMetadata;
@@ -63,6 +70,8 @@ class AppSettings extends Equatable {
     this.stopOnCallEnabled = true,
     this.resumeAfterCallEnabled = true,
     this.duckAudioOnNotification = true,
+    this.keepShuffle = true,
+    this.lyricsKeepScreenOn = true,
     this.fetchOnlineMetadata = false,
     this.fetchArtistArtwork = false,
     this.fetchLyrics = false,
@@ -86,6 +95,8 @@ class AppSettings extends Equatable {
     bool? stopOnCallEnabled,
     bool? resumeAfterCallEnabled,
     bool? duckAudioOnNotification,
+    bool? keepShuffle,
+    bool? lyricsKeepScreenOn,
     bool? fetchOnlineMetadata,
     bool? fetchArtistArtwork,
     bool? fetchLyrics,
@@ -103,6 +114,8 @@ class AppSettings extends Equatable {
         resumeAfterCallEnabled ?? this.resumeAfterCallEnabled,
     duckAudioOnNotification:
         duckAudioOnNotification ?? this.duckAudioOnNotification,
+    keepShuffle: keepShuffle ?? this.keepShuffle,
+    lyricsKeepScreenOn: lyricsKeepScreenOn ?? this.lyricsKeepScreenOn,
     fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
     fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
     fetchLyrics: fetchLyrics ?? this.fetchLyrics,
@@ -121,6 +134,8 @@ class AppSettings extends Equatable {
     stopOnCallEnabled,
     resumeAfterCallEnabled,
     duckAudioOnNotification,
+    keepShuffle,
+    lyricsKeepScreenOn,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,

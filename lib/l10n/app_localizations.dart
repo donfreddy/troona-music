@@ -4373,13 +4373,13 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAudioSummary.
   ///
   /// In en, this message translates to:
-  /// **'Equalizer, calls and notifications'**
+  /// **'Equalizer, shuffle, lyrics, calls'**
   String get settingsAudioSummary;
 
   /// No description provided for @settingsAudioIntro.
   ///
   /// In en, this message translates to:
-  /// **'How Troona sounds, and what it does when your phone needs the speaker for something else.'**
+  /// **'How Troona sounds and plays, and what it does when your phone needs the speaker for something else.'**
   String get settingsAudioIntro;
 
   /// No description provided for @settingsSound.
@@ -4393,6 +4393,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interruptions'**
   String get settingsInterruptions;
+
+  /// No description provided for @settingsListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening'**
+  String get settingsListening;
+
+  /// No description provided for @settingsKeepShuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep shuffle on'**
+  String get settingsKeepShuffle;
+
+  /// No description provided for @settingsKeepShuffleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A list you start stays shuffled while shuffle is on. Off, lists play in order and only the Shuffle button shuffles them.'**
+  String get settingsKeepShuffleSubtitle;
+
+  /// No description provided for @settingsLyricsScreenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen on with lyrics'**
+  String get settingsLyricsScreenOn;
+
+  /// No description provided for @settingsLyricsScreenOnSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The screen stays on while lyrics show and the song plays.'**
+  String get settingsLyricsScreenOnSubtitle;
 
   /// No description provided for @settingsDuckSubtitle.
   ///

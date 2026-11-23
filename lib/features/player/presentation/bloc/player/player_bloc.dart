@@ -49,6 +49,10 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final PlaybackSessionStore _sessionStore;
   final GetTracksByIdsUseCase _getTracksByIds;
 
+  /// Whether a new list keeps the shuffle mode (Settings > Audio); off, it
+  /// plays in order. Read on each list.
+  final bool Function() _keepShuffle;
+
   // ── Stream subscriptions ────────────────────────────────────────────────────
   late final StreamSubscription<Duration> _positionSub;
   late final StreamSubscription<Duration> _bufferedSub;
@@ -124,6 +128,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     required AudioServicePort audioServicePort,
     required PlaybackSessionStore sessionStore,
     required GetTracksByIdsUseCase getTracksByIds,
+    bool Function()? keepShuffle,
   }) : _playTrack = playTrack,
        _pause = pause,
        _resume = resume,
@@ -142,6 +147,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
        _audioServicePort = audioServicePort,
        _sessionStore = sessionStore,
        _getTracksByIds = getTracksByIds,
+       _keepShuffle = keepShuffle ?? _always,
        super(const PlayerIdle()) {
     // ── Incoming streams ──────────────────────────────────
     _positionSub = audioServicePort.positionStream.listen(
@@ -208,6 +214,13 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     on<_AudioErrorOccurred>(_onAudioError, transformer: concurrent());
   }
 
+  static bool _always() => true;
+
+  /// The shuffle mode of a new list: on when asked (the Shuffle button),
+  /// else the current one, or off when Settings say not to keep it.
+  bool? _shuffleOf({required bool asked}) =>
+      asked ? true : (_keepShuffle() ? null : false);
+
   // ════════════════════════════════════════════════════════════════════════════
   // HANDLERS: user commands
   // ════════════════════════════════════════════════════════════════════════════
@@ -220,8 +233,15 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     final sourceIds = [
       for (final t in context ?? [event.track]) t.id,
     ];
+    // A shuffled queue Settings do not keep shuffled is rebuilt in order,
+    // even for its own source (its Play button): songs queued by hand get
+    // the usual Undo.
+    final unshuffles =
+        !_keepShuffle() &&
+        (_audioServicePort.currentQueue?.shuffleEnabled ?? false);
     if (context != null &&
         !event.shuffle &&
+        !unshuffles &&
         await _playInQueue(event.track, sourceIds)) {
       return;
     }
@@ -238,7 +258,7 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
             SetQueueParams(
               tracks: context,
               startIndex: event.contextIndex ?? 0,
-              shuffle: event.shuffle ? true : null,
+              shuffle: _shuffleOf(asked: event.shuffle),
             ),
           )
         : await _playTrack(PlayTrackParams(track: event.track));
@@ -574,7 +594,11 @@ final class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     _requestedTrackId = event.tracks[event.startIndex].id;
     emit(PlayerLoading(event.tracks[event.startIndex]));
     final result = await _setQueue(
-      SetQueueParams(tracks: event.tracks, startIndex: event.startIndex),
+      SetQueueParams(
+        tracks: event.tracks,
+        startIndex: event.startIndex,
+        shuffle: _shuffleOf(asked: false),
+      ),
     );
     if (replacing && result.isRight()) {
       _noticesController.add(const QueueReplaced());

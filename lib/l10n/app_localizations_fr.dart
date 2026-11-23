@@ -2676,17 +2676,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsAudio => 'Audio';
 
   @override
-  String get settingsAudioSummary => 'Égaliseur, appels et notifications';
+  String get settingsAudioSummary => 'Égaliseur, aléatoire, paroles, appels';
 
   @override
   String get settingsAudioIntro =>
-      'Le son de Troona, et ce qu\'il fait quand votre téléphone a besoin du haut-parleur pour autre chose.';
+      'Le son et la lecture de Troona, et ce qu\'il fait quand votre téléphone a besoin du haut-parleur pour autre chose.';
 
   @override
   String get settingsSound => 'Son';
 
   @override
   String get settingsInterruptions => 'Interruptions';
+
+  @override
+  String get settingsListening => 'Écoute';
+
+  @override
+  String get settingsKeepShuffle => 'Garder l\'aléatoire';
+
+  @override
+  String get settingsKeepShuffleSubtitle =>
+      'Une liste que vous lancez reste en aléatoire si l\'aléatoire est activé. Interrupteur coupé, les listes sont lues dans l\'ordre et seul le bouton Aléatoire les mélange.';
+
+  @override
+  String get settingsLyricsScreenOn => 'Écran allumé avec les paroles';
+
+  @override
+  String get settingsLyricsScreenOnSubtitle =>
+      'L\'écran reste allumé tant que les paroles s\'affichent et que le titre est en lecture.';
 
   @override
   String get settingsDuckSubtitle =>

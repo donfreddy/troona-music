@@ -63,6 +63,8 @@ void main() {
       stopOnCallEnabled: false,
       resumeAfterCallEnabled: false,
       duckAudioOnNotification: false,
+      keepShuffle: false,
+      lyricsKeepScreenOn: false,
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
       fetchLyrics: true,

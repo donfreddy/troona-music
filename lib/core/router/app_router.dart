@@ -427,8 +427,12 @@ final appRouter = GoRouter(
         // chrome, stage) while the heroes fly, so two screens never show
         // on top of each other.
         transitionsBuilder: (_, _, _, child) => child,
-        child: BlocProvider<PlayerBloc>.value(
-          value: getIt<PlayerBloc>(),
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<PlayerBloc>.value(value: getIt<PlayerBloc>()),
+            // Whether the lyrics keep the screen on.
+            BlocProvider.value(value: getIt<SettingsCubit>()),
+          ],
           child: FullPlayerPage(
             morphFromMini: state.extra != FullPlayerPage.noMorph,
           ),

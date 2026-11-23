@@ -358,6 +358,23 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     });
 
+    testWidgets('the Audio page turns shuffle and the lyrics screen off', (
+      tester,
+    ) async {
+      await pump(tester, const AudioSettingsPage());
+      for (final label in ['Keep shuffle on', 'Screen on with lyrics']) {
+        final row = find.text(label);
+        await tester.ensureVisible(row);
+        await tester.pumpAndSettle();
+        await tester.tap(row);
+        await tester.pumpAndSettle();
+      }
+
+      final saved = (settings.state as SettingsLoaded).settings;
+      expect(saved.keepShuffle, isFalse);
+      expect(saved.lyricsKeepScreenOn, isFalse);
+    });
+
     testWidgets('pausing the history shows on the root of Settings', (
       tester,
     ) async {

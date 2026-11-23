@@ -11,8 +11,8 @@ import 'package:troona/features/settings/presentation/widgets/settings_section.d
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
 
-/// The equalizer, and what playback does when another sound needs the
-/// speaker.
+/// The equalizer, whether a new list keeps shuffle and the lyrics keep the
+/// screen on, and what playback does when another sound needs the speaker.
 class AudioSettingsPage extends StatelessWidget {
   const AudioSettingsPage({super.key});
 
@@ -46,6 +46,29 @@ class AudioSettingsPage extends StatelessWidget {
               ),
             ],
           ),
+        SettingsBuilder(
+          builder: (context, settings) => SettingsSection(
+            title: l10n.settingsListening,
+            children: [
+              SettingsTile.switchTile(
+                icon: AppIcons.keepShuffle,
+                iconColor: SettingsHue.audio,
+                title: l10n.settingsKeepShuffle,
+                subtitle: l10n.settingsKeepShuffleSubtitle,
+                value: settings.keepShuffle,
+                onChanged: cubit.setKeepShuffle,
+              ),
+              SettingsTile.switchTile(
+                icon: AppIcons.lyricsScreenOn,
+                iconColor: SettingsHue.audio,
+                title: l10n.settingsLyricsScreenOn,
+                subtitle: l10n.settingsLyricsScreenOnSubtitle,
+                value: settings.lyricsKeepScreenOn,
+                onChanged: cubit.setLyricsKeepScreenOn,
+              ),
+            ],
+          ),
+        ),
         SettingsBuilder(
           builder: (context, settings) => SettingsSection(
             title: l10n.settingsInterruptions,

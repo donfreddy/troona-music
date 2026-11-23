@@ -653,6 +653,26 @@ void main() {
       expect(read.settings?.excludedFolders, ['/a/b']);
     });
 
+    test('the playback switches travel, and read as on when absent', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(keepShuffle: false, lyricsKeepScreenOn: false),
+          ),
+        ),
+      );
+      expect(read.settings?.keepShuffle, isFalse);
+      expect(read.settings?.lyricsKeepScreenOn, isFalse);
+
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('keepShuffle')
+        ..['lyricsKeepScreenOn'] = 'yes';
+      final older = BackupCodec.decode(_bytes(json));
+      expect(older.settings?.keepShuffle, isTrue);
+      expect(older.settings?.lyricsKeepScreenOn, isTrue);
+    });
+
     test('a paused history stays on the phone it was paused on', () {
       final bytes = BackupCodec.encode(
         withSettings(const AppSettings(historyPaused: true)),

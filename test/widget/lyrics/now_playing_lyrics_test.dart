@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/lyrics/presentation/widgets/keep_screen_on.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/core/theme/app_theme.dart';
@@ -38,6 +40,7 @@ import 'package:troona/l10n/app_localizations.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 import 'package:troona/shared/widgets/palette_ink_scope.dart';
 
+import '../../helpers/test_settings.dart';
 import '../../helpers/fake_player.dart';
 
 final class _NoLikes implements LibraryRepository {
@@ -92,6 +95,7 @@ void main() {
   ];
   late _Lyrics lyrics;
   late FakeAudioPort port;
+  late SettingsCubit settings;
 
   Future<void> settle(WidgetTester tester) async {
     // The title marquee repeats forever: bounded pumps.
@@ -150,6 +154,8 @@ void main() {
     );
     final palette = TrackPaletteCubit();
     final sleep = SleepTimerCubit(port: port);
+    settings = await loadedSettings();
+    addTearDown(settings.close);
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox());
       unawaited(bloc.close());
@@ -172,6 +178,7 @@ void main() {
           BlocProvider.value(value: likes),
           BlocProvider.value(value: palette),
           BlocProvider.value(value: sleep),
+          BlocProvider.value(value: settings),
         ],
         child: MaterialApp(
           navigatorKey: navigator,
@@ -249,6 +256,29 @@ void main() {
     await settle(tester);
     expect(find.text('First line'), findsNothing);
     expect(opacityAbove(tester, find.byType(ArtworkCarousel)), 1);
+  });
+
+  testWidgets('the lyrics keep the screen on while they play, unless '
+      'Settings turned it off', (tester) async {
+    bool held() =>
+        tester.widget<KeepScreenOn>(find.byType(KeepScreenOn)).active;
+
+    await pumpOpen(tester);
+    await tester.tap(find.byTooltip('Show lyrics'));
+    await settle(tester);
+    expect(held(), isTrue);
+
+    await settings.setLyricsKeepScreenOn(false);
+    await settle(tester);
+    expect(held(), isFalse);
+
+    await settings.setLyricsKeepScreenOn(true);
+    await settle(tester);
+    expect(held(), isTrue, reason: 'turned back on while playing');
+
+    port.status.add(PlaybackStatus.paused);
+    await settle(tester);
+    expect(held(), isFalse, reason: 'paused');
   });
 
   testWidgets('the stage and the lyrics cross-fade: never a cut, never both '

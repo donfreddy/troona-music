@@ -143,6 +143,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setExcludedFolders(Set<String> folders) =>
       _update((s) => s.copyWith(excludedFolders: [...folders]..sort()));
 
+  Future<void> setKeepShuffle(bool value) =>
+      _update((s) => s.copyWith(keepShuffle: value));
+
+  Future<void> setLyricsKeepScreenOn(bool value) =>
+      _update((s) => s.copyWith(lyricsKeepScreenOn: value));
+
   Future<void> setHistoryPaused(bool value) =>
       _update((s) => s.copyWith(historyPaused: value));
 
