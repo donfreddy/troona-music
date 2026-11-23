@@ -396,7 +396,10 @@ void main() {
 
       await pump(tester, const SettingsPage());
       expect(find.text('Listening history paused'), findsOneWidget);
-      expect(find.text('Songs on this phone, filters, rescan, history'), findsNothing);
+      expect(
+        find.text('Songs on this phone, filters, rescan, history'),
+        findsNothing,
+      );
     });
 
     testWidgets('filters that would leave no song say they are not applied', (

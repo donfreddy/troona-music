@@ -290,21 +290,24 @@ void main() {
       expect(history.events, isEmpty, reason: '29 s heard while recording');
     });
 
-    test('a replay from the top during the pause starts a new listen', () async {
-      recorder.start();
-      playing([a]);
-      listen(0, 29);
-      paused = true;
-      listen(0, 120); // the same song again: the queue keeps its id
-      paused = false;
-      listen(120, 125);
-      await pumpEventQueue();
-      expect(history.events, isEmpty, reason: '5 s heard since the replay');
+    test(
+      'a replay from the top during the pause starts a new listen',
+      () async {
+        recorder.start();
+        playing([a]);
+        listen(0, 29);
+        paused = true;
+        listen(0, 120); // the same song again: the queue keeps its id
+        paused = false;
+        listen(120, 125);
+        await pumpEventQueue();
+        expect(history.events, isEmpty, reason: '5 s heard since the replay');
 
-      listen(125, 150);
-      await pumpEventQueue();
-      expect(history.events.single.trackId, 'a');
-    });
+        listen(125, 150);
+        await pumpEventQueue();
+        expect(history.events.single.trackId, 'a');
+      },
+    );
 
     test('a loop of repeat one during the pause starts a new listen', () async {
       recorder.start();
