@@ -33,11 +33,25 @@ class HeatCell extends StatelessWidget {
   static const _alphas = [0.0, .3, .52, .76, 1.0];
 
   /// The fill of [level]: glass when empty, then the accent, stronger.
-  static Color fillOf(BuildContext context, int level, {bool future = false}) {
+  static Color fillOf(BuildContext context, int level, {bool future = false}) =>
+      fillWith(context.colors, level, future: future);
+
+  /// [fillOf], from [colors].
+  static Color fillWith(AppColors colors, int level, {bool future = false}) {
     if (level <= 0) {
       return Colors.white.withValues(alpha: future ? .025 : .06);
     }
-    return context.colors.accent.withValues(alpha: _alphas[level]);
+    return colors.accent.withValues(alpha: _alphas[level]);
+  }
+
+  /// The day's number on [level], at 4.5:1 for every accent: the
+  /// secondary label on the empty glass, white over the faint fills (60 %
+  /// white sinks into a bright accent at half strength), then the accent's
+  /// own text colour once the fill is strong.
+  static Color inkOf(AppColors colors, int level, {bool future = false}) {
+    if (level >= 3) return colors.accentForeground;
+    if (level >= 1) return colors.labelPrimary;
+    return future ? colors.labelQuaternary : colors.labelSecondary;
   }
 
   @override
@@ -74,11 +88,7 @@ class HeatCell extends StatelessWidget {
                           child: Text(
                             text,
                             style: TextStyle(
-                              color: level >= 3
-                                  ? colors.accentForeground
-                                  : future
-                                  ? colors.labelQuaternary
-                                  : colors.labelSecondary,
+                              color: inkOf(colors, level, future: future),
                               fontSize: 12,
                               fontWeight: level >= 3 || marked
                                   ? FontWeight.w700
@@ -102,6 +112,16 @@ class HeatCell extends StatelessWidget {
 /// "Less ▢▢▢▢▢ More": the steps of [HeatCell] from empty to full.
 class HeatLegend extends StatelessWidget {
   const HeatLegend({super.key});
+
+  /// The day's number on [level], at 4.5:1 for every accent: the
+  /// secondary label on the empty glass, white over the faint fills (60 %
+  /// white sinks into a bright accent at half strength), then the accent's
+  /// own text colour once the fill is strong.
+  static Color inkOf(AppColors colors, int level, {bool future = false}) {
+    if (level >= 3) return colors.accentForeground;
+    if (level >= 1) return colors.labelPrimary;
+    return future ? colors.labelQuaternary : colors.labelSecondary;
+  }
 
   @override
   Widget build(BuildContext context) {

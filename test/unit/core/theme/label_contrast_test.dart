@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/features/history/domain/services/play_intensity.dart';
+import 'package:troona/features/history/presentation/widgets/heat_cell.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// WCAG contrast of [label] drawn over the opaque [page].
@@ -54,4 +56,24 @@ void main() {
     final all = {for (final a in AppAccent.values) AppColors.accentOf(a).$1};
     expect(all, hasLength(AppAccent.values.length));
   });
+
+  // The recap calendar writes the day's number on cells filled with the
+  // accent at growing strength.
+  for (final accent in AppAccent.values) {
+    test('the ${accent.name} calendar: every day\'s number reads at 4.5:1',
+        () {
+      final themed = AppColors.withAccent(accent);
+      for (var level = 0; level <= PlayIntensity.maxLevel; level++) {
+        final cell = Color.alphaBlend(
+          HeatCell.fillWith(themed, level),
+          themed.bgPrimary,
+        );
+        expect(
+          _contrast(HeatCell.inkOf(themed, level), cell),
+          greaterThanOrEqualTo(4.5),
+          reason: 'level $level',
+        );
+      }
+    });
+  }
 }

@@ -379,7 +379,9 @@ class _PermissionPageState extends State<PermissionPage>
                 gradient: LinearGradient(
                   colors: [
                     colors.accent,
-                    Color.lerp(colors.accent, Colors.deepPurple, 0.3)!,
+                    // Darkened, never mixed with another hue: a
+                    // yellow or green accent would turn muddy.
+                    Color.lerp(colors.accent, Colors.black, 0.15)!,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -403,11 +405,11 @@ class _PermissionPageState extends State<PermissionPage>
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   child: Center(
                     child: isLoading
-                        ? const SizedBox.square(
+                        ? SizedBox.square(
                             dimension: 22,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.4,
-                              color: Colors.white,
+                              color: colors.accentForeground,
                             ),
                           )
                         : Row(
@@ -418,7 +420,7 @@ class _PermissionPageState extends State<PermissionPage>
                                     ? AppIcons.openExternal
                                     : AppIcons.listen,
                                 size: 20,
-                                color: Colors.white,
+                                color: colors.accentForeground,
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Text(
@@ -427,10 +429,10 @@ class _PermissionPageState extends State<PermissionPage>
                                     : _state == _PermissionState.denied
                                     ? context.l10n.actionRetry
                                     : context.l10n.permissionAllow,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: colors.accentForeground,
                                   letterSpacing: -0.2,
                                 ),
                               ),
