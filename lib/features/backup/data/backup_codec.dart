@@ -424,6 +424,10 @@ abstract final class BackupCodec {
     'haptics': s.hapticFeedbackEnabled,
     'keepShuffle': s.keepShuffle,
     'lyricsKeepScreenOn': s.lyricsKeepScreenOn,
+    'crossfade': s.crossfade,
+    'crossfadeSeconds': s.crossfadeSeconds,
+    'keepAlbumsWhole': s.keepAlbumsWhole,
+    'smartTransitions': s.smartTransitions,
     'minTrackSeconds': s.minTrackSeconds,
     'excludedFolders': s.excludedFolders,
     'accent': s.accent.name,
@@ -436,9 +440,9 @@ abstract final class BackupCodec {
   /// defaults (what the app did before them), and a folder that is not a
   /// short text is dropped. So are the playback switches, which came
   /// later still (a value not a boolean reads as on, the default), and the
-  /// accent and black background, later again: absent, they read as the
-  /// defaults here and [Backup.appearanceSaved] is false, so a restore
-  /// keeps this phone's own.
+  /// transitions, then the accent and black background: each value read
+  /// as its default; absent, the accent and black background also set
+  /// [Backup.appearanceSaved] false, so a restore keeps this phone's own.
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
     keepShuffle: switch (m['keepShuffle']) {
       final bool b => b,
@@ -447,6 +451,22 @@ abstract final class BackupCodec {
     lyricsKeepScreenOn: switch (m['lyricsKeepScreenOn']) {
       final bool b => b,
       _ => true,
+    },
+    crossfade: switch (m['crossfade']) {
+      final bool b => b,
+      _ => const AppSettings().crossfade,
+    },
+    crossfadeSeconds: switch (m['crossfadeSeconds']) {
+      final int s when AppSettings.crossfadeChoices.contains(s) => s,
+      _ => const AppSettings().crossfadeSeconds,
+    },
+    keepAlbumsWhole: switch (m['keepAlbumsWhole']) {
+      final bool b => b,
+      _ => const AppSettings().keepAlbumsWhole,
+    },
+    smartTransitions: switch (m['smartTransitions']) {
+      final bool b => b,
+      _ => const AppSettings().smartTransitions,
     },
     minTrackSeconds: switch (m['minTrackSeconds']) {
       final int s when AppSettings.minTrackChoices.contains(s) => s,

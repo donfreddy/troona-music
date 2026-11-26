@@ -8,6 +8,11 @@ import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/services/mix/track_edges_prefetcher.dart';
+import 'package:troona/features/player/domain/repositories/track_edges_repository.dart';
+import 'package:troona/features/player/data/sources/isar_track_edges_data_source.dart';
+import 'package:troona/features/player/data/repositories/track_edges_repository_impl.dart';
+import 'package:troona/features/player/data/adapters/platform_track_edge_analyzer.dart';
 import 'package:troona/core/utils/app_logger.dart';
 import 'package:troona/core/database/app_database.dart';
 import 'package:troona/core/network/api_client.dart';
@@ -73,6 +78,7 @@ import 'package:troona/features/library/presentation/bloc/selection/track_select
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
+import 'package:troona/features/player/domain/entities/mix_settings.dart';
 import 'package:troona/features/playlist/domain/use_cases/smart_playlist_source.dart';
 import 'package:troona/features/playlist/data/repositories/playlist_repository_impl.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
@@ -133,6 +139,14 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 /// generation) for maximum transparency in an open-source project.
 final GetIt getIt = GetIt.instance;
 
+/// How songs lead into each other, as [settings] say.
+MixSettings _mixOf(AppSettings settings) => MixSettings(
+  crossfade: settings.crossfade,
+  overlap: Duration(seconds: settings.crossfadeSeconds),
+  keepAlbumsWhole: settings.keepAlbumsWhole,
+  smart: settings.smartTransitions,
+);
+
 /// Registers all dependencies in the correct resolution order.
 ///
 /// Dependencies are registered before the objects that consume them so that
@@ -155,12 +169,19 @@ Future<void> configureDependencies() async {
     ...IsarLibraryDataSource.schemas,
     ...IsarPlayHistoryDataSource.schemas,
     ...IsarLyricsDataSource.schemas,
+    ...IsarTrackEdgesDataSource.schemas,
   ]);
   final historySource = IsarPlayHistoryDataSource(isar);
   getIt
     ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
     ..registerSingleton<IsarPlayHistoryDataSource>(historySource)
-    ..registerSingleton<IsarLyricsDataSource>(IsarLyricsDataSource(isar));
+    ..registerSingleton<IsarLyricsDataSource>(IsarLyricsDataSource(isar))
+    ..registerSingleton<TrackEdgesRepository>(
+      TrackEdgesRepositoryImpl(
+        store: IsarTrackEdgesDataSource(isar),
+        analyzer: PlatformTrackEdgeAnalyzer(),
+      ),
+    );
   // Before the recorder starts: it only runs while the daily totals are
   // empty, and the first play would make them non-empty.
   try {
@@ -254,15 +275,44 @@ Future<void> configureDependencies() async {
   );
   // The handler is built before the player it resumes: it waits for it.
   final lastSession = Completer<ResumableSession>();
+  MixSettings mix() => _mixOf(
+    getIt.isRegistered<SettingsCubit>()
+        ? switch (getIt<SettingsCubit>().state) {
+            SettingsLoaded(:final settings) => settings,
+            _ => initialSettings,
+          }
+        : initialSettings,
+  );
   final (audio: audioPort, :equalizer) = await AudioServiceInitializer.init(
     initialSettings,
     likeButton: likeButton,
     lastSession: lastSession.future,
     probe: EqualizerProbe(sharedPrefs),
+    // Read whenever a transition is due: a change applies to the next one.
+    // The cubit is registered further down; until then, the settings just
+    // loaded.
+    mix: mix,
+    // The prefetcher is registered just below, with the port it follows.
+    edgesOf: (track) => getIt.isRegistered<TrackEdgesPrefetcher>()
+        ? getIt<TrackEdgesPrefetcher>().edgesOf(track)
+        : null,
   );
   getIt
     ..registerSingleton<AudioServicePort>(audioPort)
-    ..registerSingleton<EqualizerPort>(equalizer);
+    ..registerSingleton<EqualizerPort>(equalizer)
+    // Analyses the song playing and the next while smart transitions are
+    // wanted, so their edges are known before a transition is planned.
+    ..registerSingleton<TrackEdgesPrefetcher>(
+      TrackEdgesPrefetcher(
+        port: audioPort,
+        repository: getIt(),
+        // The decoder that reads the files is Android's.
+        wanted: () {
+          final m = mix();
+          return Platform.isAndroid && m.crossfade && m.smart;
+        },
+      )..start(),
+    );
 
   // Configure the OS audio session (focus, becoming noisy) before any track
   // loads to avoid focus races.

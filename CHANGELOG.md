@@ -6,6 +6,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ### Added
 
+- Crossfade between songs, off by default, in Settings > Audio.
+- Smart transitions, on Android: the next song starts where the music really ends.
 - Choose an accent colour, in Settings > Appearance.
 - A black background for the tabs, without the glow of the song playing.
 

@@ -707,6 +707,39 @@ void main() {
       expect(broken.settings?.minTrackSeconds, older.settings?.minTrackSeconds);
     });
 
+    test('the transitions travel, and read as the defaults when absent or '
+        'not offered', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(
+              crossfade: true,
+              crossfadeSeconds: 12,
+              keepAlbumsWhole: false,
+              smartTransitions: false,
+            ),
+          ),
+        ),
+      );
+      expect(read.settings?.crossfade, isTrue);
+      expect(read.settings?.crossfadeSeconds, 12);
+      expect(read.settings?.keepAlbumsWhole, isFalse);
+      expect(read.settings?.smartTransitions, isFalse);
+
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('crossfade')
+        ..['crossfadeSeconds'] = 7
+        ..['keepAlbumsWhole'] = 'no'
+        ..remove('smartTransitions');
+      final older = BackupCodec.decode(_bytes(json));
+      const defaults = AppSettings();
+      expect(older.settings?.crossfade, defaults.crossfade);
+      expect(older.settings?.crossfadeSeconds, defaults.crossfadeSeconds);
+      expect(older.settings?.keepAlbumsWhole, defaults.keepAlbumsWhole);
+      expect(older.settings?.smartTransitions, defaults.smartTransitions);
+    });
+
     test('a paused history stays on the phone it was paused on', () {
       final bytes = BackupCodec.encode(
         withSettings(const AppSettings(historyPaused: true)),

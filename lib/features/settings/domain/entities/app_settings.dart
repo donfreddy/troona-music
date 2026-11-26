@@ -34,6 +34,19 @@ class AppSettings extends Equatable {
   /// The screen stays on while lyrics show and the song plays.
   final bool lyricsKeepScreenOn;
 
+  /// The next song starts under the end of the one playing.
+  final bool crossfade;
+
+  /// How long two songs overlap, in seconds: one of [crossfadeChoices].
+  final int crossfadeSeconds;
+
+  /// Songs that follow each other on an album never overlap.
+  final bool keepAlbumsWhole;
+
+  /// Transitions follow where songs' music really starts and stops: their
+  /// files are analysed once, as they are about to play.
+  final bool smartTransitions;
+
   // Online extras: opt-in, they send artist and album names to Last.fm and
   // Deezer.
   final bool fetchOnlineMetadata;
@@ -81,6 +94,10 @@ class AppSettings extends Equatable {
     this.duckAudioOnNotification = true,
     this.keepShuffle = true,
     this.lyricsKeepScreenOn = true,
+    this.crossfade = false,
+    this.crossfadeSeconds = 6,
+    this.keepAlbumsWhole = true,
+    this.smartTransitions = true,
     this.fetchOnlineMetadata = false,
     this.fetchArtistArtwork = false,
     this.fetchLyrics = false,
@@ -102,12 +119,20 @@ class AppSettings extends Equatable {
   /// default.
   static const minTrackChoices = [10, 30, 60, 120];
 
+  /// The lengths offered for [crossfadeSeconds]; anything else reads as the
+  /// default.
+  static const crossfadeChoices = [3, 6, 9, 12];
+
   AppSettings copyWith({
     bool? stopOnCallEnabled,
     bool? resumeAfterCallEnabled,
     bool? duckAudioOnNotification,
     bool? keepShuffle,
     bool? lyricsKeepScreenOn,
+    bool? crossfade,
+    int? crossfadeSeconds,
+    bool? keepAlbumsWhole,
+    bool? smartTransitions,
     bool? fetchOnlineMetadata,
     bool? fetchArtistArtwork,
     bool? fetchLyrics,
@@ -129,6 +154,10 @@ class AppSettings extends Equatable {
         duckAudioOnNotification ?? this.duckAudioOnNotification,
     keepShuffle: keepShuffle ?? this.keepShuffle,
     lyricsKeepScreenOn: lyricsKeepScreenOn ?? this.lyricsKeepScreenOn,
+    crossfade: crossfade ?? this.crossfade,
+    crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
+    keepAlbumsWhole: keepAlbumsWhole ?? this.keepAlbumsWhole,
+    smartTransitions: smartTransitions ?? this.smartTransitions,
     fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
     fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
     fetchLyrics: fetchLyrics ?? this.fetchLyrics,
@@ -151,6 +180,10 @@ class AppSettings extends Equatable {
     duckAudioOnNotification,
     keepShuffle,
     lyricsKeepScreenOn,
+    crossfade,
+    crossfadeSeconds,
+    keepAlbumsWhole,
+    smartTransitions,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,

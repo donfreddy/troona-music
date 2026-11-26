@@ -2711,7 +2711,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAudio => 'Audio';
 
   @override
-  String get settingsAudioSummary => 'Equalizer, shuffle, lyrics, calls';
+  String get settingsAudioSummary =>
+      'Equalizer, crossfade, shuffle, lyrics, calls';
 
   @override
   String get settingsAudioIntro =>
@@ -2739,6 +2740,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsLyricsScreenOnSubtitle =>
       'The screen stays on while lyrics show and the song plays.';
+
+  @override
+  String get settingsTransitions => 'Transitions';
+
+  @override
+  String get settingsCrossfade => 'Crossfade';
+
+  @override
+  String get settingsCrossfadeSubtitle =>
+      'The next song starts under the end of the one playing.';
+
+  @override
+  String get settingsCrossfadeLength => 'Overlap';
+
+  @override
+  String get settingsCrossfadeLengthSubtitle =>
+      'How long both songs play together, at most.';
+
+  @override
+  String get settingsKeepAlbumsWhole => 'Keep albums whole';
+
+  @override
+  String get settingsKeepAlbumsWholeSubtitle =>
+      'Songs that follow each other on an album play on without a fade.';
+
+  @override
+  String get settingsSmartTransitions => 'Smart transitions';
+
+  @override
+  String get settingsSmartTransitionsSubtitle =>
+      'Starts the next song where the music really ends: silences are skipped, and a song that fades out keeps its own fade.';
 
   @override
   String get settingsDuckSubtitle =>
