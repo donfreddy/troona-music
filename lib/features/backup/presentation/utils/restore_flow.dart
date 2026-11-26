@@ -69,7 +69,9 @@ Future<void> restoreBackup(
   final result = await cubit.restore(backup, chosen);
   final report = result.fold((_) => null, (r) => r);
   if (report != null) {
-    if (report.settings case final saved?) await settings.restore(saved);
+    if (report.settings case final saved?) {
+      await settings.restore(saved, withAppearance: backup.appearanceSaved);
+    }
     if (report.equalizer case final eq?) {
       equalizer?.restore(eq.settings, eq.profiles);
     }

@@ -37,13 +37,15 @@ void main() {
   // at 4.5:1 on the page and on raised surfaces, and the text drawn on it
   // (its foreground) reads at 4.5:1 on it.
   for (final accent in AppAccent.values) {
-    test('the ${accent.name} accent reads on the page and carries its text',
-        () {
-      final (color, foreground) = AppColors.accentOf(accent);
-      expect(_contrast(color, colors.bgPrimary), greaterThanOrEqualTo(4.5));
-      expect(_contrast(color, colors.bgElevated), greaterThanOrEqualTo(4.5));
-      expect(_contrast(foreground, color), greaterThanOrEqualTo(4.5));
-    });
+    test(
+      'the ${accent.name} accent reads on the page and carries its text',
+      () {
+        final (color, foreground) = AppColors.accentOf(accent);
+        expect(_contrast(color, colors.bgPrimary), greaterThanOrEqualTo(4.5));
+        expect(_contrast(color, colors.bgElevated), greaterThanOrEqualTo(4.5));
+        expect(_contrast(foreground, color), greaterThanOrEqualTo(4.5));
+      },
+    );
   }
 
   test('lilac is the accent the app always had', () {
@@ -60,8 +62,7 @@ void main() {
   // The recap calendar writes the day's number on cells filled with the
   // accent at growing strength.
   for (final accent in AppAccent.values) {
-    test('the ${accent.name} calendar: every day\'s number reads at 4.5:1',
-        () {
+    test('the ${accent.name} calendar: every day\'s number reads at 4.5:1', () {
       final themed = AppColors.withAccent(accent);
       for (var level = 0; level <= PlayIntensity.maxLevel; level++) {
         final cell = Color.alphaBlend(

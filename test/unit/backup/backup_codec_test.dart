@@ -673,8 +673,8 @@ void main() {
       expect(older.settings?.lyricsKeepScreenOn, isTrue);
     });
 
-    test('the accent and the black background travel; an older backup '
-        'reads as lilac on the glow', () {
+    test('the accent and the black background travel; a backup made '
+        'before them says so, and its restore keeps the phone\'s', () {
       final read = BackupCodec.decode(
         BackupCodec.encode(
           withSettings(
@@ -684,12 +684,16 @@ void main() {
       );
       expect(read.settings?.accent, AppAccent.green);
       expect(read.settings?.blackBackground, isTrue);
+      expect(read.appearanceSaved, isTrue);
+      expect(read.only({BackupPart.settings}).appearanceSaved, isTrue);
 
       final json = _json();
       (json['settings'] as Map)
         ..remove('accent')
         ..remove('blackBackground');
       final older = BackupCodec.decode(_bytes(json));
+      expect(older.appearanceSaved, isFalse);
+      expect(older.only({BackupPart.settings}).appearanceSaved, isFalse);
       expect(older.settings?.accent, AppAccent.lilac);
       expect(older.settings?.blackBackground, isFalse);
 
@@ -697,6 +701,7 @@ void main() {
         ..['accent'] = 'magenta'
         ..['blackBackground'] = 'yes';
       final broken = BackupCodec.decode(_bytes(json));
+      expect(broken.appearanceSaved, isFalse, reason: 'a later accent');
       expect(broken.settings?.accent, AppAccent.lilac);
       expect(broken.settings?.blackBackground, isFalse);
       expect(broken.settings?.minTrackSeconds, older.settings?.minTrackSeconds);

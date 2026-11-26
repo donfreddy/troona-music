@@ -323,6 +323,15 @@ abstract final class BackupCodec {
       settings: has(BackupPart.settings)
           ? _decodeSettings(_map(json['settings'], 'settings'))
           : null,
+      // Both came in together: a backup made before them has neither, and
+      // one from a later app may name an accent this one lacks. Either
+      // way, the phone keeps its own. Without settings there is nothing to
+      // keep apart (the default).
+      appearanceSaved: switch (json['settings']) {
+        final Map<Object?, Object?> m when has(BackupPart.settings) =>
+          AppAccent.values.asNameMap().containsKey(m['accent']),
+        _ => true,
+      },
       equalizer: has(BackupPart.equalizer)
           ? _decodeEqualizer(json['equalizer'])
           : null,
@@ -427,8 +436,9 @@ abstract final class BackupCodec {
   /// defaults (what the app did before them), and a folder that is not a
   /// short text is dropped. So are the playback switches, which came
   /// later still (a value not a boolean reads as on, the default), and the
-  /// accent and black background, later again: a backup made before them
-  /// had the lilac on its glow, which is what it restores.
+  /// accent and black background, later again: absent, they read as the
+  /// defaults here and [Backup.appearanceSaved] is false, so a restore
+  /// keeps this phone's own.
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
     keepShuffle: switch (m['keepShuffle']) {
       final bool b => b,
