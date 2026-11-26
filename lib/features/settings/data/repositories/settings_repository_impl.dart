@@ -14,6 +14,9 @@ abstract final class _K {
   static const duckAudioOnNotification = 'duck_audio_on_notification';
   static const keepShuffle = 'keep_shuffle';
   static const lyricsKeepScreenOn = 'lyrics_keep_screen_on';
+  static const crossfade = 'crossfade';
+  static const crossfadeSeconds = 'crossfade_seconds';
+  static const keepAlbumsWhole = 'keep_albums_whole';
   static const fetchOnlineMetadata = 'online_bios_enabled';
   static const fetchArtistArtwork = 'online_photos_enabled';
   static const fetchLyrics = 'online_lyrics_enabled';
@@ -32,6 +35,9 @@ abstract final class _K {
     duckAudioOnNotification,
     keepShuffle,
     lyricsKeepScreenOn,
+    crossfade,
+    crossfadeSeconds,
+    keepAlbumsWhole,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,
@@ -82,6 +88,13 @@ class SettingsRepositoryImpl implements SettingsRepository {
         : fallback;
   }
 
+  int _crossfadeSeconds(int fallback) {
+    final raw = _prefs.get(_K.crossfadeSeconds);
+    return raw is int && AppSettings.crossfadeChoices.contains(raw)
+        ? raw
+        : fallback;
+  }
+
   List<String> _folders() {
     final raw = _prefs.get(_K.excludedFolders);
     return raw is List ? [...raw.whereType<String>()] : const [];
@@ -107,6 +120,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
             _K.lyricsKeepScreenOn,
             d.lyricsKeepScreenOn,
           ),
+          crossfade: _bool(_K.crossfade, d.crossfade),
+          crossfadeSeconds: _crossfadeSeconds(d.crossfadeSeconds),
+          keepAlbumsWhole: _bool(_K.keepAlbumsWhole, d.keepAlbumsWhole),
           fetchOnlineMetadata: _bool(
             _K.fetchOnlineMetadata,
             d.fetchOnlineMetadata,
@@ -154,6 +170,9 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.duckAudioOnNotification, s.duckAudioOnNotification),
         _prefs.setBool(_K.keepShuffle, s.keepShuffle),
         _prefs.setBool(_K.lyricsKeepScreenOn, s.lyricsKeepScreenOn),
+        _prefs.setBool(_K.crossfade, s.crossfade),
+        _prefs.setInt(_K.crossfadeSeconds, s.crossfadeSeconds),
+        _prefs.setBool(_K.keepAlbumsWhole, s.keepAlbumsWhole),
         _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
         _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
         _prefs.setBool(_K.fetchLyrics, s.fetchLyrics),

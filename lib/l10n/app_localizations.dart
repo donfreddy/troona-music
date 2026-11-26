@@ -4469,7 +4469,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAudioSummary.
   ///
   /// In en, this message translates to:
-  /// **'Equalizer, shuffle, lyrics, calls'**
+  /// **'Equalizer, crossfade, shuffle, lyrics, calls'**
   String get settingsAudioSummary;
 
   /// No description provided for @settingsAudioIntro.
@@ -4519,6 +4519,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The screen stays on while lyrics show and the song plays.'**
   String get settingsLyricsScreenOnSubtitle;
+
+  /// No description provided for @settingsTransitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transitions'**
+  String get settingsTransitions;
+
+  /// No description provided for @settingsCrossfade.
+  ///
+  /// In en, this message translates to:
+  /// **'Crossfade'**
+  String get settingsCrossfade;
+
+  /// No description provided for @settingsCrossfadeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The next song starts under the end of the one playing.'**
+  String get settingsCrossfadeSubtitle;
+
+  /// No description provided for @settingsCrossfadeLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlap'**
+  String get settingsCrossfadeLength;
+
+  /// No description provided for @settingsCrossfadeLengthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How long both songs play together, at most.'**
+  String get settingsCrossfadeLengthSubtitle;
+
+  /// No description provided for @settingsKeepAlbumsWhole.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep albums whole'**
+  String get settingsKeepAlbumsWhole;
+
+  /// No description provided for @settingsKeepAlbumsWholeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs that follow each other on an album play on without a fade.'**
+  String get settingsKeepAlbumsWholeSubtitle;
 
   /// No description provided for @settingsDuckSubtitle.
   ///

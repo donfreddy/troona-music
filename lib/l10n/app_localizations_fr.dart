@@ -2732,7 +2732,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsAudio => 'Audio';
 
   @override
-  String get settingsAudioSummary => 'Égaliseur, aléatoire, paroles, appels';
+  String get settingsAudioSummary =>
+      'Égaliseur, fondu, aléatoire, paroles, appels';
 
   @override
   String get settingsAudioIntro =>
@@ -2760,6 +2761,30 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsLyricsScreenOnSubtitle =>
       'L\'écran reste allumé tant que les paroles s\'affichent et que le titre est en lecture.';
+
+  @override
+  String get settingsTransitions => 'Transitions';
+
+  @override
+  String get settingsCrossfade => 'Fondu enchaîné';
+
+  @override
+  String get settingsCrossfadeSubtitle =>
+      'Le titre suivant commence sous la fin de celui en cours.';
+
+  @override
+  String get settingsCrossfadeLength => 'Durée du fondu';
+
+  @override
+  String get settingsCrossfadeLengthSubtitle =>
+      'Combien de temps les deux titres jouent ensemble, au plus.';
+
+  @override
+  String get settingsKeepAlbumsWhole => 'Garder les albums entiers';
+
+  @override
+  String get settingsKeepAlbumsWholeSubtitle =>
+      'Les titres qui se suivent sur un album s\'enchaînent sans fondu.';
 
   @override
   String get settingsDuckSubtitle =>

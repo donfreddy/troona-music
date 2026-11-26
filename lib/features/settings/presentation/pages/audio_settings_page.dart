@@ -4,15 +4,18 @@ import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/equalizer/presentation/cubit/equalizer_cubit.dart';
 import 'package:troona/features/equalizer/presentation/widgets/equalizer_sheet.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
-import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
+import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_builder.dart';
+import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_section.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_subpage.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_tile.dart';
 
 /// The equalizer, whether a new list keeps shuffle and the lyrics keep the
-/// screen on, and what playback does when another sound needs the speaker.
+/// screen on, how songs lead into each other, and what playback does when
+/// another sound needs the speaker.
 class AudioSettingsPage extends StatelessWidget {
   const AudioSettingsPage({super.key});
 
@@ -65,6 +68,44 @@ class AudioSettingsPage extends StatelessWidget {
                 subtitle: l10n.settingsLyricsScreenOnSubtitle,
                 value: settings.lyricsKeepScreenOn,
                 onChanged: cubit.setLyricsKeepScreenOn,
+              ),
+            ],
+          ),
+        ),
+        SettingsBuilder(
+          builder: (context, settings) => SettingsSection(
+            title: l10n.settingsTransitions,
+            children: [
+              SettingsTile.switchTile(
+                icon: AppIcons.crossfade,
+                iconColor: SettingsHue.audio,
+                title: l10n.settingsCrossfade,
+                subtitle: l10n.settingsCrossfadeSubtitle,
+                value: settings.crossfade,
+                onChanged: cubit.setCrossfade,
+              ),
+              // Always shown, off or on: a row that comes and goes would
+              // leave its divider behind.
+              SegmentedRow<int>(
+                label: l10n.settingsCrossfadeLength,
+                subtitle: l10n.settingsCrossfadeLengthSubtitle,
+                icon: AppIcons.crossfadeLength,
+                iconColor: SettingsHue.audio,
+                values: AppSettings.crossfadeChoices,
+                labels: [
+                  for (final s in AppSettings.crossfadeChoices)
+                    l10n.durationSecondsShort(s),
+                ],
+                selected: settings.crossfadeSeconds,
+                onChanged: cubit.setCrossfadeSeconds,
+              ),
+              SettingsTile.switchTile(
+                icon: AppIcons.keepAlbumsWhole,
+                iconColor: SettingsHue.audio,
+                title: l10n.settingsKeepAlbumsWhole,
+                subtitle: l10n.settingsKeepAlbumsWholeSubtitle,
+                value: settings.keepAlbumsWhole,
+                onChanged: cubit.setKeepAlbumsWhole,
               ),
             ],
           ),

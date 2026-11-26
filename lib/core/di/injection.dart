@@ -73,6 +73,7 @@ import 'package:troona/features/library/presentation/bloc/selection/track_select
 import 'package:troona/features/library/presentation/bloc/album_detail/album_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/artist_detail/artist_detail_bloc.dart';
 import 'package:troona/features/library/presentation/bloc/similar_artists/similar_artists_cubit.dart';
+import 'package:troona/features/player/domain/entities/mix_settings.dart';
 import 'package:troona/features/playlist/domain/use_cases/smart_playlist_source.dart';
 import 'package:troona/features/playlist/data/repositories/playlist_repository_impl.dart';
 import 'package:troona/features/playlist/domain/repositories/playlist_repository.dart';
@@ -132,6 +133,13 @@ import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart'
 /// All registrations are intentionally **manual** (no `injectable` code
 /// generation) for maximum transparency in an open-source project.
 final GetIt getIt = GetIt.instance;
+
+/// How songs lead into each other, as [settings] say.
+MixSettings _mixOf(AppSettings settings) => MixSettings(
+  crossfade: settings.crossfade,
+  overlap: Duration(seconds: settings.crossfadeSeconds),
+  keepAlbumsWhole: settings.keepAlbumsWhole,
+);
 
 /// Registers all dependencies in the correct resolution order.
 ///
@@ -259,6 +267,17 @@ Future<void> configureDependencies() async {
     likeButton: likeButton,
     lastSession: lastSession.future,
     probe: EqualizerProbe(sharedPrefs),
+    // Read whenever a transition is due: a change applies to the next one.
+    // The cubit is registered further down; until then, the settings just
+    // loaded.
+    mix: () => _mixOf(
+      getIt.isRegistered<SettingsCubit>()
+          ? switch (getIt<SettingsCubit>().state) {
+              SettingsLoaded(:final settings) => settings,
+              _ => initialSettings,
+            }
+          : initialSettings,
+    ),
   );
   getIt
     ..registerSingleton<AudioServicePort>(audioPort)

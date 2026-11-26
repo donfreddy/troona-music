@@ -149,6 +149,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setLyricsKeepScreenOn(bool value) =>
       _update((s) => s.copyWith(lyricsKeepScreenOn: value));
 
+  Future<void> setCrossfade(bool value) =>
+      _update((s) => s.copyWith(crossfade: value));
+
+  Future<void> setCrossfadeSeconds(int seconds) {
+    if (!AppSettings.crossfadeChoices.contains(seconds)) return Future.value();
+    return _update((s) => s.copyWith(crossfadeSeconds: seconds));
+  }
+
+  Future<void> setKeepAlbumsWhole(bool value) =>
+      _update((s) => s.copyWith(keepAlbumsWhole: value));
+
   Future<void> setHistoryPaused(bool value) =>
       _update((s) => s.copyWith(historyPaused: value));
 

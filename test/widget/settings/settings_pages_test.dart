@@ -375,6 +375,22 @@ void main() {
       expect(saved.lyricsKeepScreenOn, isFalse);
     });
 
+    testWidgets('the Audio page sets the transitions', (tester) async {
+      await pump(tester, const AudioSettingsPage());
+      for (final label in ['Crossfade', '9 s', 'Keep albums whole']) {
+        final row = find.text(label);
+        await tester.ensureVisible(row);
+        await tester.pumpAndSettle();
+        await tester.tap(row);
+        await tester.pumpAndSettle();
+      }
+
+      final saved = (settings.state as SettingsLoaded).settings;
+      expect(saved.crossfade, isTrue);
+      expect(saved.crossfadeSeconds, 9);
+      expect(saved.keepAlbumsWhole, isFalse);
+    });
+
     testWidgets('pausing the history shows on the root of Settings', (
       tester,
     ) async {
