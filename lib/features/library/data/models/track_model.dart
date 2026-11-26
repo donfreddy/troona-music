@@ -3,7 +3,9 @@ import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:troona/core/extensions/num_ext.dart';
 import 'package:troona/core/extensions/string_ext.dart';
 import 'package:troona/features/library/domain/entities/artist_credit.dart';
+import 'package:troona/features/library/data/models/track_edit_model.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
+import 'package:troona/features/library/domain/entities/track_edit.dart';
 import 'package:troona/features/library/domain/services/album_merge.dart';
 import 'package:troona/features/library/domain/services/artist_credits.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
@@ -83,6 +85,17 @@ class TrackModel {
   /// Null until artwork has been extracted by [ArtworkExtractor].
   String? artworkPath;
 
+  /// What the file says under a correction ([applyEdit]): set only for a
+  /// field the user corrected, null otherwise.
+  String? fileTitle;
+  String? fileArtist;
+  String? fileAlbum;
+  int? fileYear;
+
+  /// A cover the user picked, shown over the file's ([artworkPath], which
+  /// the extractor keeps).
+  String? editedCoverPath;
+
   /// True once [ArtworkExtractor] has looked at this track, whether or not it
   /// found a cover. Without it, files with no embedded artwork were queried
   /// again on every launch.
@@ -153,6 +166,44 @@ class TrackModel {
     return tag.trim().toLowerCase().startsWith(named.title.toLowerCase());
   }
 
+  /// Lays [edit] over the tags this row was scanned with, keeping each
+  /// corrected field's file value aside ([fileTitle] and the others). Called
+  /// on a scanned row, before [link].
+  void applyEdit(TrackEditModel edit) {
+    if (edit.title case final t? when t != title) {
+      fileTitle = title;
+      title = t;
+    }
+    if (edit.artist case final a? when a != artist) {
+      fileArtist = artist;
+      artist = a;
+      artistId = TrackTags.artistIdFor(a);
+    }
+    if (edit.album case final a? when a != album) {
+      fileAlbum = album;
+      album = a;
+      // Its album id moves too, once every edit is laid:
+      // `TrackEditMatch.apply`.
+    }
+    if (edit.year case final y? when y != year) {
+      fileYear = year;
+      year = y;
+    }
+    editedCoverPath = edit.coverPath;
+  }
+
+  /// The folder of the file, with its last slash.
+  String get folder => path.substring(0, path.lastIndexOf('/') + 1);
+
+  /// The tags as the file gives them, under any correction.
+  TrackFileTags fileTags() => TrackFileTags(
+    title: fileTitle ?? title,
+    artist: TrackTags.artist(fileArtist ?? artist),
+    album: fileAlbum ?? album,
+    year: fileYear ?? year,
+    coverPath: artworkPath,
+  );
+
   /// Fills in the artists and albums of [tracks], the whole library as
   /// scanned: the artists each song credits ([ArtistCredits]), then the
   /// albums Android split ([AlbumMerge]). [albumId] must still be the one
@@ -202,6 +253,11 @@ class TrackModel {
         dateAdded != scanned.dateAdded ||
         dateModified != scanned.dateModified ||
         excluded != scanned.excluded ||
+        fileTitle != scanned.fileTitle ||
+        fileArtist != scanned.fileArtist ||
+        fileAlbum != scanned.fileAlbum ||
+        fileYear != scanned.fileYear ||
+        editedCoverPath != scanned.editedCoverPath ||
         !_sameList(artistIds, scanned.artistIds) ||
         !_sameList(artistNames, scanned.artistNames);
     if (!changed) return false;
@@ -225,6 +281,11 @@ class TrackModel {
     dateAdded = scanned.dateAdded;
     dateModified = scanned.dateModified;
     excluded = scanned.excluded;
+    fileTitle = scanned.fileTitle;
+    fileArtist = scanned.fileArtist;
+    fileAlbum = scanned.fileAlbum;
+    fileYear = scanned.fileYear;
+    editedCoverPath = scanned.editedCoverPath;
     return true;
   }
 
@@ -236,26 +297,28 @@ class TrackModel {
     return true;
   }
 
-  /// Converts this model to the immutable domain [Track] entity.
-  Track toEntity() => Track(
+  /// Converts this model to the immutable domain [Track] entity: as shown,
+  /// or with [asFiled] as its file describes it, under any correction (what
+  /// backups describe and restores match, on any phone).
+  Track toEntity({bool asFiled = false}) => Track(
     id: deviceId,
     path: path,
     uri: uri,
     size: size,
-    title: title,
+    title: asFiled ? fileTitle ?? title : title,
     // Rows indexed by earlier versions hold `<unknown>` or "Unknown Artist".
-    artist: TrackTags.artist(artist),
+    artist: TrackTags.artist(asFiled ? fileArtist ?? artist : artist),
     artistId: artistId,
     credits: _credits(),
-    album: album,
+    album: asFiled ? fileAlbum ?? album : album,
     albumId: albumId,
     genre: genre,
     genreId: genreId,
     trackNumber: trackNumber,
     durationMs: durationMs,
     fileName: fileName,
-    artworkPath: artworkPath,
-    year: year,
+    artworkPath: editedCoverPath ?? artworkPath,
+    year: asFiled ? fileYear ?? year : year,
     composer: composer,
     dateAdded: dateAdded,
     dateModified: dateModified,

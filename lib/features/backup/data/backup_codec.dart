@@ -8,6 +8,7 @@ import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/lyrics/domain/entities/lyrics.dart';
 import 'package:troona/features/lyrics/domain/repositories/lyrics_repository.dart';
 import 'package:troona/features/lyrics/domain/services/lrc_parser.dart';
+import 'package:troona/features/library/domain/entities/track_edit.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 /// Thrown by [BackupCodec.decode] on a file that is not a valid backup.
@@ -62,10 +63,14 @@ abstract final class BackupCodec {
       for (final part in backup.parts)
         if (part != BackupPart.settings || backup.settings != null) part,
     };
-    // The equalizer and lyrics are optional in version 1 too: a backup
+    // The equalizer, lyrics and corrections are optional in version 1 too: a backup
     // without them is still one an older app restores whole.
     final complete = held.containsAll(
-      BackupPart.all.difference({BackupPart.equalizer, BackupPart.lyrics}),
+      BackupPart.all.difference({
+        BackupPart.equalizer,
+        BackupPart.lyrics,
+        BackupPart.edits,
+      }),
     );
     bool has(BackupPart part) => held.contains(part);
     return utf8.encode(
@@ -144,6 +149,17 @@ abstract final class BackupCodec {
             for (final o in backup.lyricsOffsets)
               {'track': o.track, 'offsetMs': o.offsetMs},
           ],
+        if (has(BackupPart.edits) && backup.edits.isNotEmpty)
+          'edits': [
+            for (final e in backup.edits)
+              {
+                'track': e.track,
+                if (e.title case final t?) 'title': _clip(t),
+                if (e.artist case final a?) 'artist': _clip(a),
+                if (e.album case final a?) 'album': _clip(a),
+                'year': ?e.year,
+              },
+          ],
       }),
     );
   }
@@ -167,6 +183,7 @@ abstract final class BackupCodec {
       equalizer: backup.equalizer,
       lyrics: backup.lyrics,
       lyricsOffsets: backup.lyricsOffsets,
+      edits: backup.edits,
     );
     // Dart ints wrap on overflow, which is the modulo FNV needs.
     var hash = 0xcbf29ce484222325;
@@ -341,6 +358,9 @@ abstract final class BackupCodec {
       lyricsOffsets: has(BackupPart.lyrics)
           ? _decodeLyricsOffsets(json['lyricsOffsets'], tracks.keys.toSet())
           : const [],
+      edits: has(BackupPart.edits)
+          ? _decodeEdits(json['edits'], tracks.keys.toSet())
+          : const [],
     );
   }
 
@@ -352,6 +372,37 @@ abstract final class BackupCodec {
       for (final part in BackupPart.values)
         if (names.contains(part.name)) part,
     };
+  }
+
+  /// Optional, and read leniently: a field that is not one a correction
+  /// takes (an empty title or album, a year out of range, a text too long)
+  /// is dropped, and an entry left with nothing, or naming an unknown song
+  /// or one already corrected, is left out.
+  static List<BackupEdit> _decodeEdits(Object? json, Set<String> tracks) {
+    if (json is! List || json.length > _maxItems) return const [];
+    String? text(Object? v, {bool empty = false}) =>
+        v is String &&
+            v.length <= TrackEdit.maxText &&
+            (empty || v.trim().isNotEmpty)
+        ? v
+        : null;
+    final seen = <String>{};
+    return [
+      for (final item in json)
+        if (item case {'track': final String track} when tracks.contains(track))
+          if (BackupEdit(
+                track: track,
+                title: text(item['title']),
+                artist: text(item['artist'], empty: true),
+                album: text(item['album']),
+                year: switch (item['year']) {
+                  final int y when TrackEdit.validYear(y) => y,
+                  _ => null,
+                },
+              )
+              case final edit when !edit.isEmpty && seen.add(track))
+            edit,
+    ];
   }
 
   /// Optional, and read leniently, as [_decodeLyrics]: a correction of an

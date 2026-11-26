@@ -62,11 +62,11 @@ final class LibraryRepositoryImpl
         StoredTracks(
           kept: [
             for (final t in tracks)
-              if (!t.excluded) t.toEntity(),
+              if (!t.excluded) t.toEntity(asFiled: true),
           ],
           leftOut: [
             for (final t in tracks)
-              if (t.excluded) t.toEntity(),
+              if (t.excluded) t.toEntity(asFiled: true),
           ],
         ),
       );

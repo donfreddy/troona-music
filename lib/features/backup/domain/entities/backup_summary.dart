@@ -20,6 +20,9 @@ final class BackupSummary extends Equatable {
   /// Songs with imported lyrics or a timing set on lyrics found online.
   final int lyrics;
 
+  /// Songs whose info was corrected.
+  final int edits;
+
   /// Saved equalizer profiles.
   final int profiles;
 
@@ -29,6 +32,7 @@ final class BackupSummary extends Equatable {
     this.likes = 0,
     this.plays = 0,
     this.lyrics = 0,
+    this.edits = 0,
     this.profiles = 0,
   });
 
@@ -58,6 +62,7 @@ final class BackupSummary extends Equatable {
         if (likes > 0) BackupPart.likes,
         if (history) BackupPart.history,
         if (lyrics > 0) BackupPart.lyrics,
+        if (backup.edits.isNotEmpty) BackupPart.edits,
         if (backup.settings != null) BackupPart.settings,
         if (backup.equalizer != null) BackupPart.equalizer,
       },
@@ -65,10 +70,19 @@ final class BackupSummary extends Equatable {
       likes: likes,
       plays: plays,
       lyrics: lyrics,
+      edits: backup.edits.length,
       profiles: backup.equalizer?.profiles.length ?? 0,
     );
   }
 
   @override
-  List<Object?> get props => [parts, playlists, likes, plays, lyrics, profiles];
+  List<Object?> get props => [
+    parts,
+    playlists,
+    likes,
+    plays,
+    lyrics,
+    edits,
+    profiles,
+  ];
 }

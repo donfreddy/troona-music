@@ -10,6 +10,7 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Smart transitions, on Android: the next song starts where the music really ends.
 - Choose an accent colour, in Settings > Appearance.
 - A black background for the tabs, without the glow of the song playing.
+- Correct a song's or an album's info and cover, kept in Troona and in backups.
 
 ## [1.9.0] - 2026-11-23
 

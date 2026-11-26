@@ -121,10 +121,22 @@ enum BackupPart {
 
   /// Lyrics imported by hand, and the timing set on lyrics found online.
   lyrics,
+
+  /// Songs' info corrected in the app (title, artist, album, year); a
+  /// picked cover is a file of this phone and stays here.
+  edits,
   settings,
   equalizer;
 
-  static const all = {playlists, likes, history, lyrics, settings, equalizer};
+  static const all = {
+    playlists,
+    likes,
+    history,
+    lyrics,
+    edits,
+    settings,
+    equalizer,
+  };
 }
 
 /// Lyrics the user imported for a song, with their timing correction
@@ -155,6 +167,30 @@ final class BackupLyricsOffset extends Equatable {
 
   @override
   List<Object?> get props => [track, offsetMs];
+}
+
+/// A song's info corrected in the app (see `TrackEdit`), its cover left
+/// out. A null field is not corrected.
+final class BackupEdit extends Equatable {
+  final String track;
+  final String? title;
+  final String? artist;
+  final String? album;
+  final int? year;
+
+  const BackupEdit({
+    required this.track,
+    this.title,
+    this.artist,
+    this.album,
+    this.year,
+  });
+
+  bool get isEmpty =>
+      title == null && artist == null && album == null && year == null;
+
+  @override
+  List<Object?> get props => [track, title, artist, album, year];
 }
 
 /// Everything a backup carries. Songs are described once in [tracks] and
@@ -195,6 +231,9 @@ final class Backup extends Equatable {
   /// Empty in backups made before they were carried.
   final List<BackupLyricsOffset> lyricsOffsets;
 
+  /// Empty in backups made before corrections.
+  final List<BackupEdit> edits;
+
   const Backup({
     required this.createdAt,
     this.parts = BackupPart.all,
@@ -211,6 +250,7 @@ final class Backup extends Equatable {
     this.equalizer,
     this.lyrics = const [],
     this.lyricsOffsets = const [],
+    this.edits = const [],
   });
 
   Backup withEqualizer(EqualizerSnapshot? equalizer) => Backup(
@@ -229,6 +269,7 @@ final class Backup extends Equatable {
     equalizer: equalizer,
     lyrics: lyrics,
     lyricsOffsets: lyricsOffsets,
+    edits: edits,
   );
 
   /// This backup with the records of [chosen] parts only, and the songs
@@ -249,6 +290,9 @@ final class Backup extends Equatable {
     final lyricsOffsets = withLyrics
         ? this.lyricsOffsets
         : const <BackupLyricsOffset>[];
+    final edits = keep.contains(BackupPart.edits)
+        ? this.edits
+        : const <BackupEdit>[];
     final named = {
       for (final p in playlists) ...p.tracks,
       for (final p in plays) p.track,
@@ -256,6 +300,7 @@ final class Backup extends Equatable {
       for (final f in firstPlays) f.track,
       for (final l in lyrics) l.track,
       for (final o in lyricsOffsets) o.track,
+      for (final e in edits) e.track,
     };
     return Backup(
       createdAt: createdAt,
@@ -276,6 +321,7 @@ final class Backup extends Equatable {
       equalizer: keep.contains(BackupPart.equalizer) ? equalizer : null,
       lyrics: lyrics,
       lyricsOffsets: lyricsOffsets,
+      edits: edits,
     );
   }
 
@@ -296,5 +342,6 @@ final class Backup extends Equatable {
     equalizer,
     lyrics,
     lyricsOffsets,
+    edits,
   ];
 }

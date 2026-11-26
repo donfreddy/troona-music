@@ -104,6 +104,15 @@ abstract final class AppIcons {
   static const IconData clear = LucideIcons300.circleX;
   static const IconData add = LucideIcons300.plus;
   static const IconData edit = LucideIcons300.pencil;
+
+  /// A song's or an album's info, corrected in the app.
+  static const IconData editInfo = LucideIcons300.squarePen;
+
+  /// Drops a correction: the file's value shows again.
+  static const IconData useFileValue = LucideIcons300.undo2;
+
+  /// Picks a picture as the cover.
+  static const IconData changeCover = LucideIcons300.imagePlus;
   static const IconData delete = LucideIcons300.trash2;
   static const IconData selected = LucideIcons300.check;
   static const IconData dragHandle = LucideIcons300.gripVertical;

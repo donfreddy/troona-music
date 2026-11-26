@@ -9,6 +9,7 @@ abstract final class BackupSummaryJson {
     'likes': s.likes,
     'plays': s.plays,
     'lyrics': s.lyrics,
+    'edits': s.edits,
     'profiles': s.profiles,
   };
 
@@ -26,6 +27,8 @@ abstract final class BackupSummaryJson {
     final profiles = count('profiles');
     // Absent from summaries counted before lyrics were a part.
     final lyrics = count('lyrics') ?? 0;
+    // And before corrections were.
+    final edits = count('edits') ?? 0;
     if (parts is! List ||
         playlists == null ||
         likes == null ||
@@ -42,6 +45,7 @@ abstract final class BackupSummaryJson {
       likes: likes,
       plays: plays,
       lyrics: lyrics,
+      edits: edits,
       profiles: profiles,
     );
   }

@@ -7,6 +7,7 @@ import 'package:troona/core/utils/haptics_helper.dart';
 import 'package:troona/features/library/domain/entities/album.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/repositories/album_detail_repository.dart';
+import 'package:troona/features/library/presentation/pages/track_edit_page.dart';
 import 'package:troona/features/player/domain/entities/queue_origin.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/play_shuffled.dart';
@@ -88,6 +89,11 @@ void showAlbumActions(
           (songs) =>
               queueSongs(context, player, songs, next: false, origin: origin),
         ),
+      ),
+      SheetAction(
+        label: l10n.albumEditInfo,
+        icon: AppIcons.editInfo,
+        onPressed: () => withTracks((songs) => openAlbumEditor(context, songs)),
       ),
     ],
   );

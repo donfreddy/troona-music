@@ -126,6 +126,47 @@ void main() {
     expect(report.settings?.fetchOnlineMetadata, isTrue);
   });
 
+  test('corrections restored for a song found ask for a scan, once; for '
+      'songs not found, or not chosen, none', () async {
+    Backup withEdits(List<BackupEdit> edits) => Backup(
+      createdAt: _backup.createdAt,
+      tracks: _backup.tracks,
+      playlists: const [],
+      plays: const [],
+      days: const [],
+      trackDays: const [],
+      firstPlays: const [],
+      replayMonth: null,
+      settings: null,
+      edits: edits,
+    );
+    var scans = 0;
+    RestoreBackupUseCase useCase() => RestoreBackupUseCase(
+      _Backups(right(_backup)),
+      _Library(
+        StoredTracks(
+          kept: [testTrack('a', durationMs: 200000)],
+          leftOut: const [],
+        ),
+      ),
+      editsRestored: () => scans++,
+    );
+
+    final found = withEdits(const [
+      BackupEdit(track: 'k1', title: 'Mine'),
+      BackupEdit(track: 'k2', title: 'Gone'),
+    ]);
+    await useCase()(found, BackupPart.all);
+    expect(scans, 1);
+
+    await useCase()(found, BackupPart.all.difference({BackupPart.edits}));
+    await useCase()(
+      withEdits(const [BackupEdit(track: 'k2', title: 'Gone')]),
+      BackupPart.all,
+    );
+    expect(scans, 1);
+  });
+
   test(
     'the equalizer of the backup comes back for the caller to apply',
     () async {

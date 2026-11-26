@@ -22,6 +22,7 @@ Backup _backup({
   EqualizerSnapshot? equalizer,
   List<BackupLyrics> lyrics = const [],
   List<BackupLyricsOffset> lyricsOffsets = const [],
+  List<BackupEdit> edits = const [],
 }) => Backup(
   createdAt: DateTime.utc(2026),
   parts: parts,
@@ -36,6 +37,7 @@ Backup _backup({
   equalizer: equalizer,
   lyrics: lyrics,
   lyricsOffsets: lyricsOffsets,
+  edits: edits,
 );
 
 void main() {
@@ -59,6 +61,7 @@ void main() {
           BackupLyricsOffset(track: 'a', offsetMs: 300),
           BackupLyricsOffset(track: 'b', offsetMs: -200),
         ],
+        edits: const [BackupEdit(track: 'b', title: 'Mine')],
       ),
     );
 
@@ -68,6 +71,7 @@ void main() {
     expect(summary.likes, 2);
     expect(summary.plays, 12);
     expect(summary.profiles, 0);
+    expect(summary.edits, 1);
     expect(summary.parts, BackupPart.all);
   });
 

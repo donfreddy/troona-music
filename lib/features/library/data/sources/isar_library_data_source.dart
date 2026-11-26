@@ -99,11 +99,14 @@ class IsarLibraryDataSource {
       .findAll();
 
   /// Returns the artwork path for a single track by [deviceId], or null.
-  Future<String?> getArtworkPathById(String deviceId) async => _isar.trackModels
-      .where()
-      .deviceIdEqualTo(deviceId)
-      .findFirst()
-      ?.artworkPath;
+  /// A cover the user picked comes first.
+  Future<String?> getArtworkPathById(String deviceId) async {
+    final track = _isar.trackModels
+        .where()
+        .deviceIdEqualTo(deviceId)
+        .findFirst();
+    return track?.editedCoverPath ?? track?.artworkPath;
+  }
 
   /// Returns the playlists ordered by Isar insertion ID, with Likes ensured
   /// and pinned to the top.

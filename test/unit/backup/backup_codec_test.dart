@@ -234,6 +234,83 @@ void main() {
     });
   });
 
+  group('song corrections', () {
+    final withEdits = Backup(
+      createdAt: _backup.createdAt,
+      tracks: _backup.tracks,
+      playlists: _backup.playlists,
+      plays: _backup.plays,
+      days: _backup.days,
+      trackDays: _backup.trackDays,
+      firstPlays: _backup.firstPlays,
+      hours: _backup.hours,
+      replayMonth: _backup.replayMonth,
+      settings: _backup.settings,
+      edits: const [
+        BackupEdit(track: '1', title: 'Mine', artist: '', year: 2019),
+      ],
+    );
+
+    Map<String, dynamic> json() =>
+        jsonDecode(utf8.decode(BackupCodec.encode(withEdits)))
+            as Map<String, dynamic>;
+
+    test('read back as they were written, in a version 1 file', () {
+      expect(json()['version'], 1);
+      expect(json()['edits'], [
+        {'track': '1', 'title': 'Mine', 'artist': '', 'year': 2019},
+      ]);
+      expect(BackupCodec.decode(BackupCodec.encode(withEdits)), withEdits);
+    });
+
+    test('a backup made before them has none, and no key', () {
+      expect(_json().containsKey('edits'), isFalse);
+      expect(BackupCodec.decode(BackupCodec.encode(_backup)).edits, isEmpty);
+    });
+
+    test('a field that cannot be read is dropped, an entry left with '
+        'nothing is left out, the rest restores', () {
+      final j = json();
+      (j['edits'] as List)
+        ..clear()
+        ..addAll([
+          {
+            'track': '1',
+            'title': '  ', // empty: dropped
+            'album': 'Doux',
+            'year': 99, // out of range: dropped
+            'artist': 'x' * 501, // too long: dropped
+          },
+          {'track': '1', 'title': 'Again'}, // the song again: the first wins
+          {'track': '9', 'title': 'Unknown'}, // unknown song
+          {'track': '1'},
+          'not an object',
+        ]);
+      final read = BackupCodec.decode(_bytes(j));
+      expect(read.edits, const [BackupEdit(track: '1', album: 'Doux')]);
+      expect(read.playlists, _backup.playlists);
+    });
+
+    test('not a list, they are left out', () {
+      final j = json()..['edits'] = 'Mine';
+      expect(BackupCodec.decode(_bytes(j)).edits, isEmpty);
+    });
+
+    test('alone they are version 2, and change the fingerprint', () {
+      final alone = withEdits.only({BackupPart.edits});
+      final bytes = BackupCodec.encode(alone);
+      final j = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+      expect(j['version'], 2);
+      expect(j['contents'], ['edits']);
+      expect(alone.tracks.keys, ['1'], reason: 'the song they name');
+      expect(BackupCodec.decode(bytes), alone);
+      expect(
+        BackupCodec.fingerprint(withEdits),
+        isNot(BackupCodec.fingerprint(_backup)),
+      );
+    });
+  });
+
   test('a backup made before the hours were counted has none', () {
     final json = _json();
     (json['history'] as Map).remove('hours');

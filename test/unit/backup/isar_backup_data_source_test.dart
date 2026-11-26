@@ -20,9 +20,12 @@ import 'package:troona/features/lyrics/data/models/track_lyrics_model.dart';
 import 'package:troona/features/lyrics/data/sources/isar_lyrics_data_source.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
+import 'package:troona/features/library/data/models/track_edit_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/data/sources/isar_track_edit_data_source.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
+import 'package:troona/features/library/domain/entities/track_edit.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 import '../../helpers/isar_host.dart';
@@ -77,6 +80,7 @@ void main() {
         ...IsarLibraryDataSource.schemas,
         ...IsarPlayHistoryDataSource.schemas,
         ...IsarLyricsDataSource.schemas,
+        ...IsarTrackEditDataSource.schemas,
       ],
       directory: dir.path,
       inspector: false,
@@ -854,6 +858,125 @@ void main() {
         expect(rows.get('1')!.offsetMs, -100);
         expect(rows.get('2')!.raw, 'B');
         expect(rows.get('3')!.raw, '[00:01.00]Here');
+      });
+    });
+
+    group('corrections', () {
+      TrackEditModel edit(
+        String id, {
+        String? title,
+        String? artist,
+        String? year,
+        String? cover,
+      }) => TrackEditModel()
+        ..id = isar.trackEditModels.autoIncrement()
+        ..deviceId = id
+        ..fileName = '$id.mp3'
+        ..size = 42
+        ..title = title
+        ..artist = artist
+        ..coverPath = cover
+        ..editedAt = t0;
+
+      Backup withEdits(List<BackupEdit> edits) {
+        final saved = backup();
+        return Backup(
+          createdAt: saved.createdAt,
+          tracks: saved.tracks,
+          playlists: const [],
+          plays: const [],
+          days: const [],
+          trackDays: const [],
+          firstPlays: const [],
+          replayMonth: null,
+          settings: const AppSettings(),
+          edits: edits,
+        );
+      }
+
+      test('are read with their song described as its file says, never a '
+          'picked cover alone', () {
+        store(
+          tracks: [
+            _track('1')
+              ..title = 'Mine'
+              ..fileTitle = 'Title 1',
+            _track('2'),
+          ],
+        );
+        isar.write(
+          (isar) => isar.trackEditModels.putAll([
+            edit('1', title: 'Mine'),
+            edit('2', cover: '/covers/a.png'),
+          ]),
+        );
+
+        final read = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+        );
+
+        expect(read.edits, const [BackupEdit(track: '1', title: 'Mine')]);
+        expect(read.tracks.keys, ['1']);
+        expect(read.tracks['1']!.title, 'Title 1', reason: 'the file\'s');
+
+        final without = source.read(
+          createdAt: t0,
+          settings: const AppSettings(),
+          replayMonth: null,
+          parts: BackupPart.all.difference({BackupPart.edits}),
+        );
+        expect(without.edits, isEmpty);
+        expect(without.tracks, isEmpty);
+      });
+
+      test('come back field by field, this phone\'s own winning, its cover '
+          'kept, songs not found skipped', () async {
+        store(tracks: [_track('1'), _track('2'), _track('4')]);
+        isar.write(
+          (isar) => isar.trackEditModels.put(
+            edit('1', title: 'Here', cover: '/covers/here.png'),
+          ),
+        );
+
+        final restored = withEdits(const [
+          BackupEdit(track: 'a', title: 'Saved', artist: 'Chily'),
+          BackupEdit(track: 'b', album: 'Doux', year: 2019),
+          BackupEdit(track: 'c', title: 'Nowhere'),
+          // What this phone's file already says: nothing to correct.
+          BackupEdit(track: 'd', title: 'Title 4'),
+        ]);
+        await source.restore(restored, {
+          'a': '1',
+          'b': '2',
+          'c': '3',
+          'd': '4',
+        });
+        await source.restore(restored, {
+          'a': '1',
+          'b': '2',
+          'c': '3',
+          'd': '4',
+        });
+
+        final rows = {
+          for (final e in isar.trackEditModels.where().findAll()) e.deviceId: e,
+        };
+        expect(rows.keys, unorderedEquals(['1', '2']), reason: 'once each');
+        expect(
+          rows['1']!.toEntity(),
+          const TrackEdit(
+            title: 'Here',
+            artist: 'Chily',
+            coverPath: '/covers/here.png',
+          ),
+        );
+        expect(
+          rows['2']!.toEntity(),
+          const TrackEdit(album: 'Doux', year: 2019),
+        );
+        expect((rows['2']!.fileName, rows['2']!.size), ('2.mp3', 42));
       });
     });
   }, skip: skip);
