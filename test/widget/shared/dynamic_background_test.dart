@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart'
+    show AppAccent;
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
@@ -40,10 +43,12 @@ void main() {
       });
     }
 
-    test('the default ambient glow is readable too', () {
+    test('the ambient glow of every accent is readable too', () {
       for (final color in [
-        ColorPrimitives.ambientTop,
-        ColorPrimitives.ambientEdge,
+        for (final accent in AppAccent.values) ...[
+          AppColors.ambientOf(accent).$1,
+          AppColors.ambientOf(accent).$2,
+        ],
       ]) {
         final peak = DynamicBackground.peakOf(
           DynamicBackground.fitForText(color),
@@ -185,6 +190,99 @@ void main() {
       await tester.pumpWidget(app(ambientGlow: false));
       await tester.pumpAndSettle();
       expect(glowOpacity(tester), 0);
+    });
+  });
+
+  _ambientTests();
+}
+
+void _ambientTests() {
+  group('no cover', () {
+    // As the app: the theme changes at once, so only the glow animates.
+    Widget page(AppAccent accent) => MaterialApp(
+      themeAnimationDuration: Duration.zero,
+      theme: AppTheme.withGlass(GlassQuality.high, accent: accent),
+      home: const DynamicBackground(
+        colorA: null,
+        colorB: null,
+        child: SizedBox.expand(),
+      ),
+    );
+
+    // The top-left glow's second stop paints colour A at 62 %.
+    Color painted(WidgetTester tester) {
+      final box = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(DynamicBackground),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      final gradient = (box.decoration as BoxDecoration).gradient!;
+      return gradient.colors[1].withValues(alpha: 1);
+    }
+
+    Color ambientTopOf(AppAccent accent) =>
+        DynamicBackground.fitForText(AppColors.ambientOf(accent).$1);
+
+    testWidgets('a page opens in the accent\'s glow, without fading in', (
+      tester,
+    ) async {
+      await tester.pumpWidget(page(AppAccent.teal));
+      expect(painted(tester), ambientTopOf(AppAccent.teal));
+      expect(tester.hasRunningAnimations, isFalse);
+    });
+
+    testWidgets('a new accent fades the glow to its own', (tester) async {
+      await tester.pumpWidget(page(AppAccent.lilac));
+      final lilac = ambientTopOf(AppAccent.lilac);
+      final orange = ambientTopOf(AppAccent.orange);
+      expect(painted(tester), lilac);
+
+      await tester.pumpWidget(page(AppAccent.orange));
+      await tester.pump(
+        DynamicBackground.transitionOf(
+              DynamicBackgroundTone.ambient,
+              GlassQuality.high,
+            ) ~/
+            2,
+      );
+      expect(painted(tester), isNot(anyOf(lilac, orange)), reason: 'midway');
+      await tester.pumpAndSettle();
+      expect(painted(tester), orange);
+    });
+
+    testWidgets('one colour missing takes the accent\'s, the other stays', (
+      tester,
+    ) async {
+      const red = Color(0xFF802030);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.withGlass(GlassQuality.high, accent: AppAccent.teal),
+          home: const DynamicBackground(
+            colorA: null,
+            colorB: red,
+            child: SizedBox.expand(),
+          ),
+        ),
+      );
+      expect(painted(tester), ambientTopOf(AppAccent.teal));
+    });
+
+    testWidgets('a cover\'s colours ignore the accent', (tester) async {
+      const red = Color(0xFF802030);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.withGlass(GlassQuality.high, accent: AppAccent.teal),
+          home: const DynamicBackground(
+            colorA: red,
+            colorB: red,
+            child: SizedBox.expand(),
+          ),
+        ),
+      );
+      expect(painted(tester), DynamicBackground.fitForText(red));
     });
   });
 }

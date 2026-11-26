@@ -80,6 +80,21 @@ final class AppColors extends ThemeExtension<AppColors> {
     return dark.copyWith(accent: color, accentForeground: foreground);
   }
 
+  /// The glow shown with no cover, as two colours (top, edge): lilac's own,
+  /// sampled from the app's first design, else a muted tint of [accent]'s
+  /// hue at the same saturation and lightness. Shown through
+  /// `DynamicBackground.fitForText`, like any glow.
+  static (Color, Color) ambientOf(AppAccent accent) {
+    if (accent == AppAccent.lilac) {
+      return (ColorPrimitives.ambientTop, ColorPrimitives.ambientEdge);
+    }
+    final hue = HSLColor.fromColor(accentOf(accent).$1).hue;
+    return (
+      HSLColor.fromAHSL(1, hue, .27, .555).toColor(),
+      HSLColor.fromAHSL(1, hue, .25, .36).toColor(),
+    );
+  }
+
   /// [accent]'s colour and the colour of text drawn on it.
   static (Color, Color) accentOf(AppAccent accent) => switch (accent) {
     AppAccent.lilac => (

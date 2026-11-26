@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -1501,11 +1502,16 @@ class _CenterOrbState extends State<_CenterOrb> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     // Its song's colours once one is loaded; the accent until then.
-    final palette = context.select<TrackPaletteCubit, (Color, Color)>(
+    final palette = context.select<TrackPaletteCubit, (Color?, Color?)>(
       (cubit) => (cubit.state.backgroundColorA, cubit.state.backgroundColorB),
     );
+    // A song with no cover: the ambient glow, from the accent.
+    final ambient = AmbientGlow.colorsOf(context);
     final (top, edge) = widget.loaded
-        ? PlayingOrb.colorsFor(palette.$1, palette.$2)
+        ? PlayingOrb.colorsFor(
+            palette.$1 ?? ambient.$1,
+            palette.$2 ?? ambient.$2,
+          )
         : PlayingOrb.resting(context.colors.accent);
 
     return Semantics(

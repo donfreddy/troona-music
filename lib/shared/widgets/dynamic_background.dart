@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/core/theme/semantic/palette_ink.dart';
@@ -77,16 +78,24 @@ class DynamicBackground extends StatefulWidget {
 /// are. What must follow the glow in step (the text over it) owns one,
 /// fed the same colours and the same [DynamicBackgroundTone].
 final class GlowCrossFade {
-  static const _defaultColorA = ColorPrimitives.ambientTop;
-  static const _defaultColorB = ColorPrimitives.ambientEdge;
-
   final AnimationController _ctrl;
   Color _fromA;
   Color _fromB;
   Color _toA;
   Color _toB;
 
-  GlowCrossFade._(this._ctrl, Color a, Color b)
+  /// The colours asked for, null for the ambient glow.
+  Color? _wantA;
+  Color? _wantB;
+
+  /// The ambient glow, from the accent once [follow] has read the theme.
+  (Color, Color) _ambient = (
+    ColorPrimitives.ambientTop,
+    ColorPrimitives.ambientEdge,
+  );
+  bool _followed = false;
+
+  GlowCrossFade._(this._ctrl, this._wantA, this._wantB, Color a, Color b)
     : _fromA = a,
       _fromB = b,
       _toA = a,
@@ -103,8 +112,10 @@ final class GlowCrossFade {
       vsync: vsync,
       duration: DynamicBackground.transitionOf(tone),
     )..value = 1,
-    DynamicBackground.fitForText(colorA ?? _defaultColorA),
-    DynamicBackground.fitForText(colorB ?? _defaultColorB),
+    colorA,
+    colorB,
+    DynamicBackground.fitForText(colorA ?? ColorPrimitives.ambientTop),
+    DynamicBackground.fitForText(colorB ?? ColorPrimitives.ambientEdge),
   );
 
   /// Ticks while the glow moves.
@@ -113,12 +124,26 @@ final class GlowCrossFade {
   /// How long a move takes, as [follow] last set it.
   Duration get duration => _ctrl.duration!;
 
-  /// Follows the glass setting, read where the glow is shown.
-  void follow(BuildContext context, DynamicBackgroundTone tone) =>
-      _ctrl.duration = DynamicBackground.transitionOf(
-        tone,
-        GlassTheme.resolveQuality(context),
-      );
+  /// Follows the glass setting and the accent's ambient glow, read where
+  /// the glow is shown. The first read shows the ambient glow at once (a
+  /// page opens in it, never fading in from lilac); a later accent fades
+  /// to its own.
+  void follow(BuildContext context, DynamicBackgroundTone tone) {
+    _ctrl.duration = DynamicBackground.transitionOf(
+      tone,
+      GlassTheme.resolveQuality(context),
+    );
+    final ambient = AmbientGlow.colorsOf(context);
+    final first = !_followed;
+    _followed = true;
+    if (ambient == _ambient) return;
+    _ambient = ambient;
+    if (_wantA != null && _wantB != null) return;
+    if (!first) return moveTo(_wantA, _wantB);
+    _fromA = _toA = DynamicBackground.fitForText(_wantA ?? ambient.$1);
+    _fromB = _toB = DynamicBackground.fitForText(_wantB ?? ambient.$2);
+    _ctrl.value = 1;
+  }
 
   /// The colours painted now.
   (Color, Color) get colors {
@@ -129,8 +154,10 @@ final class GlowCrossFade {
   /// Moves to [colorA] and [colorB] from the colours painted now; nothing
   /// when they are already the target.
   void moveTo(Color? colorA, Color? colorB) {
-    final nextA = DynamicBackground.fitForText(colorA ?? _defaultColorA);
-    final nextB = DynamicBackground.fitForText(colorB ?? _defaultColorB);
+    _wantA = colorA;
+    _wantB = colorB;
+    final nextA = DynamicBackground.fitForText(colorA ?? _ambient.$1);
+    final nextB = DynamicBackground.fitForText(colorB ?? _ambient.$2);
     if (nextA == _toA && nextB == _toB) return;
     final (fromA, fromB) = colors;
     _fromA = fromA;

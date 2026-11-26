@@ -41,6 +41,7 @@ abstract final class AppTheme {
   ) {
     const brightness = Brightness.dark;
     final colors = AppColors.withAccent(accent);
+    final (ambientTop, ambientEdge) = AppColors.ambientOf(accent);
     final base = ThemeData.dark();
 
     return base.copyWith(
@@ -95,7 +96,11 @@ abstract final class AppTheme {
       ),
 
       // Extensions custom
-      extensions: [colors, GlassSettings(quality), AmbientGlow(ambientGlow)],
+      extensions: [
+        colors,
+        GlassSettings(quality),
+        AmbientGlow(ambientGlow, top: ambientTop, edge: ambientEdge),
+      ],
     );
   }
 }
