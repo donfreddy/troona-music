@@ -15,6 +15,10 @@ enum AppLanguage {
   const AppLanguage(this.code);
 }
 
+/// The colour of the app's controls: one of a closed set, each checked
+/// for contrast on black and with its own text colour, never a free colour.
+enum AppAccent { lilac, blue, teal, green, yellow, orange, pink }
+
 /// User preferences. Every field here is read somewhere: a setting that
 /// does nothing is a bug report waiting to happen.
 class AppSettings extends Equatable {
@@ -74,6 +78,11 @@ class AppSettings extends Equatable {
   // UI
   final bool hapticFeedbackEnabled;
   final GlassQuality glassQuality;
+  final AppAccent accent;
+
+  /// The tab pages and the pages over them on black, without the glow of
+  /// the song playing; album, artist and Now Playing keep theirs.
+  final bool blackBackground;
 
   /// Kept on this phone: never in a backup, so restoring one made
   /// elsewhere, or before the setting existed, leaves it alone.
@@ -99,6 +108,8 @@ class AppSettings extends Equatable {
     this.historyPaused = false,
     this.hapticFeedbackEnabled = true,
     this.glassQuality = GlassQuality.auto,
+    this.accent = AppAccent.lilac,
+    this.blackBackground = false,
     this.language = AppLanguage.system,
   });
 
@@ -132,6 +143,8 @@ class AppSettings extends Equatable {
     bool? historyPaused,
     bool? hapticFeedbackEnabled,
     GlassQuality? glassQuality,
+    AppAccent? accent,
+    bool? blackBackground,
     AppLanguage? language,
   }) => AppSettings(
     stopOnCallEnabled: stopOnCallEnabled ?? this.stopOnCallEnabled,
@@ -155,6 +168,8 @@ class AppSettings extends Equatable {
     historyPaused: historyPaused ?? this.historyPaused,
     hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
     glassQuality: glassQuality ?? this.glassQuality,
+    accent: accent ?? this.accent,
+    blackBackground: blackBackground ?? this.blackBackground,
     language: language ?? this.language,
   );
 
@@ -179,6 +194,8 @@ class AppSettings extends Equatable {
     historyPaused,
     hapticFeedbackEnabled,
     glassQuality,
+    accent,
+    blackBackground,
     language,
   ];
 }

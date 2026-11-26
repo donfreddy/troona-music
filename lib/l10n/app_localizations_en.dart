@@ -2847,7 +2847,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacySection => 'Privacy';
 
   @override
-  String get settingsAppearanceSummary => 'Language, glass effects, haptics';
+  String get settingsAppearanceSummary =>
+      'Language, colour, glass effects, haptics';
 
   @override
   String get settingsAppearanceIntro =>
@@ -2855,6 +2856,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTouch => 'Touch';
+
+  @override
+  String get settingsColors => 'Colours';
+
+  @override
+  String get settingsAccent => 'Accent colour';
+
+  @override
+  String get settingsAccentSubtitle =>
+      'Buttons, switches and what is selected.';
+
+  @override
+  String get settingsAccentLilac => 'Lilac';
+
+  @override
+  String get settingsAccentBlue => 'Blue';
+
+  @override
+  String get settingsAccentTeal => 'Teal';
+
+  @override
+  String get settingsAccentGreen => 'Green';
+
+  @override
+  String get settingsAccentYellow => 'Yellow';
+
+  @override
+  String get settingsAccentOrange => 'Orange';
+
+  @override
+  String get settingsAccentPink => 'Pink';
+
+  @override
+  String get settingsBlackBackground => 'Black background';
+
+  @override
+  String get settingsBlackBackgroundSubtitle =>
+      'The tabs on black, without the glow of the song playing. Albums, artists and Now Playing keep theirs.';
 
   @override
   String get settingsHapticsSubtitle =>

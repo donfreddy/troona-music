@@ -5,6 +5,7 @@ import 'package:troona/core/theme/glass_tier.dart';
 import 'package:troona/core/theme/semantic/app_icons.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
+import 'package:troona/features/settings/presentation/widgets/accent_picker.dart';
 import 'package:troona/features/settings/presentation/widgets/segmented_row.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_builder.dart';
 import 'package:troona/features/settings/presentation/widgets/settings_hue.dart';
@@ -31,7 +32,19 @@ String languageLabelOf(AppLanguage language, AppLocalizations l10n) =>
       AppLanguage.fr => 'Français',
     };
 
-/// The app's language, glass effects and haptics.
+/// The name of [accent] in the accent setting, for screen readers.
+String accentLabelOf(AppAccent accent, AppLocalizations l10n) =>
+    switch (accent) {
+      AppAccent.lilac => l10n.settingsAccentLilac,
+      AppAccent.blue => l10n.settingsAccentBlue,
+      AppAccent.teal => l10n.settingsAccentTeal,
+      AppAccent.green => l10n.settingsAccentGreen,
+      AppAccent.yellow => l10n.settingsAccentYellow,
+      AppAccent.orange => l10n.settingsAccentOrange,
+      AppAccent.pink => l10n.settingsAccentPink,
+    };
+
+/// The app's language, colours, glass effects and haptics.
 class AppearanceSettingsPage extends StatelessWidget {
   const AppearanceSettingsPage({super.key});
 
@@ -61,6 +74,28 @@ class AppearanceSettingsPage extends StatelessWidget {
                     ],
                     selected: settings.language,
                     onChanged: cubit.setLanguage,
+                  ),
+                ],
+              ),
+              SettingsSection(
+                title: l10n.settingsColors,
+                children: [
+                  AccentPicker(
+                    icon: AppIcons.accentColor,
+                    iconColor: SettingsHue.appearance,
+                    label: l10n.settingsAccent,
+                    subtitle: l10n.settingsAccentSubtitle,
+                    selected: settings.accent,
+                    nameOf: (accent) => accentLabelOf(accent, l10n),
+                    onChanged: cubit.setAccent,
+                  ),
+                  SettingsTile.switchTile(
+                    icon: AppIcons.blackBackground,
+                    iconColor: SettingsHue.appearance,
+                    title: l10n.settingsBlackBackground,
+                    subtitle: l10n.settingsBlackBackgroundSubtitle,
+                    value: settings.blackBackground,
+                    onChanged: cubit.setBlackBackground,
                   ),
                 ],
               ),

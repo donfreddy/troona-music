@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart';
 
 @immutable
 final class AppColors extends ThemeExtension<AppColors> {
@@ -72,6 +73,59 @@ final class AppColors extends ThemeExtension<AppColors> {
     hairline: ColorPrimitives.hairlineDark,
     pressedInk: ColorPrimitives.pressedInkDark,
   );
+
+  /// The dark theme's colours with [accent] and its text colour.
+  static AppColors withAccent(AppAccent accent) {
+    final (color, foreground) = accentOf(accent);
+    return dark.copyWith(accent: color, accentForeground: foreground);
+  }
+
+  /// The glow shown with no cover, as two colours (top, edge): lilac's own,
+  /// sampled from the app's first design, else a muted tint of [accent]'s
+  /// hue at the same saturation and lightness. Shown through
+  /// `DynamicBackground.fitForText`, like any glow.
+  static (Color, Color) ambientOf(AppAccent accent) {
+    if (accent == AppAccent.lilac) {
+      return (ColorPrimitives.ambientTop, ColorPrimitives.ambientEdge);
+    }
+    final hue = HSLColor.fromColor(accentOf(accent).$1).hue;
+    return (
+      HSLColor.fromAHSL(1, hue, .27, .555).toColor(),
+      HSLColor.fromAHSL(1, hue, .25, .36).toColor(),
+    );
+  }
+
+  /// [accent]'s colour and the colour of text drawn on it.
+  static (Color, Color) accentOf(AppAccent accent) => switch (accent) {
+    AppAccent.lilac => (
+      ColorPrimitives.accent,
+      ColorPrimitives.accentForeground,
+    ),
+    AppAccent.blue => (
+      ColorPrimitives.accentBlue,
+      ColorPrimitives.accentBlueForeground,
+    ),
+    AppAccent.teal => (
+      ColorPrimitives.accentTeal,
+      ColorPrimitives.accentTealForeground,
+    ),
+    AppAccent.green => (
+      ColorPrimitives.accentGreen,
+      ColorPrimitives.accentGreenForeground,
+    ),
+    AppAccent.yellow => (
+      ColorPrimitives.accentYellow,
+      ColorPrimitives.accentYellowForeground,
+    ),
+    AppAccent.orange => (
+      ColorPrimitives.accentOrange,
+      ColorPrimitives.accentOrangeForeground,
+    ),
+    AppAccent.pink => (
+      ColorPrimitives.accentPink,
+      ColorPrimitives.accentPinkForeground,
+    ),
+  };
 
   // ── ThemeExtension (lerp during transitions) ──────
 

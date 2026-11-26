@@ -323,6 +323,15 @@ abstract final class BackupCodec {
       settings: has(BackupPart.settings)
           ? _decodeSettings(_map(json['settings'], 'settings'))
           : null,
+      // Both came in together: a backup made before them has neither, and
+      // one from a later app may name an accent this one lacks. Either
+      // way, the phone keeps its own. Without settings there is nothing to
+      // keep apart (the default).
+      appearanceSaved: switch (json['settings']) {
+        final Map<Object?, Object?> m when has(BackupPart.settings) =>
+          AppAccent.values.asNameMap().containsKey(m['accent']),
+        _ => true,
+      },
       equalizer: has(BackupPart.equalizer)
           ? _decodeEqualizer(json['equalizer'])
           : null,
@@ -421,6 +430,8 @@ abstract final class BackupCodec {
     'smartTransitions': s.smartTransitions,
     'minTrackSeconds': s.minTrackSeconds,
     'excludedFolders': s.excludedFolders,
+    'accent': s.accent.name,
+    'blackBackground': s.blackBackground,
   };
 
   /// The glass quality depends on the phone: it is neither saved nor read.
@@ -429,7 +440,9 @@ abstract final class BackupCodec {
   /// defaults (what the app did before them), and a folder that is not a
   /// short text is dropped. So are the playback switches, which came
   /// later still (a value not a boolean reads as on, the default), and the
-  /// transitions, last of all (each value read as its default).
+  /// transitions, then the accent and black background: each value read
+  /// as its default; absent, the accent and black background also set
+  /// [Backup.appearanceSaved] false, so a restore keeps this phone's own.
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
     keepShuffle: switch (m['keepShuffle']) {
       final bool b => b,
@@ -476,6 +489,11 @@ abstract final class BackupCodec {
     fetchArtistArtwork: _bool(m['onlinePhotos'], 'onlinePhotos'),
     onlineExtrasOffered: _bool(m['onlineExtrasOffered'], 'onlineExtrasOffered'),
     hapticFeedbackEnabled: _bool(m['haptics'], 'haptics'),
+    accent: AppAccent.values.asNameMap()[m['accent']] ?? AppAccent.lilac,
+    blackBackground: switch (m['blackBackground']) {
+      final bool b => b,
+      _ => false,
+    },
   );
 
   static BackupTrack _track(Map<String, Object?> m) => BackupTrack(

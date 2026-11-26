@@ -180,6 +180,11 @@ final class Backup extends Equatable {
   final int? replayMonth;
   final AppSettings? settings;
 
+  /// Whether [settings] hold the accent and the black background: a backup
+  /// made before them does not, nor one naming an accent this app lacks,
+  /// and a restore then keeps this phone's.
+  final bool appearanceSaved;
+
   /// Absent from backups made before the equalizer, or when it could not be
   /// read: the rest restores without it.
   final EqualizerSnapshot? equalizer;
@@ -202,6 +207,7 @@ final class Backup extends Equatable {
     this.hours = const [],
     required this.replayMonth,
     required this.settings,
+    this.appearanceSaved = true,
     this.equalizer,
     this.lyrics = const [],
     this.lyricsOffsets = const [],
@@ -219,6 +225,7 @@ final class Backup extends Equatable {
     hours: hours,
     replayMonth: replayMonth,
     settings: settings,
+    appearanceSaved: appearanceSaved,
     equalizer: equalizer,
     lyrics: lyrics,
     lyricsOffsets: lyricsOffsets,
@@ -265,6 +272,7 @@ final class Backup extends Equatable {
       hours: history ? hours : const [],
       replayMonth: history ? replayMonth : null,
       settings: keep.contains(BackupPart.settings) ? settings : null,
+      appearanceSaved: appearanceSaved,
       equalizer: keep.contains(BackupPart.equalizer) ? equalizer : null,
       lyrics: lyrics,
       lyricsOffsets: lyricsOffsets,
@@ -284,6 +292,7 @@ final class Backup extends Equatable {
     hours,
     replayMonth,
     settings,
+    appearanceSaved,
     equalizer,
     lyrics,
     lyricsOffsets,

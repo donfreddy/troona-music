@@ -511,7 +511,9 @@ class _NoteRow extends StatelessWidget {
 (String, Color) _kindStyle(BuildContext context, ReleaseNoteKind kind) {
   final l10n = context.l10n;
   return switch (kind) {
-    ReleaseNoteKind.added => (l10n.whatsNewAdded, context.colors.accent),
+    // Fixed, as the other two: a blue or green accent would read as one of
+    // them.
+    ReleaseNoteKind.added => (l10n.whatsNewAdded, const Color(0xFFA78BFA)),
     ReleaseNoteKind.improved => (
       l10n.whatsNewImproved,
       const Color(0xFF38BDF8),

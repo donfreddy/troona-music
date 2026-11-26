@@ -151,6 +151,15 @@ abstract final class AppIcons {
   static const IconData pauseOnCall = LucideIcons300.phoneOff;
   static const IconData resumeAfterCall = LucideIcons300.phoneCall;
   static const IconData haptics = LucideIcons300.vibrate;
+
+  /// The accent colour setting.
+  static const IconData accentColor = LucideIcons300.paintbrush;
+
+  /// The black background setting.
+  static const IconData blackBackground = LucideIcons300.contrast;
+
+  /// The accent chosen, on its swatch.
+  static const IconData accentChosen = LucideIcons300.check;
   static const IconData biographies = LucideIcons300.bookOpen;
   static const IconData photos = LucideIcons300.image;
   static const IconData clearCovers = LucideIcons300.imageOff;

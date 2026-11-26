@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/core/layout/app_layout.dart';
 import 'package:troona/core/extensions/context_ext.dart';
 import 'package:troona/core/extensions/duration_ext.dart';
@@ -77,10 +78,12 @@ class PlaylistDetailPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-          builder: (_, palette) => DynamicBackground(
+          builder: (context, palette) => DynamicBackground(
             colorA: palette.backgroundColorA,
             colorB: palette.backgroundColorB,
             tone: DynamicBackgroundTone.immersive,
+            // It glows in the song playing's colours, as the tabs do.
+            glow: AmbientGlow.of(context),
             child: BlocBuilder<PlaylistDetailBloc, PlaylistDetailState>(
               // A long press on a song picks songs of the playlist. Above
               // the states: a reload keeps the songs picked.

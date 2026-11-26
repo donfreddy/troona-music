@@ -169,6 +169,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setLanguage(AppLanguage language) =>
       _update((s) => s.copyWith(language: language));
 
+  Future<void> setAccent(AppAccent accent) =>
+      _update((s) => s.copyWith(accent: accent));
+
+  Future<void> setBlackBackground(bool value) =>
+      _update((s) => s.copyWith(blackBackground: value));
+
   Future<void> setGlassQuality(GlassQuality quality) =>
       _update((s) => s.copyWith(glassQuality: quality));
 
@@ -184,10 +190,15 @@ class SettingsCubit extends Cubit<SettingsState> {
   /// quality, which depends on the device, its language, and everything that goes online
   /// (Last.fm, Deezer, LRCLIB, GitHub): only a choice made here turns it on.
   /// Excluded folders merge, as the rest of a restore does: a folder left
-  /// out here stays out.
-  Future<void> restore(AppSettings saved) async {
+  /// out here stays out. Without [withAppearance] (a backup made before the
+  /// accent and the black background), this phone keeps its own.
+  Future<void> restore(AppSettings saved, {bool withAppearance = true}) async {
     await _update(
       (s) => saved.copyWith(
+        accent: withAppearance ? saved.accent : s.accent,
+        blackBackground: withAppearance
+            ? saved.blackBackground
+            : s.blackBackground,
         excludedFolders: ({
           ...s.excludedFolders,
           ...saved.excludedFolders,

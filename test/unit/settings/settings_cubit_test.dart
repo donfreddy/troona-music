@@ -149,6 +149,26 @@ void main() {
     expect(settingsOf(cubit)!.historyPaused, isTrue, reason: 'never resumed');
   });
 
+  test('a restore takes the accent and the background a backup holds, and '
+      'keeps this phone\'s from a backup made before them', () async {
+    final cubit = SettingsCubit(repo, null, metadata);
+    await cubit.load();
+    await cubit.setAccent(AppAccent.yellow);
+    await cubit.setBlackBackground(true);
+
+    await cubit.restore(
+      const AppSettings(hapticFeedbackEnabled: false),
+      withAppearance: false,
+    );
+    expect(settingsOf(cubit)!.accent, AppAccent.yellow);
+    expect(settingsOf(cubit)!.blackBackground, isTrue);
+    expect(settingsOf(cubit)!.hapticFeedbackEnabled, isFalse);
+
+    await cubit.restore(const AppSettings(accent: AppAccent.teal));
+    expect(settingsOf(cubit)!.accent, AppAccent.teal);
+    expect(settingsOf(cubit)!.blackBackground, isFalse);
+  });
+
   test('a failed first load is retried when Settings opens', () async {
     final cubit = SettingsCubit(_FlakySettings(repo));
     await cubit.load();

@@ -28,6 +28,8 @@ abstract final class _K {
   static const historyPaused = 'history_paused';
   static const hapticFeedbackEnabled = 'haptic_feedback_enabled';
   static const glassQuality = 'glass_quality';
+  static const accent = 'accent';
+  static const blackBackground = 'black_background';
   static const language = 'app_language';
 
   static const all = [
@@ -50,6 +52,8 @@ abstract final class _K {
     historyPaused,
     hapticFeedbackEnabled,
     glassQuality,
+    accent,
+    blackBackground,
     language,
   ];
 }
@@ -152,6 +156,12 @@ class SettingsRepositoryImpl implements SettingsRepository {
             values: GlassQuality.values,
             defaultValue: d.glassQuality,
           ),
+          accent: _loadEnum(
+            key: _K.accent,
+            values: AppAccent.values,
+            defaultValue: d.accent,
+          ),
+          blackBackground: _bool(_K.blackBackground, d.blackBackground),
           language: _loadEnum(
             key: _K.language,
             values: AppLanguage.values,
@@ -187,6 +197,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.historyPaused, s.historyPaused),
         _prefs.setBool(_K.hapticFeedbackEnabled, s.hapticFeedbackEnabled),
         _prefs.setString(_K.glassQuality, s.glassQuality.name),
+        _prefs.setString(_K.accent, s.accent.name),
+        _prefs.setBool(_K.blackBackground, s.blackBackground),
         _prefs.setString(_K.language, s.language.name),
       ]);
       return const Right(unit);

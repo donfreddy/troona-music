@@ -168,7 +168,7 @@ void main() {
         final broken = File('${dir.path}/broken.jpg')..writeAsStringSync('no');
 
         final colours = await CoverPalette.of(cover.path);
-        final hue = HSLColor.fromColor(colours!.backgroundColorA).hue;
+        final hue = HSLColor.fromColor(colours!.backgroundColorA!).hue;
         expect(hue < 15 || hue > 345, isTrue, reason: 'hue $hue');
 
         final clock = Stopwatch()..start();

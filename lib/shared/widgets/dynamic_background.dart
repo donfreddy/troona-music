@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/core/theme/semantic/palette_ink.dart';
@@ -19,12 +20,17 @@ class DynamicBackground extends StatefulWidget {
   final Widget child;
   final DynamicBackgroundTone tone;
 
+  /// False paints black: the glow fades out over [transitionOf], and the
+  /// tree below stays the same, so [child] keeps its state.
+  final bool glow;
+
   const DynamicBackground({
     super.key,
     required this.colorA,
     required this.colorB,
     required this.child,
     this.tone = DynamicBackgroundTone.ambient,
+    this.glow = true,
   });
 
   /// How long the glow takes to follow a new song on [glass]: slowly
@@ -72,16 +78,24 @@ class DynamicBackground extends StatefulWidget {
 /// are. What must follow the glow in step (the text over it) owns one,
 /// fed the same colours and the same [DynamicBackgroundTone].
 final class GlowCrossFade {
-  static const _defaultColorA = ColorPrimitives.ambientTop;
-  static const _defaultColorB = ColorPrimitives.ambientEdge;
-
   final AnimationController _ctrl;
   Color _fromA;
   Color _fromB;
   Color _toA;
   Color _toB;
 
-  GlowCrossFade._(this._ctrl, Color a, Color b)
+  /// The colours asked for, null for the ambient glow.
+  Color? _wantA;
+  Color? _wantB;
+
+  /// The ambient glow, from the accent once [follow] has read the theme.
+  (Color, Color) _ambient = (
+    ColorPrimitives.ambientTop,
+    ColorPrimitives.ambientEdge,
+  );
+  bool _followed = false;
+
+  GlowCrossFade._(this._ctrl, this._wantA, this._wantB, Color a, Color b)
     : _fromA = a,
       _fromB = b,
       _toA = a,
@@ -98,19 +112,38 @@ final class GlowCrossFade {
       vsync: vsync,
       duration: DynamicBackground.transitionOf(tone),
     )..value = 1,
-    DynamicBackground.fitForText(colorA ?? _defaultColorA),
-    DynamicBackground.fitForText(colorB ?? _defaultColorB),
+    colorA,
+    colorB,
+    DynamicBackground.fitForText(colorA ?? ColorPrimitives.ambientTop),
+    DynamicBackground.fitForText(colorB ?? ColorPrimitives.ambientEdge),
   );
 
   /// Ticks while the glow moves.
   Animation<double> get animation => _ctrl;
 
-  /// Follows the glass setting, read where the glow is shown.
-  void follow(BuildContext context, DynamicBackgroundTone tone) =>
-      _ctrl.duration = DynamicBackground.transitionOf(
-        tone,
-        GlassTheme.resolveQuality(context),
-      );
+  /// How long a move takes, as [follow] last set it.
+  Duration get duration => _ctrl.duration!;
+
+  /// Follows the glass setting and the accent's ambient glow, read where
+  /// the glow is shown. The first read shows the ambient glow at once (a
+  /// page opens in it, never fading in from lilac); a later accent fades
+  /// to its own.
+  void follow(BuildContext context, DynamicBackgroundTone tone) {
+    _ctrl.duration = DynamicBackground.transitionOf(
+      tone,
+      GlassTheme.resolveQuality(context),
+    );
+    final ambient = AmbientGlow.colorsOf(context);
+    final first = !_followed;
+    _followed = true;
+    if (ambient == _ambient) return;
+    _ambient = ambient;
+    if (_wantA != null && _wantB != null) return;
+    if (!first) return moveTo(_wantA, _wantB);
+    _fromA = _toA = DynamicBackground.fitForText(_wantA ?? ambient.$1);
+    _fromB = _toB = DynamicBackground.fitForText(_wantB ?? ambient.$2);
+    _ctrl.value = 1;
+  }
 
   /// The colours painted now.
   (Color, Color) get colors {
@@ -121,8 +154,10 @@ final class GlowCrossFade {
   /// Moves to [colorA] and [colorB] from the colours painted now; nothing
   /// when they are already the target.
   void moveTo(Color? colorA, Color? colorB) {
-    final nextA = DynamicBackground.fitForText(colorA ?? _defaultColorA);
-    final nextB = DynamicBackground.fitForText(colorB ?? _defaultColorB);
+    _wantA = colorA;
+    _wantB = colorB;
+    final nextA = DynamicBackground.fitForText(colorA ?? _ambient.$1);
+    final nextB = DynamicBackground.fitForText(colorB ?? _ambient.$2);
     if (nextA == _toA && nextB == _toB) return;
     final (fromA, fromB) = colors;
     _fromA = fromA;
@@ -184,66 +219,81 @@ class _DynamicBackgroundState extends State<DynamicBackground>
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: leftCenter,
-                  radius: immersive ? 1.18 : 1.3,
-                  stops: const [0.0, 0.36, 0.74, 1.0],
-                  colors: [
-                    leftGlow.withValues(alpha: immersive ? .92 : .82),
-                    colorA.withValues(alpha: immersive ? .72 : .62),
-                    colorA.withValues(alpha: immersive ? .18 : .12),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: rightCenter,
-                  radius: immersive ? 1.1 : 1.22,
-                  stops: const [0.0, 0.34, 0.7, 1.0],
-                  colors: [
-                    rightGlow.withValues(alpha: immersive ? .88 : .78),
-                    colorB.withValues(alpha: immersive ? .68 : .56),
-                    colorB.withValues(alpha: immersive ? .16 : .1),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: bridgeCenter,
-                  radius: immersive ? 0.95 : 1.0,
-                  stops: const [0.0, 0.42, 1.0],
-                  colors: [
-                    bridgeGlow.withValues(alpha: immersive ? .22 : .16),
-                    bridgeGlow.withValues(alpha: immersive ? .08 : .05),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: immersive
-                      ? const [0.0, 0.24, 0.52, 0.76, 1.0]
-                      : const [0.0, 0.26, 0.56, 0.8, 1.0],
-                  colors: [
-                    Colors.black.withValues(alpha: 0.0),
-                    Colors.black.withValues(alpha: immersive ? 0.08 : 0.04),
-                    Colors.black.withValues(alpha: immersive ? 0.26 : 0.18),
-                    Colors.black.withValues(alpha: immersive ? 0.72 : 0.64),
-                    Colors.black,
-                  ],
-                ),
+            AnimatedOpacity(
+              opacity: widget.glow ? 1 : 0,
+              duration: _glow.duration,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: leftCenter,
+                        radius: immersive ? 1.18 : 1.3,
+                        stops: const [0.0, 0.36, 0.74, 1.0],
+                        colors: [
+                          leftGlow.withValues(alpha: immersive ? .92 : .82),
+                          colorA.withValues(alpha: immersive ? .72 : .62),
+                          colorA.withValues(alpha: immersive ? .18 : .12),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: rightCenter,
+                        radius: immersive ? 1.1 : 1.22,
+                        stops: const [0.0, 0.34, 0.7, 1.0],
+                        colors: [
+                          rightGlow.withValues(alpha: immersive ? .88 : .78),
+                          colorB.withValues(alpha: immersive ? .68 : .56),
+                          colorB.withValues(alpha: immersive ? .16 : .1),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: bridgeCenter,
+                        radius: immersive ? 0.95 : 1.0,
+                        stops: const [0.0, 0.42, 1.0],
+                        colors: [
+                          bridgeGlow.withValues(alpha: immersive ? .22 : .16),
+                          bridgeGlow.withValues(alpha: immersive ? .08 : .05),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: immersive
+                            ? const [0.0, 0.24, 0.52, 0.76, 1.0]
+                            : const [0.0, 0.26, 0.56, 0.8, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.0),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.08 : 0.04,
+                          ),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.26 : 0.18,
+                          ),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.72 : 0.64,
+                          ),
+                          Colors.black,
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             child!,

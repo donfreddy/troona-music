@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/features/player/presentation/bloc/palette/cover_palette.dart';
-import 'package:troona/core/theme/primitives/color_primitives.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 
 /// The glow colours of a cover: the background behind the tabs, Now
-/// Playing and the playlist pages.
+/// Playing and the playlist pages. Null with no cover: the app's ambient
+/// glow, which follows the accent (`AmbientGlow.colorsOf`).
 class TrackPaletteState {
-  final Color backgroundColorA;
-  final Color backgroundColorB;
+  final Color? backgroundColorA;
+  final Color? backgroundColorB;
   final String? trackId;
 
   const TrackPaletteState({
@@ -24,10 +24,8 @@ class TrackPaletteState {
     trackId: trackId,
   );
 
-  factory TrackPaletteState.initial() => const TrackPaletteState(
-    backgroundColorA: ColorPrimitives.ambientTop,
-    backgroundColorB: ColorPrimitives.ambientEdge,
-  );
+  factory TrackPaletteState.initial() =>
+      const TrackPaletteState(backgroundColorA: null, backgroundColorB: null);
 }
 
 class TrackPaletteCubit extends Cubit<TrackPaletteState> {

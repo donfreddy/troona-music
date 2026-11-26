@@ -117,8 +117,10 @@ class SegmentedRow<T extends Object> extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
+                            // On the accent thumb, its own text colour:
+                            // white does not read on a light accent.
                             color: selected == values[i]
-                                ? Colors.white
+                                ? colors.accentForeground
                                 : colors.labelSecondary,
                           ),
                         ),

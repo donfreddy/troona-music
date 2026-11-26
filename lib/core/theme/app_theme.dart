@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/core/theme/components/glass_settings.dart';
 import 'package:troona/features/settings/domain/entities/app_settings.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
@@ -25,12 +26,22 @@ abstract final class AppTheme {
   static ThemeData get dark => withGlass(GlassQuality.high);
 
   /// The app's theme drawing its glass at [quality] ([GlassSettings]),
-  /// never [GlassQuality.auto].
-  static ThemeData withGlass(GlassQuality quality) => _build(quality);
+  /// never [GlassQuality.auto], its controls in [accent], and the tab
+  /// pages on black unless [ambientGlow] ([AmbientGlow]).
+  static ThemeData withGlass(
+    GlassQuality quality, {
+    AppAccent accent = AppAccent.lilac,
+    bool ambientGlow = true,
+  }) => _build(quality, accent, ambientGlow);
 
-  static ThemeData _build(GlassQuality quality) {
+  static ThemeData _build(
+    GlassQuality quality,
+    AppAccent accent,
+    bool ambientGlow,
+  ) {
     const brightness = Brightness.dark;
-    const colors = AppColors.dark;
+    final colors = AppColors.withAccent(accent);
+    final (ambientTop, ambientEdge) = AppColors.ambientOf(accent);
     final base = ThemeData.dark();
 
     return base.copyWith(
@@ -85,7 +96,11 @@ abstract final class AppTheme {
       ),
 
       // Extensions custom
-      extensions: [colors, GlassSettings(quality)],
+      extensions: [
+        colors,
+        GlassSettings(quality),
+        AmbientGlow(ambientGlow, top: ambientTop, edge: ambientEdge),
+      ],
     );
   }
 }
