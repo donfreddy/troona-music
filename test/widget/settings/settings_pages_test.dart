@@ -539,6 +539,51 @@ void main() {
     );
   });
 
+  testWidgets('the accent and the black background are set on Appearance', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, const AppearanceSettingsPage());
+    AppSettings now() => (settings.state as SettingsLoaded).settings;
+
+    // Every accent is offered, lilac chosen; screen readers hear its name.
+    for (final name in [
+      'Lilac',
+      'Blue',
+      'Teal',
+      'Green',
+      'Yellow',
+      'Orange',
+      'Pink',
+    ]) {
+      expect(find.bySemanticsLabel(name), findsOneWidget, reason: name);
+    }
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Lilac')),
+      matchesSemantics(
+        label: 'Lilac',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        isInMutuallyExclusiveGroup: true,
+        hasTapAction: true,
+      ),
+    );
+
+    await tester.ensureVisible(find.bySemanticsLabel('Pink'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel('Pink'));
+    await tester.pumpAndSettle();
+    expect(now().accent, AppAccent.pink);
+
+    await tester.ensureVisible(find.text('Black background'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Black background'));
+    await tester.pumpAndSettle();
+    expect(now().blackBackground, isTrue);
+    semantics.dispose();
+  });
+
   testWidgets('Help opens from About, each answer on its setting', (
     tester,
   ) async {

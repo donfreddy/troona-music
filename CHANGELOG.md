@@ -4,6 +4,11 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Choose an accent colour, in Settings > Appearance.
+- A black background for the tabs, without the glow of the song playing.
+
 ## [1.9.0] - 2026-11-23
 
 ### Added

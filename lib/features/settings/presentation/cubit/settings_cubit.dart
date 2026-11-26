@@ -155,6 +155,12 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setLanguage(AppLanguage language) =>
       _update((s) => s.copyWith(language: language));
 
+  Future<void> setAccent(AppAccent accent) =>
+      _update((s) => s.copyWith(accent: accent));
+
+  Future<void> setBlackBackground(bool value) =>
+      _update((s) => s.copyWith(blackBackground: value));
+
   Future<void> setGlassQuality(GlassQuality quality) =>
       _update((s) => s.copyWith(glassQuality: quality));
 

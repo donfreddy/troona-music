@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/core/theme/components/glass_settings.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
+import 'package:troona/core/theme/semantic/app_colors.dart';
 import 'package:troona/features/settings/data/repositories/settings_repository_impl.dart';
+import 'package:troona/features/settings/domain/entities/app_settings.dart'
+    show AppAccent;
 import 'package:troona/features/settings/presentation/cubit/settings_cubit.dart';
 import 'package:troona/features/settings/presentation/widgets/app_theme_builder.dart';
 import 'package:troona/shared/widgets/glass_card.dart';
@@ -75,6 +79,31 @@ void main() {
     await cubit.setGlassQuality(GlassQuality.high);
     await tester.pumpAndSettle();
     expect(drawn(tester), GlassQuality.high, reason: 'the setting wins');
+  });
+
+  testWidgets('the accent and the black background apply at once', (
+    tester,
+  ) async {
+    await pump(tester, detected: GlassQuality.high);
+    BuildContext ctx() => tester.element(find.byType(GlassCard));
+    expect(ctx().colors.accent, AppColors.accentOf(AppAccent.lilac).$1);
+    expect(AmbientGlow.of(ctx()), isTrue);
+
+    await cubit.setAccent(AppAccent.teal);
+    await cubit.setBlackBackground(true);
+    await tester.pumpAndSettle();
+    final (teal, tealText) = AppColors.accentOf(AppAccent.teal);
+    expect(ctx().colors.accent, teal);
+    expect(ctx().colors.accentForeground, tealText);
+    expect(AmbientGlow.of(ctx()), isFalse);
+    expect(drawn(tester), GlassQuality.high, reason: 'the glass is untouched');
+  });
+
+  test('the glow switch is never blended', () {
+    const on = AmbientGlow(true);
+    const off = AmbientGlow(false);
+    expect(on.lerp(off, 0.49).on, isTrue);
+    expect(on.lerp(off, 0.5).on, isFalse);
   });
 
   test('a tier is never blended, and never auto in the theme', () {

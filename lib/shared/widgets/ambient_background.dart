@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:troona/core/theme/components/ambient_glow.dart';
 import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
 /// The app's background: an opaque glow in the colours of the current
-/// cover, behind [child].
+/// cover, behind [child]; black with the black background ([AmbientGlow]).
 ///
 /// The shell paints it behind the tab pages, which are transparent. A page
 /// pushed over a tab paints its own, or the page below shows through it
@@ -17,10 +18,11 @@ class AmbientBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<TrackPaletteCubit, TrackPaletteState>(
-        builder: (_, palette) => DynamicBackground(
+        builder: (context, palette) => DynamicBackground(
           colorA: palette.backgroundColorA,
           colorB: palette.backgroundColorB,
           tone: DynamicBackgroundTone.ambient,
+          glow: AmbientGlow.of(context),
           child: child,
         ),
       );

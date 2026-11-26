@@ -19,12 +19,17 @@ class DynamicBackground extends StatefulWidget {
   final Widget child;
   final DynamicBackgroundTone tone;
 
+  /// False paints black: the glow fades out over [transitionOf], and the
+  /// tree below stays the same, so [child] keeps its state.
+  final bool glow;
+
   const DynamicBackground({
     super.key,
     required this.colorA,
     required this.colorB,
     required this.child,
     this.tone = DynamicBackgroundTone.ambient,
+    this.glow = true,
   });
 
   /// How long the glow takes to follow a new song on [glass]: slowly
@@ -105,6 +110,9 @@ final class GlowCrossFade {
   /// Ticks while the glow moves.
   Animation<double> get animation => _ctrl;
 
+  /// How long a move takes, as [follow] last set it.
+  Duration get duration => _ctrl.duration!;
+
   /// Follows the glass setting, read where the glow is shown.
   void follow(BuildContext context, DynamicBackgroundTone tone) =>
       _ctrl.duration = DynamicBackground.transitionOf(
@@ -184,66 +192,81 @@ class _DynamicBackgroundState extends State<DynamicBackground>
           fit: StackFit.expand,
           children: [
             const ColoredBox(color: Colors.black),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: leftCenter,
-                  radius: immersive ? 1.18 : 1.3,
-                  stops: const [0.0, 0.36, 0.74, 1.0],
-                  colors: [
-                    leftGlow.withValues(alpha: immersive ? .92 : .82),
-                    colorA.withValues(alpha: immersive ? .72 : .62),
-                    colorA.withValues(alpha: immersive ? .18 : .12),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: rightCenter,
-                  radius: immersive ? 1.1 : 1.22,
-                  stops: const [0.0, 0.34, 0.7, 1.0],
-                  colors: [
-                    rightGlow.withValues(alpha: immersive ? .88 : .78),
-                    colorB.withValues(alpha: immersive ? .68 : .56),
-                    colorB.withValues(alpha: immersive ? .16 : .1),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: bridgeCenter,
-                  radius: immersive ? 0.95 : 1.0,
-                  stops: const [0.0, 0.42, 1.0],
-                  colors: [
-                    bridgeGlow.withValues(alpha: immersive ? .22 : .16),
-                    bridgeGlow.withValues(alpha: immersive ? .08 : .05),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: immersive
-                      ? const [0.0, 0.24, 0.52, 0.76, 1.0]
-                      : const [0.0, 0.26, 0.56, 0.8, 1.0],
-                  colors: [
-                    Colors.black.withValues(alpha: 0.0),
-                    Colors.black.withValues(alpha: immersive ? 0.08 : 0.04),
-                    Colors.black.withValues(alpha: immersive ? 0.26 : 0.18),
-                    Colors.black.withValues(alpha: immersive ? 0.72 : 0.64),
-                    Colors.black,
-                  ],
-                ),
+            AnimatedOpacity(
+              opacity: widget.glow ? 1 : 0,
+              duration: _glow.duration,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: leftCenter,
+                        radius: immersive ? 1.18 : 1.3,
+                        stops: const [0.0, 0.36, 0.74, 1.0],
+                        colors: [
+                          leftGlow.withValues(alpha: immersive ? .92 : .82),
+                          colorA.withValues(alpha: immersive ? .72 : .62),
+                          colorA.withValues(alpha: immersive ? .18 : .12),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: rightCenter,
+                        radius: immersive ? 1.1 : 1.22,
+                        stops: const [0.0, 0.34, 0.7, 1.0],
+                        colors: [
+                          rightGlow.withValues(alpha: immersive ? .88 : .78),
+                          colorB.withValues(alpha: immersive ? .68 : .56),
+                          colorB.withValues(alpha: immersive ? .16 : .1),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: bridgeCenter,
+                        radius: immersive ? 0.95 : 1.0,
+                        stops: const [0.0, 0.42, 1.0],
+                        colors: [
+                          bridgeGlow.withValues(alpha: immersive ? .22 : .16),
+                          bridgeGlow.withValues(alpha: immersive ? .08 : .05),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        stops: immersive
+                            ? const [0.0, 0.24, 0.52, 0.76, 1.0]
+                            : const [0.0, 0.26, 0.56, 0.8, 1.0],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.0),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.08 : 0.04,
+                          ),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.26 : 0.18,
+                          ),
+                          Colors.black.withValues(
+                            alpha: immersive ? 0.72 : 0.64,
+                          ),
+                          Colors.black,
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             child!,

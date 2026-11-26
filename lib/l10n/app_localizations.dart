@@ -4643,7 +4643,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAppearanceSummary.
   ///
   /// In en, this message translates to:
-  /// **'Language, glass effects, haptics'**
+  /// **'Language, colour, glass effects, haptics'**
   String get settingsAppearanceSummary;
 
   /// No description provided for @settingsAppearanceIntro.
@@ -4657,6 +4657,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Touch'**
   String get settingsTouch;
+
+  /// No description provided for @settingsColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Colours'**
+  String get settingsColors;
+
+  /// No description provided for @settingsAccent.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent colour'**
+  String get settingsAccent;
+
+  /// No description provided for @settingsAccentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buttons, switches and what is selected.'**
+  String get settingsAccentSubtitle;
+
+  /// No description provided for @settingsAccentLilac.
+  ///
+  /// In en, this message translates to:
+  /// **'Lilac'**
+  String get settingsAccentLilac;
+
+  /// No description provided for @settingsAccentBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get settingsAccentBlue;
+
+  /// No description provided for @settingsAccentTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get settingsAccentTeal;
+
+  /// No description provided for @settingsAccentGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get settingsAccentGreen;
+
+  /// No description provided for @settingsAccentYellow.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow'**
+  String get settingsAccentYellow;
+
+  /// No description provided for @settingsAccentOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get settingsAccentOrange;
+
+  /// No description provided for @settingsAccentPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get settingsAccentPink;
+
+  /// No description provided for @settingsBlackBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Black background'**
+  String get settingsBlackBackground;
+
+  /// No description provided for @settingsBlackBackgroundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The tabs on black, without the glow of the song playing. Albums, artists and Now Playing keep theirs.'**
+  String get settingsBlackBackgroundSubtitle;
 
   /// No description provided for @settingsHapticsSubtitle.
   ///

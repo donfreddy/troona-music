@@ -73,10 +73,19 @@ void main() {
       historyPaused: true,
       hapticFeedbackEnabled: false,
       glassQuality: GlassQuality.off,
+      accent: AppAccent.orange,
+      blackBackground: true,
       language: AppLanguage.fr,
     );
     expect((await repo.saveSettings(target)).isRight(), isTrue);
     expect((await repo.loadSettings()).getOrElse(() => throw 'none'), target);
+  });
+
+  test('an unknown accent reads as lilac, a broken switch as off', () async {
+    final repo = await repoWith({'accent': 'magenta', 'black_background': 1});
+    final settings = (await repo.loadSettings()).getOrElse(() => throw 'none');
+    expect(settings.accent, AppAccent.lilac);
+    expect(settings.blackBackground, isFalse);
   });
 
   test('a reset resumes a paused history', () async {

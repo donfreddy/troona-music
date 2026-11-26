@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:troona/core/theme/app_theme.dart';
 import 'package:troona/core/theme/components/glass_theme.dart';
 import 'package:troona/core/theme/primitives/color_primitives.dart';
+import 'package:troona/features/player/presentation/bloc/palette/track_palette_cubit.dart';
+import 'package:troona/shared/widgets/ambient_background.dart';
 import 'package:troona/shared/widgets/dynamic_background.dart';
 
 /// WCAG contrast ratio between two opaque colours.
@@ -107,4 +110,93 @@ void main() {
       expect(tester.hasRunningAnimations, isFalse);
     });
   }
+
+  group('glow off', () {
+    Widget page({required bool glow}) => MaterialApp(
+      theme: AppTheme.withGlass(GlassQuality.high),
+      home: DynamicBackground(
+        colorA: const Color(0xFF203080),
+        colorB: const Color(0xFF802030),
+        tone: DynamicBackgroundTone.ambient,
+        glow: glow,
+        child: const _Counter(),
+      ),
+    );
+
+    double glowOpacity(WidgetTester tester) => tester
+        .widget<FadeTransition>(
+          find.descendant(
+            of: find.byType(DynamicBackground),
+            matching: find.byType(FadeTransition),
+          ),
+        )
+        .opacity
+        .value;
+
+    testWidgets('fades the glow to black over the glow\'s own transition, '
+        'and back', (tester) async {
+      final duration = DynamicBackground.transitionOf(
+        DynamicBackgroundTone.ambient,
+        GlassQuality.high,
+      );
+      await tester.pumpWidget(page(glow: true));
+      expect(glowOpacity(tester), 1);
+
+      await tester.pumpWidget(page(glow: false));
+      await tester.pump(duration ~/ 2);
+      expect(glowOpacity(tester), inExclusiveRange(0, 1), reason: 'fading');
+      await tester.pump(duration);
+      expect(glowOpacity(tester), 0);
+
+      await tester.pumpWidget(page(glow: true));
+      await tester.pumpAndSettle();
+      expect(glowOpacity(tester), 1);
+    });
+
+    testWidgets('the page over it keeps its state', (tester) async {
+      // No key: a global key would carry the state across a new parent and
+      // hide a remount.
+      await tester.pumpWidget(page(glow: true));
+      final before = tester.state(find.byType(_Counter));
+
+      await tester.pumpWidget(page(glow: false));
+      await tester.pumpAndSettle();
+      expect(tester.state(find.byType(_Counter)), same(before));
+    });
+
+    testWidgets('the app\'s background reads the switch from the theme', (
+      tester,
+    ) async {
+      final palette = TrackPaletteCubit();
+      addTearDown(palette.close);
+      Widget app({required bool ambientGlow}) => BlocProvider.value(
+        value: palette,
+        child: MaterialApp(
+          theme: AppTheme.withGlass(
+            GlassQuality.high,
+            ambientGlow: ambientGlow,
+          ),
+          home: const AmbientBackground(),
+        ),
+      );
+      await tester.pumpWidget(app(ambientGlow: true));
+      expect(glowOpacity(tester), 1);
+
+      await tester.pumpWidget(app(ambientGlow: false));
+      await tester.pumpAndSettle();
+      expect(glowOpacity(tester), 0);
+    });
+  });
+}
+
+class _Counter extends StatefulWidget {
+  const _Counter();
+
+  @override
+  State<_Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<_Counter> {
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand();
 }

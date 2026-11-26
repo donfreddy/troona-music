@@ -673,6 +673,35 @@ void main() {
       expect(older.settings?.lyricsKeepScreenOn, isTrue);
     });
 
+    test('the accent and the black background travel; an older backup '
+        'reads as lilac on the glow', () {
+      final read = BackupCodec.decode(
+        BackupCodec.encode(
+          withSettings(
+            const AppSettings(accent: AppAccent.green, blackBackground: true),
+          ),
+        ),
+      );
+      expect(read.settings?.accent, AppAccent.green);
+      expect(read.settings?.blackBackground, isTrue);
+
+      final json = _json();
+      (json['settings'] as Map)
+        ..remove('accent')
+        ..remove('blackBackground');
+      final older = BackupCodec.decode(_bytes(json));
+      expect(older.settings?.accent, AppAccent.lilac);
+      expect(older.settings?.blackBackground, isFalse);
+
+      (json['settings'] as Map)
+        ..['accent'] = 'magenta'
+        ..['blackBackground'] = 'yes';
+      final broken = BackupCodec.decode(_bytes(json));
+      expect(broken.settings?.accent, AppAccent.lilac);
+      expect(broken.settings?.blackBackground, isFalse);
+      expect(broken.settings?.minTrackSeconds, older.settings?.minTrackSeconds);
+    });
+
     test('a paused history stays on the phone it was paused on', () {
       final bytes = BackupCodec.encode(
         withSettings(const AppSettings(historyPaused: true)),

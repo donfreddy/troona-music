@@ -417,6 +417,8 @@ abstract final class BackupCodec {
     'lyricsKeepScreenOn': s.lyricsKeepScreenOn,
     'minTrackSeconds': s.minTrackSeconds,
     'excludedFolders': s.excludedFolders,
+    'accent': s.accent.name,
+    'blackBackground': s.blackBackground,
   };
 
   /// The glass quality depends on the phone: it is neither saved nor read.
@@ -424,7 +426,9 @@ abstract final class BackupCodec {
   /// without them, or with a value this app does not offer, reads as the
   /// defaults (what the app did before them), and a folder that is not a
   /// short text is dropped. So are the playback switches, which came
-  /// later still (a value not a boolean reads as on, the default).
+  /// later still (a value not a boolean reads as on, the default), and the
+  /// accent and black background, later again: a backup made before them
+  /// had the lilac on its glow, which is what it restores.
   static AppSettings _decodeSettings(Map<String, Object?> m) => AppSettings(
     keepShuffle: switch (m['keepShuffle']) {
       final bool b => b,
@@ -455,6 +459,11 @@ abstract final class BackupCodec {
     fetchArtistArtwork: _bool(m['onlinePhotos'], 'onlinePhotos'),
     onlineExtrasOffered: _bool(m['onlineExtrasOffered'], 'onlineExtrasOffered'),
     hapticFeedbackEnabled: _bool(m['haptics'], 'haptics'),
+    accent: AppAccent.values.asNameMap()[m['accent']] ?? AppAccent.lilac,
+    blackBackground: switch (m['blackBackground']) {
+      final bool b => b,
+      _ => false,
+    },
   );
 
   static BackupTrack _track(Map<String, Object?> m) => BackupTrack(

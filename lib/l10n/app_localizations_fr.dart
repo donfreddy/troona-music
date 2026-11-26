@@ -2837,7 +2837,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsAppearanceSummary =>
-      'Langue, effets de verre, retours haptiques';
+      'Langue, couleur, effets de verre, retours haptiques';
 
   @override
   String get settingsAppearanceIntro =>
@@ -2845,6 +2845,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsTouch => 'Toucher';
+
+  @override
+  String get settingsColors => 'Couleurs';
+
+  @override
+  String get settingsAccent => 'Couleur d\'accent';
+
+  @override
+  String get settingsAccentSubtitle =>
+      'Boutons, interrupteurs et ce qui est sélectionné.';
+
+  @override
+  String get settingsAccentLilac => 'Lilas';
+
+  @override
+  String get settingsAccentBlue => 'Bleu';
+
+  @override
+  String get settingsAccentTeal => 'Turquoise';
+
+  @override
+  String get settingsAccentGreen => 'Vert';
+
+  @override
+  String get settingsAccentYellow => 'Jaune';
+
+  @override
+  String get settingsAccentOrange => 'Orange';
+
+  @override
+  String get settingsAccentPink => 'Rose';
+
+  @override
+  String get settingsBlackBackground => 'Fond noir';
+
+  @override
+  String get settingsBlackBackgroundSubtitle =>
+      'Les onglets sur fond noir, sans la lueur du titre en cours. Albums, artistes et lecture en cours gardent la leur.';
 
   @override
   String get settingsHapticsSubtitle =>

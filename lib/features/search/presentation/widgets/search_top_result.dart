@@ -274,7 +274,11 @@ class SearchTopResult extends StatelessWidget {
                 color: colors.accent,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(AppIcons.play, color: Colors.white, size: 18),
+              child: Icon(
+                AppIcons.play,
+                color: colors.accentForeground,
+                size: 18,
+              ),
             ),
           ],
         ),
