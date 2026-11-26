@@ -65,6 +65,10 @@ void main() {
       duckAudioOnNotification: false,
       keepShuffle: false,
       lyricsKeepScreenOn: false,
+      crossfade: true,
+      crossfadeSeconds: 9,
+      keepAlbumsWhole: false,
+      smartTransitions: false,
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
       fetchLyrics: true,
@@ -86,6 +90,10 @@ void main() {
     final settings = (await repo.loadSettings()).getOrElse(() => throw 'none');
     expect(settings.accent, AppAccent.lilac);
     expect(settings.blackBackground, isFalse);
+  test('a crossfade length not offered reads as the default', () async {
+    final repo = await repoWith({'crossfade_seconds': 7});
+    final settings = (await repo.loadSettings()).getOrElse(() => throw 'none');
+    expect(settings.crossfadeSeconds, const AppSettings().crossfadeSeconds);
   });
 
   test('a reset resumes a paused history', () async {
