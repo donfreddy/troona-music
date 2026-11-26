@@ -8,6 +8,9 @@ import 'package:on_audio_query_pluse/on_audio_query.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:troona/features/library/data/repositories/track_edit_repository_impl.dart';
+import 'package:troona/features/library/data/sources/isar_track_edit_data_source.dart';
+import 'package:troona/features/library/domain/repositories/track_edit_repository.dart';
 import 'package:troona/services/mix/track_edges_prefetcher.dart';
 import 'package:troona/features/player/domain/repositories/track_edges_repository.dart';
 import 'package:troona/features/player/data/sources/isar_track_edges_data_source.dart';
@@ -167,13 +170,24 @@ Future<void> configureDependencies() async {
   // collections and shares the open handle.
   final isar = await AppDatabase.open([
     ...IsarLibraryDataSource.schemas,
+    ...IsarTrackEditDataSource.schemas,
     ...IsarPlayHistoryDataSource.schemas,
     ...IsarLyricsDataSource.schemas,
     ...IsarTrackEdgesDataSource.schemas,
   ]);
   final historySource = IsarPlayHistoryDataSource(isar);
+  final editSource = IsarTrackEditDataSource(isar);
   getIt
     ..registerSingleton<IsarLibraryDataSource>(IsarLibraryDataSource(isar))
+    ..registerSingleton<IsarTrackEditDataSource>(editSource)
+    ..registerSingleton<TrackEditRepository>(
+      TrackEditRepositoryImpl(
+        editSource,
+        coversDir: () async => Directory(
+          '${(await getApplicationSupportDirectory()).path}/troona_covers',
+        ),
+      ),
+    )
     ..registerSingleton<IsarPlayHistoryDataSource>(historySource)
     ..registerSingleton<IsarLyricsDataSource>(IsarLyricsDataSource(isar))
     ..registerSingleton<TrackEdgesRepository>(
@@ -251,6 +265,7 @@ Future<void> configureDependencies() async {
       source: getIt(),
       cache: getIt(),
       artworkExtractor: getIt(),
+      edits: getIt(),
     ),
   );
 

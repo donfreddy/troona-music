@@ -1,5 +1,7 @@
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/data/services/track_edit_match.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
+import 'package:troona/features/library/data/sources/isar_track_edit_data_source.dart';
 import 'package:troona/features/library/data/sources/local_audio_data_source.dart';
 import 'package:troona/services/scanner/artwork_extractor.dart';
 
@@ -23,6 +25,10 @@ final class MediaScannerService {
   final IsarLibraryDataSource _cache;
   final ArtworkExtractor _artworkExtractor;
 
+  /// The user's corrections, laid over the tags read before artists and
+  /// albums are made. Optional for tests that scan without them.
+  final IsarTrackEditDataSource? _edits;
+
   static const _artworkBatchSize = 50;
 
   bool _cancelRequested = false;
@@ -31,9 +37,11 @@ final class MediaScannerService {
     required LocalAudioDataSource source,
     required IsarLibraryDataSource cache,
     required ArtworkExtractor artworkExtractor,
+    IsarTrackEditDataSource? edits,
   }) : _source = source,
        _cache = cache,
-       _artworkExtractor = artworkExtractor;
+       _artworkExtractor = artworkExtractor,
+       _edits = edits;
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -75,6 +83,13 @@ final class MediaScannerService {
     if (_cancelRequested) {
       yield const ScanProgress(phase: ScanPhase.done, progress: 1.0);
       return;
+    }
+
+    // The user's corrections first: a corrected artist is grouped,
+    // credited and counted as if the file said so. One found under a new
+    // id (the file moved) follows it.
+    if (_edits case final edits?) {
+      edits.write(put: TrackEditMatch.apply(scanned, edits.all()));
     }
 
     // The artists each song credits, and the albums Android split, among

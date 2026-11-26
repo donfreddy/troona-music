@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:troona/features/library/domain/repositories/track_edit_repository.dart';
 import 'package:troona/core/di/injection.dart';
 import 'package:troona/core/error/failures.dart';
 import 'package:troona/features/backup/domain/entities/stored_backup.dart';
@@ -93,9 +94,17 @@ class _AppShellState extends State<AppShell> {
   /// the settings the start-up scan used.
   late final ScanFilterWatch _scanFilter;
 
+  /// Rescans after a song's correction: the scan lays it over the tags.
+  StreamSubscription<void>? _editsSub;
+
   @override
   void initState() {
     super.initState();
+    _editsSub = getIt<TrackEditRepository>().changes.listen((_) {
+      if (mounted) {
+        context.read<LibraryBloc>().add(const LibraryRefreshRequested());
+      }
+    });
     _scanFilter = ScanFilterWatch(
       initial: getIt<SettingsCubit>().state,
       rescan: () {
@@ -278,6 +287,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void dispose() {
     _scanFilter.dispose();
+    _editsSub?.cancel();
     _lifecycle.dispose();
     _firstAutoBackup?.cancel();
     _noticesSub?.cancel();

@@ -43,6 +43,11 @@ final TrackModelSchema = IsarGeneratedSchema(
       IsarPropertySchema(name: 'excluded', type: IsarType.bool),
       IsarPropertySchema(name: 'indexedAt', type: IsarType.dateTime),
       IsarPropertySchema(name: 'artworkPath', type: IsarType.string),
+      IsarPropertySchema(name: 'fileTitle', type: IsarType.string),
+      IsarPropertySchema(name: 'fileArtist', type: IsarType.string),
+      IsarPropertySchema(name: 'fileAlbum', type: IsarType.string),
+      IsarPropertySchema(name: 'fileYear', type: IsarType.long),
+      IsarPropertySchema(name: 'editedCoverPath', type: IsarType.string),
       IsarPropertySchema(name: 'artworkChecked', type: IsarType.bool),
     ],
     indexes: [
@@ -133,7 +138,40 @@ int serializeTrackModel(IsarWriter writer, TrackModel object) {
       IsarCore.writeString(writer, 23, value);
     }
   }
-  IsarCore.writeBool(writer, 24, value: object.artworkChecked);
+  {
+    final value = object.fileTitle;
+    if (value == null) {
+      IsarCore.writeNull(writer, 24);
+    } else {
+      IsarCore.writeString(writer, 24, value);
+    }
+  }
+  {
+    final value = object.fileArtist;
+    if (value == null) {
+      IsarCore.writeNull(writer, 25);
+    } else {
+      IsarCore.writeString(writer, 25, value);
+    }
+  }
+  {
+    final value = object.fileAlbum;
+    if (value == null) {
+      IsarCore.writeNull(writer, 26);
+    } else {
+      IsarCore.writeString(writer, 26, value);
+    }
+  }
+  IsarCore.writeLong(writer, 27, object.fileYear ?? -9223372036854775808);
+  {
+    final value = object.editedCoverPath;
+    if (value == null) {
+      IsarCore.writeNull(writer, 28);
+    } else {
+      IsarCore.writeString(writer, 28, value);
+    }
+  }
+  IsarCore.writeBool(writer, 29, value: object.artworkChecked);
   return object.id;
 }
 
@@ -231,7 +269,19 @@ TrackModel deserializeTrackModel(IsarReader reader) {
     }
   }
   object.artworkPath = IsarCore.readString(reader, 23);
-  object.artworkChecked = IsarCore.readBool(reader, 24);
+  object.fileTitle = IsarCore.readString(reader, 24);
+  object.fileArtist = IsarCore.readString(reader, 25);
+  object.fileAlbum = IsarCore.readString(reader, 26);
+  {
+    final value = IsarCore.readLong(reader, 27);
+    if (value == -9223372036854775808) {
+      object.fileYear = null;
+    } else {
+      object.fileYear = value;
+    }
+  }
+  object.editedCoverPath = IsarCore.readString(reader, 28);
+  object.artworkChecked = IsarCore.readBool(reader, 29);
   return object;
 }
 
@@ -351,7 +401,24 @@ dynamic deserializeTrackModelProp(IsarReader reader, int property) {
     case 23:
       return IsarCore.readString(reader, 23);
     case 24:
-      return IsarCore.readBool(reader, 24);
+      return IsarCore.readString(reader, 24);
+    case 25:
+      return IsarCore.readString(reader, 25);
+    case 26:
+      return IsarCore.readString(reader, 26);
+    case 27:
+      {
+        final value = IsarCore.readLong(reader, 27);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
+    case 28:
+      return IsarCore.readString(reader, 28);
+    case 29:
+      return IsarCore.readBool(reader, 29);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -381,6 +448,11 @@ sealed class _TrackModelUpdate {
     bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
+    String? fileTitle,
+    String? fileArtist,
+    String? fileAlbum,
+    int? fileYear,
+    String? editedCoverPath,
     bool? artworkChecked,
   });
 }
@@ -414,6 +486,11 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
     Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? fileTitle = ignore,
+    Object? fileArtist = ignore,
+    Object? fileAlbum = ignore,
+    Object? fileYear = ignore,
+    Object? editedCoverPath = ignore,
     Object? artworkChecked = ignore,
   }) {
     return collection.updateProperties(
@@ -440,7 +517,12 @@ class _TrackModelUpdateImpl implements _TrackModelUpdate {
             if (excluded != ignore) 21: excluded as bool?,
             if (indexedAt != ignore) 22: indexedAt as DateTime?,
             if (artworkPath != ignore) 23: artworkPath as String?,
-            if (artworkChecked != ignore) 24: artworkChecked as bool?,
+            if (fileTitle != ignore) 24: fileTitle as String?,
+            if (fileArtist != ignore) 25: fileArtist as String?,
+            if (fileAlbum != ignore) 26: fileAlbum as String?,
+            if (fileYear != ignore) 27: fileYear as int?,
+            if (editedCoverPath != ignore) 28: editedCoverPath as String?,
+            if (artworkChecked != ignore) 29: artworkChecked as bool?,
           },
         ) >
         0;
@@ -471,6 +553,11 @@ sealed class _TrackModelUpdateAll {
     bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
+    String? fileTitle,
+    String? fileArtist,
+    String? fileAlbum,
+    int? fileYear,
+    String? editedCoverPath,
     bool? artworkChecked,
   });
 }
@@ -504,6 +591,11 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
     Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? fileTitle = ignore,
+    Object? fileArtist = ignore,
+    Object? fileAlbum = ignore,
+    Object? fileYear = ignore,
+    Object? editedCoverPath = ignore,
     Object? artworkChecked = ignore,
   }) {
     return collection.updateProperties(id, {
@@ -528,7 +620,12 @@ class _TrackModelUpdateAllImpl implements _TrackModelUpdateAll {
       if (excluded != ignore) 21: excluded as bool?,
       if (indexedAt != ignore) 22: indexedAt as DateTime?,
       if (artworkPath != ignore) 23: artworkPath as String?,
-      if (artworkChecked != ignore) 24: artworkChecked as bool?,
+      if (fileTitle != ignore) 24: fileTitle as String?,
+      if (fileArtist != ignore) 25: fileArtist as String?,
+      if (fileAlbum != ignore) 26: fileAlbum as String?,
+      if (fileYear != ignore) 27: fileYear as int?,
+      if (editedCoverPath != ignore) 28: editedCoverPath as String?,
+      if (artworkChecked != ignore) 29: artworkChecked as bool?,
     });
   }
 }
@@ -562,6 +659,11 @@ sealed class _TrackModelQueryUpdate {
     bool? excluded,
     DateTime? indexedAt,
     String? artworkPath,
+    String? fileTitle,
+    String? fileArtist,
+    String? fileAlbum,
+    int? fileYear,
+    String? editedCoverPath,
     bool? artworkChecked,
   });
 }
@@ -595,6 +697,11 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
     Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? fileTitle = ignore,
+    Object? fileArtist = ignore,
+    Object? fileAlbum = ignore,
+    Object? fileYear = ignore,
+    Object? editedCoverPath = ignore,
     Object? artworkChecked = ignore,
   }) {
     return query.updateProperties(limit: limit, {
@@ -619,7 +726,12 @@ class _TrackModelQueryUpdateImpl implements _TrackModelQueryUpdate {
       if (excluded != ignore) 21: excluded as bool?,
       if (indexedAt != ignore) 22: indexedAt as DateTime?,
       if (artworkPath != ignore) 23: artworkPath as String?,
-      if (artworkChecked != ignore) 24: artworkChecked as bool?,
+      if (fileTitle != ignore) 24: fileTitle as String?,
+      if (fileArtist != ignore) 25: fileArtist as String?,
+      if (fileAlbum != ignore) 26: fileAlbum as String?,
+      if (fileYear != ignore) 27: fileYear as int?,
+      if (editedCoverPath != ignore) 28: editedCoverPath as String?,
+      if (artworkChecked != ignore) 29: artworkChecked as bool?,
     });
   }
 }
@@ -660,6 +772,11 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
     Object? excluded = ignore,
     Object? indexedAt = ignore,
     Object? artworkPath = ignore,
+    Object? fileTitle = ignore,
+    Object? fileArtist = ignore,
+    Object? fileAlbum = ignore,
+    Object? fileYear = ignore,
+    Object? editedCoverPath = ignore,
     Object? artworkChecked = ignore,
   }) {
     final q = query.build();
@@ -686,7 +803,12 @@ class _TrackModelQueryBuilderUpdateImpl implements _TrackModelQueryUpdate {
         if (excluded != ignore) 21: excluded as bool?,
         if (indexedAt != ignore) 22: indexedAt as DateTime?,
         if (artworkPath != ignore) 23: artworkPath as String?,
-        if (artworkChecked != ignore) 24: artworkChecked as bool?,
+        if (fileTitle != ignore) 24: fileTitle as String?,
+        if (fileArtist != ignore) 25: fileArtist as String?,
+        if (fileAlbum != ignore) 26: fileAlbum as String?,
+        if (fileYear != ignore) 27: fileYear as int?,
+        if (editedCoverPath != ignore) 28: editedCoverPath as String?,
+        if (artworkChecked != ignore) 29: artworkChecked as bool?,
       });
     } finally {
       q.close();
@@ -3193,10 +3315,757 @@ extension TrackModelQueryFilter
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 24));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 24));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleGreaterThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleGreaterThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 24, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleLessThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 24,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 24,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileTitleMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 24,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(property: 24, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileTitleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(property: 24, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 25));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 25));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileArtistEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistGreaterThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistGreaterThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistLessThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 25, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistLessThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileArtistBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 25,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 25,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileArtistMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 25,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(property: 25, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileArtistIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(property: 25, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 26));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 26));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumGreaterThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumGreaterThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 26, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumLessThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 26,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumContains(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 26,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileAlbumMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 26,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(property: 26, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileAlbumIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(property: 26, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileYearIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 27));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileYearIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 27));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileYearEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(property: 27, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileYearGreaterThan(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(property: 27, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileYearGreaterThanOrEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(property: 27, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileYearLessThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 27, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  fileYearLessThanOrEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(property: 27, value: value),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition> fileYearBetween(
+    int? lower,
+    int? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(property: 27, lower: lower, upper: upper),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 28));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 28));
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathGreaterThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathLessThan(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(property: 28, value: value, caseSensitive: caseSensitive),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathLessThanOrEqualTo(String? value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 28,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 28,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 28,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(property: 28, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
+  editedCoverPathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(property: 28, value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterFilterCondition>
   artworkCheckedEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        EqualCondition(property: 24, value: value),
+        EqualCondition(property: 29, value: value),
       );
     });
   }
@@ -3511,16 +4380,92 @@ extension TrackModelQuerySortBy
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileTitle({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(24, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileTitleDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(24, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileArtist({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(25, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileArtistDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(25, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileAlbum({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(26, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileAlbumDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(26, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByFileYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(27, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByEditedCoverPath({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(28, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByEditedCoverPathDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(28, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> sortByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(24);
+      return query.addSortBy(29);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
   sortByArtworkCheckedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(24, sort: Sort.desc);
+      return query.addSortBy(29, sort: Sort.desc);
     });
   }
 }
@@ -3831,16 +4776,92 @@ extension TrackModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileTitle({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(24, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileTitleDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(24, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileArtist({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(25, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileArtistDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(25, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileAlbum({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(26, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileAlbumDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(26, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByFileYearDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(27, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByEditedCoverPath({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(28, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByEditedCoverPathDesc({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(28, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy> thenByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(24);
+      return query.addSortBy(29);
     });
   }
 
   QueryBuilder<TrackModel, TrackModel, QAfterSortBy>
   thenByArtworkCheckedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(24, sort: Sort.desc);
+      return query.addSortBy(29, sort: Sort.desc);
     });
   }
 }
@@ -4006,10 +5027,47 @@ extension TrackModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByFileTitle({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(24, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByFileArtist({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(25, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByFileAlbum({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(26, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct> distinctByFileYear() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, TrackModel, QAfterDistinct>
+  distinctByEditedCoverPath({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(28, caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TrackModel, TrackModel, QAfterDistinct>
   distinctByArtworkChecked() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(24);
+      return query.addDistinctBy(29);
     });
   }
 }
@@ -4160,9 +5218,39 @@ extension TrackModelQueryProperty1
     });
   }
 
-  QueryBuilder<TrackModel, bool, QAfterProperty> artworkCheckedProperty() {
+  QueryBuilder<TrackModel, String?, QAfterProperty> fileTitleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(24);
+    });
+  }
+
+  QueryBuilder<TrackModel, String?, QAfterProperty> fileArtistProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(25);
+    });
+  }
+
+  QueryBuilder<TrackModel, String?, QAfterProperty> fileAlbumProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(26);
+    });
+  }
+
+  QueryBuilder<TrackModel, int?, QAfterProperty> fileYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, String?, QAfterProperty> editedCoverPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(28);
+    });
+  }
+
+  QueryBuilder<TrackModel, bool, QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(29);
     });
   }
 }
@@ -4315,9 +5403,40 @@ extension TrackModelQueryProperty2<R>
     });
   }
 
-  QueryBuilder<TrackModel, (R, bool), QAfterProperty> artworkCheckedProperty() {
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty> fileTitleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(24);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty> fileArtistProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(25);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty> fileAlbumProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(26);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, int?), QAfterProperty> fileYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, String?), QAfterProperty>
+  editedCoverPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(28);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R, bool), QAfterProperty> artworkCheckedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(29);
     });
   }
 }
@@ -4474,10 +5593,42 @@ extension TrackModelQueryProperty3<R1, R2>
     });
   }
 
+  QueryBuilder<TrackModel, (R1, R2, String?), QOperations> fileTitleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(24);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R1, R2, String?), QOperations>
+  fileArtistProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(25);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R1, R2, String?), QOperations> fileAlbumProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(26);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R1, R2, int?), QOperations> fileYearProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(27);
+    });
+  }
+
+  QueryBuilder<TrackModel, (R1, R2, String?), QOperations>
+  editedCoverPathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(28);
+    });
+  }
+
   QueryBuilder<TrackModel, (R1, R2, bool), QOperations>
   artworkCheckedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(24);
+      return query.addProperty(29);
     });
   }
 }
