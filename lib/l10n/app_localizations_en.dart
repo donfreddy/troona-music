@@ -2043,6 +2043,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.';
 
   @override
+  String get whatsNew200CrossfadeTitle => 'Crossfade';
+
+  @override
+  String get whatsNew200CrossfadeBody =>
+      'The next song comes in under the end of the one playing, up to 12 seconds. Off by default, in Settings > Audio > Transitions.';
+
+  @override
+  String get whatsNew200SmartTitle => 'Smart transitions';
+
+  @override
+  String get whatsNew200SmartBody =>
+      'On Android, each song starts where its music does and ends where it really ends: silences are skipped, and a song that fades out keeps its own fade.';
+
+  @override
+  String get whatsNew200AccentTitle => 'Your accent colour';
+
+  @override
+  String get whatsNew200AccentBody =>
+      'Seven colours for buttons, switches and what is selected. In Settings > Appearance.';
+
+  @override
+  String get whatsNew200BlackTitle => 'Black background';
+
+  @override
+  String get whatsNew200BlackBody =>
+      'The tabs on black, without the glow of the song playing. Albums, artists and Now Playing keep theirs.';
+
+  @override
+  String get whatsNew200EditTitle => 'Correct a song\'s info';
+
+  @override
+  String get whatsNew200EditBody =>
+      'Fix a title, an artist, an album, a year or a cover from a song\'s menu (Edit info) or an album\'s (Edit album info). Your files are not changed, and backups carry the corrections.';
+
+  @override
+  String get whatsNew200ContrastTitle => 'Easier to read';
+
+  @override
+  String get whatsNew200ContrastBody =>
+      'Day numbers in Your listening\'s calendar and text on coloured buttons read clearly, whatever the colour.';
+
+  @override
   String get whatsNew190LyricsTitle => 'Synced lyrics';
 
   @override

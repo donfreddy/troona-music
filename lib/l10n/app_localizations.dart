@@ -3380,6 +3380,78 @@ abstract class AppLocalizations {
   /// **'No more grey silhouettes or photos of namesakes, and Search shows the downloaded photos.'**
   String get whatsNew170PhotosBody;
 
+  /// No description provided for @whatsNew200CrossfadeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Crossfade'**
+  String get whatsNew200CrossfadeTitle;
+
+  /// No description provided for @whatsNew200CrossfadeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The next song comes in under the end of the one playing, up to 12 seconds. Off by default, in Settings > Audio > Transitions.'**
+  String get whatsNew200CrossfadeBody;
+
+  /// No description provided for @whatsNew200SmartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart transitions'**
+  String get whatsNew200SmartTitle;
+
+  /// No description provided for @whatsNew200SmartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On Android, each song starts where its music does and ends where it really ends: silences are skipped, and a song that fades out keeps its own fade.'**
+  String get whatsNew200SmartBody;
+
+  /// No description provided for @whatsNew200AccentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your accent colour'**
+  String get whatsNew200AccentTitle;
+
+  /// No description provided for @whatsNew200AccentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven colours for buttons, switches and what is selected. In Settings > Appearance.'**
+  String get whatsNew200AccentBody;
+
+  /// No description provided for @whatsNew200BlackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Black background'**
+  String get whatsNew200BlackTitle;
+
+  /// No description provided for @whatsNew200BlackBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The tabs on black, without the glow of the song playing. Albums, artists and Now Playing keep theirs.'**
+  String get whatsNew200BlackBody;
+
+  /// No description provided for @whatsNew200EditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct a song\'s info'**
+  String get whatsNew200EditTitle;
+
+  /// No description provided for @whatsNew200EditBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix a title, an artist, an album, a year or a cover from a song\'s menu (Edit info) or an album\'s (Edit album info). Your files are not changed, and backups carry the corrections.'**
+  String get whatsNew200EditBody;
+
+  /// No description provided for @whatsNew200ContrastTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easier to read'**
+  String get whatsNew200ContrastTitle;
+
+  /// No description provided for @whatsNew200ContrastBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Day numbers in Your listening\'s calendar and text on coloured buttons read clearly, whatever the colour.'**
+  String get whatsNew200ContrastBody;
+
   /// No description provided for @whatsNew190LyricsTitle.
   ///
   /// In en, this message translates to:

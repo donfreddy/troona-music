@@ -2062,6 +2062,48 @@ class AppLocalizationsFr extends AppLocalizations {
       'Plus de silhouettes grises ni de photos d\'homonymes, et la recherche affiche les photos téléchargées.';
 
   @override
+  String get whatsNew200CrossfadeTitle => 'Fondu enchaîné';
+
+  @override
+  String get whatsNew200CrossfadeBody =>
+      'Le titre suivant arrive sous la fin de celui en cours, jusqu\'à 12 secondes. Désactivé par défaut, dans Réglages > Audio > Transitions.';
+
+  @override
+  String get whatsNew200SmartTitle => 'Transitions intelligentes';
+
+  @override
+  String get whatsNew200SmartBody =>
+      'Sur Android, chaque titre commence là où sa musique commence et s\'arrête là où elle finit vraiment : les silences sont retirés, et un titre qui finit en fondu garde le sien.';
+
+  @override
+  String get whatsNew200AccentTitle => 'Votre couleur d\'accent';
+
+  @override
+  String get whatsNew200AccentBody =>
+      'Sept couleurs pour les boutons, les interrupteurs et ce qui est sélectionné. Dans Réglages > Apparence.';
+
+  @override
+  String get whatsNew200BlackTitle => 'Fond noir';
+
+  @override
+  String get whatsNew200BlackBody =>
+      'Les onglets sur fond noir, sans le halo du titre en cours. Les albums, les artistes et l\'écran En lecture gardent le leur.';
+
+  @override
+  String get whatsNew200EditTitle => 'Corriger les informations d\'un titre';
+
+  @override
+  String get whatsNew200EditBody =>
+      'Corrigez un titre, un artiste, un album, une année ou une pochette depuis le menu d\'un titre (Modifier les informations) ou d\'un album (Modifier l\'album). Vos fichiers ne sont pas modifiés, et les sauvegardes emportent les corrections.';
+
+  @override
+  String get whatsNew200ContrastTitle => 'Plus lisible';
+
+  @override
+  String get whatsNew200ContrastBody =>
+      'Les numéros des jours du calendrier de Votre écoute et le texte des boutons colorés se lisent bien, quelle que soit la couleur.';
+
+  @override
   String get whatsNew190LyricsTitle => 'Paroles synchronisées';
 
   @override

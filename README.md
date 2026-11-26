@@ -71,6 +71,8 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - A like button in the system media controls (Android 13+), and the last session offered back there after the app is closed (Android 11+)
 - Audio focus handling: ducks or pauses on notifications and calls, pauses instantly on headphone unplug, resumes after a call
 - Smooth transitions: fade-in on play, fade-out before pause, a short crossfade around skips; auto-advance stays gapless
+- Crossfade between songs (3 to 12 s, off by default), never between the songs of an album kept whole
+- Smart transitions (Android): each song's silences and fade-out are found from its audio, on the phone, so the next song starts where the music really ends
 - Sleep timer with a real 30 s fade-out (your volume setting is never touched) and an "end of song" mode
 - Equalizer (Android): the phone's own bands drawn as one curve you shape with a finger, nine presets, your own named profiles, Volume +, a hold-to-compare button and an anti-clip trim; it survives backups
 - Shuffle (Fisher–Yates) and repeat (off / one / all); a new list keeps shuffle on, or plays in order if you prefer
@@ -85,6 +87,7 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 - Isar-backed index (Rust core); rescans touch only what changed, with a live progress toast
 - Keep folders out of the library (voice notes, podcasts) and choose the shortest song kept (10 s to 2 min); songs left out come back with their likes, plays and playlists when you let them in again
 - Tracks, albums and artists, each with a dedicated detail page
+- Correct a song's title, artist, album, year or cover, or an album's name, year and cover, from their menus: kept in Troona, never written to your files, applied on every scan so artists and albums regroup as if the tags had always been right
 - Playlists: create, rename, delete, reorder, add/remove tracks
 - Pick several songs at once with a long press, in any list: play, shuffle, queue them or add them to a playlist, in the list's order
 - Smart playlists: rules on plays, last played, date added, likes, artist, album, genre, year, duration and lossless files, with templates, a sort and a limit; worked out again on each open, savable as a regular playlist
@@ -107,18 +110,19 @@ Status reflects what is actually implemented and tested today, not a wishlist. S
 ### 🎨 Design
 - Glassmorphism UI: real-time blur, translucent textures, gradients sampled from the current artwork
 - Glass quality: Auto (chosen by device), Full, Balanced (blur in page headers only) or No blur, applied at once
+- Seven accent colours, each tested for contrast, and a black background for the tabs
 - Dark theme, portrait-locked; layouts adapt to the room on screen (down to 360 x 640 dp) and to the phone's font size
 
 ### ⚙️ Settings & maintenance
 - Settings in pages (Audio, Library, Online extras, Appearance, Backup & restore, Storage, About), each row saying what it holds or how it stands, every switch saying what it does
-- Audio: the equalizer, keep shuffle, screen on with lyrics, duck on notification, pause on call, resume after call
+- Audio: the equalizer, crossfade and smart transitions, keep shuffle, screen on with lyrics, duck on notification, pause on call, resume after call
 - Library: what the library holds, folders and shortest song, pause listening history, rescan
-- Appearance: glass quality, haptics, language
+- Appearance: accent colour, black background, glass quality, haptics, language
 - Storage: clear cached covers / clear cached online info, each showing the size reclaimed, then the resets
 - Version-gated "What's new" release-notes sheet, reachable anytime from Settings
 - Help for the questions that come up most, each answer opening the setting that settles it
 - Report a problem (local log, shared only if you choose to), privacy policy, open-source licences in the app's own pages
-- Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics, settings and the equalizer in a JSON file, each part yours to leave out. Automatic backups, daily or weekly, go to a folder you pick (no storage permission, kept if you uninstall), the last five kept beside the ones you make. Restoring offers the parts a backup holds; on another phone, songs are found again by file, then by tags, and restoring merges, so importing the same file twice changes nothing
+- Backup and restore: playlists (smart ones with their rules), likes, listening history, imported lyrics, song corrections, settings and the equalizer in a JSON file, each part yours to leave out. Automatic backups, daily or weekly, go to a folder you pick (no storage permission, kept if you uninstall), the last five kept beside the ones you make. Restoring offers the parts a backup holds; on another phone, songs are found again by file, then by tags, and restoring merges, so importing the same file twice changes nothing
 
 ### 🌍 Localization
 - English and French, full 1:1 key parity, generated via `flutter gen-l10n`
