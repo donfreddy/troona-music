@@ -34,11 +34,7 @@ class AppThemeBuilder extends StatelessWidget {
     SettingsState state,
   ) {
     final s = state.mapOrNull(loaded: (s) => s.settings) ?? const AppSettings();
-    return (
-      glass: s.glassQuality,
-      accent: s.accent,
-      black: s.blackBackground,
-    );
+    return (glass: s.glassQuality, accent: s.accent, black: s.blackBackground);
   }
 
   @override

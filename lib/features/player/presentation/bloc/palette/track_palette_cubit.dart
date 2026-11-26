@@ -24,10 +24,8 @@ class TrackPaletteState {
     trackId: trackId,
   );
 
-  factory TrackPaletteState.initial() => const TrackPaletteState(
-    backgroundColorA: null,
-    backgroundColorB: null,
-  );
+  factory TrackPaletteState.initial() =>
+      const TrackPaletteState(backgroundColorA: null, backgroundColorB: null);
 }
 
 class TrackPaletteCubit extends Cubit<TrackPaletteState> {
