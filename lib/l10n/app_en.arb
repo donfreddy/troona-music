@@ -1652,5 +1652,41 @@
   "helpNewPhoneAnswer": "Make a backup, copy the file to the new phone and restore it there: playlists, likes, history and settings come back, and your songs are found again by their name, size and tags.",
   "settingsLanguage": "Language",
   "settingsLanguageSubtitle": "System follows your phone's language.",
-  "settingsLanguageSystem": "System"
+  "settingsLanguageSystem": "System",
+  "trackEditInfo": "Edit info",
+  "albumEditInfo": "Edit album info",
+  "editInfoTitle": "Edit info",
+  "editAlbumTitle": "Edit album",
+  "editFieldTitle": "Title",
+  "editFieldArtist": "Artist",
+  "editFieldAlbum": "Album",
+  "editFieldYear": "Year",
+  "editYearHint": "No year",
+  "editArtistSuggestions": "Artists in your library",
+  "editCorrected": "Corrected",
+  "editUseFileValue": "Use the file's value: {value}",
+  "@editUseFileValue": {
+    "description": "Tooltip of the button that drops a correction",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "editChangeCover": "Change cover",
+  "editUseFileCover": "Use the file's cover",
+  "editFooter": "These corrections stay in Troona. Your files are not changed, and other apps do not see them.",
+  "editAlbumNote": "Applies to every song of this album. Titles and artists are corrected song by song.",
+  "editSaved": "Corrections saved",
+  "editSaveFailed": "Couldn't save the corrections",
+  "editLoadFailed": "Couldn't read this song's info",
+  "backupPartEdits": "Corrections",
+  "backupSummaryEdits": "{count, plural, =1{Info corrected on 1 song} other{Info corrected on {count} songs}}",
+  "@backupSummaryEdits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

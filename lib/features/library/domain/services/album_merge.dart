@@ -31,7 +31,7 @@ abstract final class AlbumMerge {
         for (final id in m.artistIds)
           if (id != TrackTags.unknownArtistId) id,
       };
-      final group = groups[m.albumId] ??= _Group(m.albumId, _key(m.album));
+      final group = groups[m.albumId] ??= _Group(m.albumId, nameKey(m.album));
       group.members.add(index);
       group.artists = group.artists?.intersection(artists) ?? artists;
     }
@@ -96,7 +96,9 @@ abstract final class AlbumMerge {
   }
 
   /// [album] as compared: case, spaces around and runs of spaces ignored.
-  static String _key(String album) =>
+  /// An album's name as albums are joined by: case and runs of spaces
+  /// aside.
+  static String nameKey(String album) =>
       album.trim().toLowerCase().replaceAll(_spaces, ' ');
 
   static final _spaces = RegExp(r'\s+');

@@ -10,6 +10,7 @@ import 'package:troona/features/library/domain/entities/artist_credit.dart';
 import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/library/domain/services/track_tags.dart';
 import 'package:troona/features/library/domain/use_cases/get_tracks_by_ids_use_case.dart';
+import 'package:troona/features/library/presentation/pages/track_edit_page.dart';
 import 'package:troona/features/player/presentation/bloc/likes/likes_cubit.dart';
 import 'package:troona/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:troona/features/player/presentation/utils/queue_songs.dart';
@@ -79,6 +80,12 @@ void showTrackActions(
           icon: AppIcons.artist,
           onPressed: () => openArtistOf(context, track, origin: origin),
         ),
+      // Corrected in the app, the file left as it is.
+      SheetAction(
+        label: l10n.trackEditInfo,
+        icon: AppIcons.editInfo,
+        onPressed: () => openTrackEditor(context, track),
+      ),
     ],
   );
 }

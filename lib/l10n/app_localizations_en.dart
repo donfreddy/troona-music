@@ -3135,4 +3135,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageSystem => 'System';
+
+  @override
+  String get trackEditInfo => 'Edit info';
+
+  @override
+  String get albumEditInfo => 'Edit album info';
+
+  @override
+  String get editInfoTitle => 'Edit info';
+
+  @override
+  String get editAlbumTitle => 'Edit album';
+
+  @override
+  String get editFieldTitle => 'Title';
+
+  @override
+  String get editFieldArtist => 'Artist';
+
+  @override
+  String get editFieldAlbum => 'Album';
+
+  @override
+  String get editFieldYear => 'Year';
+
+  @override
+  String get editYearHint => 'No year';
+
+  @override
+  String get editArtistSuggestions => 'Artists in your library';
+
+  @override
+  String get editCorrected => 'Corrected';
+
+  @override
+  String editUseFileValue(String value) {
+    return 'Use the file\'s value: $value';
+  }
+
+  @override
+  String get editChangeCover => 'Change cover';
+
+  @override
+  String get editUseFileCover => 'Use the file\'s cover';
+
+  @override
+  String get editFooter =>
+      'These corrections stay in Troona. Your files are not changed, and other apps do not see them.';
+
+  @override
+  String get editAlbumNote =>
+      'Applies to every song of this album. Titles and artists are corrected song by song.';
+
+  @override
+  String get editSaved => 'Corrections saved';
+
+  @override
+  String get editSaveFailed => 'Couldn\'t save the corrections';
+
+  @override
+  String get editLoadFailed => 'Couldn\'t read this song\'s info';
+
+  @override
+  String get backupPartEdits => 'Corrections';
+
+  @override
+  String backupSummaryEdits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Info corrected on $count songs',
+      one: 'Info corrected on 1 song',
+    );
+    return '$_temp0';
+  }
 }

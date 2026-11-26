@@ -4,6 +4,8 @@ import 'package:troona/features/library/domain/entities/track.dart';
 
 /// Every song stored on this phone: the library's, and the ones the user's
 /// scan filter leaves out (`ScanFilter`), which the library never shows.
+/// Each as its file describes it, under any correction made in the app:
+/// backups describe songs so, and a restore matches them so.
 final class StoredTracks {
   /// The songs of the library.
   final List<Track> kept;

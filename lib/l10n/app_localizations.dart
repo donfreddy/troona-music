@@ -5173,6 +5173,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System'**
   String get settingsLanguageSystem;
+
+  /// No description provided for @trackEditInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit info'**
+  String get trackEditInfo;
+
+  /// No description provided for @albumEditInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit album info'**
+  String get albumEditInfo;
+
+  /// No description provided for @editInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit info'**
+  String get editInfoTitle;
+
+  /// No description provided for @editAlbumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit album'**
+  String get editAlbumTitle;
+
+  /// No description provided for @editFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get editFieldTitle;
+
+  /// No description provided for @editFieldArtist.
+  ///
+  /// In en, this message translates to:
+  /// **'Artist'**
+  String get editFieldArtist;
+
+  /// No description provided for @editFieldAlbum.
+  ///
+  /// In en, this message translates to:
+  /// **'Album'**
+  String get editFieldAlbum;
+
+  /// No description provided for @editFieldYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get editFieldYear;
+
+  /// No description provided for @editYearHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No year'**
+  String get editYearHint;
+
+  /// No description provided for @editArtistSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Artists in your library'**
+  String get editArtistSuggestions;
+
+  /// No description provided for @editCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected'**
+  String get editCorrected;
+
+  /// Tooltip of the button that drops a correction
+  ///
+  /// In en, this message translates to:
+  /// **'Use the file\'s value: {value}'**
+  String editUseFileValue(String value);
+
+  /// No description provided for @editChangeCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cover'**
+  String get editChangeCover;
+
+  /// No description provided for @editUseFileCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the file\'s cover'**
+  String get editUseFileCover;
+
+  /// No description provided for @editFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'These corrections stay in Troona. Your files are not changed, and other apps do not see them.'**
+  String get editFooter;
+
+  /// No description provided for @editAlbumNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to every song of this album. Titles and artists are corrected song by song.'**
+  String get editAlbumNote;
+
+  /// No description provided for @editSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrections saved'**
+  String get editSaved;
+
+  /// No description provided for @editSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the corrections'**
+  String get editSaveFailed;
+
+  /// No description provided for @editLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read this song\'s info'**
+  String get editLoadFailed;
+
+  /// No description provided for @backupPartEdits.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrections'**
+  String get backupPartEdits;
+
+  /// No description provided for @backupSummaryEdits.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Info corrected on 1 song} other{Info corrected on {count} songs}}'**
+  String backupSummaryEdits(int count);
 }
 
 class _AppLocalizationsDelegate

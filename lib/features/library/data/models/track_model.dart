@@ -182,6 +182,8 @@ class TrackModel {
     if (edit.album case final a? when a != album) {
       fileAlbum = album;
       album = a;
+      // Its album id moves too, once every edit is laid:
+      // `TrackEditMatch.apply`.
     }
     if (edit.year case final y? when y != year) {
       fileYear = year;
@@ -189,6 +191,9 @@ class TrackModel {
     }
     editedCoverPath = edit.coverPath;
   }
+
+  /// The folder of the file, with its last slash.
+  String get folder => path.substring(0, path.lastIndexOf('/') + 1);
 
   /// The tags as the file gives them, under any correction.
   TrackFileTags fileTags() => TrackFileTags(
@@ -292,18 +297,20 @@ class TrackModel {
     return true;
   }
 
-  /// Converts this model to the immutable domain [Track] entity.
-  Track toEntity() => Track(
+  /// Converts this model to the immutable domain [Track] entity: as shown,
+  /// or with [asFiled] as its file describes it, under any correction (what
+  /// backups describe and restores match, on any phone).
+  Track toEntity({bool asFiled = false}) => Track(
     id: deviceId,
     path: path,
     uri: uri,
     size: size,
-    title: title,
+    title: asFiled ? fileTitle ?? title : title,
     // Rows indexed by earlier versions hold `<unknown>` or "Unknown Artist".
-    artist: TrackTags.artist(artist),
+    artist: TrackTags.artist(asFiled ? fileArtist ?? artist : artist),
     artistId: artistId,
     credits: _credits(),
-    album: album,
+    album: asFiled ? fileAlbum ?? album : album,
     albumId: albumId,
     genre: genre,
     genreId: genreId,
@@ -311,7 +318,7 @@ class TrackModel {
     durationMs: durationMs,
     fileName: fileName,
     artworkPath: editedCoverPath ?? artworkPath,
-    year: year,
+    year: asFiled ? fileYear ?? year : year,
     composer: composer,
     dateAdded: dateAdded,
     dateModified: dateModified,

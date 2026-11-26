@@ -36,6 +36,9 @@ final class TrackEditRepositoryImpl implements TrackEditRepository {
   Stream<void> get changes => _changes.stream;
 
   @override
+  void announce() => _changes.add(null);
+
+  @override
   Future<Either<Failure, TrackEditDraft>> draftOf(Track track) async {
     try {
       final row = _source.track(track.id);
@@ -50,12 +53,25 @@ final class TrackEditRepositoryImpl implements TrackEditRepository {
   }
 
   @override
+  Future<List<String>> artistNames() async {
+    try {
+      return _source.artistNames();
+    } catch (e) {
+      debugPrint('Artist names unread: $e');
+      return const [];
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> save(
     List<Track> tracks,
     TrackEdit edit, {
     required Set<TrackEditField> fields,
     String? pickedCover,
   }) async {
+    // Covers left by earlier saves: one replaced now stays until the next,
+    // while the songs on screen and in the queue may still show it.
+    await _forgetUnusedCovers();
     try {
       var wanted = edit;
       if (pickedCover != null) {
@@ -87,7 +103,6 @@ final class TrackEditRepositoryImpl implements TrackEditRepository {
         );
       }
       _source.write(put: put, remove: remove);
-      await _forgetUnusedCovers();
       _changes.add(null);
       return right(unit);
     } on FileSystemException catch (e) {
@@ -111,19 +126,18 @@ final class TrackEditRepositoryImpl implements TrackEditRepository {
     return copy;
   }
 
-  /// Deletes the picked covers no correction names any more.
+  /// Deletes the picked covers no correction names any more. Best effort:
+  /// a cover left behind costs a little room, never a save.
   Future<void> _forgetUnusedCovers() async {
-    final dir = await _coversDir();
-    if (!await dir.exists()) return;
-    final used = {for (final e in _source.all()) ?e.coverPath};
-    await for (final file in dir.list()) {
-      if (file is File && !used.contains(file.path)) {
-        try {
-          await file.delete();
-        } on FileSystemException catch (e) {
-          debugPrint('Cover not deleted: ${e.message}');
-        }
+    try {
+      final dir = await _coversDir();
+      if (!await dir.exists()) return;
+      final used = {for (final e in _source.all()) ?e.coverPath};
+      await for (final file in dir.list()) {
+        if (file is File && !used.contains(file.path)) await file.delete();
       }
+    } catch (e) {
+      debugPrint('Covers not cleaned up: $e');
     }
   }
 }

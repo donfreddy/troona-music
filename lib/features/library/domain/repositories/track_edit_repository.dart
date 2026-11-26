@@ -28,6 +28,13 @@ abstract interface class TrackEditRepository {
     String? pickedCover,
   });
 
+  /// The names of the library's artists, sorted, for the editor to
+  /// suggest: a name typed slightly off would make one more artist.
+  Future<List<String>> artistNames();
+
   /// Fires after each change: the library scans again to apply it.
   Stream<void> get changes;
+
+  /// Says that corrections changed elsewhere (a restore), on [changes].
+  void announce();
 }

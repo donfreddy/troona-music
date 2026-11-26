@@ -20,6 +20,18 @@ final class IsarTrackEditDataSource {
   TrackModel? track(String deviceId) =>
       _isar.trackModels.where().deviceIdEqualTo(deviceId).findFirst();
 
+  /// Every artist the library's songs credit, sorted, each once.
+  List<String> artistNames() {
+    final names = <String>{
+      for (final t
+          in _isar.trackModels.where().not().excludedEqualTo(true).findAll())
+        for (final n in t.artistNames)
+          if (n.isNotEmpty) n,
+    };
+    return names.toList()
+      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  }
+
   /// Writes [put] and removes [remove] (ids) in one transaction.
   void write({
     List<TrackEditModel> put = const [],

@@ -3160,4 +3160,80 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsLanguageSystem => 'Système';
+
+  @override
+  String get trackEditInfo => 'Modifier les informations';
+
+  @override
+  String get albumEditInfo => 'Modifier l\'album';
+
+  @override
+  String get editInfoTitle => 'Modifier les informations';
+
+  @override
+  String get editAlbumTitle => 'Modifier l\'album';
+
+  @override
+  String get editFieldTitle => 'Titre';
+
+  @override
+  String get editFieldArtist => 'Artiste';
+
+  @override
+  String get editFieldAlbum => 'Album';
+
+  @override
+  String get editFieldYear => 'Année';
+
+  @override
+  String get editYearHint => 'Aucune année';
+
+  @override
+  String get editArtistSuggestions => 'Artistes de votre bibliothèque';
+
+  @override
+  String get editCorrected => 'Corrigé';
+
+  @override
+  String editUseFileValue(String value) {
+    return 'Reprendre la valeur du fichier : $value';
+  }
+
+  @override
+  String get editChangeCover => 'Changer la pochette';
+
+  @override
+  String get editUseFileCover => 'Reprendre la pochette du fichier';
+
+  @override
+  String get editFooter =>
+      'Ces corrections restent dans Troona. Vos fichiers ne sont pas modifiés, et les autres applications ne les voient pas.';
+
+  @override
+  String get editAlbumNote =>
+      'S\'applique à chaque titre de l\'album. Les titres et les artistes se corrigent titre par titre.';
+
+  @override
+  String get editSaved => 'Corrections enregistrées';
+
+  @override
+  String get editSaveFailed => 'Impossible d\'enregistrer les corrections';
+
+  @override
+  String get editLoadFailed =>
+      'Impossible de lire les informations de ce titre';
+
+  @override
+  String get backupPartEdits => 'Corrections';
+
+  @override
+  String backupSummaryEdits(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Informations corrigées de $count titres',
+      one: 'Informations corrigées d\'1 titre',
+    );
+    return '$_temp0';
+  }
 }

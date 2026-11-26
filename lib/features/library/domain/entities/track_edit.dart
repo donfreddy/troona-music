@@ -63,12 +63,15 @@ final class TrackEdit extends Equatable {
   /// This edit without the fields that only repeat [file]: a value set back
   /// to what the file says is no correction.
   TrackEdit beyond(TrackFileTags file) => TrackEdit(
-    title: title == file.title ? null : title,
-    artist: artist == file.artist ? null : artist,
-    album: album == file.album ? null : album,
+    title: _same(title, file.title) ? null : title,
+    artist: _same(artist, file.artist) ? null : artist,
+    album: _same(album, file.album) ? null : album,
     year: year == file.year ? null : year,
     coverPath: coverPath,
   );
+
+  /// A tag's spaces at either end are no correction: the editor trims.
+  static bool _same(String? value, String file) => value?.trim() == file.trim();
 
   @override
   List<Object?> get props => [title, artist, album, year, coverPath];

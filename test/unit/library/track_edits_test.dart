@@ -91,6 +91,15 @@ void main() {
       expect(rekeyed.single.deviceId, '9');
     });
 
+    test('a file renamed in place keeps its edit, which takes its new '
+        'name and size to follow it once it moves', () {
+      final renamed = _row('1', fileName: 'new.mp3', size: 7);
+      final edit = _edit('1', fileName: 'old.mp3', size: 42, title: 'Mine');
+      final rewrite = TrackEditMatch.apply([renamed], [edit]);
+      expect(renamed.title, 'Mine');
+      expect((rewrite.single.fileName, rewrite.single.size), ('new.mp3', 7));
+    });
+
     test('two files of that name and size: neither takes the edit', () {
       final a = _row('8', fileName: 'song.mp3', size: 42);
       final b = _row('9', fileName: 'song.mp3', size: 42);
@@ -145,6 +154,66 @@ void main() {
       expect(songs[1].albumId, songs[0].albumId);
     });
 
+    test('a song whose album is corrected leaves the album MediaStore '
+        'filed it in, which keeps its name and id', () {
+      List<TrackModel> songs() => [
+        for (final id in ['1', '2', '3']) _row(id, album: 'Y', albumId: 10),
+      ];
+      final plain = songs();
+      TrackModel.link(plain);
+      final edited = songs();
+      TrackEditMatch.apply(edited, [
+        _edit('1', album: 'X'),
+        _edit('3', album: 'X'),
+      ]);
+      TrackModel.link(edited);
+      expect(edited[1].albumId, plain[1].albumId, reason: 'Y is still Y');
+      expect(edited[0].albumId, edited[2].albumId, reason: 'X is one album');
+      expect(edited[0].albumId, isNot(edited[1].albumId));
+    });
+
+    test('a compilation over two folders renamed whole stays one album', () {
+      final songs = [
+        _row('1', artist: 'A', album: 'Hits', albumId: 10)
+          ..path = '/m/Disc 1/1.mp3',
+        _row('2', artist: 'B', album: 'Hits', albumId: 10)
+          ..path = '/m/Disc 2/2.mp3',
+      ];
+      TrackEditMatch.apply(songs, [
+        _edit('1', album: 'Hits 2'),
+        _edit('2', album: 'Hits 2'),
+      ]);
+      TrackModel.link(songs);
+      expect(songs[0].albumId, songs[1].albumId);
+    });
+
+    test('a compilation\'s stray song corrected to its name joins it, in '
+        'the same folder, sharing no artist', () {
+      final songs = [
+        _row('1', artist: 'A', album: 'Now 50', albumId: 10),
+        _row('2', artist: 'B', album: 'Now 50', albumId: 10),
+        _row('3', artist: 'C', album: 'Now 5O', albumId: 11),
+      ];
+      TrackEditMatch.apply(songs, [_edit('3', album: 'now  50 ')]);
+      TrackModel.link(songs);
+      expect(songs[2].albumId, songs[0].albumId);
+      expect(songs[0].albumId, 10, reason: 'a compilation keeps its id');
+    });
+
+    test('strays of two albums corrected to one new name in a folder '
+        'make one album, sharing no artist', () {
+      final songs = [
+        _row('1', artist: 'A', album: 'Y', albumId: 10),
+        _row('2', artist: 'B', album: 'Z', albumId: 11),
+      ];
+      TrackEditMatch.apply(songs, [
+        _edit('1', album: 'X'),
+        _edit('2', album: 'X'),
+      ]);
+      TrackModel.link(songs);
+      expect(songs[0].albumId, songs[1].albumId);
+    });
+
     test(
       'a stored row takes a scan\'s correction, and loses it when it goes',
       () {
@@ -158,6 +227,27 @@ void main() {
         expect((stored.title, stored.fileTitle), ('Title 1', null));
       },
     );
+
+    test('as filed, a corrected song reads as its file describes it, for '
+        'backups and restores to match it on any phone', () {
+      final song = _row('1', title: 'Tilte', artist: 'chily', year: 2020);
+      TrackEditMatch.apply(
+        [song],
+        [_edit('1', title: 'Title', artist: 'Chily', album: 'Doux', year: 0)],
+      );
+      final shown = song.toEntity();
+      final filed = song.toEntity(asFiled: true);
+      expect(
+        (shown.title, shown.artist, shown.album, shown.year),
+        ('Title', 'Chily', 'Doux', 0),
+      );
+      expect(
+        (filed.title, filed.artist, filed.album, filed.year),
+        ('Tilte', 'chily', 'Album', 2020),
+      );
+      final plain = _row('2').toEntity(asFiled: true);
+      expect((plain.title, plain.year), ('Title 2', 2020), reason: 'as is');
+    });
 
     test('a picked cover shows over the file\'s, which is kept', () {
       final song = _row('1')..artworkPath = '/cache/1.jpg';
@@ -288,8 +378,8 @@ void main() {
       skip: skip,
     );
 
-    test('a picked cover is copied in for every song, and deleted once no '
-        'correction names it', () async {
+    test('a picked cover is copied in for every song, and deleted at the '
+        'next save once no correction names it', () async {
       final picked = File('${dir.path}/picked.png')..writeAsBytesSync([1, 2]);
       final songs = [_row('1').toEntity(), _row('2').toEntity()];
 
@@ -306,6 +396,16 @@ void main() {
       expect(File(copy).readAsBytesSync(), [1, 2]);
 
       await repo.save(songs, TrackEdit.none, fields: {TrackEditField.cover});
+      expect(
+        File(copy).existsSync(),
+        isTrue,
+        reason: 'songs on screen and in the queue may still show it',
+      );
+      await repo.save(
+        [songs.first],
+        const TrackEdit(title: 'Mine'),
+        fields: {TrackEditField.title},
+      );
       expect(File(copy).existsSync(), isFalse);
       expect(picked.existsSync(), isTrue, reason: 'the user\'s own file');
     }, skip: skip);
