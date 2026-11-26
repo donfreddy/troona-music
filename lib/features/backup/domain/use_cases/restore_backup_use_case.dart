@@ -48,7 +48,16 @@ final class RestoreBackupUseCase {
   final BackupRepository _backups;
   final StoredTrackRepository _library;
 
-  const RestoreBackupUseCase(this._backups, this._library);
+  /// Called once corrections were restored: they only show after a scan.
+  final void Function() _editsRestored;
+
+  const RestoreBackupUseCase(
+    this._backups,
+    this._library, {
+    void Function() editsRestored = _nothing,
+  }) : _editsRestored = editsRestored;
+
+  static void _nothing() {}
 
   /// Reads the backup file at [path], for the user to choose its parts.
   Future<Either<Failure, Backup>> read(String path) => _backups.readFile(path);
@@ -75,6 +84,9 @@ final class RestoreBackupUseCase {
       }
       missing.sort((a, b) => a.title.compareTo(b.title));
       final restored = await _backups.restore(chosen, ids);
+      if (restored.isRight() && chosen.edits.any((e) => ids[e.track] != null)) {
+        _editsRestored();
+      }
       return restored.map(
         (_) => RestoreReport(
           found: ids.length,

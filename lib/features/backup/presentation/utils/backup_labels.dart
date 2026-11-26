@@ -12,6 +12,7 @@ extension BackupLabels on AppLocalizations {
     BackupPart.likes => likedSongs,
     BackupPart.history => backupPartHistory,
     BackupPart.lyrics => backupPartLyrics,
+    BackupPart.edits => backupPartEdits,
     BackupPart.settings => backupPartSettings,
     BackupPart.equalizer => equalizerTitle,
   };
@@ -30,6 +31,7 @@ extension BackupLabels on AppLocalizations {
     BackupPart.likes => backupSummaryLikes(summary.likes),
     BackupPart.history => backupSummaryPlays(summary.plays),
     BackupPart.lyrics => backupSummaryLyrics(summary.lyrics),
+    BackupPart.edits => backupSummaryEdits(summary.edits),
     BackupPart.settings => backupSettingsReplace,
     BackupPart.equalizer => backupSummaryProfiles(summary.profiles),
   };
@@ -54,6 +56,7 @@ IconData partIcon(BackupPart part) => switch (part) {
   BackupPart.likes => AppIcons.like,
   BackupPart.history => AppIcons.history,
   BackupPart.lyrics => AppIcons.lyrics,
+  BackupPart.edits => AppIcons.editInfo,
   BackupPart.settings => AppIcons.settings,
   BackupPart.equalizer => AppIcons.equalizer,
 };

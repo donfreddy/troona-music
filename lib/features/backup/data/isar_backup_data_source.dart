@@ -7,7 +7,9 @@ import 'package:troona/features/history/data/models/listening_models.dart';
 import 'package:troona/features/history/data/models/play_event_model.dart';
 import 'package:troona/features/history/domain/listening_day.dart';
 import 'package:troona/features/library/data/models/playlist_model.dart';
+import 'package:troona/features/library/data/models/track_edit_model.dart';
 import 'package:troona/features/library/data/models/track_model.dart';
+import 'package:troona/features/library/domain/entities/track_edit.dart';
 import 'package:troona/features/library/data/sources/isar_library_data_source.dart';
 import 'package:troona/features/library/domain/entities/playlist.dart';
 import 'package:troona/features/lyrics/data/models/track_lyrics_model.dart';
@@ -77,7 +79,25 @@ final class IsarBackupDataSource {
           if (l.source != _imported) l,
     ];
 
+    // A picked cover stays on this phone: a correction of it alone
+    // carries nothing.
+    final edits = parts.contains(BackupPart.edits)
+        ? [
+            for (final e in _isar.trackEditModels.where().findAll())
+              if (BackupEdit(
+                    track: e.deviceId,
+                    title: e.title,
+                    artist: e.artist,
+                    album: e.album,
+                    year: e.year,
+                  )
+                  case final edit when !edit.isEmpty)
+                edit,
+          ]
+        : const <BackupEdit>[];
+
     final named = {
+      for (final e in edits) e.track,
       for (final l in lyrics) l.id,
       for (final l in corrected) l.id,
       for (final p in playlists) ...p.trackIds,
@@ -89,10 +109,12 @@ final class IsarBackupDataSource {
       if (named.isNotEmpty)
         for (final t in _isar.trackModels.where().findAll())
           if (named.contains(t.deviceId))
+            // As the file says: corrections travel apart, and another
+            // phone finds the song by what its file holds.
             t.deviceId: BackupTrack(
-              title: t.title,
-              artist: t.artist,
-              album: t.album,
+              title: t.fileTitle ?? t.title,
+              artist: t.fileArtist ?? t.artist,
+              album: t.fileAlbum ?? t.album,
               durationMs: t.durationMs,
               fileName: t.fileName,
               size: t.size,
@@ -155,6 +177,10 @@ final class IsarBackupDataSource {
           if (tracks.containsKey(l.id))
             BackupLyricsOffset(track: l.id, offsetMs: l.offsetMs),
       ],
+      edits: [
+        for (final e in edits)
+          if (tracks.containsKey(e.track)) e,
+      ],
     );
   }
 
@@ -172,7 +198,42 @@ final class IsarBackupDataSource {
         _restoreHours(isar, backup.hours, added);
         _restoreLyrics(isar, backup.lyrics, ids);
         _restoreLyricsOffsets(isar, backup.lyricsOffsets, ids);
+        _restoreEdits(isar, backup.edits, ids);
       });
+
+  /// Corrections come back field by field: what was corrected on this
+  /// phone stays, the backup fills in the rest. The next scan applies them.
+  static void _restoreEdits(
+    Isar isar,
+    List<BackupEdit> saved,
+    Map<String, String> ids,
+  ) {
+    final now = DateTime.now();
+    for (final e in saved) {
+      final id = ids[e.track];
+      if (id == null) continue;
+      final track = isar.trackModels.where().deviceIdEqualTo(id).findFirst();
+      if (track == null) continue;
+      final here = isar.trackEditModels.where().deviceIdEqualTo(id).findFirst();
+      final merged = TrackEdit(
+        title: here?.title ?? e.title,
+        artist: here?.artist ?? e.artist,
+        album: here?.album ?? e.album,
+        year: here?.year ?? e.year,
+        coverPath: here?.coverPath,
+      ).beyond(track.fileTags());
+      // What this phone's file already says needs no correction.
+      if (merged.isEmpty) continue;
+      isar.trackEditModels.put(
+        (here ?? (TrackEditModel()..id = isar.trackEditModels.autoIncrement()))
+          ..deviceId = id
+          ..fileName = track.fileName
+          ..size = track.size
+          ..editedAt = here?.editedAt ?? now
+          ..set(merged),
+      );
+    }
+  }
 
   /// A correction of lyrics found online comes back for the lyrics this
   /// phone finds: over online lyrics not corrected here, or kept for the

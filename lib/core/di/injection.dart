@@ -556,7 +556,11 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<BackupCubit>(
     () => BackupCubit(
       export: ExportBackupUseCase(getIt()),
-      restore: RestoreBackupUseCase(getIt(), getIt()),
+      restore: RestoreBackupUseCase(
+        getIt(),
+        getIt(),
+        editsRestored: () => getIt<TrackEditRepository>().announce(),
+      ),
       save: SaveBackupUseCase(getIt(), getIt()),
       auto: RunAutoBackupUseCase(
         backups: getIt(),

@@ -177,15 +177,23 @@ void main() {
   group('summary json', () {
     test('reads back as written', () {
       const summary = BackupSummary(
-        parts: {BackupPart.likes, BackupPart.history},
+        parts: {BackupPart.likes, BackupPart.history, BackupPart.edits},
         likes: 3,
         plays: 120,
+        edits: 4,
       );
 
       expect(
         BackupSummaryJson.decode(BackupSummaryJson.encode(summary)),
         summary,
       );
+    });
+
+    test('a summary counted before corrections reads as none', () {
+      final json = BackupSummaryJson.encode(
+        const BackupSummary(parts: {BackupPart.likes}, likes: 3),
+      )..remove('edits');
+      expect(BackupSummaryJson.decode(json)?.edits, 0);
     });
 
     test('anything broken reads as unknown', () {
