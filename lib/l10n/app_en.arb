@@ -1492,6 +1492,8 @@
   "settingsCrossfadeLengthSubtitle": "How long both songs play together, at most.",
   "settingsKeepAlbumsWhole": "Keep albums whole",
   "settingsKeepAlbumsWholeSubtitle": "Songs that follow each other on an album play on without a fade.",
+  "settingsSmartTransitions": "Smart transitions",
+  "settingsSmartTransitionsSubtitle": "Starts the next song where the music really ends: silences are skipped, and a song that fades out keeps its own fade.",
   "settingsDuckSubtitle": "When a notification or a GPS voice speaks, the music gets quieter instead of pausing.",
   "settingsPauseOnCallSubtitle": "During a call, or while another app plays sound.",
   "settingsResumeAfterCallSubtitle": "Once a call or a short interruption is over.",

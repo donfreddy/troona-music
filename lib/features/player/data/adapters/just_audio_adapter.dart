@@ -12,6 +12,7 @@ import 'package:troona/features/player/domain/entities/mix_settings.dart';
 import 'package:troona/features/player/domain/entities/playback_state.dart';
 import 'package:troona/features/player/domain/entities/queue.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
+import 'package:troona/features/player/domain/entities/track_edges.dart';
 import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 import 'package:troona/features/player/domain/services/transition_planner.dart';
 
@@ -127,21 +128,28 @@ class JustAudioAdapter implements AudioServicePort {
   /// Reads the transition settings, at each step of a transition.
   final MixSettings Function() _mix;
 
+  /// A song's edges when known, read when a transition is planned: never
+  /// waited for.
+  final TrackEdges? Function(Track track) _edgesOf;
+
   /// [players] is for tests (one per deck); the app uses the defaults, each
   /// with the effects of its entry in [audioPipelines] (the equalizer), and
   /// calls [beforeLoad] before each load (awaited when it returns a future).
   /// [mix] is read whenever a transition is planned, prepared or started;
-  /// without it, songs never overlap.
+  /// without it, songs never overlap. [edgesOf] tells where songs' music
+  /// starts and stops, when known, for smart transitions.
   JustAudioAdapter({
     List<AudioPlayer>? players,
     List<AudioPipeline>? audioPipelines,
     Future<void>? Function()? beforeLoad,
     MixSettings Function()? mix,
+    TrackEdges? Function(Track track)? edgesOf,
   }) : assert(players == null || players.length == deckCount),
        assert(audioPipelines == null || audioPipelines.length == deckCount),
        _decks = [],
        _beforeLoad = beforeLoad,
-       _mix = mix ?? _noMix {
+       _mix = mix ?? _noMix,
+       _edgesOf = edgesOf ?? _noEdges {
     for (var i = 0; i < deckCount; i++) {
       final player =
           players?[i] ??
@@ -180,6 +188,8 @@ class JustAudioAdapter implements AudioServicePort {
   void debugActivateDeck(int index) => _activeDeck.add(_decks[index]);
 
   static MixSettings _noMix() => MixSettings.off;
+
+  static TrackEdges? _noEdges(Track track) => null;
 
   /// Whether [deck] is the active one: an idle deck's events are ignored.
   bool _isActive(_Deck deck) => identical(deck, _active);
@@ -885,24 +895,36 @@ class JustAudioAdapter implements AudioServicePort {
     }
     final settings = _mix();
     if (!settings.crossfade) return;
-    final plan = _planFor(queue, settings);
+    var plan = _planFor(queue, settings);
+    // Edges found late may put the start behind the position: the plan
+    // without them still fades, rather than none.
+    if (plan != null && settings.smart && position >= plan.outAt) {
+      plan = _planFor(queue, settings, edges: false);
+    }
     if (plan == null) return;
     if (position < plan.outAt - prepareLead || position >= plan.outAt) return;
     unawaited(_prepare(queue, plan));
   }
 
   /// How the next song of [queue] comes in; null when it simply follows.
-  TransitionPlan? _planFor(Queue queue, MixSettings settings) {
+  TransitionPlan? _planFor(
+    Queue queue,
+    MixSettings settings, {
+    bool edges = true,
+  }) {
     if (queue.repeatMode == RepeatMode.one) return null;
     final current = queue.currentTrack;
-    final next = _nextIndexOf(queue);
+    final index = _nextIndexOf(queue);
     final length = _player.duration;
-    if (current == null || next == null || length == null) return null;
+    if (current == null || index == null || length == null) return null;
+    final next = queue.playbackTracks[index];
     return TransitionPlanner.plan(
       current: current,
       length: length,
-      next: queue.playbackTracks[next],
+      next: next,
       settings: settings,
+      currentEdges: edges && settings.smart ? _edgesOf(current) : null,
+      nextEdges: edges && settings.smart ? _edgesOf(next) : null,
     );
   }
 
@@ -982,9 +1004,7 @@ class JustAudioAdapter implements AudioServicePort {
         if (!_mix().crossfade) return _dropTransition();
         _startTransition(transition);
       case _Stage.fading:
-        final (leaving, coming) = TransitionPlanner.equalPower(
-          plan.progressAt(position),
-        );
+        final (leaving, coming) = plan.gainsAt(position);
         _logged(transition.leaving.setMix(leaving));
         _logged(transition.coming.setMix(coming));
         if (position >= plan.end) _finishTransition();

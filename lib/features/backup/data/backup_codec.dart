@@ -418,6 +418,7 @@ abstract final class BackupCodec {
     'crossfade': s.crossfade,
     'crossfadeSeconds': s.crossfadeSeconds,
     'keepAlbumsWhole': s.keepAlbumsWhole,
+    'smartTransitions': s.smartTransitions,
     'minTrackSeconds': s.minTrackSeconds,
     'excludedFolders': s.excludedFolders,
   };
@@ -449,6 +450,10 @@ abstract final class BackupCodec {
     keepAlbumsWhole: switch (m['keepAlbumsWhole']) {
       final bool b => b,
       _ => const AppSettings().keepAlbumsWhole,
+    },
+    smartTransitions: switch (m['smartTransitions']) {
+      final bool b => b,
+      _ => const AppSettings().smartTransitions,
     },
     minTrackSeconds: switch (m['minTrackSeconds']) {
       final int s when AppSettings.minTrackChoices.contains(s) => s,

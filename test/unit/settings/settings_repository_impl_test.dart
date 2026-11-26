@@ -68,6 +68,7 @@ void main() {
       crossfade: true,
       crossfadeSeconds: 9,
       keepAlbumsWhole: false,
+      smartTransitions: false,
       fetchOnlineMetadata: true,
       fetchArtistArtwork: true,
       fetchLyrics: true,

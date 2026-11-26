@@ -2787,6 +2787,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les titres qui se suivent sur un album s\'enchaînent sans fondu.';
 
   @override
+  String get settingsSmartTransitions => 'Transitions intelligentes';
+
+  @override
+  String get settingsSmartTransitionsSubtitle =>
+      'Lance le titre suivant là où la musique s\'arrête vraiment : les silences sont retirés, et un titre qui finit en fondu garde le sien.';
+
+  @override
   String get settingsDuckSubtitle =>
       'Quand une notification ou un GPS parle, la musique baisse au lieu de s\'arrêter.';
 

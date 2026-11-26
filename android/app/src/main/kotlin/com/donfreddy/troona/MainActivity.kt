@@ -8,6 +8,7 @@ import io.flutter.embedding.engine.FlutterEngine
 class MainActivity : AudioServiceActivity() {
     private var backupFolder: BackupFolderChannel? = null
     private var opened: OpenedFileChannel? = null
+    private var edges: TrackEdgesChannel? = null
 
     /** Recreated by the system: its launch intent was already handled. */
     private var restored = false
@@ -24,6 +25,8 @@ class MainActivity : AudioServiceActivity() {
         backupFolder = BackupFolderChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         opened?.dispose()
         opened = OpenedFileChannel(this, flutterEngine.dartExecutor.binaryMessenger)
+        edges?.dispose()
+        edges = TrackEdgesChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         // Cold start: the file the app was launched with.
         if (!restored) opened?.offer(intent)
     }
@@ -34,6 +37,9 @@ class MainActivity : AudioServiceActivity() {
         backupFolder = null
         opened?.dispose()
         opened = null
+        // Left in place: it needs no activity, and the player asks for the
+        // next song's edges while music plays on without one.
+        edges = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

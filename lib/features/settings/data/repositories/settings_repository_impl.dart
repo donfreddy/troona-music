@@ -17,6 +17,7 @@ abstract final class _K {
   static const crossfade = 'crossfade';
   static const crossfadeSeconds = 'crossfade_seconds';
   static const keepAlbumsWhole = 'keep_albums_whole';
+  static const smartTransitions = 'smart_transitions';
   static const fetchOnlineMetadata = 'online_bios_enabled';
   static const fetchArtistArtwork = 'online_photos_enabled';
   static const fetchLyrics = 'online_lyrics_enabled';
@@ -38,6 +39,7 @@ abstract final class _K {
     crossfade,
     crossfadeSeconds,
     keepAlbumsWhole,
+    smartTransitions,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,
@@ -123,6 +125,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
           crossfade: _bool(_K.crossfade, d.crossfade),
           crossfadeSeconds: _crossfadeSeconds(d.crossfadeSeconds),
           keepAlbumsWhole: _bool(_K.keepAlbumsWhole, d.keepAlbumsWhole),
+          smartTransitions: _bool(_K.smartTransitions, d.smartTransitions),
           fetchOnlineMetadata: _bool(
             _K.fetchOnlineMetadata,
             d.fetchOnlineMetadata,
@@ -173,6 +176,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
         _prefs.setBool(_K.crossfade, s.crossfade),
         _prefs.setInt(_K.crossfadeSeconds, s.crossfadeSeconds),
         _prefs.setBool(_K.keepAlbumsWhole, s.keepAlbumsWhole),
+        _prefs.setBool(_K.smartTransitions, s.smartTransitions),
         _prefs.setBool(_K.fetchOnlineMetadata, s.fetchOnlineMetadata),
         _prefs.setBool(_K.fetchArtistArtwork, s.fetchArtistArtwork),
         _prefs.setBool(_K.fetchLyrics, s.fetchLyrics),

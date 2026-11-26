@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:troona/core/extensions/context_ext.dart';
@@ -99,6 +100,16 @@ class AudioSettingsPage extends StatelessWidget {
                 selected: settings.crossfadeSeconds,
                 onChanged: cubit.setCrossfadeSeconds,
               ),
+              // The files are read by Android's decoder.
+              if (defaultTargetPlatform == TargetPlatform.android)
+                SettingsTile.switchTile(
+                  icon: AppIcons.smartTransitions,
+                  iconColor: SettingsHue.audio,
+                  title: l10n.settingsSmartTransitions,
+                  subtitle: l10n.settingsSmartTransitionsSubtitle,
+                  value: settings.smartTransitions,
+                  onChanged: cubit.setSmartTransitions,
+                ),
               SettingsTile.switchTile(
                 icon: AppIcons.keepAlbumsWhole,
                 iconColor: SettingsHue.audio,

@@ -7,6 +7,7 @@ import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/player/data/adapters/just_audio_adapter.dart';
 import 'package:troona/features/player/domain/entities/mix_settings.dart';
 import 'package:troona/features/player/domain/entities/repeat_mode.dart';
+import 'package:troona/features/player/domain/entities/track_edges.dart';
 
 import '../../../helpers/fake_just_audio_player.dart';
 import '../../../helpers/fake_player.dart';
@@ -23,6 +24,7 @@ void main() {
 
   late List<Track> tracks;
   late MixSettings settings;
+  late Map<String, TrackEdges> edges;
   late FakeJustAudioPlayer one;
   late FakeJustAudioPlayer two;
   late JustAudioAdapter adapter;
@@ -32,6 +34,7 @@ void main() {
       for (final id in 'abcd'.split('')) testTrack(id, durationMs: 200000),
     ];
     settings = const MixSettings(crossfade: true);
+    edges = {};
   });
 
   /// Runs [body] with an adapter playing [queue] (the four songs) from
@@ -43,7 +46,11 @@ void main() {
   }) => fakeAsync((async) {
     one = FakeJustAudioPlayer()..duration = s * 200;
     two = FakeJustAudioPlayer()..duration = s * 200;
-    adapter = JustAudioAdapter(players: [one, two], mix: () => settings);
+    adapter = JustAudioAdapter(
+      players: [one, two],
+      mix: () => settings,
+      edgesOf: (track) => edges[track.id],
+    );
     adapter.setQueue(queue ?? tracks, startIndex: start);
     async.elapse(s);
     body(async);
@@ -457,6 +464,95 @@ void main() {
         async.elapse(s);
         expect(one.stops, 0);
         expect(one.playing, isTrue);
+      });
+    });
+  });
+
+  group('smart transitions', () {
+    test('the song coming starts after its silence', () {
+      edges['b'] = const TrackEdges(
+        musicStart: Duration(seconds: 2),
+        musicEnd: Duration(seconds: 200),
+      );
+      run((async) {
+        at(async, one, prepareAt);
+        expect(two.loadStarts.single, (1, s * 2));
+      });
+    });
+
+    test('the song leaving ends where its music does', () {
+      edges['a'] = const TrackEdges(
+        musicStart: Duration.zero,
+        musicEnd: Duration(seconds: 190),
+      );
+      run((async) {
+        at(async, one, s * 169);
+        expect(two.loads, hasLength(1));
+        at(async, one, s * 184 - ms);
+        expect(two.playing, isFalse);
+        at(async, one, s * 184);
+        expect(two.playing, isTrue);
+        expect(index(), 1);
+        at(async, one, s * 190);
+        expect(one.stops, 1);
+        expect(two.volumes.last, 1);
+      });
+    });
+
+    test('a song fading out by itself keeps its volume until the next is '
+        'whole, then goes to nothing by its end', () {
+      edges['a'] = const TrackEdges(
+        musicStart: Duration.zero,
+        musicEnd: Duration(seconds: 195),
+        fadeDown: Duration(seconds: 190),
+      );
+      run((async) {
+        at(async, one, s * 175);
+        at(async, one, s * 190);
+        expect(two.playing, isTrue);
+        at(async, one, s * 191);
+        expect(one.volumes.last, 1);
+        expect(two.volumes.last, greaterThan(0));
+        expect(two.volumes.last, lessThan(1));
+        // Whole at 60 % of the 5 s overlap.
+        at(async, one, s * 193);
+        expect(two.volumes.last, closeTo(1, 1e-6));
+        expect(one.volumes.last, 1);
+        at(async, one, s * 194);
+        expect(one.volumes.last, closeTo(math.sqrt1_2, 1e-6));
+        at(async, one, s * 195 - ms * 50);
+        expect(one.volumes.last, lessThan(0.05));
+        at(async, one, s * 195);
+        expect(one.stops, 1);
+      });
+    });
+
+    test('edges found once past their start leave the plain transition', () {
+      run((async) {
+        at(async, one, s * 170);
+        edges['a'] = const TrackEdges(
+          musicStart: Duration.zero,
+          musicEnd: Duration(seconds: 172),
+        );
+        at(async, one, s * 171);
+        expect(two.loads, isEmpty);
+        at(async, one, prepareAt);
+        expect(two.loads, hasLength(1));
+        at(async, one, outAt);
+        expect(two.playing, isTrue);
+        expect(index(), 1);
+      });
+    });
+
+    test('turned off, the edges are ignored', () {
+      settings = const MixSettings(crossfade: true, smart: false);
+      edges['b'] = const TrackEdges(
+        musicStart: Duration(seconds: 2),
+        musicEnd: Duration(seconds: 200),
+      );
+      run((async) {
+        at(async, one, prepareAt);
+        expect(two.loadStarts.single, (1, Duration.zero));
       });
     });
   });

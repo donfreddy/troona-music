@@ -4,6 +4,7 @@ final class MixSettings {
     this.crossfade = false,
     this.overlap = const Duration(seconds: 6),
     this.keepAlbumsWhole = true,
+    this.smart = true,
   });
 
   /// Nothing overlaps: every song follows the one before, gapless.
@@ -19,13 +20,18 @@ final class MixSettings {
   /// album or a continuous mix must play as it was made.
   final bool keepAlbumsWhole;
 
+  /// Transitions follow where each song's music really starts and stops
+  /// (its edges, once analysed), and the next song comes in sooner.
+  final bool smart;
+
   @override
   bool operator ==(Object other) =>
       other is MixSettings &&
       other.crossfade == crossfade &&
       other.overlap == overlap &&
-      other.keepAlbumsWhole == keepAlbumsWhole;
+      other.keepAlbumsWhole == keepAlbumsWhole &&
+      other.smart == smart;
 
   @override
-  int get hashCode => Object.hash(crossfade, overlap, keepAlbumsWhole);
+  int get hashCode => Object.hash(crossfade, overlap, keepAlbumsWhole, smart);
 }

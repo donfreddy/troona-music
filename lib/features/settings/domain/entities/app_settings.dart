@@ -39,6 +39,10 @@ class AppSettings extends Equatable {
   /// Songs that follow each other on an album never overlap.
   final bool keepAlbumsWhole;
 
+  /// Transitions follow where songs' music really starts and stops: their
+  /// files are analysed once, as they are about to play.
+  final bool smartTransitions;
+
   // Online extras: opt-in, they send artist and album names to Last.fm and
   // Deezer.
   final bool fetchOnlineMetadata;
@@ -84,6 +88,7 @@ class AppSettings extends Equatable {
     this.crossfade = false,
     this.crossfadeSeconds = 6,
     this.keepAlbumsWhole = true,
+    this.smartTransitions = true,
     this.fetchOnlineMetadata = false,
     this.fetchArtistArtwork = false,
     this.fetchLyrics = false,
@@ -116,6 +121,7 @@ class AppSettings extends Equatable {
     bool? crossfade,
     int? crossfadeSeconds,
     bool? keepAlbumsWhole,
+    bool? smartTransitions,
     bool? fetchOnlineMetadata,
     bool? fetchArtistArtwork,
     bool? fetchLyrics,
@@ -138,6 +144,7 @@ class AppSettings extends Equatable {
     crossfade: crossfade ?? this.crossfade,
     crossfadeSeconds: crossfadeSeconds ?? this.crossfadeSeconds,
     keepAlbumsWhole: keepAlbumsWhole ?? this.keepAlbumsWhole,
+    smartTransitions: smartTransitions ?? this.smartTransitions,
     fetchOnlineMetadata: fetchOnlineMetadata ?? this.fetchOnlineMetadata,
     fetchArtistArtwork: fetchArtistArtwork ?? this.fetchArtistArtwork,
     fetchLyrics: fetchLyrics ?? this.fetchLyrics,
@@ -161,6 +168,7 @@ class AppSettings extends Equatable {
     crossfade,
     crossfadeSeconds,
     keepAlbumsWhole,
+    smartTransitions,
     fetchOnlineMetadata,
     fetchArtistArtwork,
     fetchLyrics,

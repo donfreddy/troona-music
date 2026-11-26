@@ -744,6 +744,8 @@
   "settingsCrossfadeLengthSubtitle": "Combien de temps les deux titres jouent ensemble, au plus.",
   "settingsKeepAlbumsWhole": "Garder les albums entiers",
   "settingsKeepAlbumsWholeSubtitle": "Les titres qui se suivent sur un album s'enchaînent sans fondu.",
+  "settingsSmartTransitions": "Transitions intelligentes",
+  "settingsSmartTransitionsSubtitle": "Lance le titre suivant là où la musique s'arrête vraiment : les silences sont retirés, et un titre qui finit en fondu garde le sien.",
   "settingsDuckSubtitle": "Quand une notification ou un GPS parle, la musique baisse au lieu de s'arrêter.",
   "settingsPauseOnCallSubtitle": "Pendant un appel, ou quand une autre app joue du son.",
   "settingsResumeAfterCallSubtitle": "Une fois l'appel ou la courte interruption passés.",

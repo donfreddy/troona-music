@@ -682,6 +682,7 @@ void main() {
               crossfade: true,
               crossfadeSeconds: 12,
               keepAlbumsWhole: false,
+              smartTransitions: false,
             ),
           ),
         ),
@@ -689,17 +690,20 @@ void main() {
       expect(read.settings?.crossfade, isTrue);
       expect(read.settings?.crossfadeSeconds, 12);
       expect(read.settings?.keepAlbumsWhole, isFalse);
+      expect(read.settings?.smartTransitions, isFalse);
 
       final json = _json();
       (json['settings'] as Map)
         ..remove('crossfade')
         ..['crossfadeSeconds'] = 7
-        ..['keepAlbumsWhole'] = 'no';
+        ..['keepAlbumsWhole'] = 'no'
+        ..remove('smartTransitions');
       final older = BackupCodec.decode(_bytes(json));
       const defaults = AppSettings();
       expect(older.settings?.crossfade, defaults.crossfade);
       expect(older.settings?.crossfadeSeconds, defaults.crossfadeSeconds);
       expect(older.settings?.keepAlbumsWhole, defaults.keepAlbumsWhole);
+      expect(older.settings?.smartTransitions, defaults.smartTransitions);
     });
 
     test('a paused history stays on the phone it was paused on', () {

@@ -4562,6 +4562,18 @@ abstract class AppLocalizations {
   /// **'Songs that follow each other on an album play on without a fade.'**
   String get settingsKeepAlbumsWholeSubtitle;
 
+  /// No description provided for @settingsSmartTransitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart transitions'**
+  String get settingsSmartTransitions;
+
+  /// No description provided for @settingsSmartTransitionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts the next song where the music really ends: silences are skipped, and a song that fades out keeps its own fade.'**
+  String get settingsSmartTransitionsSubtitle;
+
   /// No description provided for @settingsDuckSubtitle.
   ///
   /// In en, this message translates to:

@@ -2766,6 +2766,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Songs that follow each other on an album play on without a fade.';
 
   @override
+  String get settingsSmartTransitions => 'Smart transitions';
+
+  @override
+  String get settingsSmartTransitionsSubtitle =>
+      'Starts the next song where the music really ends: silences are skipped, and a song that fades out keeps its own fade.';
+
+  @override
   String get settingsDuckSubtitle =>
       'When a notification or a GPS voice speaks, the music gets quieter instead of pausing.';
 

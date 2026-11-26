@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/widgets.dart' show basicLocaleListResolution;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:troona/features/player/domain/entities/track_edges.dart';
+import 'package:troona/features/library/domain/entities/track.dart';
 import 'package:troona/features/equalizer/data/adapters/equalizer_probe.dart';
 import 'package:troona/features/equalizer/data/adapters/just_audio_equalizer.dart';
 import 'package:troona/features/equalizer/data/adapters/unsupported_equalizer.dart';
@@ -40,13 +42,15 @@ final class AudioServiceInitializer {
   ///
   /// The equalizer's effects go into the player when it is built: on
   /// Android, unless [probe] found that they broke playback on this phone.
-  /// The player reads [mix] whenever a transition between songs is due.
+  /// The player reads [mix] whenever a transition between songs is due,
+  /// and [edgesOf] for where the songs' music starts and stops.
   static Future<({AudioServicePort audio, EqualizerPort equalizer})> init(
     AppSettings settings, {
     required MediaLikeButton likeButton,
     required Future<ResumableSession> lastSession,
     required EqualizerProbe probe,
     required MixSettings Function() mix,
+    TrackEdges? Function(Track track)? edgesOf,
   }) async {
     final effects = Platform.isAndroid && !await probe.broken()
         ? JustAudioEqualizer(probe: probe, decks: JustAudioAdapter.deckCount)
@@ -55,6 +59,7 @@ final class AudioServiceInitializer {
       audioPipelines: effects?.pipelines,
       beforeLoad: effects?.beforeLoad,
       mix: mix,
+      edgesOf: edgesOf,
     );
     effects?.bind(
       sessionIds: adapter.androidAudioSessionIdStreams,

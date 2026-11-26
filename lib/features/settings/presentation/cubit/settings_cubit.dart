@@ -160,6 +160,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> setKeepAlbumsWhole(bool value) =>
       _update((s) => s.copyWith(keepAlbumsWhole: value));
 
+  Future<void> setSmartTransitions(bool value) =>
+      _update((s) => s.copyWith(smartTransitions: value));
+
   Future<void> setHistoryPaused(bool value) =>
       _update((s) => s.copyWith(historyPaused: value));
 
