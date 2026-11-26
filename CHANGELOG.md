@@ -4,6 +4,8 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-26
+
 ### Added
 
 - Crossfade between songs, off by default, in Settings > Audio.
@@ -11,6 +13,10 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 - Choose an accent colour, in Settings > Appearance.
 - A black background for the tabs, without the glow of the song playing.
 - Correct a song's or an album's info and cover, kept in Troona and in backups.
+
+### Fixed
+
+- Calendar day numbers in Your listening and text on coloured buttons read clearly with every accent.
 
 ## [1.9.0] - 2026-11-23
 
@@ -272,7 +278,8 @@ First public release. Troona plays the music stored on your phone: no account, n
 - Reads audio files only. Network access is used by the online extras alone.
 - App backup is off.
 
-[Unreleased]: https://github.com/donfreddy/troona-music/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/donfreddy/troona-music/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/donfreddy/troona-music/compare/v1.9.0...v2.0.0
 [1.9.0]: https://github.com/donfreddy/troona-music/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/donfreddy/troona-music/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/donfreddy/troona-music/compare/v1.6.0...v1.7.0
