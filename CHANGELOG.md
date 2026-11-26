@@ -4,6 +4,11 @@ All notable changes to Troona are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+
+- Crossfade between songs, off by default, in Settings > Audio.
+- Smart transitions, on Android: the next song starts where the music really ends.
+
 ## [1.9.0] - 2026-11-23
 
 ### Added
