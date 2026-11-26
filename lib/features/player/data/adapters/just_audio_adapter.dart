@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:troona/core/error/error_handler.dart';
@@ -37,8 +38,26 @@ import 'package:troona/features/player/domain/ports/audio_service_port.dart';
 /// track change by the user fades out briefly, then in. Auto-advance stays
 /// gapless. The fade is a gain applied on top of the user's volume, so it
 /// never shows on the volume stream or in the saved session.
+///
+/// **Decks**: playback runs on two players, one song apart, so that a song
+/// can start under the end of another (a crossfade, still to come). One
+/// deck is active:
+/// it holds the queue, takes every command, and is the one the port's
+/// streams follow. The other stays idle, with nothing loaded (just_audio
+/// makes no native player before a first load). Volume, speed and the
+/// equalizer's trim go to both, so a deck that becomes active already has
+/// them.
 class JustAudioAdapter implements AudioServicePort {
-  final AudioPlayer _player;
+  final List<_Deck> _decks;
+
+  /// The deck that holds the queue; the streams follow it.
+  late final BehaviorSubject<_Deck> _activeDeck = BehaviorSubject.seeded(
+    _decks.first,
+  );
+
+  _Deck get _active => _activeDeck.value;
+  AudioPlayer get _player => _active.player;
+  GainRamp get _fade => _active.fade;
 
   /// Fade at play, resume and pause, and fade-in after a track change.
   static const fadeDuration = AudioServicePort.pauseFade;
@@ -53,10 +72,6 @@ class JustAudioAdapter implements AudioServicePort {
   /// The equalizer's anti-clip attenuation, a factor of the volume. Like the
   /// fade, it never shows on the volume stream or in the saved session.
   double _trim = 1;
-
-  late final _fade = GainRamp(
-    (gain) => _player.setVolume(_volume * _trim * gain),
-  );
 
   /// Runs before each load, so the equalizer's probe is written before the
   /// platform makes the effects.
@@ -80,50 +95,77 @@ class JustAudioAdapter implements AudioServicePort {
   /// BehaviorSubject for volume; seeded with the player's initial volume.
   final _volumeSubject = BehaviorSubject<double>.seeded(1.0);
 
-  /// [player] is for tests; the app uses the default, with the effects of
-  /// [audioPipeline] (the equalizer), and calls [beforeLoad] before each load (awaited when it returns a future).
+  /// The number of decks.
+  static const deckCount = 2;
+
+  /// [players] is for tests (one per deck); the app uses the defaults, each
+  /// with the effects of its entry in [audioPipelines] (the equalizer), and
+  /// calls [beforeLoad] before each load (awaited when it returns a future).
   JustAudioAdapter({
-    AudioPlayer? player,
-    AudioPipeline? audioPipeline,
+    List<AudioPlayer>? players,
+    List<AudioPipeline>? audioPipelines,
     Future<void>? Function()? beforeLoad,
-  }) : _player =
-           player ??
-           AudioPlayer(
-             handleInterruptions: false,
-             maxSkipsOnError: 3,
-             audioPipeline: audioPipeline,
-           ),
+  }) : assert(players == null || players.length == deckCount),
+       assert(audioPipelines == null || audioPipelines.length == deckCount),
+       _decks = [],
        _beforeLoad = beforeLoad {
+    for (var i = 0; i < deckCount; i++) {
+      final player =
+          players?[i] ??
+          AudioPlayer(
+            handleInterruptions: false,
+            maxSkipsOnError: 3,
+            audioPipeline: audioPipelines?[i],
+          );
+      _decks.add(_Deck(player, () => _volume * _trim));
+    }
     _initStreams();
   }
 
-  /// The player's Android audio sessions: the effects are made again for
-  /// each new one.
-  Stream<int?> get androidAudioSessionIdStream =>
-      _player.androidAudioSessionIdStream;
+  /// Each deck's Android audio sessions, in deck order: the effects of a
+  /// deck are made again for each new one.
+  List<Stream<int?>> get androidAudioSessionIdStreams => [
+    for (final deck in _decks) deck.player.androidAudioSessionIdStream,
+  ];
 
   /// Scales the volume by [factor] (at most 1) for the equalizer's
   /// anti-clip attenuation.
   void setTrim(double factor) {
     _trim = factor.clamp(0.0, 1.0);
-    unawaited(
-      _player.setVolume(_volume * _trim * _fade.gain).catchError((
-        Object e,
-        StackTrace st,
-      ) {
-        ErrorHandler.handle(e, st);
-      }),
-    );
+    for (final deck in _decks) {
+      unawaited(
+        deck.applyVolume().catchError((Object e, StackTrace st) {
+          ErrorHandler.handle(e, st);
+        }),
+      );
+    }
   }
+
+  /// Makes deck [index] the active one. Only tests call it until songs
+  /// overlap: it shows that the streams follow the active deck.
+  @visibleForTesting
+  void debugActivateDeck(int index) => _activeDeck.add(_decks[index]);
+
+  /// Whether [deck] is the active one: an idle deck's events are ignored.
+  bool _isActive(_Deck deck) => identical(deck, _active);
 
   // ---------------------------------------------------------------------------
   // Stream initialisation
   // ---------------------------------------------------------------------------
 
   void _initStreams() {
+    for (final deck in _decks) {
+      _listenTo(deck);
+    }
+    _volume = _player.volume;
+    _volumeSubject.add(_volume);
+  }
+
+  void _listenTo(_Deck deck) {
     // Mirror the player's current index into the domain queue so that
     // auto-advance (gapless playback) keeps _currentQueue in sync.
-    _player.currentIndexStream.listen((index) {
+    deck.player.currentIndexStream.listen((index) {
+      if (!_isActive(deck)) return;
       // While sources load, just_audio first re-emits the *previous* index
       // against the new sequence: mapped onto the new queue it would name a
       // track that is not playing. The loaded queue already has its index.
@@ -138,12 +180,10 @@ class JustAudioAdapter implements AudioServicePort {
     // At the end of the queue just_audio completes but keeps `playing` true
     // until told to pause: the status would stay "playing", and a seek back
     // to the start would set the queue off again.
-    _player.processingStateStream
+    deck.player.processingStateStream
         .where((state) => state == ProcessingState.completed)
+        .where((_) => _isActive(deck))
         .listen((_) => _onQueueCompleted());
-
-    _volume = _player.volume;
-    _volumeSubject.add(_volume);
   }
 
   void _onQueueCompleted() {
@@ -156,15 +196,23 @@ class JustAudioAdapter implements AudioServicePort {
   // AudioServicePort: Streams
   // ---------------------------------------------------------------------------
 
-  @override
-  Stream<Duration> get positionStream => _player.positionStream;
+  /// [select]'s stream of the active deck, switching with it.
+  Stream<T> _followActive<T>(Stream<T> Function(AudioPlayer player) select) =>
+      _activeDeck.stream.switchMap((deck) => select(deck.player));
 
   @override
-  Stream<Duration> get bufferedPositionStream => _player.bufferedPositionStream;
+  Stream<Duration> get positionStream => _followActive((p) => p.positionStream);
 
   @override
-  Stream<PlaybackStatus> get statusStream =>
-      Rx.combineLatest2(_player.playerStateStream, _playIntent.stream, _status);
+  Stream<Duration> get bufferedPositionStream =>
+      _followActive((p) => p.bufferedPositionStream);
+
+  @override
+  Stream<PlaybackStatus> get statusStream => Rx.combineLatest2(
+    _followActive((p) => p.playerStateStream),
+    _playIntent.stream,
+    _status,
+  );
 
   /// Derived from the queue, the source of truth for what is playing: the
   /// player index alone is not re-emitted when a new queue starts at the
@@ -178,7 +226,7 @@ class JustAudioAdapter implements AudioServicePort {
 
   @override
   Stream<Duration> get durationStream =>
-      _player.durationStream.map((d) => d ?? Duration.zero);
+      _followActive((p) => p.durationStream).map((d) => d ?? Duration.zero);
 
   @override
   Stream<Queue> get queueStream => _queueSubject.stream;
@@ -187,10 +235,10 @@ class JustAudioAdapter implements AudioServicePort {
   Stream<double> get volumeStream => _volumeSubject.stream;
 
   @override
-  Stream<double> get speedStream => _player.speedStream;
+  Stream<double> get speedStream => _followActive((p) => p.speedStream);
 
   @override
-  Stream<Failure> get errorStream => _player.errorStream.map(
+  Stream<Failure> get errorStream => _followActive((p) => p.errorStream).map(
     (e) =>
         PlaybackFailure(e.message ?? 'This file cannot be played (${e.code})'),
   );
@@ -400,8 +448,8 @@ class JustAudioAdapter implements AudioServicePort {
       // here must not roll the queue back.
       await _player.setLoopMode(_mapRepeatMode(queue.repeatMode));
       _volume = nextVolume;
-      await _player.setVolume(nextVolume * _trim * _fade.gain);
-      await _player.setSpeed(nextSpeed);
+      await _applyVolumes();
+      await _setSpeeds(nextSpeed);
       _volumeSubject.add(nextVolume);
       if (play) await _play();
       return loaded;
@@ -670,7 +718,7 @@ class JustAudioAdapter implements AudioServicePort {
   Future<Either<Failure, Unit>> setVolume(double volume) async {
     try {
       _volume = volume;
-      await _player.setVolume(volume * _trim * _fade.gain);
+      await _applyVolumes();
       _volumeSubject.add(volume);
       return right(unit);
     } catch (e, st) {
@@ -681,7 +729,7 @@ class JustAudioAdapter implements AudioServicePort {
   @override
   Future<Either<Failure, Unit>> setSpeed(double speed) async {
     try {
-      await _player.setSpeed(speed);
+      await _setSpeeds(speed);
       return right(unit);
     } catch (e, st) {
       return left(ErrorHandler.handle(e, st));
@@ -697,11 +745,37 @@ class JustAudioAdapter implements AudioServicePort {
 
   @override
   Future<void> dispose() async {
-    _fade.stop();
+    for (final deck in _decks) {
+      deck.fade.stop();
+    }
     await _playIntent.close();
     await _queueSubject.close();
     await _volumeSubject.close();
-    await _player.dispose();
+    await _activeDeck.close();
+    for (final deck in _decks) {
+      await deck.player.dispose();
+    }
+  }
+
+  /// Sends every deck its volume: the user's, the trim, its own fade.
+  Future<void> _applyVolumes() => _onEveryDeck((deck) => deck.applyVolume());
+
+  Future<void> _setSpeeds(double speed) =>
+      _onEveryDeck((deck) => deck.player.setSpeed(speed));
+
+  /// Runs [call] on every deck and waits for the active one: an idle deck
+  /// that fails is logged, never the user's command failing.
+  Future<void> _onEveryDeck(Future<void> Function(_Deck deck) call) {
+    final active = _active;
+    for (final deck in _decks) {
+      if (identical(deck, active)) continue;
+      unawaited(
+        call(deck).catchError((Object e, StackTrace st) {
+          ErrorHandler.handle(e, st);
+        }),
+      );
+    }
+    return call(active);
   }
 
   // ---------------------------------------------------------------------------
@@ -748,4 +822,21 @@ class JustAudioAdapter implements AudioServicePort {
     RepeatMode.all => LoopMode.all,
     RepeatMode.one => LoopMode.one,
   };
+}
+
+/// One of the adapter's players, with its own fade.
+final class _Deck {
+  _Deck(this.player, double Function() level) : _level = level {
+    fade = GainRamp((gain) => player.setVolume(_level() * gain));
+  }
+
+  final AudioPlayer player;
+
+  /// The volume before this deck's fade: the user's, times the trim.
+  final double Function() _level;
+
+  /// Fade at play, resume and pause, and after a track change.
+  late final GainRamp fade;
+
+  Future<void> applyVolume() => player.setVolume(_level() * fade.gain);
 }

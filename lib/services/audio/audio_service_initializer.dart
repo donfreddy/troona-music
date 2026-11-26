@@ -46,14 +46,14 @@ final class AudioServiceInitializer {
     required EqualizerProbe probe,
   }) async {
     final effects = Platform.isAndroid && !await probe.broken()
-        ? JustAudioEqualizer(probe: probe)
+        ? JustAudioEqualizer(probe: probe, decks: JustAudioAdapter.deckCount)
         : null;
     final adapter = JustAudioAdapter(
-      audioPipeline: effects?.pipeline,
+      audioPipelines: effects?.pipelines,
       beforeLoad: effects?.beforeLoad,
     );
     effects?.bind(
-      sessionIds: adapter.androidAudioSessionIdStream,
+      sessionIds: adapter.androidAudioSessionIdStreams,
       trim: adapter.setTrim,
     );
 
